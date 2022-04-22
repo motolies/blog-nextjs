@@ -1,6 +1,14 @@
-export default function PostComponent({children, title, subtitle, content}) {
+export default function PostComponent({children, isMain, postId}) {
 
     // TODO: 포스트ID 또는 main 값을 여기로 넘기면 되는 것일까?
+
+
+
+
+
+    const title = '제목';
+    const content = '내용';
+
 
     return (
         <>

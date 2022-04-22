@@ -5,7 +5,7 @@ import {useRouter} from 'next/router';
 import CommonLayout from '../components/layout/CommonLayout';
 import AdminLayout from '../components/layout/AdminLayout';
 
-function MyApp({Component, pageProps}) {
+function Skyscape({Component, pageProps}) {
 
     const router = useRouter();
     // const dispatch = useDispatch();
@@ -29,4 +29,4 @@ function MyApp({Component, pageProps}) {
 
 }
 
-export default MyApp
+export default Skyscape

@@ -1,4 +1,4 @@
-import {useDispatch, useSelector} from 'react-redux';
+import '../styles/global.css'
 import {useRouter} from 'next/router';
 import CommonLayout from '../components/layout/CommonLayout';
 import AdminLayout from '../components/layout/AdminLayout';

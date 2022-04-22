@@ -1,5 +1,5 @@
+import MetaHeader from "./common/MetaHeader";
 import Header from "./common/Header";
-import Nav from "./common/Nav";
 import Footer from './common/Footer'
 import Section from "./common/Section";
 
@@ -7,8 +7,8 @@ import Section from "./common/Section";
 export default function CommonLayout({children}) {
     return (
         <>
+            <MetaHeader/>
             <Header/>
-            <Nav/>
             <Section>
                 {children}
             </Section>

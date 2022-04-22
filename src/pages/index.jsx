@@ -11,8 +11,8 @@ export default function Index({post}) {
 }
 
 export async function getServerSideProps(context) {
-    const res = await axios.get(`http://localhost:9999/api/post`)
-    const post = res.data
+    const post = await axios.get(`http://localhost:9999/api/post`)
+        .then(res => res.data)
     return {
         props: {post}
     }

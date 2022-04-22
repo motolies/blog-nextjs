@@ -14,8 +14,8 @@ export default function Post({children, post}) {
 }
 
 export async function getServerSideProps(context) {
-    const res = await axios.get(`http://localhost:9999/api/post/${context.params.id}`)
-    const post = res.data
+    const post = await axios.get(`http://localhost:9999/api/post/${context.params.id}`)
+        .then(res => res.data)
     return {
         props: {post}
     }

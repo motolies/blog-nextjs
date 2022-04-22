@@ -1,9 +1,19 @@
 import PostComponent from "../components/PostComponent";
+import axios from "axios";
 
-export default function Index() {
-    // TODO: 메인포스트가 로딩되도록 한다
 
+export default function Index({post}) {
     return (
-        <PostComponent isMain={true}/>
+        <>
+            <PostComponent post={post}/>
+        </>
     )
+}
+
+export async function getServerSideProps(context) {
+    const res = await axios.get(`http://localhost:9999/api/post`)
+    const post = res.data
+    return {
+        props: {post}
+    }
 }

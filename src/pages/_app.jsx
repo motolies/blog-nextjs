@@ -4,6 +4,9 @@ import '../styles/rainbow.css'
 import {useRouter} from 'next/router';
 import CommonLayout from '../components/layout/CommonLayout';
 import AdminLayout from '../components/layout/AdminLayout';
+import {ThemeProvider} from "@mui/material";
+
+
 
 function Skyscape({Component, pageProps}) {
 

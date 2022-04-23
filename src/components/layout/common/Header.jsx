@@ -1,13 +1,27 @@
 import Link from "next/link";
+import {Grid} from "@mui/material";
 
 export default function Header({children}) {
     return (
         <>
             <nav className="top back-color">
                 <div className="back">
-                    <Link href={`/`}>
-                        <a className="main-link">motolies</a>
-                    </Link>
+                    <Grid
+                        container
+                        spacing={2}
+                    >
+                        <Grid item xs={7}>
+                            <Link href={`/`}>
+                                <a className="main-link">motolies</a>
+                            </Link>
+                        </Grid>
+                        <Grid item xs={5}>
+                            {/*여기가 검색과 로그인 버튼 자리*/}
+                        </Grid>
+
+
+                    </Grid>
+
                 </div>
             </nav>
             <style jsx>

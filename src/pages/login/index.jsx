@@ -109,19 +109,3 @@ export default function login() {
         </Grid>
     )
 }
-//
-// export async function getServerSideProps(context) {
-//     try {
-//         const key = await axiosClient.post('/api/auth/shake')
-//             .then(res => res.data)
-//         return {
-//             props: {rsaKey: key.rsaKey}
-//         }
-//     } catch (error) {
-//         console.log(error.response.status)
-//         console.log(error)
-//         return {
-//             props: {error}
-//         }
-//     }
-// }

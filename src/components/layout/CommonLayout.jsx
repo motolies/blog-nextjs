@@ -5,6 +5,7 @@ import Section from "./common/Section";
 import {createTheme, ThemeProvider} from "@mui/material";
 
 const theme = createTheme({
+
     palette: {
         primary: {
             main: '#6c757d'

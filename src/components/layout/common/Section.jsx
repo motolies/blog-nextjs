@@ -9,7 +9,7 @@ export default function Section({children, title, subtitle}) {
                   .section {
                     margin: 0 auto;
                     width: 90%;
-                    padding: 3rem 1.5rem 4rem 1rem;
+                    padding: 4.5rem 1.5rem 4rem 1rem;
                   }
 
                   .section:after {
@@ -25,7 +25,7 @@ export default function Section({children, title, subtitle}) {
                   @media ( min-width: 576px) {
                     .section {
                       width: 70%;
-                      padding: 4rem 1.5rem 4rem 1rem;
+                      padding: 4.5rem 1.5rem 4rem 1rem;
                     }
                   }
                 `}

@@ -1,25 +1,65 @@
 import Link from "next/link";
-import {Grid} from "@mui/material";
+import {Box, Button, Grid, TextField} from "@mui/material";
+import {useRouter} from "next/router";
+
 
 export default function Header({children}) {
+    const router = useRouter();
+
+    const loginClick = () => {
+        router.push('/login')
+    };
+
     return (
         <>
             <nav className="top back-color">
                 <div className="back">
                     <Grid
                         container
+                        direction="row"
                         spacing={2}
                     >
-                        <Grid item xs={7}>
+                        <Grid item xs={4}>
                             <Link href={`/`}>
                                 <a className="main-link">motolies</a>
                             </Link>
                         </Grid>
-                        <Grid item xs={5}>
+                        <Grid item xs={8} spacing={8}
+                              display="flex">
                             {/*여기가 검색과 로그인 버튼 자리*/}
+                            <Box
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="flex-end"
+                                sx={{mr: 1, width: '100%'}}
+                            >
+                                <TextField item sx={{
+                                    mr: 1
+                                    , '& .MuiInputBase-root': {
+                                        'background': '#fff'
+                                    }
+                                    , maxWidth: '400px'
+                                }}
+                                           fullWidth
+                                           id="outlined-search"
+                                           label="Search"
+                                           type="search"/>
+                                <Button item variant="contained"
+                                        sx={{mr: 1, height: '56px'}}
+                                        color="primary">Search
+                                </Button>
+
+                                {router.pathname === '/login' ? null :
+                                    <Button item variant="contained"
+                                            sx={{height: '56px'}}
+                                            color="primary"
+                                            onClick={loginClick}>Login
+                                    </Button>
+                                }
+
+                            </Box>
+
                         </Grid>
-
-
                     </Grid>
 
                 </div>
@@ -27,7 +67,7 @@ export default function Header({children}) {
             <style jsx>
                 {`
                   .top {
-                    height: 3rem;
+                    height: 4.5rem;
                     position: fixed;
                     top: 0;
                     right: 0;
@@ -40,7 +80,7 @@ export default function Header({children}) {
                     position: relative;
                     width: 100%;
                     height: 100%;
-                    line-height: 3rem;
+                    line-height: 4.5rem;
                   }
 
                   .main-link {
@@ -52,7 +92,6 @@ export default function Header({children}) {
 
                   @media ( min-width: 576px) {
                     .top {
-                      height: 3.5rem;
                       position: fixed;
                       top: 0;
                       right: 0;
@@ -61,7 +100,7 @@ export default function Header({children}) {
                     }
 
                     .back {
-                      line-height: 3.5rem;
+                      line-height: 4.5rem;
                     }
                   }
                 `}

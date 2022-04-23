@@ -8,7 +8,7 @@ export default function Section({children, title, subtitle}) {
                 {`
                   .section {
                     margin: 0 auto;
-                    width: 100%;
+                    width: 90%;
                     padding: 3rem 1.5rem 4rem 1rem;
                   }
 

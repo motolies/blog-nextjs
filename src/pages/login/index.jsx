@@ -55,38 +55,58 @@ export default function login() {
     };
 
     return (
-        <>
-            <Box component="form" onSubmit={handleSubmit} noValidate sx={{mt: 1}}>
-                <TextField
-                    margin="normal"
-                    required
-                    fullWidth
-                    id="username"
-                    label="UserName"
-                    name="username"
-                    autoComplete="email"
-                    autoFocus
-                />
-                <TextField
-                    margin="normal"
-                    required
-                    fullWidth
-                    name="password"
-                    label="Password"
-                    type="password"
-                    id="password"
-                    autoComplete="current-password"
-                />
-                <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    sx={{mt: 3, mb: 2}}
+        <Grid
+            container
+            spacing={0}
+            direction="column"
+            alignItems="center"
+            justifyContent="center"
+            style={{minHeight: '50vh'}}
+        >
+            <Grid
+                item
+                xs={3}
+            >
+                <Box component="form"
+                     onSubmit={handleSubmit}
+                     noValidate
+                     sx={{
+                         mt: 1
+                         , p: 5
+                         // , maxWidth: {xs: 350, md: 450}
+                     }}
                 >
-                    Login
-                </Button>
-            </Box>
-        </>
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        id="username"
+                        label="UserName"
+                        name="username"
+                        autoComplete="email"
+                        autoFocus
+                    />
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        name="password"
+                        label="Password"
+                        type="password"
+                        id="password"
+                        autoComplete="current-password"
+                    />
+                    <Button
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        sx={{mt: 3, mb: 2}}
+                    >
+                        Login
+                    </Button>
+                </Box>
+            </Grid>
+        </Grid>
     )
 }
 //

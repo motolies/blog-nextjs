@@ -3,7 +3,7 @@ import {useRouter} from "next/router";
 import axiosClient from "../../lib/axiosClient";
 
 
-export default function Post({children, post}) {
+export default function Post({children, post, statusCode}) {
     const router = useRouter()
     const {id} = router.query
     return (
@@ -14,9 +14,17 @@ export default function Post({children, post}) {
 }
 
 export async function getServerSideProps(context) {
-    const post = await axiosClient.get(`/api/post/${context.params.id}`)
-        .then(res => res.data)
-    return {
-        props: {post}
+    try {
+        const post = await axiosClient.get(`/api/post/${context.params.id}`)
+            .then(res => res.data)
+        return {
+            props: {post}
+        }
+    } catch (error) {
+        console.log(error.response.status)
+        console.log(error)
+        return {
+            props: {id: 0}
+        }
     }
 }

@@ -3,7 +3,7 @@ import {useRouter} from "next/router";
 import axiosClient from "../../lib/axiosClient";
 
 
-export default function Post({children, post, statusCode}) {
+export default function Post({children, post}) {
     const router = useRouter()
     const {id} = router.query
     return (

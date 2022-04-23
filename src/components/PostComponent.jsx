@@ -1,6 +1,6 @@
 export default function PostComponent({post}) {
 
-    if(post?.id !== 0 && post?.id > 0){
+    if (post?.id !== 0 && post?.id > 0) {
         return (
             <>
                 <div className="post">
@@ -13,8 +13,8 @@ export default function PostComponent({post}) {
                     </div>
                 </div>
             </>
-        );
-    }else{
+        )
+    } else {
         return (
             <>
                 <div className="post">
@@ -23,7 +23,7 @@ export default function PostComponent({post}) {
                     </div>
                 </div>
             </>
-        );
+        )
     }
 
 }

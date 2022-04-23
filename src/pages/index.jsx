@@ -1,6 +1,5 @@
 import PostComponent from "../components/PostComponent";
-import axios from "axios";
-
+import axiosClient from "../lib/axiosClient";
 
 export default function Index({post}) {
     return (
@@ -11,7 +10,7 @@ export default function Index({post}) {
 }
 
 export async function getServerSideProps(context) {
-    const post = await axios.get(`http://localhost:9999/api/post`)
+    const post = await axiosClient.get(`/api/post`)
         .then(res => res.data)
     return {
         props: {post}

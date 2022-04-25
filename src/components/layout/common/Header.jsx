@@ -24,8 +24,7 @@ export default function Header({children}) {
                                 <a className="main-link">motolies</a>
                             </Link>
                         </Grid>
-                        <Grid item xs={8} spacing={8}
-                              display="flex">
+                        <Grid item xs={8} display="flex">
                             {/*여기가 검색과 로그인 버튼 자리*/}
                             <Box
                                 display="flex"

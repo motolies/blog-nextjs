@@ -1,5 +1,5 @@
-import PostComponent from "../components/PostComponent";
-import axiosClient from "../lib/axiosClient";
+import PostComponent from "../components/PostComponent"
+import axiosClient from "../service/axiosClient"
 
 export default function Index({post}) {
     return (

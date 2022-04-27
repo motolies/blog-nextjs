@@ -14,7 +14,8 @@ const theme = createTheme({
             main: '#398AB9',
         },
         error: {
-            main: '#E8630A',
+            // main: '#E8630A',
+            main: '#FF3F3F',
         },
         warning: {
             main: '#FCD900',

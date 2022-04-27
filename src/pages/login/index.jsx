@@ -1,58 +1,53 @@
-import axiosClient from "../../lib/axiosClient";
-import {Box, Button, Checkbox, FormControlLabel, Grid, TextField} from "@mui/material";
-import Link from "next/link";
-import forge from 'node-forge'
+import {Alert, Box, Button, Grid, TextField} from "@mui/material"
+import {useDispatch, useSelector} from 'react-redux'
+import {loginAction, loginErrorMessage} from '../../store/actions/userActions'
+import {useEffect, useState} from "react"
 
-async function encPassword(pass) {
-    try {
-        const {resPublicKey, mEncPass} = await axiosClient.post('/api/auth/shake')
-            .then(res => {
-                const resPublicKey = res.data.rsaKey
-                const publicKey = forge.pki.publicKeyFromPem('-----BEGIN PUBLIC KEY----- ' + resPublicKey + ' -----END PUBLIC KEY-----')
-                const encData = publicKey.encrypt(pass, 'RSA-OAEP', {
-                    md: forge.md.sha256.create(),
-                    mgf1: {
-                        md: forge.md.sha1.create()
-                    }
-                })
-                const mEncPass = forge.util.encode64(encData)
-                return {resPublicKey, mEncPass}
-            });
-        return {resPublicKey, mEncPass}
-    } catch (err) {
-        return err
+export default function LoginPage() {
+
+    const dispatch = useDispatch()
+    const userState = useSelector((state) => state.user)
+    const [username, setUsername] = useState('')
+    const [password, setPassword] = useState('')
+
+    useEffect(() => {
+        // 로그인 완료 후 이동
+        if (userState.isAuthenticated && userState.user.userName) {
+            window.location.href = '/'
+        }
+    }, [userState])
+
+    useEffect(() => {
+        // TODO : 로그인이 되어있을 때 루트 페이지로 이동한다. 그러니 현재는 root 페이지가 SSR되어 있어서 redux가 reset 된다.
+
+        if (userState.isAuthenticated && userState.user.userName) {
+            window.location.href = '/'
+        }
+        return () => {
+            dispatch(loginErrorMessage({msg: ''}))
+        }
+    }, [])
+
+    const onChangeUsername = (e) => {
+        setUsername(e.target.value)
     }
-};
 
-export default function login() {
+    const onChangePassword = (e) => {
+        setPassword(e.target.value)
+    }
 
-    // 로그인 기능을 사용해보자
-    const handleSubmit = async (event) => {
-        // 로그인 시작 & 서브밋 요청이 가기전에 해제한다.
-        event.preventDefault();
-        const data = new FormData(event.currentTarget);
-        const {resPublicKey, mEncPass} = await encPassword(event.target.password.value)
+    const onClickLogin = () => {
 
-        const loginReq = {
-            username: data.get('username'),
-            password: mEncPass,
-            rsaKey: resPublicKey
+        if (username.length === 0 || password.length === 0) {
+            dispatch(loginErrorMessage({msg: 'Username and password are required'}))
+            return
         }
 
-        axiosClient.post(`/api/auth/login`, loginReq)
-            .then(res => {
-                if (res.data.token !== undefined) {
-                    // TODO : redux로 관리해야함, 우선은 쿠키로 받아옴
-                    window.location.href = '/'
-                } else {
-                    alert(res.data.message)
-                }
-            })
-            .catch(err => {
-                alert(err)
-            })
-
-    };
+        dispatch(loginAction({
+            username: username
+            , password: password
+        }))
+    }
 
     return (
         <Grid
@@ -67,14 +62,12 @@ export default function login() {
                 item
                 xs={3}
             >
-                <Box component="form"
-                     onSubmit={handleSubmit}
-                     noValidate
-                     sx={{
-                         mt: 1
-                         , p: 5
-                         // , maxWidth: {xs: 350, md: 450}
-                     }}
+                <Box
+                    noValidate
+                    sx={{
+                        mt: 1
+                        , p: 5
+                    }}
                 >
                     <TextField
                         margin="normal"
@@ -85,6 +78,7 @@ export default function login() {
                         name="username"
                         autoComplete="email"
                         autoFocus
+                        onChange={onChangeUsername}
                     />
                     <TextField
                         margin="normal"
@@ -95,15 +89,24 @@ export default function login() {
                         type="password"
                         id="password"
                         autoComplete="current-password"
+                        onChange={onChangePassword}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                onClickLogin()
+                            }
+                        }}
                     />
                     <Button
+                        disabled={userState.isLoading}
                         type="submit"
                         fullWidth
                         variant="contained"
                         sx={{mt: 3, mb: 2}}
+                        onClick={onClickLogin}
                     >
                         Login
                     </Button>
+                    {userState.error !== '' && <Alert severity="error">{userState.error}</Alert>}
                 </Box>
             </Grid>
         </Grid>

@@ -32,7 +32,7 @@ export default function Header({children}) {
                                 justifyContent="flex-end"
                                 sx={{mr: 1, width: '100%'}}
                             >
-                                <TextField item sx={{
+                                <TextField item="true" sx={{
                                     mr: 1
                                     , '& .MuiInputBase-root': {
                                         'background': '#fff'
@@ -43,13 +43,13 @@ export default function Header({children}) {
                                            id="outlined-search"
                                            label="Search"
                                            type="search"/>
-                                <Button item variant="contained"
+                                <Button item="true" variant="contained"
                                         sx={{mr: 1, height: '56px'}}
                                         color="primary">Search
                                 </Button>
 
                                 {router.pathname === '/login' ? null :
-                                    <Button item variant="contained"
+                                    <Button item="true" variant="contained"
                                             sx={{height: '56px'}}
                                             color="primary"
                                             onClick={loginClick}>Login

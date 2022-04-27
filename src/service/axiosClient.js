@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from 'axios'
 
 const axiosClient = axios.create({
     baseURL:
@@ -6,8 +6,8 @@ const axiosClient = axios.create({
             ? process.env.BLOG_URL_DEV
             : process.env.BLOG_URL_PROD,
     withCredentials: true,
-});
+})
 
-axiosClient.defaults.headers.post['Content-Type'] = 'application/json';
+axiosClient.defaults.headers.post['Content-Type'] = 'application/json'
 
-export default axiosClient;
+export default axiosClient

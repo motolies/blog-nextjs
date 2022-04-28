@@ -2,9 +2,11 @@ import {Alert, Box, Button, Grid, TextField} from "@mui/material"
 import {useDispatch, useSelector} from 'react-redux'
 import {loginAction, loginErrorMessage} from '../../store/actions/userActions'
 import {useEffect, useState} from "react"
+import {useRouter} from 'next/router'
 
 export default function LoginPage() {
 
+    const router = useRouter()
     const dispatch = useDispatch()
     const userState = useSelector((state) => state.user)
     const [username, setUsername] = useState('')
@@ -13,7 +15,7 @@ export default function LoginPage() {
     useEffect(() => {
         // 로그인 완료 후 이동
         if (userState.isAuthenticated && userState.user.userName) {
-            window.location.href = '/'
+            router.push('/')
         }
     }, [userState])
 
@@ -21,7 +23,8 @@ export default function LoginPage() {
         // TODO : 로그인이 되어있을 때 루트 페이지로 이동한다. 그러니 현재는 root 페이지가 SSR되어 있어서 redux가 reset 된다.
 
         if (userState.isAuthenticated && userState.user.userName) {
-            window.location.href = '/'
+            // window.location.href = '/'
+            router.push('/')
         }
         return () => {
             dispatch(loginErrorMessage({msg: ''}))

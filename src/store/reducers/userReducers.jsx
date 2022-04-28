@@ -1,4 +1,14 @@
-import {USER_LOGIN, USER_LOGIN_ERROR, USER_LOGIN_ERROR_MESSAGE_SUCCESS, USER_LOGIN_SUCCESS, USER_LOGOUT, USER_LOGOUT_ERROR, USER_LOGOUT_SUCCESS} from '../types/userTypes'
+import {
+    LOAD_USER_REQUEST_SUCCESS,
+    SET_USER_SUCCESS,
+    USER_LOGIN,
+    USER_LOGIN_ERROR,
+    USER_LOGIN_ERROR_MESSAGE_SUCCESS,
+    USER_LOGIN_SUCCESS,
+    USER_LOGOUT,
+    USER_LOGOUT_ERROR,
+    USER_LOGOUT_SUCCESS
+} from '../types/userTypes'
 
 export default function userReducers(stats = {
     isAuthenticated: false,
@@ -11,13 +21,14 @@ export default function userReducers(stats = {
         case USER_LOGIN_ERROR_MESSAGE_SUCCESS:
             return {
                 ...stats,
-                error: action.payload.msg,
+                error: action.payload,
             }
         case USER_LOGIN:
             return {
                 ...stats,
                 isLoading: true
             }
+        case LOAD_USER_REQUEST_SUCCESS:
         case USER_LOGIN_SUCCESS:
             return {
                 ...stats,

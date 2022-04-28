@@ -11,6 +11,9 @@ const userService = {
             rsaKey: publicKey
         })
     },
+    profile: () => {
+        return axiosClient.get(`/api/auth/profile`)
+    },
 }
 
 export default userService

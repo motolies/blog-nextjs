@@ -1,7 +1,19 @@
-import {combineReducers} from 'redux';
-import userReducers from "./userReducers";
+import {combineReducers} from 'redux'
+import {HYDRATE} from "next-redux-wrapper"
+import userReducers from "./userReducers"
 
-export default combineReducers({
-    // reducers
-    user: userReducers
-});
+
+const rootReducer = (state, action) => {
+    switch (action.type) {
+        case HYDRATE:
+            // 서버에서 받은 내용으로 클라이언트 redux를 초기화한다.
+            return {...state, ...action.payload}
+        default:
+            return combineReducers({
+                // reducers
+                user: userReducers
+            })(state, action)
+    }
+}
+
+export default rootReducer

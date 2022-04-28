@@ -1,10 +1,11 @@
 import Link from "next/link";
 import {Box, Button, Grid, TextField} from "@mui/material";
 import {useRouter} from "next/router";
-
+import {useDispatch, useSelector} from 'react-redux'
 
 export default function Header({children}) {
     const router = useRouter();
+    const userState = useSelector((state) => state.user)
 
     const loginClick = () => {
         router.push('/login')
@@ -23,6 +24,7 @@ export default function Header({children}) {
                             <Link href={`/`}>
                                 <a className="main-link">motolies</a>
                             </Link>
+                            <span>{userState.user.userName}</span>
                         </Grid>
                         <Grid item xs={8} display="flex">
                             {/*여기가 검색과 로그인 버튼 자리*/}

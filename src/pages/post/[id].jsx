@@ -1,11 +1,8 @@
 import PostComponent from "../../components/PostComponent"
-import {useRouter} from "next/router"
 import axiosClient from "../../service/axiosClient"
-
+import service from "../../service"
 
 export default function Post({children, post}) {
-    const router = useRouter()
-    const {id} = router.query
     return (
         <>
             <PostComponent post={post}/>
@@ -14,8 +11,10 @@ export default function Post({children, post}) {
 }
 
 export async function getServerSideProps(context) {
+    // 서버사이드 렌더링 할 때는 사용자 정보를 다시 넣어주도록 하자.
     try {
-        const post = await axiosClient.get(`/api/post/${context.params.id}`)
+        const postId = context.params.id
+        const post = await service.post.getPost({postId})
             .then(res => res.data)
         return {
             props: {post}

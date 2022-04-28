@@ -1,6 +1,7 @@
 import PostComponent from "../components/PostComponent"
 import axiosClient from "../service/axiosClient"
 import {LOAD_USER_REQUEST} from "../store/types/userTypes"
+import service from "../service"
 
 export default function Index({post}) {
     return (
@@ -26,7 +27,7 @@ Index.getInitialProps = async (ctx) => {
         })
     }
 
-    const post = await axiosClient.get(`/api/post`)
+    const post = await service.post.mainPost()
         .then(res => res.data)
     return {
         post

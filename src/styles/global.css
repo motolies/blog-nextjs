@@ -5,5 +5,9 @@ body{
 }
 .back-color {
     color: #fff;
-    background-color: #343a40;
+    background-color: #398AB9;
+}
+
+.header-back-color {
+    background-color: #398AB9;
 }

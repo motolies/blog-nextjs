@@ -3,6 +3,7 @@ import {useDispatch, useSelector} from 'react-redux'
 import {loginAction, loginErrorMessage} from '../../store/actions/userActions'
 import {useEffect, useState} from "react"
 import {useRouter} from 'next/router'
+import {LOAD_USER_REQUEST} from "../../store/types/userTypes"
 
 export default function LoginPage() {
 
@@ -20,12 +21,16 @@ export default function LoginPage() {
     }, [userState])
 
     useEffect(() => {
-        // TODO : 로그인이 되어있을 때 루트 페이지로 이동한다. 그러니 현재는 root 페이지가 SSR되어 있어서 redux가 reset 된다.
+        // 우선 사용자를 로드해보고
+        dispatch({
+            type: LOAD_USER_REQUEST,
+        })
 
         if (userState.isAuthenticated && userState.user.userName) {
-            // window.location.href = '/'
+            // 사용자 정보가 있으면 루트로 이동
             router.push('/')
         }
+
         return () => {
             dispatch(loginErrorMessage({msg: ''}))
         }
@@ -115,3 +120,4 @@ export default function LoginPage() {
         </Grid>
     )
 }
+

@@ -16,7 +16,7 @@ export default function Post({children, post}) {
 Post.getInitialProps = async (ctx) => {
     const {req, store} = ctx
     const state = store.getState()
-    const cookie = req.headers.cookie
+    const cookie = req?.headers?.cookie
 
     if (cookie) {
         // 서버 환경일 때만 쿠키를 심어줌. 클라이언트 환경일 때는 브라우저가 자동으로 쿠키를 넣어줌

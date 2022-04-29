@@ -5,6 +5,7 @@ import CommonLayout from '../components/layout/CommonLayout'
 import AdminLayout from '../components/layout/AdminLayout'
 import {wrapper} from '../store'
 import App from "next/app"
+import {SnackbarProvider} from "notistack"
 
 
 class Skyscape extends App {
@@ -26,19 +27,24 @@ class Skyscape extends App {
     render() {
         const {Component, pageProps} = this.props
 
+
         if (this.props.router.pathname.startsWith('/admin')) {
             // TODO : 로그인한 상태인지 backend로 보내서 사용자 정보를 가져와 본다.
             // router.push('/admin')
             return (
-                <AdminLayout>
-                    <Component {...pageProps} />
-                </AdminLayout>
+                <SnackbarProvider autoHideDuration={3000}>
+                    <AdminLayout>
+                        <Component {...pageProps}/>
+                    </AdminLayout>
+                </SnackbarProvider>
             )
         } else {
             return (
-                <CommonLayout>
-                    <Component {...pageProps} />
-                </CommonLayout>
+                <SnackbarProvider autoHideDuration={3000}>
+                    <CommonLayout>
+                        <Component {...pageProps} />
+                    </CommonLayout>
+                </SnackbarProvider>
             )
         }
     }

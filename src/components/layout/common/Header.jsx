@@ -1,19 +1,26 @@
-import Link from "next/link";
-import {Box, Button, Grid, TextField} from "@mui/material";
-import {useRouter} from "next/router";
-import {useDispatch, useSelector} from 'react-redux'
+import Link from "next/link"
+import {Box, Divider, Grid, TextField} from "@mui/material"
+import {useRouter} from "next/router"
+import {useSelector} from 'react-redux'
+import IconButton from "@mui/material/IconButton"
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
+import LoginIcon from '@mui/icons-material/Login'
 
 export default function Header({children}) {
-    const router = useRouter();
+    const router = useRouter()
     const userState = useSelector((state) => state.user)
 
-    const loginClick = () => {
+    const onClickLogin = () => {
         router.push('/login')
-    };
+    }
+
+    const onClickAdmin = () => {
+        router.push('/admin')
+    }
 
     return (
         <>
-            <nav className="top back-color">
+            <nav className="top header-back-color">
                 <div className="back">
                     <Grid
                         container
@@ -24,7 +31,6 @@ export default function Header({children}) {
                             <Link href={`/`}>
                                 <a className="main-link">motolies</a>
                             </Link>
-                            <span>{userState.user.userName}</span>
                         </Grid>
                         <Grid item xs={8} display="flex">
                             {/*여기가 검색과 로그인 버튼 자리*/}
@@ -34,29 +40,27 @@ export default function Header({children}) {
                                 justifyContent="flex-end"
                                 sx={{mr: 1, width: '100%'}}
                             >
-                                <TextField item="true" sx={{
-                                    mr: 1
-                                    , '& .MuiInputBase-root': {
-                                        'background': '#fff'
-                                    }
-                                    , maxWidth: '400px'
-                                }}
-                                           fullWidth
-                                           id="outlined-search"
-                                           label="Search"
-                                           type="search"/>
-                                <Button item="true" variant="contained"
-                                        sx={{mr: 1, height: '56px'}}
-                                        color="primary">Search
-                                </Button>
 
-                                {router.pathname === '/login' ? null :
-                                    <Button item="true" variant="contained"
-                                            sx={{height: '56px'}}
-                                            color="primary"
-                                            onClick={loginClick}>Login
-                                    </Button>
+                                <TextField label="Search" variant="standard"
+                                           size="small"
+                                           sx={{
+                                               mr: 1
+                                               , maxWidth: '400px'
+                                           }}/>
+
+                                <Divider orientation="vertical" variant="middle" flexItem/>
+
+                                {router.pathname === '/login' || userState.user.userName ? null :
+                                    <IconButton aria-label="delete" onClick={onClickLogin}>
+                                        <LoginIcon/>
+                                    </IconButton>
                                 }
+                                {!userState.user.userName ? null :
+                                    <IconButton aria-label="delete" onClick={onClickAdmin}>
+                                        <AdminPanelSettingsIcon/>
+                                    </IconButton>
+                                }
+
 
                             </Box>
 
@@ -68,7 +72,7 @@ export default function Header({children}) {
             <style jsx>
                 {`
                   .top {
-                    height: 4.5rem;
+                    height: 4rem;
                     position: fixed;
                     top: 0;
                     right: 0;
@@ -81,7 +85,7 @@ export default function Header({children}) {
                     position: relative;
                     width: 100%;
                     height: 100%;
-                    line-height: 4.5rem;
+                    line-height: 4rem;
                   }
 
                   .main-link {
@@ -101,11 +105,11 @@ export default function Header({children}) {
                     }
 
                     .back {
-                      line-height: 4.5rem;
+                      line-height: 4rem;
                     }
                   }
                 `}
             </style>
         </>
-    );
+    )
 }

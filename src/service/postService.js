@@ -16,6 +16,9 @@ const postService = {
             publicStatus: publicStatus
         })
     },
+    deleteTag: ({postId, tagId}) => {
+        return axiosClient.delete(`/api/post/${postId}/tag/${tagId}`)
+    },
 }
 
 export default postService

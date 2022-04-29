@@ -1,4 +1,4 @@
-import {Grid} from "@mui/material"
+import {Box, Grid} from "@mui/material"
 import IconButton from '@mui/material/IconButton'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
@@ -11,6 +11,7 @@ import {useRouter} from "next/router"
 import {useSnackbar} from "notistack"
 import {useSelector} from "react-redux"
 import PublicConfirm from "./PublicConfirm"
+import TagComponent from "./TagComponent"
 
 
 export default function PostComponent({post}) {
@@ -21,6 +22,7 @@ export default function PostComponent({post}) {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [showPublicConfirm, setShowPublicConfirm] = useState(false)
     const [postPublic, setPostPublic] = useState(post.public)
+    const [tags, setTags] = useState(post.tags)
 
     const [publicConfirmQuestion, setPublicConfirmQuestion] = useState('')
 
@@ -82,6 +84,22 @@ export default function PostComponent({post}) {
         setShowPublicConfirm(false)
     }
 
+    const deletePostTag = async ({tagId}) => {
+        await service.post.deleteTag({postId: post.id, tagId: tagId})
+            .then(res => {
+                if (res.status === 200) {
+                    enqueueSnackbar("태그 삭제에 성공하였습니다.", {variant: "success"})
+                    // TODO : 여기서 post.tag 에서 태그를 하나 삭제한당
+                    // https://dev.to/andyrewlee/cheat-sheet-for-updating-objects-and-arrays-in-react-state-48np
+                    const newTags = post.tag.filter((tag) => {
+                        return tag.id !== tagId
+                    })
+                    setTags(newTags)
+                }
+            }).catch(() => {
+                enqueueSnackbar("태그 삭제에 실패하였습니다.", {variant: "error"})
+            })
+    }
 
     if (post?.id !== 0 && post?.id > 0) {
         return (
@@ -121,9 +139,11 @@ export default function PostComponent({post}) {
                         </Grid>
                     </Grid>
                     <hr/>
-                    <div>
+                    <Box sx={{mt: 5, mb: 5}}>
                         <div className="content" dangerouslySetInnerHTML={{__html: post.body}}/>
-                    </div>
+                    </Box>
+                    <hr/>
+                    <TagComponent tagList={post.tag} deletePostTag={deletePostTag}/>
                 </div>
                 <DeleteConfirm open={showDeleteConfirm} question={'현재 포스트를 삭제하시겠습니까?'} onConfirm={deletePost} onCancel={deletePostCancel}/>
                 <PublicConfirm open={showPublicConfirm} question={publicConfirmQuestion} onConfirm={setPublicStatus} onCancel={publicPostCancel}/>
@@ -131,13 +151,11 @@ export default function PostComponent({post}) {
         )
     } else {
         return (
-            <>
-                <div className="post">
-                    <div>
-                        <h2>No post found</h2>
-                    </div>
+            <div className="post">
+                <div>
+                    <h2>No post found</h2>
                 </div>
-            </>
+            </div>
         )
     }
 

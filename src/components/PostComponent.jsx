@@ -5,7 +5,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import PublicIcon from '@mui/icons-material/Public'
 import PublicOffIcon from '@mui/icons-material/PublicOff'
 import DeleteConfirm from "./DeleteConfirm"
-import {useState} from "react"
+import {useEffect, useState} from "react"
 import service from "../service"
 import {useRouter} from "next/router"
 import {useSnackbar} from "notistack"
@@ -22,8 +22,7 @@ export default function PostComponent({post}) {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [showPublicConfirm, setShowPublicConfirm] = useState(false)
     const [postPublic, setPostPublic] = useState(post.public)
-    const [tags, setTags] = useState(post.tags)
-
+    const [tags, setTags] = useState(post.tag)
     const [publicConfirmQuestion, setPublicConfirmQuestion] = useState('')
 
     const showDeleteConfirmDialog = () => {
@@ -91,7 +90,7 @@ export default function PostComponent({post}) {
                     enqueueSnackbar("태그 삭제에 성공하였습니다.", {variant: "success"})
                     // TODO : 여기서 post.tag 에서 태그를 하나 삭제한당
                     // https://dev.to/andyrewlee/cheat-sheet-for-updating-objects-and-arrays-in-react-state-48np
-                    const newTags = post.tag.filter((tag) => {
+                    const newTags = tags.filter((tag) => {
                         return tag.id !== tagId
                     })
                     setTags(newTags)
@@ -143,7 +142,7 @@ export default function PostComponent({post}) {
                         <div className="content" dangerouslySetInnerHTML={{__html: post.body}}/>
                     </Box>
                     <hr/>
-                    <TagComponent tagList={post.tag} deletePostTag={deletePostTag}/>
+                    <TagComponent tagList={tags} deletePostTag={deletePostTag}/>
                 </div>
                 <DeleteConfirm open={showDeleteConfirm} question={'현재 포스트를 삭제하시겠습니까?'} onConfirm={deletePost} onCancel={deletePostCancel}/>
                 <PublicConfirm open={showPublicConfirm} question={publicConfirmQuestion} onConfirm={setPublicStatus} onCancel={publicPostCancel}/>

@@ -62,11 +62,6 @@ export default function TagComponent({tagList, deletePostTag}) {
     const userState = useSelector((state) => state.user)
     const [tags, setTags] = useState(tagList)
 
-    useEffect(() => {
-        console.log('요때 변경된다?')
-        setTags(tagList)
-    }, [...tagList])
-
     return (
         <Grid
             container
@@ -92,7 +87,7 @@ export default function TagComponent({tagList, deletePostTag}) {
                         , flexWrap: 'wrap'
                     }}
                 >
-                    {tags.map((tag) => <Tag key={tag.id} id={tag.id} name={tag.name} deletePostTag={deletePostTag}/>)}
+                    {tagList.map((tag) => <Tag key={tag.id} id={tag.id} name={tag.name} deletePostTag={deletePostTag}/>)}
                 </Box>
             </Grid>
         </Grid>

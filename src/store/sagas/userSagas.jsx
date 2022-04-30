@@ -53,7 +53,8 @@ function* loadUser() {
             payload: auth.data
         })
     } catch (err) {
-        yield put({type: USER_LOGIN_ERROR, payload: 'Login failed'})
+        // 사용자 로드를 실패하면 아무런 메시지를 주지 않는다.
+        // yield put({type: USER_LOGIN_ERROR, payload: 'Login failed'})
     }
 }
 

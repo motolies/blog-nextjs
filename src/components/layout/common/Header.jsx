@@ -43,10 +43,17 @@ export default function Header({children}) {
 
                                 <TextField label="Search" variant="standard"
                                            size="small"
+                                           fullWidth={true}
                                            sx={{
                                                mr: 1
                                                , maxWidth: '400px'
-                                           }}/>
+                                           }}
+                                           onKeyDown={(e) => {
+                                               if (e.key === 'Enter') {
+                                                   router.push(`/search?q=${e.target.value}`)
+                                               }
+                                           }}
+                                />
 
                                 <Divider orientation="vertical" variant="middle" flexItem/>
 

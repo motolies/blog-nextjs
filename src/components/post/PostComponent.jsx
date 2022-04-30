@@ -4,14 +4,14 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import PublicIcon from '@mui/icons-material/Public'
 import PublicOffIcon from '@mui/icons-material/PublicOff'
-import DeleteConfirm from "./DeleteConfirm"
+import DeleteConfirm from "../DeleteConfirm"
 import {useEffect, useState} from "react"
-import service from "../service"
+import service from "../../service"
 import {useRouter} from "next/router"
 import {useSnackbar} from "notistack"
 import {useSelector} from "react-redux"
-import PublicConfirm from "./PublicConfirm"
-import TagComponent from "./TagComponent"
+import PublicConfirm from "../PublicConfirm"
+import TagGroupComponent from "./TagGroupComponent"
 
 
 export default function PostComponent({post}) {
@@ -142,7 +142,7 @@ export default function PostComponent({post}) {
                         <div className="content" dangerouslySetInnerHTML={{__html: post.body}}/>
                     </Box>
                     <hr/>
-                    <TagComponent tagList={tags} deletePostTag={deletePostTag}/>
+                    <TagGroupComponent tagList={tags} deletePostTag={deletePostTag}/>
                 </div>
                 <DeleteConfirm open={showDeleteConfirm} question={'현재 포스트를 삭제하시겠습니까?'} onConfirm={deletePost} onCancel={deletePostCancel}/>
                 <PublicConfirm open={showPublicConfirm} question={publicConfirmQuestion} onConfirm={setPublicStatus} onCancel={publicPostCancel}/>

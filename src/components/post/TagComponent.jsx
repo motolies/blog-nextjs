@@ -4,9 +4,9 @@ import {useSelector} from "react-redux"
 import {useSnackbar} from "notistack"
 import IconButton from "@mui/material/IconButton"
 import DeleteIcon from "@mui/icons-material/Delete"
-import DeleteConfirm from "./DeleteConfirm"
+import DeleteConfirm from "../DeleteConfirm"
 
-const Tag = (props) => {
+export const Tag = (props) => {
     const userState = useSelector((state) => state.user)
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
     // TODO : 이름에는 태그이름으로 검색한 결과가 나오는 페이지로 이동
@@ -55,41 +55,5 @@ const Tag = (props) => {
             }
             <DeleteConfirm open={showDeleteConfirm} question={question} onConfirm={deleteTag} onCancel={deleteTagCancel}/>
         </Box>
-    )
-}
-
-export default function TagComponent({tagList, deletePostTag}) {
-    const userState = useSelector((state) => state.user)
-    const [tags, setTags] = useState(tagList)
-
-    return (
-        <Grid
-            container
-            direction="row"
-            spacing={2}
-        >
-            <Grid item>
-                <h3>#tags</h3>
-            </Grid>
-
-            {!(userState.isAuthenticated && userState.user.userName) ? null :
-                <Grid item xs={12}>
-                    태그 추가 기능 넣을 곳
-                </Grid>
-            }
-
-            <Grid item xs={12}>
-                <Box
-                    display="flex"
-                    sx={{
-                        mr: 1
-                        , width: '100%'
-                        , flexWrap: 'wrap'
-                    }}
-                >
-                    {tagList.map((tag) => <Tag key={tag.id} id={tag.id} name={tag.name} deletePostTag={deletePostTag}/>)}
-                </Box>
-            </Grid>
-        </Grid>
     )
 }

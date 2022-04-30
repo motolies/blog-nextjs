@@ -1,4 +1,4 @@
-import PostComponent from "../components/PostComponent"
+import PostComponent from "../components/post/PostComponent"
 import axiosClient from "../service/axiosClient"
 import {LOAD_USER_REQUEST} from "../store/types/userTypes"
 import service from "../service"

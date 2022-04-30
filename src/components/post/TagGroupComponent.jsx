@@ -4,7 +4,7 @@ import {useSelector} from "react-redux"
 import {useSnackbar} from "notistack"
 import IconButton from "@mui/material/IconButton"
 import DeleteIcon from "@mui/icons-material/Delete"
-import DeleteConfirm from "../DeleteConfirm"
+import DeleteConfirm from "../confirm/DeleteConfirm"
 import {Tag} from "./TagComponent"
 
 

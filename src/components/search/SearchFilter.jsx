@@ -1,5 +1,8 @@
 import {Button, Grid, MenuItem, Paper, TextField} from "@mui/material"
 import {useEffect, useState} from "react"
+import {useSnackbar} from "notistack"
+import SearchCategory from "./SearchCategory"
+import CategoryTreeView from "../CategoryTreeView"
 
 const searchTypes = [
     {
@@ -7,7 +10,7 @@ const searchTypes = [
         value: "TITLE"
     },
     {
-        name: "내용만",
+        name: "내용",
         value: "CONTENT"
     },
     {
@@ -16,26 +19,54 @@ const searchTypes = [
     },
 ]
 
-export default function SearchFilter({searchText, searchType, searchCategories, searchTags}) {
-    const [category, setCategory] = useState('')
+export default function SearchFilter({onSearch, defaultText, defaultType, defaultCategories, defaultTags}) {
+    const {enqueueSnackbar, closeSnackbar} = useSnackbar()
 
-    const categoryChange = (event) => {
-        console.log(`change: ${event.target.value}`)
+    const [text, setText] = useState('')
+    const [type, setType] = useState('')
+    const [categories, setCategories] = useState([])
+    const [tags, setTags] = useState([])
 
-        setCategory(event.target.value)
+    const onSearchStart = () => {
+        if (text.length < 2) {
+            enqueueSnackbar('검색어는 2글자 이상이어야 합니다.', {variant: 'error'})
+            return
+        }
+
+        onSearch({
+            text,
+            type,
+            categories,
+            tags
+        })
+    }
+
+    const onChangeCategory = (category) => {
+        setCategories(category)
+    }
+
+    const onChangeType = (e) => {
+        setType(e.target.value)
+    }
+
+    const onChangeText = (e) => {
+        setText(e.target.value)
     }
 
     useEffect(() => {
-        if(searchType !== undefined) {
-            setCategory(searchType)
+        if (defaultType !== undefined) {
+            setType(defaultType)
         }
-
-        console.log(`filter: ${searchType}`)
-    }, [searchType])
-
-    const testButton = () => {
-        setCategory('FULL')
-    }
+        if (defaultText !== undefined) {
+            setText(defaultText)
+        }
+        if (defaultCategories !== undefined) {
+            setCategories(defaultCategories)
+        }
+        if (defaultTags !== undefined) {
+            setTags(defaultTags)
+        }
+    }, [defaultText, defaultType, defaultCategories, defaultTags])
 
     return (
 
@@ -45,7 +76,6 @@ export default function SearchFilter({searchText, searchType, searchCategories, 
                    , px: 3
                    , pb: 2
                }}>
-            <Button onClick={testButton}>text</Button>
             <Grid container
                   direction="row"
                   justify="center"
@@ -53,12 +83,12 @@ export default function SearchFilter({searchText, searchType, searchCategories, 
                   spacing={2}
                   style={{marginTop: '10px'}}
             >
-                <Grid item sx={{m:0, p:0}} xs={12}>
+                <Grid item sx={{m: 0, p: 0}} xs={12}>
                     <TextField
                         select
                         label="검색 범위"
-                        value={category}
-                        onChange={categoryChange}
+                        value={type}
+                        onChange={onChangeType}
                         fullWidth
                     >
                         {searchTypes.map(option => (
@@ -68,6 +98,37 @@ export default function SearchFilter({searchText, searchType, searchCategories, 
                         ))}
                     </TextField>
                 </Grid>
+                <Grid item sx={{m: 0, p: 0}} xs={12}>
+                    <TextField
+                        label="검색어"
+                        value={text}
+                        onChange={onChangeText}
+                        fullWidth
+                        autoComplete="email"
+                        autoFocus
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                onSearchStart()
+                            }
+                        }}
+                    >
+                        {searchTypes.map(option => (
+                            <MenuItem key={option.value} value={option.value}>
+                                {option.name}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+                </Grid>
+                <Grid item sx={{m: 0, p: 0}} xs={12}>
+                    <SearchCategory onChangeCategory={onChangeCategory} defaultCategories={categories}/>
+                </Grid>
+
+                <Grid item sx={{m: 0, p: 0}} xs={12}>
+                    <CategoryTreeView/>
+                </Grid>
+
+
+
             </Grid>
         </Paper>
     )

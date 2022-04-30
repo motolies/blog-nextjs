@@ -29,7 +29,7 @@ class Skyscape extends App {
 
 
         if (this.props.router.pathname.startsWith('/admin')) {
-            // TODO : 로그인한 상태인지 backend로 보내서 사용자 정보를 가져와 본다.
+            // TODO : 로그인한 상태인지 redux에서 확인해보고 로그인 상태가 아니라면 login 페이지로 보낸다
             // router.push('/admin')
             return (
                 <SnackbarProvider autoHideDuration={3000}>

@@ -1,10 +1,12 @@
 import axiosClient from './axiosClient'
 
 const categoryService = {
-    getCategory: () => {
+    getCategoryFlat: () => {
         return axiosClient.get(`/api/category`)
     },
-
+    getCategoryRoot: () => {
+        return axiosClient.get(`/api/category/root`)
+    },
 }
 
 export default categoryService

@@ -4,13 +4,12 @@ import {useSelector} from "react-redux"
 import {useSnackbar} from "notistack"
 import IconButton from "@mui/material/IconButton"
 import DeleteIcon from "@mui/icons-material/Delete"
-import DeleteConfirm from "../DeleteConfirm"
+import DeleteConfirm from "../confirm/DeleteConfirm"
 
 export const Tag = (props) => {
     const userState = useSelector((state) => state.user)
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
     // TODO : 이름에는 태그이름으로 검색한 결과가 나오는 페이지로 이동
-    // TODO : 권한이 있는 경우 삭제기능 활성화
 
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [question, setQuestion] = useState('')

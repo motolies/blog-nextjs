@@ -1,6 +1,7 @@
 import {combineReducers} from 'redux'
 import {HYDRATE} from "next-redux-wrapper"
 import userReducers from "./userReducers"
+import categoryReducers from "./categoryReducers"
 
 
 const rootReducer = (state, action) => {
@@ -12,6 +13,7 @@ const rootReducer = (state, action) => {
             return combineReducers({
                 // reducers
                 user: userReducers
+                , category: categoryReducers
             })(state, action)
     }
 }

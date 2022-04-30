@@ -4,13 +4,13 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import PublicIcon from '@mui/icons-material/Public'
 import PublicOffIcon from '@mui/icons-material/PublicOff'
-import DeleteConfirm from "../DeleteConfirm"
+import DeleteConfirm from "../confirm/DeleteConfirm"
 import {useEffect, useState} from "react"
 import service from "../../service"
 import {useRouter} from "next/router"
 import {useSnackbar} from "notistack"
 import {useSelector} from "react-redux"
-import PublicConfirm from "../PublicConfirm"
+import PublicConfirm from "../confirm/PublicConfirm"
 import TagGroupComponent from "./TagGroupComponent"
 
 
@@ -88,8 +88,6 @@ export default function PostComponent({post}) {
             .then(res => {
                 if (res.status === 200) {
                     enqueueSnackbar("태그 삭제에 성공하였습니다.", {variant: "success"})
-                    // TODO : 여기서 post.tag 에서 태그를 하나 삭제한당
-                    // https://dev.to/andyrewlee/cheat-sheet-for-updating-objects-and-arrays-in-react-state-48np
                     const newTags = tags.filter((tag) => {
                         return tag.id !== tagId
                     })

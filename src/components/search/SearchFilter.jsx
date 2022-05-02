@@ -1,8 +1,7 @@
-import {Button, Grid, MenuItem, Paper, TextField} from "@mui/material"
+import {Grid, MenuItem, Paper, TextField} from "@mui/material"
 import {useEffect, useState} from "react"
 import {useSnackbar} from "notistack"
 import SearchCategory from "./SearchCategory"
-import CategoryTreeView from "../CategoryTreeView"
 
 const searchTypes = [
     {
@@ -24,7 +23,7 @@ export default function SearchFilter({onSearch, defaultText, defaultType, defaul
 
     const [text, setText] = useState('')
     const [type, setType] = useState('')
-    const [categories, setCategories] = useState([])
+    const [category, setCategory] = useState('ROOT')
     const [tags, setTags] = useState([])
 
     const onSearchStart = () => {
@@ -36,13 +35,13 @@ export default function SearchFilter({onSearch, defaultText, defaultType, defaul
         onSearch({
             text,
             type,
-            categories,
+            categories: category,
             tags
         })
     }
 
     const onChangeCategory = (category) => {
-        setCategories(category)
+        setCategory(category)
     }
 
     const onChangeType = (e) => {
@@ -61,7 +60,7 @@ export default function SearchFilter({onSearch, defaultText, defaultType, defaul
             setText(defaultText)
         }
         if (defaultCategories !== undefined) {
-            setCategories(defaultCategories)
+            setCategory(defaultCategories)
         }
         if (defaultTags !== undefined) {
             setTags(defaultTags)
@@ -120,14 +119,8 @@ export default function SearchFilter({onSearch, defaultText, defaultType, defaul
                     </TextField>
                 </Grid>
                 <Grid item sx={{m: 0, p: 0}} xs={12}>
-                    <SearchCategory onChangeCategory={onChangeCategory} defaultCategories={categories}/>
+                    <SearchCategory onChangeCategory={onChangeCategory} defaultCategory={category}/>
                 </Grid>
-
-                <Grid item sx={{m: 0, p: 0}} xs={12}>
-                    <CategoryTreeView/>
-                </Grid>
-
-
 
             </Grid>
         </Paper>

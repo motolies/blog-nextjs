@@ -6,33 +6,33 @@ import {getCategoryFlatAction} from "../../store/actions/categoryActions"
 // TODO : 검토리스트
 // https://www.npmjs.com/package/react-dropdown-tree-select
 
-export default function SearchCategory({onChangeCategory, defaultCategories}) {
+// mui TextField select 에서는 id 값을 기준으로 움직인다.
+
+export default function SearchCategory({onChangeCategory, defaultCategory}) {
     const dispatch = useDispatch()
     const categoryState = useSelector((state) => state.category.categoryFlat)
-    const [selectCategory, setSelectCategory] = useState([])
+    const [selectCategories, setSelectCategories] = useState([])
 
     // 선택되어진 카테고리 항목
-    const [categories, setCategories] = useState([])
+    const [category, setCategory] = useState('ROOT')
 
     useEffect(() => {
         dispatch(getCategoryFlatAction())
     }, [])
 
     useEffect(() => {
-        setSelectCategory(categoryState)
+        setSelectCategories(categoryState)
     }, [categoryState])
 
     useEffect(() => {
-        if (defaultCategories !== undefined) {
-            setCategories(defaultCategories)
+        if (defaultCategory !== undefined) {
+            setCategory(defaultCategory)
         }
-    }, [defaultCategories])
+    }, [defaultCategory])
 
     const onChangeLocalCategory = (event) => {
         const category = event.target.value
-        // 여긴 더하기만, 대신 redux에서 관리하는 항목에 있어야 함
-        setCategories([...categories, category])
-
+        setCategory(category)
         // 부모에게 전달
         onChangeCategory(category)
     }
@@ -40,14 +40,14 @@ export default function SearchCategory({onChangeCategory, defaultCategories}) {
     return (
         <TextField
             select
-            label="카테고리 선택"
+            label="카테고리 선택(하위포함 검색)"
             onChange={onChangeLocalCategory}
             fullWidth
-            value={categories}
+            value={category}
         >
-            {selectCategory.map(option => (
+            {selectCategories.map(option => (
                 <MenuItem key={option.id} value={option.id}>
-                    {option.label}
+                    {option.treeName}
                 </MenuItem>
             ))}
         </TextField>

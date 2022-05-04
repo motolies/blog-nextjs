@@ -20,7 +20,8 @@ export default function Search({children}) {
     }, [])
 
     const onSearching = ({text, type, categories, tags}) => {
-        enqueueSnackbar(`검색 api 시도 중!`, {variant: "success"})
+        console.log({text, type, categories, tags})
+        enqueueSnackbar(`검색 api 시도 중! loading bar 돌리자~`, {variant: "success"})
     }
 
     return (

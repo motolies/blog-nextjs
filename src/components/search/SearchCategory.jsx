@@ -1,4 +1,4 @@
-import {MenuItem, TextField} from "@mui/material"
+import {Box, MenuItem, TextField} from "@mui/material"
 import {useEffect, useState} from "react"
 import {useDispatch, useSelector} from "react-redux"
 import {getCategoryFlatAction} from "../../store/actions/categoryActions"
@@ -37,19 +37,21 @@ export default function SearchCategory({onChangeCategory, defaultCategory}) {
         onChangeCategory(category)
     }
 
-    return (
-        <TextField
-            select
-            label="카테고리 선택(하위포함 검색)"
-            onChange={onChangeLocalCategory}
-            fullWidth
-            value={category}
-        >
-            {selectCategories.map(option => (
-                <MenuItem key={option.id} value={option.id}>
-                    {option.treeName}
-                </MenuItem>
-            ))}
-        </TextField>
+    return (<Box>
+            <TextField
+                select
+                label="카테고리 선택(하위포함 검색)"
+                onChange={onChangeLocalCategory}
+                fullWidth
+                value={category}
+            >
+                {selectCategories.map(option => (
+                    <MenuItem key={option.id} value={option.id}>
+                        {option.treeName}
+                    </MenuItem>
+                ))}
+            </TextField>
+            {/* TODO : 여러개 선택은 여기에 표출한다.*/}
+        </Box>
     )
 }

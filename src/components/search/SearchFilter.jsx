@@ -35,7 +35,7 @@ export default function SearchFilter({onSearch, defaultText, defaultType, defaul
         onSearch({
             text,
             type,
-            categories: category,
+            category,
             tags
         })
     }

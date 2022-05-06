@@ -2,6 +2,7 @@ import {combineReducers} from 'redux'
 import {HYDRATE} from "next-redux-wrapper"
 import userReducers from "./userReducers"
 import categoryReducers from "./categoryReducers"
+import postReducers from "./postReducers"
 
 
 const rootReducer = (state, action) => {
@@ -14,6 +15,7 @@ const rootReducer = (state, action) => {
                 // reducers
                 user: userReducers
                 , category: categoryReducers
+                , post: postReducers
             })(state, action)
     }
 }

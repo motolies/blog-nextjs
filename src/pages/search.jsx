@@ -10,31 +10,44 @@ export default function Search({children}) {
 
     const dispatch = useDispatch()
     const router = useRouter()
-    const searchText = router.query.q
+    const [searchText, setSearchText] = useState(router.query.q)
+    const [searchType, setSearchType] = useState(router.query.type || 'TITLE')
 
-    const [searchType, setSearchType] = useState(router.query.type)
+    const defaultPage = 1
+    const defaultLimit = 100
 
     useEffect(() => {
-        if (searchType === undefined) {
-            setSearchType("TITLE")
-        }
-
-        document.title = `Search: ${searchText}`
+        // TODO : 헤더에서 다시 검색시에는 동작을 안한다. 내부 라우팅 시에도 동작하도록 하는게 뷰에서도 있었던 것 같다.
+        setSearchText(router.query.q)
+        setSearchType(router.query.type || 'TITLE')
     }, [])
 
-    const onSearching = ({text, type, category, tags}) => {
-        console.log({text, type, category, tags})
-        enqueueSnackbar(`검색 api 시도 중! loading bar 돌리자~`, {variant: "success"})
-        const defaultPage = 1
-        const defaultLimit = 10
+    useEffect(() => {
+        document.title = `Search: ${searchText}`
+
+        mainSearch({
+            text: searchText
+            , type: searchType
+            , page: defaultPage
+            , pageSize: defaultLimit
+        })
+    }, [searchText, searchType])
+
+    const mainSearch = ({text, type, category, tags, page, pageSize}) => {
         dispatch(searchSingle(
             {
                 searchText: text
                 , searchType: type
                 , category,
-                page: defaultPage
-                , pageSize: defaultLimit
+                page: page
+                , pageSize: pageSize
             }))
+    }
+
+    const onSearching = ({text, type, category, tags}) => {
+        console.log({text, type, category, tags})
+
+        mainSearch({text, type, category, tags, page: defaultPage, pageSize: defaultLimit})
     }
 
     return (

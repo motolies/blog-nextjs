@@ -3,7 +3,7 @@ import {POST_SINGLE_SEARCH_REQUEST, POST_SINGLE_SEARCH_REQUEST_ERROR, POST_SINGL
 
 export default function postReducers(stats = {
     isLoading: false,
-    searchedPost: [],
+    searchedPost: {},
     modifyPost: {},
     error: ''
 }, action) {
@@ -24,7 +24,7 @@ export default function postReducers(stats = {
             return {
                 ...stats,
                 isLoading: false,
-                searchedPost: []
+                searchedPost: {}
             }
         default:
             return stats

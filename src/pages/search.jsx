@@ -17,10 +17,10 @@ export default function Search({children}) {
     const defaultLimit = 100
 
     useEffect(() => {
-        // TODO : 헤더에서 다시 검색시에는 동작을 안한다. 내부 라우팅 시에도 동작하도록 하는게 뷰에서도 있었던 것 같다.
+        // 특정 파라미터가 변경되는 때에도 실행할 수 있는 것 같다.
         setSearchText(router.query.q)
         setSearchType(router.query.type || 'TITLE')
-    }, [])
+    }, [router.query.q])
 
     useEffect(() => {
         document.title = `Search: ${searchText}`

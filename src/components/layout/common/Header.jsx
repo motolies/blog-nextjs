@@ -5,10 +5,27 @@ import {useSelector} from 'react-redux'
 import IconButton from "@mui/material/IconButton"
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import LoginIcon from '@mui/icons-material/Login'
+import {useEffect, useState} from "react"
 
 export default function Header({children}) {
     const router = useRouter()
     const userState = useSelector((state) => state.user)
+    const [searchText, setSearchText] = useState('')
+
+    useEffect(() => {
+        if (!router.pathname.startsWith('/search')) {
+            setSearchText('')
+        }
+    }, [router.pathname])
+
+    const onSearchTextKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            router.push(`/search?q=${e.target.value}`)
+        }
+    }
+    const onChangeText = (e) => {
+        setSearchText(e.target.value)
+    }
 
     const onClickLogin = () => {
         router.push('/login')
@@ -44,15 +61,13 @@ export default function Header({children}) {
                                 <TextField label="Search" variant="standard"
                                            size="small"
                                            fullWidth={true}
+                                           value={searchText}
                                            sx={{
                                                mr: 1
                                                , maxWidth: '400px'
                                            }}
-                                           onKeyDown={(e) => {
-                                               if (e.key === 'Enter') {
-                                                   router.push(`/search?q=${e.target.value}`)
-                                               }
-                                           }}
+                                           onChange={onChangeText}
+                                           onKeyDown={onSearchTextKeyDown}
                                 />
 
                                 <Divider orientation="vertical" variant="middle" flexItem/>

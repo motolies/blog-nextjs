@@ -4,6 +4,7 @@ import SearchFilter from "../components/search/SearchFilter"
 import {useSnackbar} from "notistack"
 import {useDispatch} from "react-redux"
 import {searchSingle} from "../store/actions/postActions"
+import SearchResult from "../components/search/SearchResult"
 
 export default function Search({children}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
@@ -46,6 +47,7 @@ export default function Search({children}) {
 
     const onSearching = ({text, type, category, tags}) => {
         console.log({text, type, category, tags})
+        enqueueSnackbar('검색할 때 get 방식으로 넘겨서 보내야 history가 작동한다. ', {variant: 'warning'})
 
         mainSearch({text, type, category, tags, page: defaultPage, pageSize: defaultLimit})
     }
@@ -53,6 +55,7 @@ export default function Search({children}) {
     return (
         <div>
             <SearchFilter onSearch={onSearching} defaultType={searchType} defaultText={searchText}/>
+            <SearchResult/>
         </div>
     )
 }

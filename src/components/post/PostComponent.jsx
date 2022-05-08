@@ -12,6 +12,7 @@ import {useSnackbar} from "notistack"
 import {useSelector} from "react-redux"
 import PublicConfirm from "../confirm/PublicConfirm"
 import TagGroupComponent from "./TagGroupComponent"
+import Script from "next/script"
 
 
 export default function PostComponent({post}) {
@@ -28,9 +29,10 @@ export default function PostComponent({post}) {
 
     useEffect(() => {
         const doc = new DOMParser().parseFromString(post.body, 'text/html')
-        const vsDoc = initVsCode(doc)
-        setPostBody(vsDoc.head.innerHTML + vsDoc.body.innerHTML)
+        initVsCode(doc)
+        setPostBody(doc.head.innerHTML + doc.body.innerHTML)
     }, [post.body])
+
 
     const initVsCode = (doc) => {
         Array.prototype.slice.call(doc.getElementsByTagName("div"), 0).forEach(div => {
@@ -39,12 +41,10 @@ export default function PostComponent({post}) {
                     div.style.padding = "15px"
                     div.style.scrollPadding = "15px"
                     div.style.overflowX = "scroll"
-                    console.log(div)
                     // TODO : overflow 되는 부분의 right padding이 동작하지 않는다
                 }
             }
         })
-        return doc
     }
     const getRootElement = (element) => {
         let rtn = true
@@ -170,13 +170,14 @@ export default function PostComponent({post}) {
                     </Grid>
                     <hr/>
                     <Box sx={{mt: 5, mb: 5}}>
-                        <div className="content" dangerouslySetInnerHTML={{__html: postBody}}/>
+                        <div className="content" id={'post-content'} dangerouslySetInnerHTML={{__html: postBody}}/>
                     </Box>
                     <hr/>
                     <TagGroupComponent tagList={tags} deletePostTag={deletePostTag}/>
                 </div>
                 <DeleteConfirm open={showDeleteConfirm} question={'현재 포스트를 삭제하시겠습니까?'} onConfirm={deletePost} onCancel={deletePostCancel}/>
                 <PublicConfirm open={showPublicConfirm} question={publicConfirmQuestion} onConfirm={setPublicStatus} onCancel={publicPostCancel}/>
+                <Script id={'post-content-image-popup'} strategy={"lazyOnload"} src={'/js/PostImagePopup.js'} />
             </>
         )
     } else {

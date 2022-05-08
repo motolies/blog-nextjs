@@ -6,6 +6,8 @@ import IconButton from "@mui/material/IconButton"
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import LoginIcon from '@mui/icons-material/Login'
 import {useEffect, useState} from "react"
+import {base64Encode} from "../../../util/base64Util"
+import {uuidV4Generator} from "../../../util/uuidUtil"
 
 export default function Header({children}) {
     const router = useRouter()
@@ -20,7 +22,22 @@ export default function Header({children}) {
 
     const onSearchTextKeyDown = (e) => {
         if (e.key === 'Enter') {
-            router.push(`/search?q=${e.target.value}`)
+            const condition = {
+                searchType: "TITLE",
+                searchCondition: {
+                    keywords: [
+                        {id: uuidV4Generator(), name: searchText}
+                    ],
+                    logic: "AND"
+                },
+                categories: [
+                    {id: "ROOT", name: "전체글"}
+                ],
+                tags: [],
+                page: 1,
+                pageSize: 10
+            }
+            router.push({pathname: '/searched', query: {q: base64Encode(JSON.stringify(condition))}})
         }
     }
     const onChangeText = (e) => {

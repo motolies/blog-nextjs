@@ -5,6 +5,7 @@ import {useSnackbar} from "notistack"
 import {useDispatch} from "react-redux"
 import {searchSingle} from "../store/actions/postActions"
 import SearchResult from "../components/search/SearchResult"
+import service from "../service"
 
 export default function Search({children}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()

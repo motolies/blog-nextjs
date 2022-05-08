@@ -1,4 +1,5 @@
 import axiosClient from './axiosClient'
+import {base64Encode} from "../util/base64Util"
 
 const postService = {
     mainPost: () => {
@@ -29,7 +30,33 @@ const postService = {
                 pageSize: pageSize
             }
         })
+    },
+    searchMultiple: ({searchObject}) => {
 
+        const searchParams = {
+            searchType: "TITLE | CONTENT | FULL",
+            searchCondition: {
+                keywords: [
+                    "검색",
+                    "검색어"
+                ],
+                logic: "AND | OR"
+            },
+            categoryIds: [
+                "CATEGORY_ID1",
+                "CATEGORY_ID2",
+                "CATEGORY_ID3"
+            ],
+            tagIds: ["TAG1", "TAG2", "TAG3"],
+            page: 1,
+            pageSize: 10
+        }
+
+        return axiosClient.get('/api/post/search/detail', {
+            params:{
+                query: base64Encode(JSON.stringify(searchParams))
+            }
+        })
     }
 }
 

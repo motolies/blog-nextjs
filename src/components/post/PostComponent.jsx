@@ -24,6 +24,39 @@ export default function PostComponent({post}) {
     const [postPublic, setPostPublic] = useState(post.public)
     const [tags, setTags] = useState(post.tag)
     const [publicConfirmQuestion, setPublicConfirmQuestion] = useState('')
+    const [postBody, setPostBody] = useState()
+
+    useEffect(() => {
+        const doc = new DOMParser().parseFromString(post.body, 'text/html')
+        const vsDoc = initVsCode(doc)
+        setPostBody(vsDoc.head.innerHTML + vsDoc.body.innerHTML)
+    }, [post.body])
+
+    const initVsCode = (doc) => {
+        Array.prototype.slice.call(doc.getElementsByTagName("div"), 0).forEach(div => {
+            if (div.style && div.style.backgroundColor && div.style.backgroundColor == "rgb(30, 30, 30)") {
+                if (getRootElement(div)) {
+                    div.style.padding = "15px"
+                    div.style.scrollPadding = "15px"
+                    div.style.overflowX = "scroll"
+                    console.log(div)
+                    // TODO : overflow 되는 부분의 right padding이 동작하지 않는다
+                }
+            }
+        })
+        return doc
+    }
+    const getRootElement = (element) => {
+        let rtn = true
+        while (element.parentNode) {
+            if (element.parentNode.style && element.parentNode.style.backgroundColor && element.parentNode.style.backgroundColor == "rgb(30, 30, 30)") {
+                rtn = false
+                break
+            }
+            element = element.parentNode
+        }
+        return rtn
+    }
 
     const showDeleteConfirmDialog = () => {
         setShowDeleteConfirm(true)
@@ -137,7 +170,7 @@ export default function PostComponent({post}) {
                     </Grid>
                     <hr/>
                     <Box sx={{mt: 5, mb: 5}}>
-                        <div className="content" dangerouslySetInnerHTML={{__html: post.body}}/>
+                        <div className="content" dangerouslySetInnerHTML={{__html: postBody}}/>
                     </Box>
                     <hr/>
                     <TagGroupComponent tagList={tags} deletePostTag={deletePostTag}/>

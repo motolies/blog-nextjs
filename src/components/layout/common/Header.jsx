@@ -26,7 +26,7 @@ export default function Header({children}) {
                 searchType: "TITLE",
                 searchCondition: {
                     keywords: [
-                        {id: uuidV4Generator(), name: searchText}
+                        {id: uuidV4Generator(), name:searchText}
                     ],
                     logic: "AND"
                 },

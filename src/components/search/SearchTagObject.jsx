@@ -58,7 +58,6 @@ export default function SearchTagObject({onChangeAddTag, onChangeDeleteTag, defa
                 fullWidth
                 renderInput={(params) => <TextField {...params} label="태그 선택"/>}
             />
-            {/* TODO : 여러개 선택은 여기에 표출한다.*/}
             <Box display="flex"
                  sx={{
                      mr: 1

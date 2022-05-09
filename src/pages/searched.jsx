@@ -53,6 +53,7 @@ export default function Search({children}) {
         setPage(searchAllParam.page)
         setPageSize(searchAllParam.pageSize)
 
+        console.log("searchAllParam => ", searchAllParam)
         // TODO : 검색!!
 
     }, [searchAllParam])

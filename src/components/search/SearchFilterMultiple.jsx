@@ -5,6 +5,10 @@ import {ConditionComponent} from "../ConditionComponent"
 import {uuidV4Generator} from "../../util/uuidUtil"
 import SearchCategoryObject from "./SearchCategoryObject"
 import SearchTagObject from "./SearchTagObject"
+import Button from "@mui/material/Button"
+import {searchObjectInit} from "../../model/searchObject"
+import {base64Encode} from "../../util/base64Util"
+import {useRouter} from "next/router"
 
 const searchTypes = [
     {name: "제목", value: "TITLE"},
@@ -18,6 +22,7 @@ const searchLogic = [
 
 export default function SearchFilterMultiple({onSearch, defaultLogic, defaultKeyword, defaultSearchType, defaultCategories, defaultTags}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
+    const router = useRouter()
 
     const [logic, setLogic] = useState('')
     const [keywords, setKeywords] = useState([])
@@ -96,17 +101,22 @@ export default function SearchFilterMultiple({onSearch, defaultLogic, defaultKey
         setTags(newTags)
     }
 
-    const onSearchStart = () => {
-        if (text.length < 2) {
-            enqueueSnackbar('검색어는 2글자 이상이어야 합니다.', {variant: 'error'})
-            return
+    const onSearching = () => {
+
+        const condition = {
+            ...searchObjectInit,
+            ...{
+                searchType: searchType,
+                searchCondition: {
+                    keywords: [...keywords],
+                    logic: logic
+                },
+                categories: [...categories],
+                tags: [...tags],
+            }
         }
-        // onSearch({
-        //     text,
-        //     type,
-        //     category,
-        //     tags
-        // })
+        router.push({pathname: '/searched', query: {q: base64Encode(JSON.stringify(condition))}})
+
     }
 
 
@@ -198,7 +208,10 @@ export default function SearchFilterMultiple({onSearch, defaultLogic, defaultKey
                     </Box>
                 </Grid>
                 <Grid item sx={{m: 0, p: 0}} xs={12}>
-                    <SearchTagObject defaultTag={tags} onChangeAddTag={onChangeAddTag} onChangeDeleteTag={onChangeDeleteTag} />
+                    <SearchTagObject defaultTag={tags} onChangeAddTag={onChangeAddTag} onChangeDeleteTag={onChangeDeleteTag}/>
+                </Grid>
+                <Grid item sx={{m: 0, p: 0}} xs={12}>
+                    <Button variant="contained" fullWidth onClick={onSearching}>Search</Button>
                 </Grid>
             </Grid>
         </Paper>

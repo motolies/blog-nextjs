@@ -1,26 +1,74 @@
 import {Box, MenuItem, TextField} from "@mui/material"
+import {useDispatch, useSelector} from "react-redux"
+import {useEffect, useState} from "react"
+import {getAllTags} from "../../store/actions/tagActions"
+import {ConditionComponent} from "../ConditionComponent"
+import {Autocomplete} from "@mui/lab"
+import {useSnackbar} from "notistack"
 
-export default function SearchTagObject({onChangeTag, defaultTag}) {
+export default function SearchTagObject({onChangeAddTag, onChangeDeleteTag, defaultTag}) {
+    const {enqueueSnackbar, closeSnackbar} = useSnackbar()
 
-    // TODO : 태그들을 한 번에 가져온 다음에 auto complete 기능을 추가해서 사용함
+    const dispatch = useDispatch()
+    const tagState = useSelector(state => state.tag.tags)
 
+    // 전체 태그 리스트
+    const [tags, setTags] = useState([])
+
+    // 최종 선택된 태그 리스트
+    const [selectTags, setSelectTags] = useState([])
+
+
+    useEffect(() => {
+        dispatch(getAllTags())
+    }, [])
+
+    useEffect(() => {
+        setTags(tagState)
+    }, [tagState])
+
+    useEffect(() => {
+        if (defaultTag !== undefined) {
+            setSelectTags(defaultTag)
+        }
+    }, [defaultTag])
+
+    const onDeleteTag = (deleteTagId) => {
+        onChangeDeleteTag(deleteTagId)
+    }
+
+    const onChangeTagName = (event, value) => {
+        if (value === undefined || value === null) {
+            return false
+        }
+        if (selectTags.filter(t => t.id === value.id).length > 0) {
+            enqueueSnackbar('동일 태그는 한 번만 추가할 수 있습니다.', {variant: 'warning'})
+            return false
+        }
+        // setSelectTags([...selectTags, value])
+        onChangeAddTag(value)
+    }
 
     return (
         <Box>
-            <TextField
-                select
-                label="카테고리 선택(하위포함 검색)"
-                onChange={onChangeLocalCategory}
+            <Autocomplete
+                disablePortal
+                options={tags}
+                onChange={onChangeTagName}
                 fullWidth
-                value={category}
-            >
-                {selectCategories.map(option => (
-                    <MenuItem key={option.id} value={option.id}>
-                        {option.treeName}
-                    </MenuItem>
-                ))}
-            </TextField>
+                renderInput={(params) => <TextField {...params} label="태그 선택"/>}
+            />
             {/* TODO : 여러개 선택은 여기에 표출한다.*/}
+            <Box display="flex"
+                 sx={{
+                     mr: 1
+                     , width: '100%'
+                     , flexWrap: 'wrap'
+                 }}>
+                {selectTags.map((t) =>
+                    <ConditionComponent key={t.id} id={t.id} name={t.name} onDelete={onDeleteTag}/>
+                )}
+            </Box>
         </Box>
     )
 }

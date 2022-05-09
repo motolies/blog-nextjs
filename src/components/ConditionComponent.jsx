@@ -13,7 +13,9 @@ export const ConditionComponent = ({id, name, onDelete}) => {
         <Box
             display="flex-inline"
             sx={{
-                p: 1
+                m: 1
+                , p: 1
+                , background: "rgba(57, 138, 185, 0.1)"
                 , '&:hover': {
                     background: "rgba(57, 138, 185, 0.4)"
                 }

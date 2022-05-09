@@ -4,6 +4,7 @@ import {useSnackbar} from "notistack"
 import {ConditionComponent} from "../ConditionComponent"
 import {uuidV4Generator} from "../../util/uuidUtil"
 import SearchCategoryObject from "./SearchCategoryObject"
+import SearchTagObject from "./SearchTagObject"
 
 const searchTypes = [
     {name: "제목", value: "TITLE"},
@@ -79,12 +80,20 @@ export default function SearchFilterMultiple({onSearch, defaultLogic, defaultKey
 
     // categories
     const onChangeCategory = (category) => {
-        // add
         setCategories([...categories, {id: category.id, name: category.name}])
     }
     const onDeleteCategory = (deleteCategoryId) => {
         const newCategories = categories.filter(cat => cat.id !== deleteCategoryId)
         setCategories(newCategories)
+    }
+
+    // tags
+    const onChangeAddTag = (tag) => {
+        setTags([...tags, tag])
+    }
+    const onChangeDeleteTag = (deleteTagId) => {
+        const newTags = tags.filter(tag => tag.id !== deleteTagId)
+        setTags(newTags)
     }
 
     const onSearchStart = () => {
@@ -187,6 +196,9 @@ export default function SearchFilterMultiple({onSearch, defaultLogic, defaultKey
                             <ConditionComponent key={cat.id} id={cat.id} name={cat.name} onDelete={onDeleteCategory}/>
                         )}
                     </Box>
+                </Grid>
+                <Grid item sx={{m: 0, p: 0}} xs={12}>
+                    <SearchTagObject defaultTag={tags} onChangeAddTag={onChangeAddTag} onChangeDeleteTag={onChangeDeleteTag} />
                 </Grid>
             </Grid>
         </Paper>

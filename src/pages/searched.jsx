@@ -2,12 +2,11 @@ import {useRouter} from "next/router"
 import {useEffect, useState} from "react"
 import {useSnackbar} from "notistack"
 import {useDispatch} from "react-redux"
-import {searchSingle} from "../store/actions/postActions"
+import {searchMultiple} from "../store/actions/postActions"
 import SearchResult from "../components/search/SearchResult"
-import service from "../service"
 import {base64Decode} from "../util/base64Util"
 import SearchFilterMultiple from "../components/search/SearchFilterMultiple"
-import {uuidV4Generator} from "../util/uuidUtil"
+import {searchObjectInit} from "../model/searchObject"
 
 export default function Search({children}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
@@ -15,33 +14,29 @@ export default function Search({children}) {
     const dispatch = useDispatch()
     const router = useRouter()
 
-    const searchDefaultParams = {
-        searchType: "TITLE",
-        searchCondition: {
-            keywords: [],
-            logic: "AND"
-        },
-        categories: [],
-        tags: [],
-        page: 1,
-        pageSize: 10
-    }
-
-    const [searchAllParam, setSearchAllParam] = useState(searchDefaultParams)
-    const [categories, setCategories] = useState(searchDefaultParams.categories)
-    const [tags, setTags] = useState(searchDefaultParams.tags)
-    const [keywords, setKeywords] = useState(searchDefaultParams.searchCondition.keywords)
-    const [logic, setLogic] = useState(searchDefaultParams.searchCondition.logic)
-    const [searchType, setSearchType] = useState(searchDefaultParams.searchType)
-    const [page, setPage] = useState(searchDefaultParams.page)
-    const [pageSize, setPageSize] = useState(searchDefaultParams.pageSize)
+    const [searchAllParam, setSearchAllParam] = useState(searchObjectInit)
+    const [categories, setCategories] = useState(searchObjectInit.categories)
+    const [tags, setTags] = useState(searchObjectInit.tags)
+    const [keywords, setKeywords] = useState(searchObjectInit.searchCondition.keywords)
+    const [logic, setLogic] = useState(searchObjectInit.searchCondition.logic)
+    const [searchType, setSearchType] = useState(searchObjectInit.searchType)
+    const [page, setPage] = useState(searchObjectInit.page)
+    const [pageSize, setPageSize] = useState(searchObjectInit.pageSize)
 
 
     useEffect(() => {
         // 디코딩을 한 다음에 각각 분배한다.
         const decodeString = base64Decode(router.query.q)
         const newObj = JSON.parse(decodeString)
-        setSearchAllParam({...searchDefaultParams, ...newObj})
+
+        const newSearchAllParam = {...searchObjectInit, ...newObj}
+        setSearchAllParam(newSearchAllParam)
+
+        console.log("searchAllParam => ", searchAllParam)
+        // TODO : 검색!!
+        enqueueSnackbar('검색 발사!', {variant: 'success'})
+        dispatch(searchMultiple({searchAllParam:newSearchAllParam}))
+
     }, [router.query.q])
 
     useEffect(() => {
@@ -52,9 +47,6 @@ export default function Search({children}) {
         setSearchType(searchAllParam.searchType)
         setPage(searchAllParam.page)
         setPageSize(searchAllParam.pageSize)
-
-        console.log("searchAllParam => ", searchAllParam)
-        // TODO : 검색!!
 
     }, [searchAllParam])
 

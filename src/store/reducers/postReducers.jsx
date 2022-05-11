@@ -1,10 +1,7 @@
 import {
-    POST_MULTIPLE_SEARCH_REQUEST,
-    POST_MULTIPLE_SEARCH_REQUEST_ERROR,
-    POST_MULTIPLE_SEARCH_REQUEST_SUCCESS,
-    POST_SINGLE_SEARCH_REQUEST,
-    POST_SINGLE_SEARCH_REQUEST_ERROR,
-    POST_SINGLE_SEARCH_REQUEST_SUCCESS
+    POST_SEARCH_REQUEST,
+    POST_SEARCH_REQUEST_ERROR,
+    POST_SEARCH_REQUEST_SUCCESS,
 } from "../types/postTypes"
 
 
@@ -16,21 +13,18 @@ export default function postReducers(stats = {
 }, action) {
     switch (action.type) {
 
-        case POST_SINGLE_SEARCH_REQUEST:
-        case POST_MULTIPLE_SEARCH_REQUEST:
+        case POST_SEARCH_REQUEST:
             return {
                 ...stats,
                 isLoading: true
             }
-        case POST_SINGLE_SEARCH_REQUEST_SUCCESS:
-        case POST_MULTIPLE_SEARCH_REQUEST_SUCCESS:
+        case POST_SEARCH_REQUEST_SUCCESS:
             return {
                 ...stats,
                 isLoading: false,
                 searchedPost: action.payload
             }
-        case POST_SINGLE_SEARCH_REQUEST_ERROR:
-        case POST_MULTIPLE_SEARCH_REQUEST_ERROR:
+        case POST_SEARCH_REQUEST_ERROR:
             return {
                 ...stats,
                 isLoading: false,

@@ -20,19 +20,8 @@ const postService = {
     deleteTag: ({postId, tagId}) => {
         return axiosClient.delete(`/api/post/${postId}/tag/${tagId}`)
     },
-    searchSingle: ({text, type, category, page, pageSize}) => {
+    search: ({searchAllParam}) => {
         return axiosClient.get('/api/post/search', {
-            params: {
-                searchText: text,
-                searchType: type,
-                categoryId: category,
-                page: page,
-                pageSize: pageSize
-            }
-        })
-    },
-    searchMultiple: ({searchAllParam}) => {
-        return axiosClient.get('/api/post/search/detail', {
             params:{
                 query: base64Encode(JSON.stringify(searchAllParam))
             }

@@ -1,61 +1,70 @@
 import {useRouter} from "next/router"
 import {useEffect, useState} from "react"
-import SearchFilter from "../components/search/SearchFilter"
 import {useSnackbar} from "notistack"
 import {useDispatch} from "react-redux"
-import {searchSingle} from "../store/actions/postActions"
+import {searchMultiple} from "../store/actions/postActions"
 import SearchResult from "../components/search/SearchResult"
-import service from "../service"
+import {base64Decode} from "../util/base64Util"
+import SearchFilterMultiple from "../components/search/SearchFilterMultiple"
+import {searchObjectInit} from "../model/searchObject"
 
 export default function Search({children}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
 
     const dispatch = useDispatch()
     const router = useRouter()
-    const [searchText, setSearchText] = useState(router.query.q)
-    const [searchType, setSearchType] = useState(router.query.type || 'TITLE')
 
-    const defaultPage = 1
-    const defaultLimit = 100
+    const [searchAllParam, setSearchAllParam] = useState(searchObjectInit)
+    const [categories, setCategories] = useState(searchObjectInit.categories)
+    const [tags, setTags] = useState(searchObjectInit.tags)
+    const [keywords, setKeywords] = useState(searchObjectInit.searchCondition.keywords)
+    const [logic, setLogic] = useState(searchObjectInit.searchCondition.logic)
+    const [searchType, setSearchType] = useState(searchObjectInit.searchType)
+    const [page, setPage] = useState(searchObjectInit.page)
+    const [pageSize, setPageSize] = useState(searchObjectInit.pageSize)
+
 
     useEffect(() => {
-        // 특정 파라미터가 변경되는 때에도 실행할 수 있는 것 같다.
-        setSearchText(router.query.q)
-        setSearchType(router.query.type || 'TITLE')
+        // 디코딩을 한 다음에 각각 분배한다.
+        const decodeString = base64Decode(router.query.q)
+        const newObj = JSON.parse(decodeString)
+
+        const newSearchAllParam = {...searchObjectInit, ...newObj}
+        setSearchAllParam(newSearchAllParam)
+
+        console.log("searchAllParam => ", searchAllParam)
+        // TODO : 검색!!
+        enqueueSnackbar('검색 발사!', {variant: 'success'})
+        dispatch(searchMultiple({searchAllParam:newSearchAllParam}))
+
     }, [router.query.q])
 
     useEffect(() => {
-        document.title = `Search: ${searchText}`
+        setCategories(searchAllParam.categories)
+        setTags(searchAllParam.tags)
+        setKeywords(searchAllParam.searchCondition.keywords)
+        setLogic(searchAllParam.searchCondition.logic)
+        setSearchType(searchAllParam.searchType)
+        setPage(searchAllParam.page)
+        setPageSize(searchAllParam.pageSize)
 
-        mainSearch({
-            text: searchText
-            , type: searchType
-            , page: defaultPage
-            , pageSize: defaultLimit
-        })
-    }, [searchText, searchType])
-
-    const mainSearch = ({text, type, category, tags, page, pageSize}) => {
-        dispatch(searchSingle(
-            {
-                searchText: text
-                , searchType: type
-                , category,
-                page: page
-                , pageSize: pageSize
-            }))
-    }
+    }, [searchAllParam])
 
     const onSearching = ({text, type, category, tags}) => {
         console.log({text, type, category, tags})
         enqueueSnackbar('검색할 때 get 방식으로 넘겨서 보내야 history가 작동한다. ', {variant: 'warning'})
 
-        mainSearch({text, type, category, tags, page: defaultPage, pageSize: defaultLimit})
     }
 
     return (
         <div>
-            <SearchFilter onSearch={onSearching} defaultType={searchType} defaultText={searchText}/>
+            <h2>신규검색</h2>
+            <SearchFilterMultiple onSearch={onSearching}
+                                  defaultLogic={logic}
+                                  defaultSearchType={searchType}
+                                  defaultKeyword={keywords}
+                                  defaultCategories={categories}
+                                  defaultTags={tags}/>
             <SearchResult/>
         </div>
     )

@@ -32,7 +32,7 @@ export default function Header({children}) {
                     }
                 }
             }
-            router.push({pathname: '/searched', query: {q: base64Encode(JSON.stringify(condition))}})
+            router.push({pathname: '/search', query: {q: base64Encode(JSON.stringify(condition))}})
         }
     }
     const onChangeText = (e) => {

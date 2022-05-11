@@ -41,7 +41,7 @@ export default function SearchCategoryObject({onChangeCategory, defaultCategory}
     return (<Box>
             <TextField
                 select
-                label="카테고리 선택(하위포함 검색)"
+                label="카테고리 선택(하위 카테고리 포함 검색, 여러개 선택시 OR 조건으로 검색)"
                 onChange={onChangeLocalCategory}
                 fullWidth
                 value={category}

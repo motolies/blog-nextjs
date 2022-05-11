@@ -56,7 +56,7 @@ export default function SearchTagObject({onChangeAddTag, onChangeDeleteTag, defa
                 options={tags}
                 onChange={onChangeTagName}
                 fullWidth
-                renderInput={(params) => <TextField {...params} label="태그 선택"/>}
+                renderInput={(params) => <TextField {...params} label="태그 선택(태그끼리 AND 조건)"/>}
             />
             <Box display="flex"
                  sx={{

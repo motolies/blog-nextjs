@@ -6,7 +6,7 @@ import {ConditionComponent} from "../ConditionComponent"
 import {Autocomplete} from "@mui/lab"
 import {useSnackbar} from "notistack"
 
-export default function SearchTagObject({onChangeAddTag, onChangeDeleteTag, defaultTag}) {
+export default function SearchTag({onChangeAddTag, onChangeDeleteTag, defaultTag}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
 
     const dispatch = useDispatch()

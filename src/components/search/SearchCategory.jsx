@@ -34,13 +34,14 @@ export default function SearchCategory({onChangeCategory, defaultCategory}) {
         const category = event.target.value
         setCategory(category)
         // 부모에게 전달
-        onChangeCategory(category)
+        const categoryObject = selectCategories.filter(c => c.id === event.target.value)[0]
+        onChangeCategory(categoryObject)
     }
 
     return (<Box>
             <TextField
                 select
-                label="카테고리 선택(하위포함 검색)"
+                label="카테고리 선택(하위 카테고리 포함 검색, 여러개 선택시 OR 조건으로 검색)"
                 onChange={onChangeLocalCategory}
                 fullWidth
                 value={category}

@@ -5,7 +5,7 @@ import {useDispatch} from "react-redux"
 import {searchMultiple} from "../store/actions/postActions"
 import SearchResult from "../components/search/SearchResult"
 import {base64Decode} from "../util/base64Util"
-import SearchFilterMultiple from "../components/search/SearchFilterMultiple"
+import SearchFilter from "../components/search/SearchFilter"
 import {searchObjectInit} from "../model/searchObject"
 
 export default function Search({children}) {
@@ -59,12 +59,12 @@ export default function Search({children}) {
     return (
         <div>
             <h2>신규검색</h2>
-            <SearchFilterMultiple onSearch={onSearching}
-                                  defaultLogic={logic}
-                                  defaultSearchType={searchType}
-                                  defaultKeyword={keywords}
-                                  defaultCategories={categories}
-                                  defaultTags={tags}/>
+            <SearchFilter onSearch={onSearching}
+                          defaultLogic={logic}
+                          defaultSearchType={searchType}
+                          defaultKeyword={keywords}
+                          defaultCategories={categories}
+                          defaultTags={tags}/>
             <SearchResult/>
         </div>
     )

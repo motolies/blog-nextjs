@@ -3,6 +3,7 @@ import userSagas from './userSagas'
 import categorySaga from "./categorySagas"
 import postSaga from "./postSagas"
 import tagSaga from "./tagSagas"
+import commonSaga from "./commonSagas"
 
 
 function* rootSaga() {
@@ -11,6 +12,7 @@ function* rootSaga() {
         , categorySaga()
         , postSaga()
         , tagSaga()
+        , commonSaga()
     ])
 }
 

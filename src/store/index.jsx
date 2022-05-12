@@ -21,9 +21,6 @@ const makeStore = () => {
     return store
 }
 
-// Export an assembled wrapper
-// export const wrapper = createWrapper(makeStore)
-
 export const wrapper = createWrapper(makeStore, {
     debug: process.env.NODE_ENV === 'development',
 })

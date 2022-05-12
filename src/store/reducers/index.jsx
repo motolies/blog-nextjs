@@ -4,6 +4,7 @@ import userReducers from "./userReducers"
 import categoryReducers from "./categoryReducers"
 import postReducers from "./postReducers"
 import tagReducers from "./tagReducers"
+import commonReducers from "./commonReducers"
 
 
 const rootReducer = (state, action) => {
@@ -18,6 +19,7 @@ const rootReducer = (state, action) => {
                 , category: categoryReducers
                 , post: postReducers
                 , tag: tagReducers
+                , common: commonReducers
             })(state, action)
     }
 }

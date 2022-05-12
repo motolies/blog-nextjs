@@ -1,13 +1,12 @@
 import {
     LOAD_USER_REQUEST_SUCCESS,
-    SET_USER_SUCCESS,
-    USER_LOGIN,
-    USER_LOGIN_ERROR,
+    USER_LOGIN_REQUEST,
+    USER_LOGIN_REQUEST_ERROR,
     USER_LOGIN_ERROR_MESSAGE_SUCCESS,
-    USER_LOGIN_SUCCESS,
-    USER_LOGOUT,
-    USER_LOGOUT_ERROR,
-    USER_LOGOUT_SUCCESS
+    USER_LOGIN_REQUEST_SUCCESS,
+    USER_LOGOUT_REQUEST,
+    USER_LOGOUT_REQUEST_ERROR,
+    USER_LOGOUT_REQUEST_SUCCESS
 } from '../types/userTypes'
 
 export default function userReducers(stats = {
@@ -23,39 +22,39 @@ export default function userReducers(stats = {
                 ...stats,
                 error: action.payload,
             }
-        case USER_LOGIN:
+        case USER_LOGIN_REQUEST:
             return {
                 ...stats,
                 isLoading: true
             }
         case LOAD_USER_REQUEST_SUCCESS:
-        case USER_LOGIN_SUCCESS:
+        case USER_LOGIN_REQUEST_SUCCESS:
             return {
                 ...stats,
                 isLoading: false,
                 isAuthenticated: true,
                 user: action.payload
             }
-        case USER_LOGIN_ERROR:
+        case USER_LOGIN_REQUEST_ERROR:
             return {
                 ...stats,
                 isLoading: false,
                 isAuthenticated: false,
                 error: action.payload
             }
-        case USER_LOGOUT:
+        case USER_LOGOUT_REQUEST:
             return {
                 ...stats,
                 isLoading: true
             }
-        case USER_LOGOUT_SUCCESS:
+        case USER_LOGOUT_REQUEST_SUCCESS:
             return {
                 ...stats,
                 isLoading: false,
                 isAuthenticated: false,
                 user: {}
             }
-        case USER_LOGOUT_ERROR:
+        case USER_LOGOUT_REQUEST_ERROR:
             return {
                 ...stats,
                 isLoading: false,

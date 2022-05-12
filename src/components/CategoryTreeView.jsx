@@ -32,14 +32,16 @@ export default function CategoryTreeView() {
         </TreeItem>)
 
     // TODO: defaultExpanded 옵션이 잘 동작하지 않는 것 같다?
-    return (<TreeView
-        aria-label="rich object"
-        defaultCollapseIcon={<ExpandMoreIcon/>}
-        defaultExpanded={['ROOT']}
-        defaultExpandIcon={<ChevronRightIcon/>}
-        multiSelect={true}
-        sx={{flexGrow: 1, minWidth: 400, overflowY: 'auto'}}
-    >
-        {renderTree(selectCategory)}
-    </TreeView>)
+    return (
+        <TreeView
+            aria-label="rich object"
+            defaultCollapseIcon={<ExpandMoreIcon/>}
+            defaultExpanded={['ROOT']}
+            defaultExpandIcon={<ChevronRightIcon/>}
+            multiSelect={true}
+            sx={{flexGrow: 1, minWidth: 400, overflowY: 'auto'}}
+        >
+            {renderTree(selectCategory)}
+        </TreeView>
+    )
 }

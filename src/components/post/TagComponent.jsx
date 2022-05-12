@@ -13,8 +13,6 @@ export const Tag = (props) => {
     const router = useRouter()
     const userState = useSelector((state) => state.user)
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
-    // TODO : 이름에는 태그이름으로 검색한 결과가 나오는 페이지로 이동
-
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [question, setQuestion] = useState('')
 

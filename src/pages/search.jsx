@@ -33,8 +33,6 @@ export default function Search({children}) {
         setSearchAllParam(newSearchAllParam)
 
         console.log("searchAllParam => ", searchAllParam)
-        // TODO : 검색!!
-        enqueueSnackbar('검색 발사!', {variant: 'success'})
         dispatch(searchMultiple({searchAllParam:newSearchAllParam}))
 
     }, [router.query.q])
@@ -50,16 +48,9 @@ export default function Search({children}) {
 
     }, [searchAllParam])
 
-    const onSearching = ({text, type, category, tags}) => {
-        console.log({text, type, category, tags})
-        enqueueSnackbar('검색할 때 get 방식으로 넘겨서 보내야 history가 작동한다. ', {variant: 'warning'})
-
-    }
-
     return (
         <div>
-            <h2>신규검색</h2>
-            <SearchFilter onSearch={onSearching}
+            <SearchFilter
                           defaultLogic={logic}
                           defaultSearchType={searchType}
                           defaultKeyword={keywords}

@@ -3,11 +3,6 @@ import {useEffect, useState} from "react"
 import {useDispatch, useSelector} from "react-redux"
 import {getCategoryFlatAction} from "../../store/actions/categoryActions"
 
-// TODO : 검토리스트
-// https://www.npmjs.com/package/react-dropdown-tree-select
-
-// mui TextField select 에서는 id 값을 기준으로 움직인다.
-
 export default function SearchCategory({onChangeCategory, defaultCategory}) {
     const dispatch = useDispatch()
     const categoryState = useSelector((state) => state.category.categoryFlat)

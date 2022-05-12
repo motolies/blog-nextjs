@@ -15,8 +15,6 @@ export default function TagGroupComponent({postId, tagList}) {
 
     const userState = useSelector((state) => state.user)
 
-    // TODO: 태그를 넣었다가 빼는 걸 redux에서 관리하도록 할 필요성이 보인다. 데이터 아구 맞추기 힘들다.
-
     // redux에서 검색된 태그
     const tagState = useSelector(state => state.tag.tags)
     const [reduxTags, setReduxTags] = useState([])
@@ -57,13 +55,15 @@ export default function TagGroupComponent({postId, tagList}) {
             .then(res => {
                 if (res.status === 200) {
                     const newTag = res.data
-                    setPostTags([...postTags, newTag])
+
+                    const filteredPostArray = _.unionBy(postTags, [newTag], 'id')
+                    setPostTags(filteredPostArray)
 
                     // 이미 가지고 있는 경우가 있으니 병합한다.
                     // const newRedux = _.unionBy(reduxTags, [newTag], 'id')
                     // 아니 빼줘야 함
-                    const filteredArray = _.differenceBy(reduxTags, [newTag], (tag) => tag.id)
-                    setReduxTags(filteredArray)
+                    const filteredReduxArray = _.differenceBy(reduxTags, [newTag], (tag) => tag.id)
+                    setReduxTags(filteredReduxArray)
 
                     enqueueSnackbar(`태그가 추가되었습니다.`, {variant: 'success'})
                 }
@@ -71,6 +71,7 @@ export default function TagGroupComponent({postId, tagList}) {
     }
 
     const deletePostTag = ({tagId}) => {
+        const oldTags = postTags.filter(t => t.id === tagId)
         service.post.deleteTag({postId: postId, tagId: tagId})
             .then(res => {
                 if (res.status === 200) {
@@ -79,7 +80,8 @@ export default function TagGroupComponent({postId, tagList}) {
                     enqueueSnackbar("태그 삭제에 성공하였습니다.", {variant: "success"})
 
                     // 삭제한 걸 다시 선택할 수 있으니 reduxTags에 돌려줘야 한다.
-
+                    const newRedux = _.unionBy(reduxTags, oldTags, 'id')
+                    setReduxTags(newRedux)
                 }
             }).catch(() => {
             enqueueSnackbar("태그 삭제에 실패하였습니다.", {variant: "error"})

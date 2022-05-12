@@ -116,20 +116,7 @@ export default function PostComponent({post}) {
         setShowPublicConfirm(false)
     }
 
-    const deletePostTag = async ({tagId}) => {
-        await service.post.deleteTag({postId: post.id, tagId: tagId})
-            .then(res => {
-                if (res.status === 200) {
-                    enqueueSnackbar("태그 삭제에 성공하였습니다.", {variant: "success"})
-                    const newTags = tags.filter((tag) => {
-                        return tag.id !== tagId
-                    })
-                    setTags(newTags)
-                }
-            }).catch(() => {
-                enqueueSnackbar("태그 삭제에 실패하였습니다.", {variant: "error"})
-            })
-    }
+
 
     if (post?.id !== 0 && post?.id > 0) {
         return (
@@ -173,7 +160,7 @@ export default function PostComponent({post}) {
                         <div className="content" id={'post-content'} dangerouslySetInnerHTML={{__html: postBody}}/>
                     </Box>
                     <hr/>
-                    <TagGroupComponent tagList={tags} deletePostTag={deletePostTag}/>
+                    <TagGroupComponent postId={post.id} tagList={tags} />
                 </div>
                 <DeleteConfirm open={showDeleteConfirm} question={'현재 포스트를 삭제하시겠습니까?'} onConfirm={deletePost} onCancel={deletePostCancel}/>
                 <PublicConfirm open={showPublicConfirm} question={publicConfirmQuestion} onConfirm={setPublicStatus} onCancel={publicPostCancel}/>

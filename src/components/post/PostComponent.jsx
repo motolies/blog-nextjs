@@ -1,4 +1,4 @@
-import {Box, Grid} from "@mui/material"
+import {Box, Button, Grid} from "@mui/material"
 import IconButton from '@mui/material/IconButton'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
@@ -13,6 +13,9 @@ import {useSelector} from "react-redux"
 import PublicConfirm from "../confirm/PublicConfirm"
 import TagGroupComponent from "./TagGroupComponent"
 import Script from "next/script"
+import Link from "next/link"
+import {searchObjectInit} from "../../model/searchObject"
+import {base64Encode} from "../../util/base64Util"
 
 
 export default function PostComponent({post}) {
@@ -116,7 +119,15 @@ export default function PostComponent({post}) {
         setShowPublicConfirm(false)
     }
 
-
+    const searchCategory = () => {
+        const condition = {
+            ...searchObjectInit,
+            ...{
+                categories: [{id: post.categoryId, name: post.categoryName}],
+            }
+        }
+        return `/search?q=${base64Encode(JSON.stringify(condition))}`
+    }
 
     if (post?.id !== 0 && post?.id > 0) {
         return (
@@ -129,7 +140,11 @@ export default function PostComponent({post}) {
                           direction="row"
                           spacing={2}>
                         <Grid item={true} xs={8}>
-                            <h3>{post.categoryName}</h3>
+                            <Link href={searchCategory()}>
+                                <a>
+                                    <h3>{post.categoryName}</h3>
+                                </a>
+                            </Link>
                         </Grid>
                         <Grid item={true} xs={4} align={'right'}>
 
@@ -160,11 +175,11 @@ export default function PostComponent({post}) {
                         <div className="content" id={'post-content'} dangerouslySetInnerHTML={{__html: postBody}}/>
                     </Box>
                     <hr/>
-                    <TagGroupComponent postId={post.id} tagList={tags} />
+                    <TagGroupComponent postId={post.id} tagList={tags}/>
                 </div>
                 <DeleteConfirm open={showDeleteConfirm} question={'현재 포스트를 삭제하시겠습니까?'} onConfirm={deletePost} onCancel={deletePostCancel}/>
                 <PublicConfirm open={showPublicConfirm} question={publicConfirmQuestion} onConfirm={setPublicStatus} onCancel={publicPostCancel}/>
-                <Script id={'post-content-image-popup'} strategy={"lazyOnload"} src={'/js/PostImagePopup.js'} />
+                <Script id={'post-content-image-popup'} strategy={"lazyOnload"} src={'/js/PostImagePopup.js'}/>
             </>
         )
     } else {

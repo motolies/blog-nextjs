@@ -1,18 +1,22 @@
 import {useRouter} from "next/router"
 import {useEffect, useState} from "react"
 import {useSnackbar} from "notistack"
-import {useDispatch} from "react-redux"
+import {useDispatch, useSelector} from "react-redux"
 import {searchMultiple} from "../store/actions/postActions"
 import SearchResult from "../components/search/SearchResult"
-import {base64Decode} from "../util/base64Util"
+import {base64Decode, base64Encode} from "../util/base64Util"
 import SearchFilter from "../components/search/SearchFilter"
 import {searchObjectInit} from "../model/searchObject"
+import {Pagination} from "@mui/lab"
+import {Stack} from "@mui/material"
 
 export default function Search({children}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
 
     const dispatch = useDispatch()
     const router = useRouter()
+
+    const searchedPostState = useSelector((state) => state.post.searchedPost)
 
     const [searchAllParam, setSearchAllParam] = useState(searchObjectInit)
     const [categories, setCategories] = useState(searchObjectInit.categories)
@@ -33,7 +37,7 @@ export default function Search({children}) {
         setSearchAllParam(newSearchAllParam)
 
         console.log("searchAllParam => ", searchAllParam)
-        dispatch(searchMultiple({searchAllParam:newSearchAllParam}))
+        dispatch(searchMultiple({searchAllParam: newSearchAllParam}))
 
     }, [router.query.q])
 
@@ -48,15 +52,37 @@ export default function Search({children}) {
 
     }, [searchAllParam])
 
+    const goPage = (event, newPage) => {
+        if (page !== newPage) {
+            const newSearchAllParam = {...searchAllParam, ...{page: newPage}}
+            router.push({pathname: '/search', query: {q: base64Encode(JSON.stringify(newSearchAllParam))}})
+        }
+    }
+
     return (
         <div>
             <SearchFilter
-                          defaultLogic={logic}
-                          defaultSearchType={searchType}
-                          defaultKeyword={keywords}
-                          defaultCategories={categories}
-                          defaultTags={tags}/>
+                defaultLogic={logic}
+                defaultSearchType={searchType}
+                defaultKeyword={keywords}
+                defaultCategories={categories}
+                defaultTags={tags}/>
             <SearchResult/>
+            <Stack spacing={2} alignItems="center">
+                <Pagination
+                    count={searchedPostState.totalPage} page={page} onChange={goPage} color="primary"
+                    sx={{
+                        '& .Mui-selected': {
+                            backgroundColor: '#f0e3c1',
+                            color: 'white',
+                            opacity: 0.8
+                        }, "& .MuiPaginationItem-root": {
+                            color: "black",
+                            fontFamily: 'Montserrat',
+                        }
+                    }}
+                />
+            </Stack>
         </div>
     )
 }

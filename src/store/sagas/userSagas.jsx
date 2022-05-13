@@ -3,14 +3,14 @@ import service from '../../service'
 import forge from "node-forge"
 import {
     LOAD_USER_REQUEST,
+    LOAD_USER_REQUEST_ERROR,
     LOAD_USER_REQUEST_SUCCESS,
-    SET_USER,
-    USER_LOGIN_REQUEST,
-    USER_LOGIN_REQUEST_ERROR,
+    SERVER_LOAD_USER_REQUEST_SUCCESS,
     USER_LOGIN_ERROR_MESSAGE,
     USER_LOGIN_ERROR_MESSAGE_SUCCESS,
-    USER_LOGIN_REQUEST_SUCCESS,
-    LOAD_USER_REQUEST_ERROR
+    USER_LOGIN_REQUEST,
+    USER_LOGIN_REQUEST_ERROR,
+    USER_LOGIN_REQUEST_SUCCESS
 } from '../types/userTypes'
 
 function encryptPassword(resPublicKey, pass) {
@@ -68,12 +68,19 @@ function* loadUser() {
     }
 }
 
+function* serverLoadUser({user}) {
+    yield put({
+        type: LOAD_USER_REQUEST_SUCCESS,
+        payload: user
+    })
+}
 
 function* userRequest() {
     // 액션의 type과 saga의 함수를 이어주는 부분
     yield takeLatest(USER_LOGIN_REQUEST, login)
     yield takeLatest(USER_LOGIN_ERROR_MESSAGE, loginErrorMessage)
     yield takeLatest(LOAD_USER_REQUEST, loadUser)
+    yield takeLatest(SERVER_LOAD_USER_REQUEST_SUCCESS, serverLoadUser)
 }
 
 export default function* userSaga() {

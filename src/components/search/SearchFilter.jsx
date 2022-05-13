@@ -84,10 +84,10 @@ export default function SearchFilter({onSearch, defaultLogic, defaultKeyword, de
     }
 
     // categories
-    const onChangeCategory = (category) => {
+    const onChangeAddCategory = (category) => {
         setCategories([...categories, {id: category.id, name: category.name}])
     }
-    const onDeleteCategory = (deleteCategoryId) => {
+    const onChangeDeleteCategory = (deleteCategoryId) => {
         const newCategories = categories.filter(cat => cat.id !== deleteCategoryId)
         setCategories(newCategories)
     }
@@ -192,19 +192,7 @@ export default function SearchFilter({onSearch, defaultLogic, defaultKeyword, de
                     </Box>
                 </Grid>
                 <Grid item sx={{m: 0, p: 0}} xs={12}>
-                    <SearchCategory onChangeCategory={onChangeCategory}/>
-                </Grid>
-                <Grid item sx={{m: 0, p: 0}} xs={12}>
-                    <Box display="flex"
-                         sx={{
-                             mr: 1
-                             , width: '100%'
-                             , flexWrap: 'wrap'
-                         }}>
-                        {categories.map((cat) =>
-                            <ConditionComponent key={cat.id} id={cat.id} name={cat.name} onDelete={onDeleteCategory}/>
-                        )}
-                    </Box>
+                    <SearchCategory defaultCategory={categories} onChangeAddCategory={onChangeAddCategory} onChangeDeleteCategory={onChangeDeleteCategory}/>
                 </Grid>
                 <Grid item sx={{m: 0, p: 0}} xs={12}>
                     <SearchTag defaultTag={tags} onChangeAddTag={onChangeAddTag} onChangeDeleteTag={onChangeDeleteTag}/>

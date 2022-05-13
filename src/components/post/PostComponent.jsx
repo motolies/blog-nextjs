@@ -17,7 +17,6 @@ import Link from "next/link"
 import {searchObjectInit} from "../../model/searchObject"
 import {base64Encode} from "../../util/base64Util"
 
-
 export default function PostComponent({post}) {
     const router = useRouter()
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
@@ -147,7 +146,6 @@ export default function PostComponent({post}) {
                             </Link>
                         </Grid>
                         <Grid item={true} xs={4} align={'right'}>
-
                             {!(userState.isAuthenticated && userState.user.userName) ? null :
                                 <>
                                     {postPublic ?
@@ -179,6 +177,7 @@ export default function PostComponent({post}) {
                 </div>
                 <DeleteConfirm open={showDeleteConfirm} question={'현재 포스트를 삭제하시겠습니까?'} onConfirm={deletePost} onCancel={deletePostCancel}/>
                 <PublicConfirm open={showPublicConfirm} question={publicConfirmQuestion} onConfirm={setPublicStatus} onCancel={publicPostCancel}/>
+                <Script id={'post-icons-change'} strategy={"lazyOnload"} src={'/js/PostIconChange.js'}/>
                 <Script id={'post-content-image-popup'} strategy={"lazyOnload"} src={'/js/PostImagePopup.js'}/>
             </>
         )

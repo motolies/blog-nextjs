@@ -1,9 +1,9 @@
 import {Alert, Box, Button, Grid, TextField} from "@mui/material"
 import {useDispatch, useSelector} from 'react-redux'
-import {loginAction, loginErrorMessage} from '../../store/actions/userActions'
+import {loginAction, loginErrorMessage} from '../store/actions/userActions'
 import {useEffect, useState} from "react"
 import {useRouter} from 'next/router'
-import {LOAD_USER_REQUEST} from "../../store/types/userTypes"
+import {LOAD_USER_REQUEST} from "../store/types/userTypes"
 
 export default function LoginPage() {
 

@@ -12,29 +12,25 @@ import {useSelector} from "react-redux"
 
 function Skyscape({Component, pageProps}) {
     const router = useRouter()
-    const { isLoading } = useSelector((state) => state.common);
+    const {isLoading} = useSelector((state) => state.common)
 
     if (router.pathname.startsWith('/admin')) {
         // TODO : 로그인한 상태인지 redux에서 확인해보고 로그인 상태가 아니라면 login 페이지로 보낸다
-        // router.push('/admin')
-        return (
-            <SnackbarProvider autoHideDuration={3000}>
-                {isLoading && <Loading />}
-                <AdminLayout>
-                    <Component {...pageProps}/>
-                </AdminLayout>
-            </SnackbarProvider>
-        )
-    } else {
-        return (
-            <SnackbarProvider autoHideDuration={3000}>
-                {isLoading && <Loading />}
-                <CommonLayout>
-                    <Component {...pageProps} />
-                </CommonLayout>
-            </SnackbarProvider>
-        )
+
     }
+
+    return (
+        <SnackbarProvider autoHideDuration={2000}>
+            {isLoading && <Loading/>}
+            {router.pathname.startsWith('/admin') ?
+                <AdminLayout>
+                    <Component {...pageProps} />
+                </AdminLayout>
+                : <CommonLayout>
+                    <Component {...pageProps} />
+                </CommonLayout>}
+        </SnackbarProvider>
+    )
 }
 
 Skyscape.getInitialProps = wrapper.getInitialAppProps(

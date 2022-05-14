@@ -1,7 +1,7 @@
 import PostComponent from "../components/post/PostComponent"
 import service from "../service"
 
-export default function Index({post}) {
+export default function IndexPage({post}) {
     return (
         <>
             <PostComponent post={post}/>
@@ -10,7 +10,7 @@ export default function Index({post}) {
 }
 
 
-Index.getInitialProps = async (ctx) => {
+IndexPage.getInitialProps = async (ctx) => {
     const post = await service.post.mainPost()
         .then(res => res.data)
     return {

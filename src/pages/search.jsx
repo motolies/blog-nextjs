@@ -10,7 +10,7 @@ import {searchObjectInit} from "../model/searchObject"
 import {Pagination} from "@mui/lab"
 import {Stack} from "@mui/material"
 
-export default function Search({children}) {
+export default function SearchPage({children}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
 
     const dispatch = useDispatch()

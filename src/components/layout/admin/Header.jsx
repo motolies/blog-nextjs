@@ -1,5 +1,5 @@
 import Link from "next/link"
-import {Box, Divider, Grid, TextField} from "@mui/material"
+import {Box, Divider, Grid, Menu, MenuItem, TextField} from "@mui/material"
 import {useRouter} from "next/router"
 import {useSelector} from 'react-redux'
 import IconButton from "@mui/material/IconButton"
@@ -9,11 +9,18 @@ import {useEffect, useState} from "react"
 import {base64Encode} from "../../../util/base64Util"
 import {uuidV4Generator} from "../../../util/uuidUtil"
 import {searchObjectInit} from "../../../model/searchObject"
+import CreateIcon from '@mui/icons-material/Create'
+import CategoryIcon from '@mui/icons-material/Category'
+import TagIcon from '@mui/icons-material/Tag'
+import MenuIcon from '@mui/icons-material/Menu'
 
 export default function Header({children}) {
     const router = useRouter()
     const userState = useSelector((state) => state.user)
     const [searchText, setSearchText] = useState('')
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
+
 
     useEffect(() => {
         if (!router.pathname.startsWith('/search')) {
@@ -24,11 +31,9 @@ export default function Header({children}) {
     const onSearchTextKeyDown = (e) => {
         if (e.key === 'Enter') {
             const condition = {
-                ...searchObjectInit,
-                ...{
+                ...searchObjectInit, ...{
                     searchCondition: {
-                        keywords: [{id: uuidV4Generator(), name: searchText}],
-                        logic: 'AND'
+                        keywords: [{id: uuidV4Generator(), name: searchText}], logic: 'AND'
                     }
                 }
             }
@@ -39,13 +44,15 @@ export default function Header({children}) {
         setSearchText(e.target.value)
     }
 
-    const onClickLogin = () => {
-        router.push('/login')
+    // menu
+    const onClickMenuOpen = (e) => {
+        setAnchorEl(e.currentTarget)
+    }
+    const onClickMenuItem = (event, path) => {
+        setAnchorEl(null)
+        router.push(path)
     }
 
-    const onClickAdmin = () => {
-        router.push('/admin')
-    }
 
     return (<>
         <nav className="top admin-back-color">
@@ -55,20 +62,46 @@ export default function Header({children}) {
                     direction="row"
                     spacing={2}
                 >
-                    <Grid item xs={4}>
-                        <Link href={`/`}>
-                            <a className="main-link">motolies</a>
+                    <Grid item xs={4} sm={2}>
+                        <Link href={`/admin`}>
+                            <a className="main-link">admin</a>
                         </Link>
                     </Grid>
-                    <Grid item xs={8} display="flex">
-                        {/*여기가 검색과 로그인 버튼 자리*/}
-                        <Box
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="flex-end"
-                            sx={{mr: 1, width: '100%'}}
-                        >
-
+                    <Grid item xs={8} sm={10} display="flex">
+                        <Grid item xs={1} sm={2} md={6}>
+                            <Box sx={{display: {xs: 'none', sm: 'none', md: 'block'}}}>
+                                <Box flex sx={{mr: 3, display: 'inline-flex'}}>
+                                    <Link href={'/admin/write'}>
+                                        <a className="menu-link">
+                                            <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
+                                                <CreateIcon/><span>write</span>
+                                            </Box>
+                                        </a>
+                                    </Link>
+                                </Box>
+                                <Box flex sx={{mr: 3, display: 'inline-flex'}}>
+                                    <Link href={'/admin/categories'}>
+                                        <a className="menu-link">
+                                            <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
+                                                <CategoryIcon/><span>categories</span>
+                                            </Box>
+                                        </a>
+                                    </Link>
+                                </Box>
+                                <Box flex sx={{display: 'inline-flex'}}>
+                                    <Link href={'/admin/tags'}>
+                                        <a className="menu-link">
+                                            <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
+                                                <TagIcon/><span>tags</span>
+                                            </Box>
+                                        </a>
+                                    </Link>
+                                </Box>
+                            </Box>
+                        </Grid>
+                        <Grid item xs={11} sm={10} md={6} display="flex"
+                              alignItems="center"
+                              justifyContent="flex-end">
                             <TextField label="Search" variant="standard"
                                        size="small"
                                        fullWidth={true}
@@ -80,21 +113,34 @@ export default function Header({children}) {
                                        onKeyDown={onSearchTextKeyDown}
                             />
 
-                            <Divider orientation="vertical" variant="middle" flexItem/>
+                            <Divider orientation="vertical" variant="middle" flexItem sx={{
+                                display: {md: 'none', lg: 'none'}
+                            }}/>
 
-                            {router.pathname === '/login' || userState.user.userName ? null : <IconButton aria-label="delete" onClick={onClickLogin}>
-                                <LoginIcon/>
-                            </IconButton>}
-                            {!userState.user.userName ? null : <IconButton aria-label="delete" onClick={onClickAdmin}>
-                                <AdminPanelSettingsIcon/>
-                            </IconButton>}
-
-
-                        </Box>
-
+                            <Box sx={{
+                                display: {md: 'none', lg: 'none'}
+                            }}>
+                                <IconButton onClick={onClickMenuOpen}>
+                                    <MenuIcon/>
+                                </IconButton>
+                                {/*TODO: 추가해야 함   https://mui.com/material-ui/react-menu/#main-content*/}
+                                <Menu
+                                    id="basic-menu"
+                                    anchorEl={anchorEl}
+                                    open={open}
+                                    onClose={onClickMenuItem}
+                                    MenuListProps={{
+                                        'aria-labelledby': 'basic-button',
+                                    }}
+                                >
+                                    <MenuItem onClick={(event) => onClickMenuItem(event, '/admin/write')}><CreateIcon/>write</MenuItem>
+                                    <MenuItem onClick={(event) => onClickMenuItem(event, '/admin/categories')}><CategoryIcon/>categories</MenuItem>
+                                    <MenuItem onClick={(event) => onClickMenuItem(event, '/admin/tags')}><TagIcon/>tags</MenuItem>
+                                </Menu>
+                            </Box>
+                        </Grid>
                     </Grid>
                 </Grid>
-
             </div>
         </nav>
         <style jsx>
@@ -116,11 +162,14 @@ export default function Header({children}) {
                 line-height: 4rem;
               }
 
+              .menu-link {
+                color: #fff;
+              }
+
               .main-link {
                 margin-left: 1rem;
                 font-size: 1.25rem;
                 color: #fff;
-                text-decoration: none;
               }
 
               @media ( min-width: 576px) {

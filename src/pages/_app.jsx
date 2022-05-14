@@ -11,35 +11,20 @@ import {useSelector} from "react-redux"
 import {SERVER_LOAD_USER_REQUEST_SUCCESS} from "../store/types/userTypes"
 import service from "../service"
 import axiosClient from "../service/axiosClient"
-
+import {useEffect} from "react"
 
 function Skyscape({Component, pageProps}) {
     const router = useRouter()
     const {isLoading} = useSelector((state) => state.common)
-
-    // useEffect(() => {
-    //     const {req, store} = ctx
-    //     const state = store.getState()
-    //     const cookie = req?.headers?.cookie
-    //
-    //     if (cookie) {
-    //         // 서버 환경일 때만 쿠키를 심어줌. 클라이언트 환경일 때는 브라우저가 자동으로 쿠키를 넣어줌
-    //         axiosClient.defaults.headers.Cookie = cookie
-    //
-    //         // 쿠키가 있을 때만 유저정보 요청
-    //         if (!state.user.userName) {
-    //             store.dispatch({
-    //                 type: LOAD_USER_REQUEST,
-    //             })
-    //         }
-    //     }
-    // }, [])
+    const {isAuthenticated} = useSelector((state) => state.user)
 
 
-    if (router.pathname.startsWith('/admin')) {
-        // TODO : 로그인한 상태인지 redux에서 확인해보고 로그인 상태가 아니라면 login 페이지로 보낸다
-
-    }
+    useEffect(() => {
+        if (router.pathname.startsWith('/admin') && !isAuthenticated) {
+            // TODO : 로그인한 상태인지 redux에서 확인해보고 로그인 상태가 아니라면 login 페이지로 보낸다, provider 같은걸 만들면 화면 깜빡임을 없을 수 있을 것 같다.
+            router.push('/login')
+        }
+    }, [router.query.q])
 
     return (
         <SnackbarProvider autoHideDuration={2000}>
@@ -63,7 +48,7 @@ Skyscape.getInitialProps = wrapper.getInitialAppProps(
             const req = ctx.req
             const cookie = req?.headers?.cookie
 
-            if(cookie){
+            if (cookie) {
                 // 서버 환경일 때만 쿠키를 심어줌. 클라이언트 환경일 때는 브라우저가 자동으로 쿠키를 넣어줌
                 axiosClient.defaults.headers.Cookie = cookie
 
@@ -78,7 +63,6 @@ Skyscape.getInitialProps = wrapper.getInitialAppProps(
                         console.log(err)
                     })
             }
-
 
             return {
                 pageProps: {

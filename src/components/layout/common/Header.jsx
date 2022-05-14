@@ -80,12 +80,14 @@ export default function Header({children}) {
                                        onKeyDown={onSearchTextKeyDown}
                             />
 
-                            <Divider orientation="vertical" variant="middle" flexItem/>
+                            <Divider orientation="vertical" variant="middle" flexItem sx={{
+                                display: {md: 'none', lg: 'none'}
+                            }}/>
 
                             {router.pathname === '/login' || userState.user.userName ? null : <IconButton aria-label="delete" onClick={onClickLogin}>
                                 <LoginIcon/>
                             </IconButton>}
-                            {!userState.user.userName ? null : <IconButton aria-label="delete" onClick={onClickAdmin}>
+                            {!userState.user.userName ? null : <IconButton onClick={onClickAdmin}>
                                 <AdminPanelSettingsIcon/>
                             </IconButton>}
 

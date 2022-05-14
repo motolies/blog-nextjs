@@ -2,6 +2,7 @@ import Footer from '../admin/Footer'
 import {createTheme, ThemeProvider} from "@mui/material"
 import Header from "../admin/Header"
 import Section from "../admin/Section"
+import {useEffect} from "react"
 
 const theme = createTheme({
 
@@ -28,6 +29,10 @@ const theme = createTheme({
 })
 
 export default function AdminLayout({children}) {
+    useEffect(() => {
+        document.title = "Admin"
+    }, [])
+
     return (
         <>
             <ThemeProvider theme={theme}>

@@ -1,7 +1,7 @@
-import MetaHeader from "./common/MetaHeader";
-import Header from "./common/Header";
-import Footer from './common/Footer'
-import Section from "./common/Section";
+import MetaHeader from "./MetaHeader";
+import Header from "./Header";
+import Footer from './Footer'
+import Section from "./Section";
 import {createTheme, ThemeProvider} from "@mui/material";
 
 const theme = createTheme({

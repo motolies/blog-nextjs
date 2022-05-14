@@ -1,8 +1,8 @@
 import '../styles/global.css'
 import '../styles/d2coding-subset.css'
 import '../styles/rainbow.css'
-import CommonLayout from '../components/layout/CommonLayout'
-import AdminLayout from '../components/layout/AdminLayout'
+import CommonLayout from '../components/layout/common/CommonLayout'
+import AdminLayout from '../components/layout/admin/AdminLayout'
 import {wrapper} from '../store'
 import {SnackbarProvider} from "notistack"
 import {useRouter} from "next/router"

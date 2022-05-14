@@ -48,7 +48,7 @@ export default function Header({children}) {
     }
 
     return (<>
-        <nav className="top back-color">
+        <nav className="top admin-back-color">
             <div className="back">
                 <Grid
                     container

@@ -1,5 +1,5 @@
 const BACKEND_URL = {
-    BLOG_URL_DEV: 'http://localhost:9090',
+    BLOG_URL_DEV: 'http://localhost:9999',
     BLOG_URL_PROD: 'http://blogback:8080',
 }
 

@@ -3,8 +3,6 @@ import {Box, Divider, Grid, Menu, MenuItem, TextField} from "@mui/material"
 import {useRouter} from "next/router"
 import {useSelector} from 'react-redux'
 import IconButton from "@mui/material/IconButton"
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
-import LoginIcon from '@mui/icons-material/Login'
 import {useEffect, useState} from "react"
 import {base64Encode} from "../../../util/base64Util"
 import {uuidV4Generator} from "../../../util/uuidUtil"
@@ -18,8 +16,8 @@ export default function Header({children}) {
     const router = useRouter()
     const userState = useSelector((state) => state.user)
     const [searchText, setSearchText] = useState('')
-    const [anchorEl, setAnchorEl] = useState(null);
-    const open = Boolean(anchorEl);
+    const [anchorEl, setAnchorEl] = useState(null)
+    const open = Boolean(anchorEl)
 
 
     useEffect(() => {
@@ -50,9 +48,10 @@ export default function Header({children}) {
     }
     const onClickMenuItem = (event, path) => {
         setAnchorEl(null)
-        router.push(path)
+        if (path !== 'backdropClick') {
+            router.push(path)
+        }
     }
-
 
     return (<>
         <nav className="top admin-back-color">

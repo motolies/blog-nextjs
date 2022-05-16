@@ -9,7 +9,7 @@ export default function PostPage({children, post}) {
     )
 }
 
-Post.getInitialProps = async (ctx) => {
+PostPage.getInitialProps = async (ctx) => {
     const postId = ctx.query.id
     const post = await service.post.getPost({postId})
         .then(res => res.data)

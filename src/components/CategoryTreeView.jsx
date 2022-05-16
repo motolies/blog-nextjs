@@ -1,9 +1,9 @@
-import {TreeView, TreeItem} from '@mui/lab'
+import {TreeItem, TreeView} from '@mui/lab'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import {useDispatch, useSelector} from "react-redux"
 import {useEffect, useState} from "react"
-import {getCategoryFlatAction, getCategoryTreeAction} from "../store/actions/categoryActions"
+import {getCategoryTreeAction} from "../store/actions/categoryActions"
 
 
 export default function CategoryTreeView() {
@@ -29,7 +29,8 @@ export default function CategoryTreeView() {
             {Array.isArray(nodes.children)
                 ? nodes.children.map((node) => renderTree(node))
                 : null}
-        </TreeItem>)
+        </TreeItem>
+    )
 
     // TODO: defaultExpanded 옵션이 잘 동작하지 않는 것 같다?
     return (
@@ -39,7 +40,7 @@ export default function CategoryTreeView() {
             defaultExpanded={['ROOT']}
             defaultExpandIcon={<ChevronRightIcon/>}
             multiSelect={true}
-            sx={{flexGrow: 1, minWidth: 400, overflowY: 'auto'}}
+            sx={{flexGrow: 1, minWidth: 400}}
         >
             {renderTree(selectCategory)}
         </TreeView>

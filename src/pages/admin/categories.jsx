@@ -7,6 +7,8 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import {useState} from "react"
 import {uuidV4Generator} from "../../util/uuidUtil"
 import CategoryAutoComplete from "../../components/CategoryAutoComplete"
+import DeleteConfirm from "../../components/confirm/DeleteConfirm"
+import {useSnackbar} from "notistack"
 
 
 const initCategory = {
@@ -16,6 +18,10 @@ const initCategory = {
 }
 
 export default function CategoriesPage() {
+    const {enqueueSnackbar, closeSnackbar} = useSnackbar()
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [question, setQuestion] = useState('')
+
 
     const [category, setCategory] = useState(initCategory)
     const [isEditing, setIsEditing] = useState(false)
@@ -32,9 +38,35 @@ export default function CategoriesPage() {
     }
 
     const onChangeParentCategory = (parentCategory) => {
-        console.log("asd" + parentCategory)
-        if(parentCategory !== null)
+        if (parentCategory.id === category.id) {
+            enqueueSnackbar("동일 카테고리는 부모 카테고리에 설정할 수 없습니다.", {variant: "error"})
+            return
+        }
+
+        if (parentCategory !== null)
             setCategory({...category, pId: parentCategory.id})
+    }
+    const onSaveCategory = () => {
+        console.log(category)
+        // TODO: save category
+        // dispatch(flat, tree)
+    }
+
+    const onDeleteCategory = () => {
+        if (!isEditing) {
+            setQuestion(`${category.name} 카테고리를 삭제하시겠습니까?`)
+            setShowDeleteConfirm(true)
+        } else {
+            setCategory(initCategory)
+        }
+    }
+    const deleteCategory = () => {
+        // TODO: delete category
+        setShowDeleteConfirm(false)
+        // dispatch(flat, tree)
+    }
+    const deleteCategoryCancel = () => {
+        setShowDeleteConfirm(false)
     }
 
     return (
@@ -62,10 +94,10 @@ export default function CategoriesPage() {
                         <IconButton onClick={addNewCategory}>
                             <AddIcon/>
                         </IconButton>
-                        <IconButton>
+                        <IconButton onClick={onSaveCategory}>
                             <SaveIcon/>
                         </IconButton>
-                        <IconButton>
+                        <IconButton onClick={onDeleteCategory}>
                             <DeleteIcon/>
                         </IconButton>
                     </Grid>
@@ -81,7 +113,7 @@ export default function CategoriesPage() {
                             />
                         </Grid>
                         <Grid item xs={12}>
-                            <CategoryAutoComplete onChangeCategory={onChangeParentCategory} setCategoryId={category.pId}/>
+                            <CategoryAutoComplete onChangeCategory={onChangeParentCategory} setCategoryId={category.pId} label={'Parent Category'}/>
                         </Grid>
                         <Grid item xs={12}>
                             <TextField
@@ -96,6 +128,7 @@ export default function CategoriesPage() {
                     </Grid>
                 </Grid>
             </Grid>
+            <DeleteConfirm open={showDeleteConfirm} question={question} onConfirm={deleteCategory} onCancel={deleteCategoryCancel}/>
         </>
     )
 }

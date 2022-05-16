@@ -4,7 +4,7 @@ import {Autocomplete} from "@mui/lab"
 import {useEffect, useState} from "react"
 import {getCategoryFlatAction} from "../store/actions/categoryActions"
 
-export default function CategoryAutoComplete({onChangeCategory, setCategoryId}) {
+export default function CategoryAutoComplete({onChangeCategory, setCategoryId, label}) {
     const categoryState = useSelector((state) => state.category.categoryFlat)
     const dispatch = useDispatch()
     const [value, setValue] = useState({label: 'init...'})
@@ -34,7 +34,7 @@ export default function CategoryAutoComplete({onChangeCategory, setCategoryId}) 
                 options={categoryState}
                 onChange={onChangeCategoryName}
                 fullWidth
-                renderInput={(params) => <TextField {...params} label="카테고리(하위포함, OR 조건)"/>}
+                renderInput={(params) => <TextField {...params} label={label} />}
             />
         </Box>
     )

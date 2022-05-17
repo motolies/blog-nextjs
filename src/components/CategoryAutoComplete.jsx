@@ -13,7 +13,7 @@ export default function CategoryAutoComplete({onChangeCategory, setCategoryId, l
         if (categoryState.length === 0) {
             dispatch(getCategoryFlatAction())
         }
-    }, [categoryState])
+    }, [])
 
     useEffect(() => {
         if (setCategoryId !== null) {

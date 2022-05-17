@@ -94,8 +94,7 @@ export default function CategoriesPage() {
     }
 
     return (
-        <>
-            <h1>categories</h1>
+        <Box sx={{m: 2}}>
             <Grid container spacing={2}>
                 <Grid item xs={12} sm={12} md={7} elevation={3}>
                     <Box sx={{
@@ -153,6 +152,6 @@ export default function CategoriesPage() {
                 </Grid>
             </Grid>
             <DeleteConfirm open={showDeleteConfirm} question={question} onConfirm={deleteCategory} onCancel={deleteCategoryCancel}/>
-        </>
+        </Box>
     )
 }

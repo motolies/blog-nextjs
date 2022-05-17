@@ -31,7 +31,10 @@ const postService = {
                 query: base64Encode(JSON.stringify(searchAllParam))
             }
         })
-    }
+    },
+    new: () => {
+        return axiosClient.post('/api/post')
+    },
 }
 
 export default postService

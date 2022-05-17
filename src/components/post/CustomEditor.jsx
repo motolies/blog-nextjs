@@ -1,8 +1,9 @@
 import {useEffect, useRef, useState} from "react"
 import {Box} from "@mui/material"
+import service from "../../service"
 
 // https://velog.io/@sssssssssy/d-19tzdgsn
-export default function CustomEditor({defaultData, onChangeData}) {
+export default function CustomEditor({postId, defaultData, onChangeData}) {
     const editorRef = useRef()
     const [editorLoaded, setEditorLoaded] = useState(false)
     const {CKEditor, ClassicEditor} = editorRef.current || {}
@@ -24,10 +25,18 @@ export default function CustomEditor({defaultData, onChangeData}) {
             upload: () => {
                 return new Promise((resolve, reject) => {
                     const body = new FormData()
-                    loader.file.then((file) => {
-                        body.append("files", file)
+                    loader.file.then(async (file) => {
+                        body.append("file", file)
+                        body.append("contentId", postId)
 
                         // TODO: 여기서 파일 업로드
+                        await service.file.upload({formData: body})
+                            .then(res => {
+                                resolve({default: res.data.resourceUri})
+                            })
+                            .catch(err => {
+                                reject(err)
+                            })
 
                     })
                 })
@@ -54,12 +63,29 @@ export default function CustomEditor({defaultData, onChangeData}) {
                     data={defaultData ? defaultData : ""}
                     config={{
                         extraPlugins: [uploadPlugin],
+                        toolbar: { 		//사용 툴바
+                            items: [
+                                'heading',
+                                '|',
+                                'bold',
+                                'italic',
+                                'link',
+                                'bulletedList',
+                                'numberedList',
+                                '|',
+                                'outdent',
+                                'indent',
+                                '|',
+                                'imageUpload',
+                                'blockQuote',
+                                'insertTable',
+                                'mediaEmbed',
+                                'undo',
+                                'redo'
+                            ]
+                        },
                     }}
                     onReady={(e) => setEditor(e)}
-                    onInit={editor => {
-                        // You can store the "editor" and use when it is needed.
-                        console.log('Editor is ready to use!', editor)
-                    }}
                     onChange={onChange}
                 />
 

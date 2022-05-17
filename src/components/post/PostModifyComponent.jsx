@@ -41,7 +41,7 @@ export default function PostModifyComponent({post}) {
                 />
             </Grid>
             <Grid item xs={12}>
-                <CustomEditor defaultData={post.body} onChangeData={onChangeBody} />
+                <CustomEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} />
             </Grid>
         </Grid>
     )

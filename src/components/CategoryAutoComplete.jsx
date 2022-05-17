@@ -7,7 +7,7 @@ import {getCategoryFlatAction} from "../store/actions/categoryActions"
 export default function CategoryAutoComplete({onChangeCategory, setCategoryId, label}) {
     const categoryState = useSelector((state) => state.category.categoryFlat)
     const dispatch = useDispatch()
-    const [value, setValue] = useState({label: 'init...'})
+    const [value, setValue] = useState('')
 
     useEffect(() => {
         if (categoryState.length === 0) {
@@ -16,11 +16,11 @@ export default function CategoryAutoComplete({onChangeCategory, setCategoryId, l
     }, [])
 
     useEffect(() => {
-        if (setCategoryId !== null) {
+        if (setCategoryId !== null && categoryState.length > 0) {
             const cat = categoryState.find(c => c.id === setCategoryId)
             setValue(cat)
         }
-    }, [setCategoryId])
+    }, [setCategoryId, categoryState])
 
     const onChangeCategoryName = (event, newValue) => {
         onChangeCategory(newValue)
@@ -34,7 +34,7 @@ export default function CategoryAutoComplete({onChangeCategory, setCategoryId, l
                 options={categoryState}
                 onChange={onChangeCategoryName}
                 fullWidth
-                renderInput={(params) => <TextField {...params} label={label} />}
+                renderInput={(params) => <TextField {...params} label={label}/>}
             />
         </Box>
     )

@@ -9,16 +9,21 @@ import {uuidV4Generator} from "../../util/uuidUtil"
 import CategoryAutoComplete from "../../components/CategoryAutoComplete"
 import DeleteConfirm from "../../components/confirm/DeleteConfirm"
 import {useSnackbar} from "notistack"
+import service from "../../service"
+import {useDispatch} from "react-redux"
+import {getCategoryFlatAction, getCategoryTreeAction} from "../../store/actions/categoryActions"
 
 
 const initCategory = {
     id: uuidV4Generator(),
     name: '',
-    pId: ''
+    pId: 'ROOT'
 }
 
 export default function CategoriesPage() {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
+    const dispatch = useDispatch()
+
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [question, setQuestion] = useState('')
 
@@ -27,18 +32,18 @@ export default function CategoriesPage() {
     const [isEditing, setIsEditing] = useState(false)
 
     const addNewCategory = () => {
-        setCategory(initCategory)
+        const newCategory = {...initCategory, ...{pId: category.id}}
+        setCategory(newCategory)
         setIsEditing(true)
     }
 
     const onChangeCategory = (category) => {
-        console.log(category)
         setIsEditing(false)
         setCategory(category)
     }
 
     const onChangeParentCategory = (parentCategory) => {
-        if (parentCategory.id === category.id) {
+        if (parentCategory?.id === category.id) {
             enqueueSnackbar("동일 카테고리는 부모 카테고리에 설정할 수 없습니다.", {variant: "error"})
             return
         }
@@ -46,24 +51,43 @@ export default function CategoriesPage() {
         if (parentCategory !== null)
             setCategory({...category, pId: parentCategory.id})
     }
-    const onSaveCategory = () => {
-        console.log(category)
-        // TODO: save category
-        // dispatch(flat, tree)
+    const onSaveCategory = async () => {
+        await service.category.save({category}).then(() => {
+            enqueueSnackbar("카테고리가 저장되었습니다.", {variant: "success"})
+            setIsEditing(false)
+            refresh()
+        }).catch(() => {
+            enqueueSnackbar("카테고리 저장에 실패하였습니다.", {variant: "error"})
+        })
+    }
+
+    const refresh = () => {
+        dispatch(getCategoryFlatAction())
+        dispatch(getCategoryTreeAction())
     }
 
     const onDeleteCategory = () => {
+        if(category.name.trim() === '')
+            return
+
         if (!isEditing) {
             setQuestion(`${category.name} 카테고리를 삭제하시겠습니까?`)
             setShowDeleteConfirm(true)
         } else {
             setCategory(initCategory)
+            setIsEditing(false)
         }
     }
-    const deleteCategory = () => {
+    const deleteCategory = async () => {
         // TODO: delete category
         setShowDeleteConfirm(false)
-        // dispatch(flat, tree)
+        await service.category.delete({id: category.id}).then(() => {
+            enqueueSnackbar("카테고리가 삭제되었습니다.", {variant: "success"})
+            setCategory(initCategory)
+            refresh()
+        }).catch(() => {
+            enqueueSnackbar("카테고리 삭제에 실패하였습니다.", {variant: "error"})
+        })
     }
     const deleteCategoryCancel = () => {
         setShowDeleteConfirm(false)
@@ -89,7 +113,7 @@ export default function CategoriesPage() {
                           top: {xs: 0, sm: 0, md: '4rem'},
                           height: '450px'
                       }}>
-                    <h3>#status</h3>
+                    <h3>#status{isEditing ? '(new)' : '(modify)'}</h3>
                     <Grid item>
                         <IconButton onClick={addNewCategory}>
                             <AddIcon/>

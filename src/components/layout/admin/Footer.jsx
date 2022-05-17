@@ -10,7 +10,7 @@ export default function Footer({children}) {
                     display: none;
                   }
 
-                  @media ( min-width: 576px) {
+                  @media (min-width: 900px) {
                     .footer {
                       display: block;
                       position: fixed;

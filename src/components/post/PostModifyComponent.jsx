@@ -3,6 +3,7 @@ import {Grid, TextField} from "@mui/material"
 import CategoryAutoComplete from "../../components/CategoryAutoComplete"
 import {useSnackbar} from "notistack"
 import {useState} from "react"
+import CustomEditor from "./CustomEditor"
 
 export default function PostModifyComponent({post}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
@@ -17,6 +18,11 @@ export default function PostModifyComponent({post}) {
         }else{
             enqueueSnackbar("카테고리는 필수로 선택해야 합니다.", {variant: "error"})
         }
+    }
+
+    const onChangeBody = (body) => {
+        setBody(body)
+        console.log("body", body)
     }
 
     return (
@@ -35,7 +41,7 @@ export default function PostModifyComponent({post}) {
                 />
             </Grid>
             <Grid item xs={12}>
-                본문
+                <CustomEditor defaultData={post.body} onChangeData={onChangeBody} />
             </Grid>
         </Grid>
     )

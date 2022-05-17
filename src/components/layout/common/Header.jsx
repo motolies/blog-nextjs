@@ -125,7 +125,7 @@ export default function Header({children}) {
                 text-decoration: none;
               }
 
-              @media ( min-width: 576px) {
+              @media (min-width: 600px) {
                 .top {
                   position: fixed;
                   top: 0;

@@ -171,7 +171,7 @@ export default function Header({children}) {
                 color: #fff;
               }
 
-              @media ( min-width: 576px) {
+              @media (min-width: 600px) {
                 .top {
                   position: fixed;
                   top: 0;

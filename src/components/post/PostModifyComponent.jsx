@@ -3,7 +3,7 @@ import {Grid, TextField} from "@mui/material"
 import CategoryAutoComplete from "../../components/CategoryAutoComplete"
 import {useSnackbar} from "notistack"
 import {useState} from "react"
-import CustomEditor from "./CustomEditor"
+import CustomEditor from "../editor/CustomEditor"
 
 export default function PostModifyComponent({post}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()

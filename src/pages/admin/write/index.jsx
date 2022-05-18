@@ -1,8 +1,8 @@
-import PostModifyComponent from "../../components/post/PostModifyComponent"
-import service from "../../service"
+import PostModifyComponent from "../../../components/post/PostModifyComponent"
+import service from "../../../service"
 import {Box} from "@mui/material"
 
-export default function WritePage({post}) {
+export default function NewPostPage({post}) {
     return (
         <Box sx={{m: 2}}>
             <PostModifyComponent post={post}/>
@@ -10,7 +10,7 @@ export default function WritePage({post}) {
     )
 }
 
-WritePage.getInitialProps = async () => {
+NewPostPage.getInitialProps = async () => {
     const post = await service.post.new()
         .then(res => res.data)
     return {

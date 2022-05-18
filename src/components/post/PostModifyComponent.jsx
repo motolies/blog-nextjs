@@ -15,7 +15,7 @@ export default function PostModifyComponent({post}) {
     const onChangeCategory = (category) => {
         if (category?.id) {
             setCategoryId(category.id)
-        }else{
+        } else {
             enqueueSnackbar("카테고리는 필수로 선택해야 합니다.", {variant: "error"})
         }
     }
@@ -27,21 +27,37 @@ export default function PostModifyComponent({post}) {
 
     return (
         <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-                <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={categoryId} label={'Category'}/>
-            </Grid>
-            <Grid item xs={12} md={8}>
-                <TextField
-                    label="제목"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    fullWidth
-                    autoComplete="email"
-                    autoFocus
-                />
-            </Grid>
             <Grid item xs={12}>
-                <CustomEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} />
+                <Grid container spacing={3}>
+                    <Grid item xs={12} sm={12} md={9} elevation={3}>
+                        <TextField
+                            label="제목"
+                            value={subject}
+                            onChange={(e) => setSubject(e.target.value)}
+                            fullWidth
+                            autoComplete="email"
+                            autoFocus
+                            sx={{
+                                marginBottom: "1rem"
+                            }}
+                        />
+                        <CustomEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody}/>
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={3}
+                          sx={{
+                              position: {xs: 'static', sm: 'static', md: 'sticky'},
+                              top: {xs: 0, sm: 0, md: '4rem'},
+                              minHeight: '450px'
+                          }}>
+                        <Grid item xs={12}>
+                            <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={categoryId} label={'Category'}/>
+                        </Grid>
+                        <h3>공개여부</h3>
+                        <h3>이전글 넣기</h3>
+                        <h3>파일리스트</h3>
+                        <h3>태그리스트</h3>
+                    </Grid>
+                </Grid>
             </Grid>
         </Grid>
     )

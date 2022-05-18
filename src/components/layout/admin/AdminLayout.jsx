@@ -3,6 +3,8 @@ import {createTheme, ThemeProvider} from "@mui/material"
 import Header from "../admin/Header"
 import Section from "../admin/Section"
 import {useEffect} from "react"
+import {useRouter} from "next/router"
+import WriteSection from "./WriteSection"
 
 const theme = createTheme({
 
@@ -29,6 +31,8 @@ const theme = createTheme({
 })
 
 export default function AdminLayout({children}) {
+    const router = useRouter()
+
     useEffect(() => {
         document.title = "Admin"
     }, [])
@@ -37,9 +41,15 @@ export default function AdminLayout({children}) {
         <>
             <ThemeProvider theme={theme}>
                 <Header/>
-                <Section>
-                    {children}
-                </Section>
+                {router.pathname.startsWith('/admin/write') ?
+                    <WriteSection>
+                        {children}
+                    </WriteSection>
+                    :
+                    <Section>
+                        {children}
+                    </Section>
+                }
                 <Footer/>
             </ThemeProvider>
         </>

@@ -47,7 +47,6 @@ import TableCaption from '@ckeditor/ckeditor5-table/src/tablecaption.js'
 import TableCellProperties from '@ckeditor/ckeditor5-table/src/tablecellproperties'
 import TableProperties from '@ckeditor/ckeditor5-table/src/tableproperties'
 import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar.js'
-import Title from '@ckeditor/ckeditor5-heading/src/title.js'
 import Underline from '@ckeditor/ckeditor5-basic-styles/src/underline.js'
 import WordCount from '@ckeditor/ckeditor5-word-count/src/wordcount.js'
 
@@ -100,7 +99,6 @@ Editor.builtinPlugins = [
     TableCellProperties,
     TableProperties,
     TableToolbar,
-    // Title,
     Underline,
     WordCount
 ]
@@ -124,6 +122,9 @@ Editor.defaultConfig = {
             'strikethrough',
             'underline',
             '|',
+            'undo',
+            'redo',
+            '-',
             'link',
             'bulletedList',
             'numberedList',
@@ -138,9 +139,6 @@ Editor.defaultConfig = {
             'mediaEmbed',
             'codeBlock',
             'htmlEmbed',
-            'undo',
-            'redo',
-            '|',
             '-',
             'removeFormat',
             '|',

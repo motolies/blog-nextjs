@@ -1,12 +1,14 @@
 import {useEffect, useRef, useState} from "react"
 import {Box} from "@mui/material"
 import service from "../../service"
+// import Editor from "ckeditor5-custom-build/build/ckeditor";
+// import { CKEditor } from "@ckeditor/ckeditor5-react";
 
 // https://velog.io/@sssssssssy/d-19tzdgsn
 export default function CustomEditor({postId, defaultData, onChangeData}) {
     const editorRef = useRef()
     const [editorLoaded, setEditorLoaded] = useState(false)
-    const {CKEditor, ClassicEditor} = editorRef.current || {}
+    const {CKEditor, Editor} = editorRef.current || {}
     const [editor, setEditor] = useState(null)
 
 
@@ -14,7 +16,8 @@ export default function CustomEditor({postId, defaultData, onChangeData}) {
         // https://stackoverflow.com/questions/58447134/ckeditor-window-is-not-defined-reactjs-while-implementing
         editorRef.current = {
             CKEditor: require('@ckeditor/ckeditor5-react').CKEditor, // v3+
-            ClassicEditor: require('@ckeditor/ckeditor5-build-classic')
+            // ClassicEditor: require('@ckeditor/ckeditor5-build-classic')
+            Editor: require('ckeditor5-custom-build/build/ckeditor')
         }
         setEditorLoaded(true)
     }, [])
@@ -59,31 +62,31 @@ export default function CustomEditor({postId, defaultData, onChangeData}) {
     return editorLoaded ? (
             <Box>
                 <CKEditor
-                    editor={ClassicEditor}
+                    editor={Editor}
                     data={defaultData ? defaultData : ""}
                     config={{
                         extraPlugins: [uploadPlugin],
-                        toolbar: { 		//사용 툴바
-                            items: [
-                                'heading',
-                                '|',
-                                'bold',
-                                'italic',
-                                'link',
-                                'bulletedList',
-                                'numberedList',
-                                '|',
-                                'outdent',
-                                'indent',
-                                '|',
-                                'imageUpload',
-                                'blockQuote',
-                                'insertTable',
-                                'mediaEmbed',
-                                'undo',
-                                'redo'
-                            ]
-                        },
+                        // toolbar: { 		//사용 툴바
+                        //     items: [
+                        //         'heading',
+                        //         '|',
+                        //         'bold',
+                        //         'italic',
+                        //         'link',
+                        //         'bulletedList',
+                        //         'numberedList',
+                        //         '|',
+                        //         'outdent',
+                        //         'indent',
+                        //         '|',
+                        //         'imageUpload',
+                        //         'blockQuote',
+                        //         'insertTable',
+                        //         'mediaEmbed',
+                        //         'undo',
+                        //         'redo'
+                        //     ]
+                        // },
                     }}
                     onReady={(e) => setEditor(e)}
                     onChange={onChange}

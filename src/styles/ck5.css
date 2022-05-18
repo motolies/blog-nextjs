@@ -1,7 +1,13 @@
+@media (max-width: 599px) {
+    .ck-editor__editable_inline {
+        min-height: 55vh !important;
+        max-height: 55vh !important;
+    }
+}
 @media (min-width: 600px) {
     .ck-editor__editable_inline {
-        min-height: 65vh !important;
-        max-height: 65vh !important;
+        min-height: 55vh !important;
+        max-height: 55vh !important;
     }
 }
 @media (min-width: 900px) {

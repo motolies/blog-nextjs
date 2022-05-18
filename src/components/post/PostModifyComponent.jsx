@@ -25,13 +25,12 @@ export default function PostModifyComponent({post}) {
         console.log("body", body)
     }
 
-    return (
-        <Grid container spacing={3}>
+    return (<Grid container spacing={3}>
             <Grid item xs={12}>
                 <Grid container spacing={3}>
                     <Grid item xs={12} sm={12} md={9} elevation={3}>
                         <TextField
-                            label="제목"
+                            label="Title"
                             value={subject}
                             onChange={(e) => setSubject(e.target.value)}
                             fullWidth
@@ -45,20 +44,31 @@ export default function PostModifyComponent({post}) {
                     </Grid>
                     <Grid item xs={12} sm={12} md={3}
                           sx={{
-                              position: {xs: 'static', sm: 'static', md: 'sticky'},
-                              top: {xs: 0, sm: 0, md: '4rem'},
-                              height: '450px'
+                              position: {xs: 'static', sm: 'static', md: 'sticky'}, top: {xs: 0, sm: 0, md: '4rem'}, height: '450px'
                           }}>
-                        <Grid item xs={12}>
-                            <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={categoryId} label={'Category'}/>
+
+                        <Grid container spacing={3}>
+                            <Grid item xs={12}>
+                                <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={categoryId} label={'Category'}/>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <h3>공개여부</h3>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <h3>이전글 넣기</h3>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <h3>파일리스트</h3>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <h3>태그리스트</h3>
+                            </Grid>
+                            <Grid item xs={12}>
+                                저장버튼
+                            </Grid>
                         </Grid>
-                        <h3>공개여부</h3>
-                        <h3>이전글 넣기</h3>
-                        <h3>파일리스트</h3>
-                        <h3>태그리스트</h3>
                     </Grid>
                 </Grid>
             </Grid>
-        </Grid>
-    )
+        </Grid>)
 }

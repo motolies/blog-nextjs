@@ -47,7 +47,7 @@ export default function PostModifyComponent({post}) {
                           sx={{
                               position: {xs: 'static', sm: 'static', md: 'sticky'},
                               top: {xs: 0, sm: 0, md: '4rem'},
-                              minHeight: '450px'
+                              height: '450px'
                           }}>
                         <Grid item xs={12}>
                             <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={categoryId} label={'Category'}/>

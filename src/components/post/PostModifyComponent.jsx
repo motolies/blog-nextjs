@@ -1,9 +1,10 @@
 // https://mui.com/material-ui/react-drawer/#responsive-drawer
-import {Grid, TextField} from "@mui/material"
+import {Button, Grid, TextField} from "@mui/material"
 import CategoryAutoComplete from "../../components/CategoryAutoComplete"
 import {useSnackbar} from "notistack"
 import {useState} from "react"
 import CustomEditor from "../editor/CustomEditor"
+import {uuidV4Generator} from "../../util/uuidUtil"
 
 export default function PostModifyComponent({post}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
@@ -11,6 +12,7 @@ export default function PostModifyComponent({post}) {
     const [body, setBody] = useState(post.body)
     const [categoryId, setCategoryId] = useState(post.categoryId)
     const [isPublic, setIsPublic] = useState(post.public)
+    const [insertData, setInsertData] = useState('')
 
     const onChangeCategory = (category) => {
         if (category?.id) {
@@ -26,49 +28,50 @@ export default function PostModifyComponent({post}) {
     }
 
     return (<Grid container spacing={3}>
-            <Grid item xs={12}>
-                <Grid container spacing={3}>
-                    <Grid item xs={12} sm={12} md={9} elevation={3}>
-                        <TextField
-                            label="Title"
-                            value={subject}
-                            onChange={(e) => setSubject(e.target.value)}
-                            fullWidth
-                            autoComplete="email"
-                            autoFocus
-                            sx={{
-                                marginBottom: "1rem"
-                            }}
-                        />
-                        <CustomEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody}/>
-                    </Grid>
-                    <Grid item xs={12} sm={12} md={3}
-                          sx={{
-                              position: {xs: 'static', sm: 'static', md: 'sticky'}, top: {xs: 0, sm: 0, md: '4rem'}, height: '450px'
-                          }}>
+        <Grid item xs={12}>
+            <Grid container spacing={3}>
+                <Grid item xs={12} sm={12} md={9} elevation={3}>
+                    <TextField
+                        label="Title"
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        fullWidth
+                        autoComplete="email"
+                        autoFocus
+                        sx={{
+                            marginBottom: "1rem"
+                        }}
+                    />
+                    <CustomEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData}/>
+                </Grid>
+                <Grid item xs={12} sm={12} md={3}
+                      sx={{
+                          position: {xs: 'static', sm: 'static', md: 'sticky'}, top: {xs: 0, sm: 0, md: '4rem'}, height: '450px'
+                      }}>
 
-                        <Grid container spacing={3}>
-                            <Grid item xs={12}>
-                                <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={categoryId} label={'Category'}/>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <h3>공개여부</h3>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <h3>이전글 넣기</h3>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <h3>파일리스트</h3>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <h3>태그리스트</h3>
-                            </Grid>
-                            <Grid item xs={12}>
-                                저장버튼
-                            </Grid>
+                    <Grid container spacing={3}>
+                        <Grid item xs={12}>
+                            <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={categoryId} label={'Category'}/>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <h3>공개여부</h3>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <h3>이전글 넣기</h3>
+                            <Button variant="outlined" onClick={() => setInsertData(`<p>${uuidV4Generator()}</p>`)}>이전글</Button>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <h3>파일리스트</h3>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <h3>태그리스트</h3>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <h3>저장버튼 자리</h3>
                         </Grid>
                     </Grid>
                 </Grid>
             </Grid>
-        </Grid>)
+        </Grid>
+    </Grid>)
 }

@@ -6,7 +6,7 @@ import {cancelLoading, setLoading} from "../../store/actions/commonActions"
 import {useSnackbar} from "notistack"
 
 // https://velog.io/@sssssssssy/d-19tzdgsn
-export default function CustomEditor({postId, defaultData, onChangeData}) {
+export default function CustomEditor({postId, defaultData, onChangeData, insertData}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
     const editorRef = useRef()
     const dispatch = useDispatch()
@@ -24,6 +24,11 @@ export default function CustomEditor({postId, defaultData, onChangeData}) {
         setEditorLoaded(true)
     }, [])
 
+    useEffect(() => {
+        if (editorLoaded && insertData !== '') {
+            insertDataOnCursor(editor, insertData)
+        }
+    }, [insertData])
 
     const imageUploadAdapter = (loader) => {
         return {
@@ -102,12 +107,7 @@ export default function CustomEditor({postId, defaultData, onChangeData}) {
         await service.file.upload({formData: body})
             .then(res => {
                 const content = `<a href="${res.data.resourceUri}"/>${res.data.originFileName}</a>`
-                const viewFragment = editor.data.processor.toView(content)
-                const modelFragment = editor.data.toModel(viewFragment)
-                editor.model.insertContent(
-                    modelFragment,
-                    editor.model.document.selection
-                )
+                insertDataOnCursor(editor, content)
             })
             .catch(err => {
                 enqueueSnackbar("파일 업로드에 실패하였습니다.", {variant: "error"})
@@ -115,6 +115,15 @@ export default function CustomEditor({postId, defaultData, onChangeData}) {
             .finally(() => {
                 dispatch(cancelLoading())
             })
+    }
+
+    const insertDataOnCursor = (editor, data) => {
+        const viewFragment = editor.data.processor.toView(data)
+        const modelFragment = editor.data.toModel(viewFragment)
+        editor.model.insertContent(
+            modelFragment,
+            editor.model.document.selection
+        )
     }
 
 

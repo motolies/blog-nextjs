@@ -1,19 +1,18 @@
 import PostModifyComponent from "../../../components/post/PostModifyComponent"
-import service from "../../../service"
 import {Box} from "@mui/material"
+import {useDispatch} from "react-redux"
+import {useEffect} from "react"
+import {loadContentForModify} from "../../../store/actions/postActions"
 
-export default function NewPostPage({post}) {
+export default function NewPostPage() {
+    const dispatch = useDispatch()
+    useEffect(() => {
+        dispatch(loadContentForModify({}))
+    }, [])
+
     return (
         <Box sx={{m: 2}}>
-            <PostModifyComponent post={post}/>
+            <PostModifyComponent/>
         </Box>
     )
-}
-
-NewPostPage.getInitialProps = async () => {
-    const post = await service.post.new()
-        .then(res => res.data)
-    return {
-        post
-    }
 }

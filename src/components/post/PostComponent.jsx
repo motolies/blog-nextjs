@@ -24,7 +24,7 @@ export default function PostComponent({post}) {
 
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [showPublicConfirm, setShowPublicConfirm] = useState(false)
-    const [postPublic, setPostPublic] = useState(post.public)
+    const [postPublic, setPostPublic] = useState(post.isPublic)
     const [tags, setTags] = useState(post.tag)
     const [publicConfirmQuestion, setPublicConfirmQuestion] = useState('')
     const [postBody, setPostBody] = useState()

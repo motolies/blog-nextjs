@@ -1,29 +1,38 @@
 // https://mui.com/material-ui/react-drawer/#responsive-drawer
-import {Button, Grid, TextField} from "@mui/material"
+import {Button, Grid, MenuItem, TextField} from "@mui/material"
 import CategoryAutoComplete from "../../components/CategoryAutoComplete"
 import {useSnackbar} from "notistack"
 import {useState} from "react"
 import CustomEditor from "../editor/CustomEditor"
+import {useDispatch, useSelector} from "react-redux"
+import {POST_LOCAL_MODIFY_BODY, POST_LOCAL_MODIFY_CATEGORY_ID, POST_LOCAL_MODIFY_PUBLIC, POST_LOCAL_MODIFY_SUBJECT} from "../../store/types/postTypes"
 import {uuidV4Generator} from "../../util/uuidUtil"
 
-export default function PostModifyComponent({post}) {
+export default function PostModifyComponent() {
+
+    const post = useSelector(state => state.post.modifyPost)
+    const dispatch = useDispatch()
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
-    const [subject, setSubject] = useState(post.subject)
-    const [body, setBody] = useState(post.body)
-    const [categoryId, setCategoryId] = useState(post.categoryId)
-    const [isPublic, setIsPublic] = useState(post.public)
     const [insertData, setInsertData] = useState('')
+
+    const publicOptions = [{value: true, label: '공개'}, {value: false, label: '비공개'}]
 
     const onChangeCategory = (category) => {
         if (category?.id) {
-            setCategoryId(category.id)
+            dispatch({
+                type: POST_LOCAL_MODIFY_CATEGORY_ID,
+                categoryId: category.id,
+            })
         } else {
             enqueueSnackbar("카테고리는 필수로 선택해야 합니다.", {variant: "error"})
         }
     }
 
     const onChangeBody = (body) => {
-        setBody(body)
+        dispatch({
+            type: POST_LOCAL_MODIFY_BODY,
+            body: body,
+        })
         console.log("body", body)
     }
 
@@ -33,11 +42,14 @@ export default function PostModifyComponent({post}) {
                 <Grid item xs={12} sm={12} md={9} elevation={3}>
                     <TextField
                         label="Title"
-                        value={subject}
-                        onChange={(e) => setSubject(e.target.value)}
+                        value={post.subject}
+                        onChange={(e) =>
+                            dispatch({
+                                type: POST_LOCAL_MODIFY_SUBJECT,
+                                subject: e.target.value,
+                            })
+                        }
                         fullWidth
-                        autoComplete="email"
-                        autoFocus
                         sx={{
                             marginBottom: "1rem"
                         }}
@@ -51,10 +63,27 @@ export default function PostModifyComponent({post}) {
 
                     <Grid container spacing={3}>
                         <Grid item xs={12}>
-                            <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={categoryId} label={'Category'}/>
+                            <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={post.categoryId} label={'Category'}/>
                         </Grid>
                         <Grid item xs={12}>
-                            <h3>공개여부</h3>
+                            <TextField
+                                id="outlined-select-currency"
+                                select
+                                fullWidth
+                                label="isPublic"
+                                value={post.isPublic}
+                                onChange={(e) =>
+                                    dispatch({
+                                        type: POST_LOCAL_MODIFY_PUBLIC,
+                                        isPublic: e.target.value,
+                                    })
+                                }>
+                                {publicOptions.map((option) => (
+                                    <MenuItem key={option.value} value={option.value}>
+                                        {option.label}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                         </Grid>
                         <Grid item xs={12}>
                             <h3>이전글 넣기</h3>

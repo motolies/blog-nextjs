@@ -1,21 +1,24 @@
 import PostModifyComponent from "../../../components/post/PostModifyComponent"
 import service from "../../../service"
 import {Box} from "@mui/material"
-import PostPage from "../../post/[id]"
+import {useDispatch, useSelector} from "react-redux"
+import {useEffect} from "react"
+import {loadContentForModify} from "../../../store/actions/postActions"
+import {useRouter} from "next/router"
 
-export default function ModifyPostPage({post}) {
+export default function ModifyPostPage() {
+    const router = useRouter()
+    const dispatch = useDispatch()
+    const postId = router.query.id
+
+    useEffect(() => {
+        dispatch(loadContentForModify({postId: postId}))
+    }, [])
+
+
     return (
         <Box sx={{m: 2}}>
-            <PostModifyComponent post={post}/>
+            <PostModifyComponent/>
         </Box>
     )
-}
-
-ModifyPostPage.getInitialProps = async (ctx) => {
-    const postId = ctx.query.id
-    const post = await service.post.getPost({postId})
-        .then(res => res.data)
-    return {
-        post
-    }
 }

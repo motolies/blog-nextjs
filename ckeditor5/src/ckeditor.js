@@ -19,8 +19,6 @@ import GeneralHtmlSupport from '@ckeditor/ckeditor5-html-support/src/generalhtml
 import Heading from '@ckeditor/ckeditor5-heading/src/heading.js'
 import Highlight from '@ckeditor/ckeditor5-highlight/src/highlight.js'
 import HorizontalLine from '@ckeditor/ckeditor5-horizontal-line/src/horizontalline.js'
-import HtmlComment from '@ckeditor/ckeditor5-html-support/src/htmlcomment.js'
-import HtmlEmbed from '@ckeditor/ckeditor5-html-embed/src/htmlembed.js'
 import Image from '@ckeditor/ckeditor5-image/src/image.js'
 import ImageCaption from '@ckeditor/ckeditor5-image/src/imagecaption.js'
 import ImageStyle from '@ckeditor/ckeditor5-image/src/imagestyle.js'
@@ -42,13 +40,7 @@ import SpecialCharacters from '@ckeditor/ckeditor5-special-characters/src/specia
 import SpecialCharactersArrows from '@ckeditor/ckeditor5-special-characters/src/specialcharactersarrows.js'
 import SpecialCharactersEssentials from '@ckeditor/ckeditor5-special-characters/src/specialcharactersessentials.js'
 import Strikethrough from '@ckeditor/ckeditor5-basic-styles/src/strikethrough.js'
-import Table from '@ckeditor/ckeditor5-table/src/table.js'
-import TableCaption from '@ckeditor/ckeditor5-table/src/tablecaption.js'
-import TableCellProperties from '@ckeditor/ckeditor5-table/src/tablecellproperties'
-import TableProperties from '@ckeditor/ckeditor5-table/src/tableproperties'
-import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar.js'
 import Underline from '@ckeditor/ckeditor5-basic-styles/src/underline.js'
-import WordCount from '@ckeditor/ckeditor5-word-count/src/wordcount.js'
 
 class Editor extends ClassicEditor {
 }
@@ -71,8 +63,6 @@ Editor.builtinPlugins = [
     Heading,
     Highlight,
     HorizontalLine,
-    HtmlComment,
-    HtmlEmbed,
     Image,
     ImageCaption,
     ImageStyle,
@@ -94,13 +84,7 @@ Editor.builtinPlugins = [
     SpecialCharactersArrows,
     SpecialCharactersEssentials,
     Strikethrough,
-    Table,
-    TableCaption,
-    TableCellProperties,
-    TableProperties,
-    TableToolbar,
     Underline,
-    WordCount
 ]
 
 // Editor configuration.

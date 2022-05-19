@@ -86,17 +86,33 @@ export default function PostModifyComponent() {
                             </TextField>
                         </Grid>
                         <Grid item xs={12}>
-                            <h3>이전글 넣기</h3>
-                            <Button variant="outlined" onClick={() => setInsertData(`<p>${uuidV4Generator()}</p>`)}>이전글</Button>
+                            <Button fullWidth size="large" variant="outlined"
+                                    onClick={() => {
+                                        enqueueSnackbar("모달창에서 검색해서 선택할 수 있도록 하자.", {variant: "warning"})
+                                        setInsertData(`${uuidV4Generator()}`)
+                                    }}>이전 글 넣기</Button>
                         </Grid>
                         <Grid item xs={12}>
                             <h3>파일리스트</h3>
+                            {post.file?.map((file) => (
+                                <div key={file.id}>{file.originFileName}</div>
+                            ))}
                         </Grid>
                         <Grid item xs={12}>
                             <h3>태그리스트</h3>
+                            {post.tag?.map((tag) => (
+                                <div key={tag.id}>{tag.name}</div>
+                            ))}
                         </Grid>
                         <Grid item xs={12}>
-                            <h3>저장버튼 자리</h3>
+                            <Grid container spacing={3}>
+                                <Grid item xs={6}>
+                                    <Button fullWidth size="large" variant="contained">저장</Button>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <Button fullWidth size="large" color="error" variant="contained">취소</Button>
+                                </Grid>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </Grid>

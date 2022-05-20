@@ -40,7 +40,7 @@ export default function PostModifyComponent() {
         }).finally(() => {
             dispatch(cancelLoading())
         })
-    }, [post.body, saveAble])
+    }, [post, saveAble])
 
     const onChangeCategory = (category) => {
         if (category?.id) {

@@ -17,6 +17,8 @@ const modifyPostInit = {
     body: "",
     categoryId: "ROOT",
     isPublic: false,
+    tag: [],
+    file: []
 }
 
 export default function postReducers(stats = {

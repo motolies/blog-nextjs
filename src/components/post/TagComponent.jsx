@@ -12,9 +12,10 @@ import {useRouter} from "next/router"
 export const Tag = (props) => {
     const router = useRouter()
     const userState = useSelector((state) => state.user)
-    const {enqueueSnackbar, closeSnackbar} = useSnackbar()
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [question, setQuestion] = useState('')
+    const writePage = props.writePage || false
+
 
     const showDeleteConfirmDialog = (e) => {
         e.stopPropagation()
@@ -35,7 +36,7 @@ export const Tag = (props) => {
             const condition = {
                 ...searchObjectInit,
                 ...{
-                    tags: [{id:props.id, name: props.name}],
+                    tags: [{id: props.id, name: props.name}],
                 }
             }
             router.push({pathname: '/search', query: {q: base64Encode(JSON.stringify(condition))}})
@@ -43,26 +44,52 @@ export const Tag = (props) => {
     }
 
     return (
-        <Box
-            display="flex-inline"
-            sx={{
-                m: 1
-                , p: 1
-                , background: "rgba(57, 138, 185, 0.1)"
-                , '&:hover': {
-                    background: "rgba(57, 138, 185, 0.4)"
-                }
-                , cursor: "pointer"
-            }}
-            onClick={searchTagName}
-        >
-            {props.name}
-            {!(userState.isAuthenticated && userState.user.userName) ? null :
-                <IconButton aria-label="delete" onClick={showDeleteConfirmDialog}>
-                    <DeleteIcon/>
-                </IconButton>
-            }
-            <DeleteConfirm open={showDeleteConfirm} question={question} onConfirm={deleteTag} onCancel={deleteTagCancel}/>
-        </Box>
-    )
+        <>
+            {writePage ?
+                <Box
+                    display="flex-inline"
+                    sx={{
+                        mr: 1
+                        , mb: 1
+                        , px: 1
+                        , background: "rgba(17, 153, 142, .2)"
+                        , '&:hover': {
+                            background: "rgba(17, 153, 142, .6)"
+                        }
+                    }}
+                >
+                    {props.name}
+                    {!(userState.isAuthenticated && userState.user.userName) ? null :
+                        <IconButton aria-label="delete" onClick={showDeleteConfirmDialog}>
+                            <DeleteIcon fontSize={'small'}/>
+                        </IconButton>
+                    }
+                    <DeleteConfirm open={showDeleteConfirm} question={question} onConfirm={deleteTag} onCancel={deleteTagCancel}/>
+                </Box>
+                :
+                <Box
+                    display="flex-inline"
+                    sx={{
+                        mr: 1
+                        , mb: 1
+                        , px: 1
+                        , background: "rgba(17, 153, 142, .2)"
+                        , '&:hover': {
+                            background: "rgba(17, 153, 142, .6)"
+                        }
+                        , cursor: "pointer"
+                    }}
+                    onClick={searchTagName}
+                >
+                    {props.name}
+                    {!(userState.isAuthenticated && userState.user.userName) ? null :
+                        <IconButton aria-label="delete" onClick={showDeleteConfirmDialog}>
+                            <DeleteIcon fontSize={'small'}/>
+                        </IconButton>
+                    }
+                    <DeleteConfirm open={showDeleteConfirm} question={question} onConfirm={deleteTag} onCancel={deleteTagCancel}/>
+                </Box>}
+
+        </>)
+
 }

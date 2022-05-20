@@ -10,6 +10,7 @@ import DynamicEditor from "../editor/DynamicEditor"
 import service from "../../service"
 import {cancelLoading, setLoading} from "../../store/actions/commonActions"
 import {useRouter} from "next/router"
+import TagGroupComponent from "./TagGroupComponent"
 
 export default function PostModifyComponent() {
     const router = useRouter()
@@ -20,6 +21,26 @@ export default function PostModifyComponent() {
     const [triggerGetData, setTriggerGetData] = useState('')
     const [saveAble, setSaveAble] = useState(false)
     const publicOptions = [{value: true, label: '공개'}, {value: false, label: '비공개'}]
+    const [tags, setTags] = useState([])
+
+    useEffect(() => {
+        setTags(post.tag)
+    }, [post.tag])
+
+    useEffect(() => {
+        if (!saveAble)
+            return
+
+        dispatch(setLoading())
+        service.post.save({post: post}).then(res => {
+            router.push(`/post/${post.id}`)
+        }).catch(err => {
+            enqueueSnackbar("저장에 실패하였습니다.", {variant: "error"})
+            console.log("content save error", err)
+        }).finally(() => {
+            dispatch(cancelLoading())
+        })
+    }, [post.body, saveAble])
 
     const onChangeCategory = (category) => {
         if (category?.id) {
@@ -40,20 +61,6 @@ export default function PostModifyComponent() {
         setSaveAble(true)
     }
 
-    useEffect(() => {
-        if (!saveAble)
-            return
-
-        dispatch(setLoading())
-        service.post.save({post: post}).then(res => {
-            router.push(`/post/${post.id}`)
-        }).catch(err => {
-            enqueueSnackbar("저장에 실패하였습니다.", {variant: "error"})
-            console.log("content save error", err)
-        }).finally(() => {
-            dispatch(cancelLoading())
-        })
-    }, [post.body, saveAble])
 
     return (<Grid container spacing={3}>
         <Grid item xs={12}>
@@ -119,10 +126,7 @@ export default function PostModifyComponent() {
                             ))}
                         </Grid>
                         <Grid item xs={12}>
-                            <h3>태그리스트</h3>
-                            {post.tag?.map((tag) => (
-                                <div key={tag.id}>{tag.name}</div>
-                            ))}
+                            <TagGroupComponent postId={post.id} tagList={tags} writePage={true}/>
                         </Grid>
                         <Grid item xs={12}>
                             <Grid container spacing={3}>

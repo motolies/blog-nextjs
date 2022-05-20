@@ -9,7 +9,7 @@ import _ from "lodash"
 import service from "../../service"
 
 
-export default function TagGroupComponent({postId, tagList}) {
+export default function TagGroupComponent({postId, tagList, writePage}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
     const dispatch = useDispatch()
 
@@ -94,9 +94,11 @@ export default function TagGroupComponent({postId, tagList}) {
             direction="row"
             spacing={2}
         >
-            <Grid item>
-                <h3>#tags</h3>
-            </Grid>
+            {writePage ? null :
+                <Grid item>
+                    <h3>#tags</h3>
+                </Grid>
+            }
 
             {!(userState.isAuthenticated && userState.user.userName) ? null :
                 <Grid item xs={12}>
@@ -117,7 +119,7 @@ export default function TagGroupComponent({postId, tagList}) {
                             }
                         }}
                         fullWidth
-                        renderInput={(params) => <TextField {...params} label="태그 추가"/>}
+                        renderInput={(params) => <TextField {...params} label="Add Tags"/>}
                     />
                 </Grid>
             }
@@ -131,7 +133,7 @@ export default function TagGroupComponent({postId, tagList}) {
                         , flexWrap: 'wrap'
                     }}
                 >
-                    {postTags.map((tag) => <Tag key={tag.id} id={tag.id} name={tag.name} deletePostTag={deletePostTag}/>)}
+                    {postTags.map((tag) => <Tag key={tag.id} id={tag.id} name={tag.name} writePage={writePage} deletePostTag={deletePostTag}/>)}
                 </Box>
             </Grid>
         </Grid>

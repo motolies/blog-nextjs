@@ -3,18 +3,17 @@ import {Button, Grid, MenuItem, TextField} from "@mui/material"
 import CategoryAutoComplete from "../../components/CategoryAutoComplete"
 import {useSnackbar} from "notistack"
 import {useState} from "react"
-import CustomEditor from "../editor/CustomEditor"
 import {useDispatch, useSelector} from "react-redux"
 import {POST_LOCAL_MODIFY_BODY, POST_LOCAL_MODIFY_CATEGORY_ID, POST_LOCAL_MODIFY_PUBLIC, POST_LOCAL_MODIFY_SUBJECT} from "../../store/types/postTypes"
 import {uuidV4Generator} from "../../util/uuidUtil"
 import DynamicEditor from "../editor/DynamicEditor"
 
 export default function PostModifyComponent() {
-
     const post = useSelector(state => state.post.modifyPost)
     const dispatch = useDispatch()
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
     const [insertData, setInsertData] = useState('')
+    const [triggerGetData, setTriggerGetData] = useState('')
 
     const publicOptions = [{value: true, label: '공개'}, {value: false, label: '비공개'}]
 
@@ -34,7 +33,8 @@ export default function PostModifyComponent() {
             type: POST_LOCAL_MODIFY_BODY,
             body: body,
         })
-        console.log("body", body)
+
+        console.log("modifyPost : ", post)
     }
 
     return (<Grid container spacing={3}>
@@ -56,7 +56,7 @@ export default function PostModifyComponent() {
                         }}
                     />
                     {/*<CustomEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData}/>*/}
-                    <DynamicEditor defaultData={post.body} />
+                    <DynamicEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData} getDataTrigger={triggerGetData}/>
                 </Grid>
                 <Grid item xs={12} sm={12} md={3}
                       sx={{
@@ -109,7 +109,7 @@ export default function PostModifyComponent() {
                         <Grid item xs={12}>
                             <Grid container spacing={3}>
                                 <Grid item xs={6}>
-                                    <Button fullWidth size="large" variant="contained">저장</Button>
+                                    <Button fullWidth size="large" variant="contained" onClick={() => setTriggerGetData(uuidV4Generator)}>저장</Button>
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Button fullWidth size="large" color="error" variant="contained">취소</Button>

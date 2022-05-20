@@ -1,4 +1,4 @@
-import {Box, Button, Grid} from "@mui/material"
+import {Box, Grid} from "@mui/material"
 import IconButton from '@mui/material/IconButton'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
@@ -12,7 +12,6 @@ import {useSnackbar} from "notistack"
 import {useSelector} from "react-redux"
 import PublicConfirm from "../confirm/PublicConfirm"
 import TagGroupComponent from "./TagGroupComponent"
-import Script from "next/script"
 import Link from "next/link"
 import {searchObjectInit} from "../../model/searchObject"
 import {base64Encode} from "../../util/base64Util"
@@ -30,11 +29,51 @@ export default function PostComponent({post}) {
     const [postBody, setPostBody] = useState()
 
     useEffect(() => {
+        postImagePopup()
+        postIconChange()
+    }, [postBody])
+
+    const postIconChange = () => {
+        document.querySelectorAll('i.fa-file').forEach(icon => {
+            if (icon.parentNode.nodeName === 'A') {
+                icon.parentNode.style.display = 'inline-flex'
+                icon.parentNode.style.alignItems = 'center'
+            }
+            icon.outerHTML = '<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-i4bv87-MuiSvgIcon-root" focusable="false" aria-hidden="true" viewBox="0 0 24 24" data-testid="AttachFileIcon"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"></path></svg>'
+        })
+
+    }
+
+    const postImagePopup = () => {
+        const imgs = document.querySelectorAll('#post-content img')
+        for (let i = 0; i < imgs.length; i++) {
+            let currentImg = imgs[i]
+            currentImg.addEventListener('click', function (e) {
+                const imgPopupHtml = `<html>
+                                  <head>
+                                    <meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0, width=device-width" />
+                                  </head>
+                                  <body style="margin:0; background:#000;height:100%;" onclick="javascript:window.close('simpleLightbox');">
+                                      <table border="0" width="100%" height="100%">
+                                          <tr>
+                                              <td valign="middle" align="center">
+                                                <img style="position:relative;z-index:2;width:100%" src="${currentImg.src}"/>
+                                              </td>
+                                          </tr>
+                                      </table>
+                                  </body>
+                                  </html>`
+                window.open('', 'simpleLightbox').document.write(imgPopupHtml)
+            })
+        }
+    }
+
+
+    useEffect(() => {
         const doc = new DOMParser().parseFromString(post.body, 'text/html')
         initVsCode(doc)
         setPostBody(doc.head.innerHTML + doc.body.innerHTML)
     }, [post.body])
-
 
     const initVsCode = (doc) => {
         Array.prototype.slice.call(doc.getElementsByTagName("div"), 0).forEach(div => {
@@ -176,8 +215,6 @@ export default function PostComponent({post}) {
                 </div>
                 <DeleteConfirm open={showDeleteConfirm} question={'현재 포스트를 삭제하시겠습니까?'} onConfirm={deletePost} onCancel={deletePostCancel}/>
                 <PublicConfirm open={showPublicConfirm} question={publicConfirmQuestion} onConfirm={setPublicStatus} onCancel={publicPostCancel}/>
-                <Script id={'post-icons-change'} strategy={"lazyOnload"} src={'/js/PostIconChange.js'}/>
-                <Script id={'post-content-image-popup'} strategy={"lazyOnload"} src={'/js/PostImagePopup.js'}/>
             </>
         )
     } else {

@@ -2,19 +2,23 @@
 import {Button, Grid, MenuItem, TextField} from "@mui/material"
 import CategoryAutoComplete from "../../components/CategoryAutoComplete"
 import {useSnackbar} from "notistack"
-import {useState} from "react"
+import {useEffect, useState} from "react"
 import {useDispatch, useSelector} from "react-redux"
 import {POST_LOCAL_MODIFY_BODY, POST_LOCAL_MODIFY_CATEGORY_ID, POST_LOCAL_MODIFY_PUBLIC, POST_LOCAL_MODIFY_SUBJECT} from "../../store/types/postTypes"
 import {uuidV4Generator} from "../../util/uuidUtil"
 import DynamicEditor from "../editor/DynamicEditor"
+import service from "../../service"
+import {cancelLoading, setLoading} from "../../store/actions/commonActions"
+import {useRouter} from "next/router"
 
 export default function PostModifyComponent() {
+    const router = useRouter()
     const post = useSelector(state => state.post.modifyPost)
     const dispatch = useDispatch()
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
     const [insertData, setInsertData] = useState('')
     const [triggerGetData, setTriggerGetData] = useState('')
-
+    const [saveAble, setSaveAble] = useState(false)
     const publicOptions = [{value: true, label: '공개'}, {value: false, label: '비공개'}]
 
     const onChangeCategory = (category) => {
@@ -33,9 +37,23 @@ export default function PostModifyComponent() {
             type: POST_LOCAL_MODIFY_BODY,
             body: body,
         })
-
-        console.log("modifyPost : ", post)
+        setSaveAble(true)
     }
+
+    useEffect(() => {
+        if (!saveAble)
+            return
+
+        dispatch(setLoading())
+        service.post.save({post: post}).then(res => {
+            router.push(`/post/${post.id}`)
+        }).catch(err => {
+            enqueueSnackbar("저장에 실패하였습니다.", {variant: "error"})
+            console.log("content save error", err)
+        }).finally(() => {
+            dispatch(cancelLoading())
+        })
+    }, [post.body, saveAble])
 
     return (<Grid container spacing={3}>
         <Grid item xs={12}>

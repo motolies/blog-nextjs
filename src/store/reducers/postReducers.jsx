@@ -87,7 +87,7 @@ export default function postReducers(stats = {
             return {
                 ...stats,
                 modifyPost: {
-                    ...stats.modifyPost, public: action.payload
+                    ...stats.modifyPost, isPublic: action.payload
                 }
             }
         default:

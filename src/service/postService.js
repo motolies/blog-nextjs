@@ -35,6 +35,9 @@ const postService = {
     new: () => {
         return axiosClient.post('/api/post')
     },
+    save: ({post}) => {
+        return axiosClient.put(`/api/post/${post.id}`, post)
+    }
 }
 
 export default postService

@@ -91,8 +91,7 @@ export default function PostComponent({post}) {
         setShowPublicConfirm(false)
     }
     const onEditor = () => {
-        enqueueSnackbar("수정기능 생기겄지.....", {variant: "warning"})
-        // router.push(`/editor?id=${post.id}`)
+        router.push(`/admin/write/${post.id}`)
     }
 
     const setPublicStatus = async () => {

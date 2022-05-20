@@ -11,6 +11,7 @@ import service from "../../service"
 import {cancelLoading, setLoading} from "../../store/actions/commonActions"
 import {useRouter} from "next/router"
 import TagGroupComponent from "./TagGroupComponent"
+import FileUploadComponent from "../editor/FileUploadComponent"
 
 export default function PostModifyComponent() {
     const router = useRouter()
@@ -59,6 +60,28 @@ export default function PostModifyComponent() {
             body: body,
         })
         setSaveAble(true)
+    }
+
+    const onChangeFile = (file) => {
+        if (file === undefined)
+            return
+
+        // TODO: 업로드 파일 정보 저장
+        const body = new FormData()
+        body.append("file", file)
+        body.append("contentId", post.id)
+        dispatch(setLoading())
+        service.file.upload({formData: body})
+            .then(res => {
+                enqueueSnackbar("파일 업로드에 성공하였습니다.", {variant: "success"})
+            })
+            .catch(err => {
+                enqueueSnackbar("파일 업로드에 실패하였습니다.", {variant: "error"})
+            })
+            .finally(() => {
+                dispatch(cancelLoading())
+            })
+
     }
 
 
@@ -120,7 +143,7 @@ export default function PostModifyComponent() {
                                     }}>이전 글 넣기</Button>
                         </Grid>
                         <Grid item xs={12}>
-                            <h3>파일리스트</h3>
+                            <FileUploadComponent onChange={onChangeFile}/>
                             {post.file?.map((file) => (
                                 <div key={file.id}>{file.originFileName}</div>
                             ))}

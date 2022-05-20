@@ -32,6 +32,7 @@ export default function SearchPage({children}) {
         // 디코딩을 한 다음에 각각 분배한다.
         const decodeString = base64Decode(router.query.q)
         const newObj = JSON.parse(decodeString)
+        newObj.searchCondition.keywords = newObj.searchCondition.keywords.filter(k => k.name.trim().length > 0)
 
         const newSearchAllParam = {...searchObjectInit, ...newObj}
         setSearchAllParam(newSearchAllParam)

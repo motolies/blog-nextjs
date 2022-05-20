@@ -7,6 +7,7 @@ import CustomEditor from "../editor/CustomEditor"
 import {useDispatch, useSelector} from "react-redux"
 import {POST_LOCAL_MODIFY_BODY, POST_LOCAL_MODIFY_CATEGORY_ID, POST_LOCAL_MODIFY_PUBLIC, POST_LOCAL_MODIFY_SUBJECT} from "../../store/types/postTypes"
 import {uuidV4Generator} from "../../util/uuidUtil"
+import DynamicEditor from "../editor/DynamicEditor"
 
 export default function PostModifyComponent() {
 
@@ -54,7 +55,8 @@ export default function PostModifyComponent() {
                             marginBottom: "1rem"
                         }}
                     />
-                    <CustomEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData}/>
+                    {/*<CustomEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData}/>*/}
+                    <DynamicEditor defaultData={post.body} />
                 </Grid>
                 <Grid item xs={12} sm={12} md={3}
                       sx={{

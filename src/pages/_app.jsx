@@ -1,7 +1,7 @@
 import '../styles/global.css'
 import '../styles/d2coding-subset.css'
 import '../styles/rainbow.css'
-import '../styles/ck5.css'
+import '../styles/ck5.custom.css'
 import CommonLayout from '../components/layout/common/CommonLayout'
 import AdminLayout from '../components/layout/admin/AdminLayout'
 import {wrapper} from '../store'

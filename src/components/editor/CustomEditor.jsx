@@ -144,7 +144,7 @@ export default function CustomEditor({postId, defaultData, onChangeData, insertD
                         ],
                     }}
                     onReady={onReady}
-                    onChange={onChange}
+                    // onChange={onChange}
                 />
 
             </Box>

@@ -46,8 +46,9 @@ export const Tag = (props) => {
             , px: 1
             , background: "rgba(127, 0, 255, .2)"
             , '&:hover': {
-                background: "rgba(127, 0, 255, .6)"
+                background: "rgba(127, 0, 255, .4)"
             }
+            , borderRadius: '.5rem'
         }
         if (props.clickable) {
             style.cursor = "pointer"

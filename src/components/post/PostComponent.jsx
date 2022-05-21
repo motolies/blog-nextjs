@@ -179,26 +179,35 @@ export default function PostComponent({post}) {
                         <Grid item={true} xs={8}>
                             <Link href={searchCategory()}>
                                 <a>
-                                    <h3>{post.categoryName}</h3>
+                                    <Box sx={{
+                                        px: 3
+                                        , py: 1
+                                        , background: "rgba(17, 153, 142, .2)"
+                                        , borderRadius: '.5rem'
+                                        , display: 'inline-flex'
+                                        , fontSize: '1.5rem'
+                                    }}>
+                                        {post.categoryName}
+                                    </Box>
                                 </a>
                             </Link>
                         </Grid>
-                        <Grid item={true} xs={4} align={'right'}>
+                        <Grid item={true} xs={4} align={'right'} sx={{alignItems: 'center', display: 'flex'}}>
                             {!(userState.isAuthenticated && userState.user.userName) ? null :
                                 <>
                                     {postPublic ?
-                                        <IconButton onClick={showPublicConfirmDialog}>
+                                        <IconButton onClick={showPublicConfirmDialog} sx={{display: 'flex', marginLeft: 'auto'}}>
                                             <PublicIcon/>
                                         </IconButton>
                                         :
-                                        <IconButton onClick={showPublicConfirmDialog}>
+                                        <IconButton onClick={showPublicConfirmDialog} sx={{display: 'flex', marginLeft: 'auto'}}>
                                             <PublicOffIcon/>
                                         </IconButton>
                                     }
-                                    <IconButton aria-label="edit" onClick={onEditor}>
+                                    <IconButton aria-label="edit" onClick={onEditor} sx={{display: 'flex'}}>
                                         <EditIcon/>
                                     </IconButton>
-                                    <IconButton aria-label="delete" onClick={showDeleteConfirmDialog}>
+                                    <IconButton aria-label="delete" onClick={showDeleteConfirmDialog} sx={{display: 'flex'}}>
                                         <DeleteIcon/>
                                     </IconButton>
                                 </>

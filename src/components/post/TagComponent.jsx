@@ -44,9 +44,9 @@ export const Tag = (props) => {
             mr: 1
             , mb: 1
             , px: 1
-            , background: "rgba(17, 153, 142, .2)"
+            , background: "rgba(127, 0, 255, .2)"
             , '&:hover': {
-                background: "rgba(17, 153, 142, .6)"
+                background: "rgba(127, 0, 255, .6)"
             }
         }
         if (props.clickable) {

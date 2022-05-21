@@ -10,6 +10,9 @@ const fileService = {
                 'Content-Type': 'multipart/form-data'
             }
         })
+    },
+    delete: ({fileId}) => {
+        return axiosClient.delete(`/api/file/${fileId}`)
     }
 }
 

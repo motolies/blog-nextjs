@@ -10,11 +10,13 @@ import WarningIcon from '@mui/icons-material/Warning';
 
 export default function PublicConfirm({open, question, onConfirm, onCancel}) {
 
-    const onDelete = () => {
+    const onDelete = (e) => {
+        e.stopPropagation()
         onConfirm()
     }
 
-    const onDialogCancel = () => {
+    const onDialogCancel = (e) => {
+        e.stopPropagation()
         onCancel()
     }
 

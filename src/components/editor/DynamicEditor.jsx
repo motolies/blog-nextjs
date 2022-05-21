@@ -1,11 +1,13 @@
 // https://velog.io/@sssssssssy/d-19tzdgsn
 import {useEffect, useRef, useState} from "react"
-import {useDispatch} from "react-redux"
+import {useDispatch, useSelector} from "react-redux"
 import {cancelLoading, setLoading} from "../../store/actions/commonActions"
 import service from "../../service"
 import {useSnackbar} from "notistack"
+import {POST_LOCAL_MODIFY_FILE} from "../../store/types/postTypes"
 
 export default function DynamicEditor({postId, defaultData, onChangeData, insertData, getDataTrigger}) {
+    const postFile = useSelector(state => state.post.modifyPost.file)
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
     const editorRef = useRef()
     const dispatch = useDispatch()
@@ -77,6 +79,10 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                         dispatch(setLoading())
                         await service.file.upload({formData: body})
                             .then(res => {
+                                dispatch({
+                                    type: POST_LOCAL_MODIFY_FILE,
+                                    file: [...postFile, res.data],
+                                })
                                 resolve({default: res.data.resourceUri})
                             })
                             .catch(err => {
@@ -133,6 +139,10 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
         dispatch(setLoading())
         await service.file.upload({formData: body})
             .then(res => {
+                dispatch({
+                    type: POST_LOCAL_MODIFY_FILE,
+                    file: [...postFile, res.data],
+                })
                 const content = `<a href="${res.data.resourceUri}"/>${res.data.originFileName}</a>`
                 insertDataOnCursor(editor, content)
             })

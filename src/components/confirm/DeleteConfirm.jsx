@@ -9,11 +9,13 @@ import DangerousIcon from '@mui/icons-material/Dangerous'
 
 export default function DeleteConfirm({open, question, onConfirm, onCancel}) {
 
-    const onDelete = () => {
+    const onDelete = (e) => {
+        e.stopPropagation()
         onConfirm()
     }
 
-    const onDialogCancel = () => {
+    const onDialogCancel = (e) => {
+        e.stopPropagation()
         onCancel()
     }
 

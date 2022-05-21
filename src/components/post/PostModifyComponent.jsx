@@ -4,7 +4,7 @@ import CategoryAutoComplete from "../../components/CategoryAutoComplete"
 import {useSnackbar} from "notistack"
 import {useEffect, useState} from "react"
 import {useDispatch, useSelector} from "react-redux"
-import {POST_LOCAL_MODIFY_BODY, POST_LOCAL_MODIFY_CATEGORY_ID, POST_LOCAL_MODIFY_PUBLIC, POST_LOCAL_MODIFY_SUBJECT} from "../../store/types/postTypes"
+import {POST_LOCAL_MODIFY_BODY, POST_LOCAL_MODIFY_CATEGORY_ID, POST_LOCAL_MODIFY_FILE, POST_LOCAL_MODIFY_PUBLIC, POST_LOCAL_MODIFY_SUBJECT} from "../../store/types/postTypes"
 import {uuidV4Generator} from "../../util/uuidUtil"
 import DynamicEditor from "../editor/DynamicEditor"
 import service from "../../service"
@@ -12,6 +12,7 @@ import {cancelLoading, setLoading} from "../../store/actions/commonActions"
 import {useRouter} from "next/router"
 import TagGroupComponent from "./TagGroupComponent"
 import FileUploadComponent from "../editor/FileUploadComponent"
+import {FileComponent} from "./FileComponent"
 
 export default function PostModifyComponent() {
     const router = useRouter()
@@ -66,13 +67,16 @@ export default function PostModifyComponent() {
         if (file === undefined)
             return
 
-        // TODO: 업로드 파일 정보 저장
         const body = new FormData()
         body.append("file", file)
         body.append("contentId", post.id)
         dispatch(setLoading())
         service.file.upload({formData: body})
             .then(res => {
+                dispatch({
+                    type: POST_LOCAL_MODIFY_FILE,
+                    file: [...post.file, res.data],
+                })
                 enqueueSnackbar("파일 업로드에 성공하였습니다.", {variant: "success"})
             })
             .catch(err => {
@@ -82,6 +86,39 @@ export default function PostModifyComponent() {
                 dispatch(cancelLoading())
             })
 
+    }
+
+    const onDeleteFile = (file) => {
+        dispatch(setLoading())
+        service.file.delete({fileId: file.id})
+            .then(res => {
+                const newFile = post.file.filter((f) => f.id !== res.data.id)
+                dispatch({
+                    type: POST_LOCAL_MODIFY_FILE,
+                    file: newFile,
+                })
+                enqueueSnackbar("파일을 삭제하였습니다.", {variant: "success"})
+            })
+            .catch(err => {
+                enqueueSnackbar("파일 삭제에 실패하였습니다.", {variant: "error"})
+            })
+            .finally(() => {
+                dispatch(cancelLoading())
+            })
+    }
+
+    const onInsertFile = (file) => {
+        if (file.type.startsWith('image')) {
+            const html = `<figure class="image">
+                                <img src="${file.resourceUri}">
+                            </figure>`
+            setInsertData(html)
+        } else {
+            const html = `<p>
+                                <a href="${file.resourceUri}">${file.originFileName}</a>
+                            </p>`
+            setInsertData(html)
+        }
     }
 
 
@@ -103,7 +140,6 @@ export default function PostModifyComponent() {
                             marginBottom: "1rem"
                         }}
                     />
-                    {/*<CustomEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData}/>*/}
                     <DynamicEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData} getDataTrigger={triggerGetData}/>
                 </Grid>
                 <Grid item xs={12} sm={12} md={3}
@@ -143,9 +179,12 @@ export default function PostModifyComponent() {
                                     }}>이전 글 넣기</Button>
                         </Grid>
                         <Grid item xs={12}>
-                            <FileUploadComponent onChange={onChangeFile}/>
-                            {post.file?.map((file) => (
-                                <div key={file.id}>{file.originFileName}</div>
+                            <FileUploadComponent onChange={onChangeFile} sx={{mb: 1}}/>
+                            {post.file?.filter(f => f.type.startsWith('image')).map((file) => (
+                                <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
+                            ))}
+                            {post.file?.filter(f => !f.type.startsWith('image')).map((file) => (
+                                <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
                             ))}
                         </Grid>
                         <Grid item xs={12}>

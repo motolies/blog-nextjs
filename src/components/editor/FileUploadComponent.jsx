@@ -10,6 +10,7 @@ export default function FileUploadComponent(props) {
             <Button
                 fullWidth size="large" variant="outlined"
                 onClick={() => fileInput.current.click()}
+                sx={props.sx}
             >
                 upload file
             </Button>

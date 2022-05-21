@@ -3,7 +3,7 @@ import {
     POST_LOAD_FOR_MODIFY_REQUEST_ERROR,
     POST_LOAD_FOR_MODIFY_REQUEST_SUCCESS,
     POST_LOCAL_MODIFY_BODY_SUCCESS,
-    POST_LOCAL_MODIFY_CATEGORY_ID_SUCCESS,
+    POST_LOCAL_MODIFY_CATEGORY_ID_SUCCESS, POST_LOCAL_MODIFY_FILE_SUCCESS,
     POST_LOCAL_MODIFY_PUBLIC_SUCCESS,
     POST_LOCAL_MODIFY_SUBJECT_SUCCESS,
     POST_SEARCH_REQUEST,
@@ -90,6 +90,13 @@ export default function postReducers(stats = {
                 ...stats,
                 modifyPost: {
                     ...stats.modifyPost, isPublic: action.payload
+                }
+            }
+        case POST_LOCAL_MODIFY_FILE_SUCCESS:
+            return {
+                ...stats,
+                modifyPost: {
+                    ...stats.modifyPost, file: action.payload
                 }
             }
         default:

@@ -15,6 +15,12 @@ module.exports = {
                 destination: process.env.NODE_ENV === 'production' ?
                     (BACKEND_URL.BLOG_URL_PROD + '/api/file/:path') :
                     (BACKEND_URL.BLOG_URL_DEV + '/api/file/:path')
+            },
+            {
+                source: '/api/*',
+                destination: process.env.NODE_ENV === 'production' ?
+                    (BACKEND_URL.BLOG_URL_PROD + '/api/*') :
+                    (BACKEND_URL.BLOG_URL_DEV + '/api/*')
             }
         ]
     }

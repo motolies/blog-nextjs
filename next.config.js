@@ -1,6 +1,6 @@
 const BACKEND_URL = {
     BLOG_URL_DEV: 'http://localhost:9090',
-    BLOG_URL_PROD: 'http://blogback:8080',
+    BLOG_URL_PROD: 'https://api.hvy.kr',
 }
 
 module.exports = {
@@ -10,17 +10,17 @@ module.exports = {
     },
     async rewrites() {
         return [
+            // {
+            //     source: '/api/file/:path',
+            //     destination: process.env.NODE_ENV === 'production' ?
+            //         (BACKEND_URL.BLOG_URL_PROD + '/api/file/:path') :
+            //         (BACKEND_URL.BLOG_URL_DEV + '/api/file/:path')
+            // },
             {
-                source: '/api/file/:path',
+                source: '/api/:path*',
                 destination: process.env.NODE_ENV === 'production' ?
-                    (BACKEND_URL.BLOG_URL_PROD + '/api/file/:path') :
-                    (BACKEND_URL.BLOG_URL_DEV + '/api/file/:path')
-            },
-            {
-                source: '/api/*',
-                destination: process.env.NODE_ENV === 'production' ?
-                    (BACKEND_URL.BLOG_URL_PROD + '/api/*') :
-                    (BACKEND_URL.BLOG_URL_DEV + '/api/*')
+                    (BACKEND_URL.BLOG_URL_PROD + '/api/:path*') :
+                    (BACKEND_URL.BLOG_URL_DEV + '/api/:path*')
             }
         ]
     }

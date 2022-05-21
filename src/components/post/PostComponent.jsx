@@ -207,11 +207,13 @@ export default function PostComponent({post}) {
                         </Grid>
                     </Grid>
                     <hr/>
+                    <TagGroupComponent postId={post.id} tagList={tags} clickable={true}/>
+                    <hr/>
                     <Box sx={{mt: 5, mb: 5}}>
                         <div className="content" id={'post-content'} dangerouslySetInnerHTML={{__html: postBody}}/>
                     </Box>
-                    <hr/>
-                    <TagGroupComponent postId={post.id} tagList={tags}/>
+
+
                 </div>
                 <DeleteConfirm open={showDeleteConfirm} question={'현재 포스트를 삭제하시겠습니까?'} onConfirm={deletePost} onCancel={deletePostCancel}/>
                 <PublicConfirm open={showPublicConfirm} question={publicConfirmQuestion} onConfirm={setPublicStatus} onCancel={publicPostCancel}/>

@@ -9,7 +9,7 @@ import _ from "lodash"
 import service from "../../service"
 
 
-export default function TagGroupComponent({postId, tagList, writePage}) {
+export default function TagGroupComponent({postId, tagList, clickable}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
     const dispatch = useDispatch()
 
@@ -24,6 +24,8 @@ export default function TagGroupComponent({postId, tagList, writePage}) {
 
     // new tag
     const [newTag, setNewTag] = useState(tagList)
+
+    const [isAddTag, setIsAddTag] = useState(true)
 
 
     useEffect(() => {
@@ -51,6 +53,11 @@ export default function TagGroupComponent({postId, tagList, writePage}) {
     }
 
     const addTagOnPost = (tagName) => {
+        // mac에서 한글로 엔터를 치면 두 번 호출되는 현상이 있다. add 중이면 막는 기능이 필요하다.
+        if (!isAddTag)
+            return
+
+        setIsAddTag(false)
         service.post.addTag({postId: postId, tagName: tagName})
             .then(res => {
                 if (res.status === 200) {
@@ -67,6 +74,9 @@ export default function TagGroupComponent({postId, tagList, writePage}) {
 
                     enqueueSnackbar(`태그가 추가되었습니다.`, {variant: 'success'})
                 }
+            })
+            .finally(() => {
+                setIsAddTag(true)
             })
     }
 
@@ -94,12 +104,6 @@ export default function TagGroupComponent({postId, tagList, writePage}) {
             direction="row"
             spacing={2}
         >
-            {writePage ? null :
-                <Grid item>
-                    <h3>#tags</h3>
-                </Grid>
-            }
-
             {!(userState.isAuthenticated && userState.user.userName) ? null :
                 <Grid item xs={12}>
                     <Autocomplete
@@ -133,7 +137,7 @@ export default function TagGroupComponent({postId, tagList, writePage}) {
                         , flexWrap: 'wrap'
                     }}
                 >
-                    {postTags.map((tag) => <Tag key={tag.id} id={tag.id} name={tag.name} writePage={writePage} deletePostTag={deletePostTag}/>)}
+                    {postTags.map((tag) => <Tag key={tag.id} id={tag.id} name={tag.name} deletePostTag={deletePostTag} clickable={clickable}/>)}
                 </Box>
             </Grid>
         </Grid>

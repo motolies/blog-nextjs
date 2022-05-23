@@ -5,6 +5,7 @@ import {cancelLoading, setLoading} from "../../store/actions/commonActions"
 import service from "../../service"
 import {useSnackbar} from "notistack"
 import {POST_LOCAL_MODIFY_FILE} from "../../store/types/postTypes"
+import {editorFileLink} from "../../util/viewerFileLink"
 
 export default function DynamicEditor({postId, defaultData, onChangeData, insertData, getDataTrigger}) {
     const postFile = useSelector(state => state.post.modifyPost.file)
@@ -143,8 +144,8 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                     type: POST_LOCAL_MODIFY_FILE,
                     file: [...postFile, res.data],
                 })
-                const content = `<a href="${res.data.resourceUri}"/>${res.data.originFileName}</a>`
-                insertDataOnCursor(editor, content)
+                const fileTag = editorFileLink(res.data.resourceUri, res.data.originFileName)
+                insertDataOnCursor(editor, fileTag)
             })
             .catch(err => {
                 enqueueSnackbar("파일 업로드에 실패하였습니다.", {variant: "error"})

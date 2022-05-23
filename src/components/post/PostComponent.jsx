@@ -15,6 +15,9 @@ import TagGroupComponent from "./TagGroupComponent"
 import Link from "next/link"
 import {searchObjectInit} from "../../model/searchObject"
 import {base64Encode} from "../../util/base64Util"
+import AttachmentIcon from '@mui/icons-material/Attachment'
+import {viewerFileLink} from "../../util/viewerFileLink"
+
 
 export default function PostComponent({post}) {
     const router = useRouter()
@@ -36,10 +39,10 @@ export default function PostComponent({post}) {
     const postIconChange = () => {
         document.querySelectorAll('i.fa-file').forEach(icon => {
             if (icon.parentNode.nodeName === 'A') {
-                icon.parentNode.style.display = 'inline-flex'
-                icon.parentNode.style.alignItems = 'center'
+                const url = icon.parentNode.getAttribute('href')
+                const name = icon.parentNode.innerHTML.replaceAll('<i class="far fa-file"></i>', '').trim()
+                icon.parentNode.outerHTML = viewerFileLink(url, name)
             }
-            icon.outerHTML = '<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-i4bv87-MuiSvgIcon-root" focusable="false" aria-hidden="true" viewBox="0 0 24 24" data-testid="AttachFileIcon"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"></path></svg>'
         })
 
     }

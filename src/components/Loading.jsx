@@ -5,7 +5,7 @@ export default function Loading() {
     return (
         <>
             <div className="loading">
-                <Image src="/images/loading.gif" alt="loading" width="48px" height="48px"/>
+                <Image src="/images/loading.gif" alt="loading" width={'128px'} height={'128px'}/>
             </div>
             <style jsx>
                 {`
@@ -22,8 +22,8 @@ export default function Loading() {
                     background-color: rgba(0, 0, 0, 0.5);
 
                     img {
-                      width: 48px;
-                      height: 48px;
+                      width: 128px;
+                      height: 128px;
                     }
                   }
                 `}

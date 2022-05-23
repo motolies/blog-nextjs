@@ -171,7 +171,6 @@ export default function SearchFilter({onSearch, defaultLogic, defaultKeyword, de
                         onChange={onChangeKeyword}
                         fullWidth
                         type={'search'}
-                        autoFocus
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                                 addKeyword()

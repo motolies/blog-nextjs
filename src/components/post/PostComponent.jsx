@@ -219,7 +219,8 @@ export default function PostComponent({post}) {
                     <TagGroupComponent postId={post.id} tagList={tags} clickable={true}/>
                     <hr/>
                     <Box sx={{mt: 5, mb: 5}}>
-                        <div className="content" id={'post-content'} dangerouslySetInnerHTML={{__html: postBody}}/>
+                        <Box className="content" id={'post-content'} dangerouslySetInnerHTML={{__html: postBody}}
+                        sx={{overflowWrap:'break-word'}}/>
                     </Box>
 
 

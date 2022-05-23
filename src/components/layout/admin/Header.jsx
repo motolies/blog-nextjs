@@ -105,6 +105,7 @@ export default function Header({children}) {
                                        size="small"
                                        fullWidth={true}
                                        value={searchText}
+                                       type={'search'}
                                        sx={{
                                            mr: 1, maxWidth: '400px'
                                        }}

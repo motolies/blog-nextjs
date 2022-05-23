@@ -149,7 +149,7 @@ export default function SearchFilter({onSearch, defaultLogic, defaultKeyword, de
                         ))}
                     </TextField>
                 </Grid>
-                <Grid item sx={{m: 0, p: 0}} xs={3}>
+                <Grid item sx={{m: 0, p: 0}} xs={5}>
                     <TextField
                         select
                         label="AND | OR"
@@ -164,13 +164,13 @@ export default function SearchFilter({onSearch, defaultLogic, defaultKeyword, de
                         ))}
                     </TextField>
                 </Grid>
-                <Grid item sx={{m: 0, p: 0}} xs={9}>
+                <Grid item sx={{m: 0, p: 0}} xs={7}>
                     <TextField
                         label="검색어"
                         value={keyword}
                         onChange={onChangeKeyword}
                         fullWidth
-                        autoComplete="email"
+                        type={'search'}
                         autoFocus
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {

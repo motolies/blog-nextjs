@@ -13,6 +13,7 @@ import {useRouter} from "next/router"
 import TagGroupComponent from "./TagGroupComponent"
 import FileUploadComponent from "../editor/FileUploadComponent"
 import {FileComponent} from "./FileComponent"
+import {editorFileLink} from "../../util/viewerFileLink"
 
 export default function PostModifyComponent() {
     const router = useRouter()
@@ -114,9 +115,7 @@ export default function PostModifyComponent() {
                             </figure>`
             setInsertData(html)
         } else {
-            const html = `<p>
-                                <a href="${file.resourceUri}">${file.originFileName}</a>
-                            </p>`
+            const html = editorFileLink(file.resourceUri, file.originFileName)
             setInsertData(html)
         }
     }

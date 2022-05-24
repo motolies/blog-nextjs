@@ -16,7 +16,7 @@ import Link from "next/link"
 import {searchObjectInit} from "../../model/searchObject"
 import {base64Encode} from "../../util/base64Util"
 import AttachmentIcon from '@mui/icons-material/Attachment'
-import {viewerFileLink} from "../../util/viewerFileLink"
+import {fileLink} from "../../util/fileLink"
 
 
 export default function PostComponent({post}) {
@@ -41,7 +41,7 @@ export default function PostComponent({post}) {
             if (icon.parentNode.nodeName === 'A') {
                 const url = icon.parentNode.getAttribute('href')
                 const name = icon.parentNode.innerHTML.replaceAll('<i class="far fa-file"></i>', '').trim()
-                icon.parentNode.outerHTML = viewerFileLink(url, name)
+                icon.parentNode.outerHTML = fileLink(url, name)
             }
         })
 

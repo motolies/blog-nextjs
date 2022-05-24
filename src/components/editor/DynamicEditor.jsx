@@ -5,7 +5,7 @@ import {cancelLoading, setLoading} from "../../store/actions/commonActions"
 import service from "../../service"
 import {useSnackbar} from "notistack"
 import {POST_LOCAL_MODIFY_FILE} from "../../store/types/postTypes"
-import {editorFileLink} from "../../util/viewerFileLink"
+import {fileLink} from "../../util/fileLink"
 
 export default function DynamicEditor({postId, defaultData, onChangeData, insertData, getDataTrigger}) {
     const postFile = useSelector(state => state.post.modifyPost.file)
@@ -144,7 +144,7 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                     type: POST_LOCAL_MODIFY_FILE,
                     file: [...postFile, res.data],
                 })
-                const fileTag = editorFileLink(res.data.resourceUri, res.data.originFileName)
+                const fileTag = fileLink(res.data.resourceUri, res.data.originFileName)
                 insertDataOnCursor(editor, fileTag)
             })
             .catch(err => {
@@ -156,6 +156,7 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
     }
 
     const insertDataOnCursor = (editor, data) => {
+        // TODO : 같은 파일을 연속으로 넣고 싶은데 안된다.
         const viewFragment = editor.data.processor.toView(data)
         const modelFragment = editor.data.toModel(viewFragment)
         editor.model.insertContent(

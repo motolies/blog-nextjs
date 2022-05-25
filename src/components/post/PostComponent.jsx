@@ -15,9 +15,9 @@ import TagGroupComponent from "./TagGroupComponent"
 import Link from "next/link"
 import {searchObjectInit} from "../../model/searchObject"
 import {base64Encode} from "../../util/base64Util"
-import AttachmentIcon from '@mui/icons-material/Attachment'
 import {fileLink} from "../../util/fileLink"
-
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 
 export default function PostComponent({post}) {
     const router = useRouter()
@@ -223,9 +223,19 @@ export default function PostComponent({post}) {
                     <hr/>
                     <Box sx={{mt: 5, mb: 5}}>
                         <Box className="content" id={'post-content'} dangerouslySetInnerHTML={{__html: postBody}}
-                        sx={{overflowWrap:'break-word'}}/>
+                             sx={{overflowWrap: 'break-word'}}/>
                     </Box>
-
+                    <Box sx={{pt: 5, pb: 5, display: 'flex', clear: 'both'}}>
+                        {post.prev === 0 ? null :
+                            <IconButton onClick={() => router.push(`/post/${post.prev}`)} sx={{display: 'inline-flex'}}>
+                                <ArrowBackIosNewIcon/>
+                            </IconButton>}
+                        {post.next === 0 ? null :
+                            <IconButton onClick={() => router.push(`/post/${post.next}`)} sx={{display: 'inline-flex', marginLeft: 'auto'}}>
+                                <ArrowForwardIosIcon/>
+                            </IconButton>
+                        }
+                    </Box>
 
                 </div>
                 <DeleteConfirm open={showDeleteConfirm} question={'현재 포스트를 삭제하시겠습니까?'} onConfirm={deletePost} onCancel={deletePostCancel}/>

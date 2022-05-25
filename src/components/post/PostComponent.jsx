@@ -32,9 +32,20 @@ export default function PostComponent({post}) {
     const [postBody, setPostBody] = useState()
 
     useEffect(() => {
+        setPostPublic(post.isPublic)
+        setTags(post.tag)
+    }, [post])
+
+    useEffect(() => {
         postImagePopup()
         postIconChange()
     }, [postBody])
+
+    useEffect(() => {
+        const doc = new DOMParser().parseFromString(post.body, 'text/html')
+        initVsCode(doc)
+        setPostBody(doc.head.innerHTML + doc.body.innerHTML)
+    }, [post.body])
 
     const postIconChange = () => {
         document.querySelectorAll('i.fa-file').forEach(icon => {
@@ -72,11 +83,7 @@ export default function PostComponent({post}) {
     }
 
 
-    useEffect(() => {
-        const doc = new DOMParser().parseFromString(post.body, 'text/html')
-        initVsCode(doc)
-        setPostBody(doc.head.innerHTML + doc.body.innerHTML)
-    }, [post.body])
+
 
     const initVsCode = (doc) => {
         Array.prototype.slice.call(doc.getElementsByTagName("div"), 0).forEach(div => {

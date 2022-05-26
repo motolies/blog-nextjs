@@ -1,14 +1,13 @@
 // https://velog.io/@sssssssssy/d-19tzdgsn
 import {useEffect, useRef, useState} from "react"
-import {useDispatch, useSelector} from "react-redux"
+import {useDispatch} from "react-redux"
 import {cancelLoading, setLoading} from "../../store/actions/commonActions"
 import service from "../../service"
 import {useSnackbar} from "notistack"
-import {POST_LOCAL_MODIFY_FILE} from "../../store/types/postTypes"
 import {fileLink} from "../../util/fileLink"
+import {FILE_LIST_BY_POST_REQUEST} from "../../store/types/fileTypes"
 
 export default function DynamicEditor({postId, defaultData, onChangeData, insertData, getDataTrigger}) {
-    const postFile = useSelector(state => state.post.modifyPost.file)
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
     const editorRef = useRef()
     const dispatch = useDispatch()
@@ -63,6 +62,13 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
         }
     }, [getDataTrigger])
 
+    const refreshFileList = () => {
+        dispatch({
+            type: FILE_LIST_BY_POST_REQUEST,
+            postId: postId
+        })
+    }
+
     const imageUploadPlugin = (editor) => {
         editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
             return imageUploadAdapter(loader)
@@ -80,10 +86,6 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                         dispatch(setLoading())
                         await service.file.upload({formData: body})
                             .then(res => {
-                                dispatch({
-                                    type: POST_LOCAL_MODIFY_FILE,
-                                    file: [...postFile, res.data],
-                                })
                                 resolve({default: res.data.resourceUri})
                             })
                             .catch(err => {
@@ -93,7 +95,7 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                             .finally(() => {
                                 dispatch(cancelLoading())
                             })
-
+                        refreshFileList()
                     })
                 })
             }
@@ -140,10 +142,6 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
         dispatch(setLoading())
         await service.file.upload({formData: body})
             .then(res => {
-                dispatch({
-                    type: POST_LOCAL_MODIFY_FILE,
-                    file: [...postFile, res.data],
-                })
                 const fileTag = fileLink(res.data.resourceUri, res.data.originFileName)
                 insertDataOnCursor(editor, fileTag)
             })
@@ -153,6 +151,7 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
             .finally(() => {
                 dispatch(cancelLoading())
             })
+        refreshFileList()
     }
 
     const insertDataOnCursor = (editor, data) => {

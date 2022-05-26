@@ -3,13 +3,14 @@ import {
     POST_LOAD_FOR_MODIFY_REQUEST_ERROR,
     POST_LOAD_FOR_MODIFY_REQUEST_SUCCESS,
     POST_LOCAL_MODIFY_BODY_SUCCESS,
-    POST_LOCAL_MODIFY_CATEGORY_ID_SUCCESS, POST_LOCAL_MODIFY_FILE_SUCCESS,
+    POST_LOCAL_MODIFY_CATEGORY_ID_SUCCESS,
     POST_LOCAL_MODIFY_PUBLIC_SUCCESS,
     POST_LOCAL_MODIFY_SUBJECT_SUCCESS,
     POST_SEARCH_REQUEST,
     POST_SEARCH_REQUEST_ERROR,
     POST_SEARCH_REQUEST_SUCCESS,
 } from "../types/postTypes"
+import {FILE_LIST_BY_POST_REQUEST_ERROR, FILE_LIST_BY_POST_REQUEST_SUCCESS} from "../types/fileTypes"
 
 const modifyPostInit = {
     id: null,
@@ -92,11 +93,18 @@ export default function postReducers(stats = {
                     ...stats.modifyPost, isPublic: action.payload
                 }
             }
-        case POST_LOCAL_MODIFY_FILE_SUCCESS:
+        case FILE_LIST_BY_POST_REQUEST_SUCCESS:
             return {
                 ...stats,
                 modifyPost: {
                     ...stats.modifyPost, file: action.payload
+                }
+            }
+        case FILE_LIST_BY_POST_REQUEST_ERROR:
+            return {
+                ...stats,
+                modifyPost: {
+                    ...stats.modifyPost, file: []
                 }
             }
         default:

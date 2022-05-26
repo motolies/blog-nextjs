@@ -8,8 +8,6 @@ import {
     POST_LOCAL_MODIFY_BODY_SUCCESS,
     POST_LOCAL_MODIFY_CATEGORY_ID,
     POST_LOCAL_MODIFY_CATEGORY_ID_SUCCESS,
-    POST_LOCAL_MODIFY_FILE,
-    POST_LOCAL_MODIFY_FILE_SUCCESS,
     POST_LOCAL_MODIFY_PUBLIC,
     POST_LOCAL_MODIFY_PUBLIC_SUCCESS,
     POST_LOCAL_MODIFY_SUBJECT,
@@ -81,12 +79,6 @@ function* localModifyPublic({isPublic}) {
     })
 }
 
-function* localModifyFile({file}) {
-    yield put({
-        type: POST_LOCAL_MODIFY_FILE_SUCCESS,
-        payload: file
-    })
-}
 
 function* postRequest() {
     // 액션의 type과 saga의 함수를 이어주는 부분
@@ -97,7 +89,6 @@ function* postRequest() {
     yield takeLatest(POST_LOCAL_MODIFY_CATEGORY_ID, localModifyCategoryId)
     yield takeLatest(POST_LOCAL_MODIFY_BODY, localModifyBody)
     yield takeLatest(POST_LOCAL_MODIFY_PUBLIC, localModifyPublic)
-    yield takeLatest(POST_LOCAL_MODIFY_FILE, localModifyFile)
 }
 
 export default function* postSaga() {

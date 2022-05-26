@@ -13,6 +13,9 @@ const fileService = {
     },
     delete: ({fileId}) => {
         return axiosClient.delete(`/api/file/${fileId}`)
+    },
+    fileByPostId: ({postId}) => {
+        return axiosClient.get(`/api/file/list/${postId}`)
     }
 }
 

@@ -4,6 +4,7 @@ import categorySaga from "./categorySagas"
 import postSaga from "./postSagas"
 import tagSaga from "./tagSagas"
 import commonSaga from "./commonSagas"
+import fileSaga from "./fileSagas"
 
 
 function* rootSaga() {
@@ -13,6 +14,7 @@ function* rootSaga() {
         , postSaga()
         , tagSaga()
         , commonSaga()
+        , fileSaga()
     ])
 }
 

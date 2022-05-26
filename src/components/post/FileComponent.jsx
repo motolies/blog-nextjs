@@ -3,9 +3,13 @@ import {useState} from "react"
 import IconButton from "@mui/material/IconButton"
 import DeleteIcon from "@mui/icons-material/Delete"
 import DeleteConfirm from "../confirm/DeleteConfirm"
+import PreviewDialog from "../PreviewDialog"
+import PreviewIcon from '@mui/icons-material/Preview'
+
 
 export const FileComponent = (props) => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [showPreview, setShowPreview] = useState(false)
     const [question, setQuestion] = useState('')
 
     const showDeleteConfirmDialog = (e) => {
@@ -38,7 +42,7 @@ export const FileComponent = (props) => {
             , display: 'flex'
             , alignItems: 'center'
         }
-        if(props.file.type.startsWith('image')) {
+        if (props.file.type.startsWith('image')) {
             style.background = 'rgba(253, 187, 45, .2)'
             style['&:hover'] = {
                 background: 'rgba(253, 187, 45, .6)'
@@ -46,6 +50,14 @@ export const FileComponent = (props) => {
         }
         return style
     }
+
+    const fileLeftMargin = () => {
+        if(props.file.type.startsWith('image'))
+            return {}
+        else
+            return {marginLeft:'auto'}
+    }
+
 
     return (
         <Box display="flex-inline"
@@ -59,11 +71,21 @@ export const FileComponent = (props) => {
             }}>
                 {props.file.originFileName}
             </Box>
+            {!props.file.type.startsWith('image') ? null :
+                <IconButton aria-label="delete" onClick={(e) => {
+                    e.stopPropagation()
+                    setShowPreview(true)
+                }}
+                            sx={{marginLeft: 'auto'}}>
+                    <PreviewIcon fontSize={'small'}/>
+                </IconButton>
+            }
             <IconButton aria-label="delete" onClick={showDeleteConfirmDialog}
-                        sx={{marginLeft: 'auto'}}>
+                        sx={fileLeftMargin}>
                 <DeleteIcon fontSize={'small'}/>
             </IconButton>
             <DeleteConfirm open={showDeleteConfirm} question={question} onConfirm={deleteFile} onCancel={deleteFileCancel}/>
+            <PreviewDialog open={showPreview} imageSrc={props.file.resourceUri} onClose={() => setShowPreview(false)}/>
         </Box>
     )
 

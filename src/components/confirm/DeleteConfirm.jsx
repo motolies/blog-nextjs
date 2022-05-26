@@ -23,6 +23,10 @@ export default function DeleteConfirm({open, question, onConfirm, onCancel}) {
         <div>
             <Dialog
                 open={open}
+                onClose={(e) => {
+                    // 배경 클릭시에 이전 element가 click 되는 현상 방지
+                    e.stopPropagation()
+                }}
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
             >

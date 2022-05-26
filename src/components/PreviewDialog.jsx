@@ -1,21 +1,22 @@
 import React from 'react'
 import Dialog from "@mui/material/Dialog"
 import DialogTitle from "@mui/material/DialogTitle"
-import DialogContent from "@mui/material/DialogContent"
-import DialogActions from "@mui/material/DialogActions"
-import Button from "@mui/material/Button"
 import PreviewIcon from '@mui/icons-material/Preview'
-import Image from "next/image"
+import {Box} from "@mui/material"
 
 export default function PreviewDialog({open, imageSrc, onClose}) {
-    const onDialogClose = (e) => {
+    const close = (e) => {
         e.stopPropagation()
         onClose()
     }
     return (
         <div>
             <Dialog
+                PaperProps={{sx: {maxWidth: "100%", maxHeight: "100%"}}}
                 open={open}
+                onClose={(e) => {
+                    close(e)
+                }}
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
             >
@@ -24,19 +25,29 @@ export default function PreviewDialog({open, imageSrc, onClose}) {
                         display: 'flex',
                         alignItems: 'center',
                         flexWrap: 'wrap',
-                    }}>
+                    }}
+                         onClick={(e) => {
+                             close(e)
+                         }}
+                    >
                         <PreviewIcon sx={{verticalAlign: 'middle', mr: 1}} color={'error'}/>
                         Preview Image
                     </div>
-
                 </DialogTitle>
-                <DialogContent>
-                    <Image src={imageSrc} alt="preview" width={'600px'} height={'400px'}/>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={onDialogClose} autoFocus>취소</Button>
-                </DialogActions>
+                <Box sx={{m: 3, textAlign: 'center'}}
+                     onClick={(e) => {
+                         close(e)
+                     }}>
+                    <img className={'previewer'} src={window.location.origin + imageSrc}/>
+                </Box>
             </Dialog>
+            <style jsx>
+                {`
+                  .previewer {
+                    max-width: 90%;
+                  }
+                `}
+            </style>
         </div>
     )
 }

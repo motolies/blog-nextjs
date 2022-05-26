@@ -1,5 +1,5 @@
 // https://mui.com/material-ui/react-drawer/#responsive-drawer
-import {Button, Grid, MenuItem, TextField} from "@mui/material"
+import {Box, Button, Grid, MenuItem, TextField} from "@mui/material"
 import CategoryAutoComplete from "../../components/CategoryAutoComplete"
 import {useSnackbar} from "notistack"
 import {useEffect, useState} from "react"
@@ -144,7 +144,10 @@ export default function PostModifyComponent() {
                 </Grid>
                 <Grid item xs={12} sm={12} md={3}
                       sx={{
-                          position: {xs: 'static', sm: 'static', md: 'sticky'}, top: {xs: 0, sm: 0, md: '4rem'}, height: '450px'
+                          position: {xs: 'static', sm: 'static', md: 'sticky'},
+                          top: {xs: 0, sm: 0, md: '4rem'},
+                          mb: 5,
+                          height: '80vh',
                       }}>
 
                     <Grid container spacing={3}>
@@ -180,15 +183,24 @@ export default function PostModifyComponent() {
                         </Grid>
                         <Grid item xs={12}>
                             <MultipleFileUploadComponent onChange={onChangeFile} sx={{mb: 1}}/>
-                            {post.file?.filter(f => f.type.startsWith('image')).map((file) => (
-                                <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
-                            ))}
-                            {post.file?.filter(f => !f.type.startsWith('image')).map((file) => (
-                                <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
-                            ))}
+                            <Box sx={{
+                                overflowY: 'auto',
+                                maxHeight: '25vh',
+                            }}>
+                                {post.file?.filter(f => f.type.startsWith('image')).map((file) => (
+                                    <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
+                                ))}
+                                {post.file?.filter(f => !f.type.startsWith('image')).map((file) => (
+                                    <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
+                                ))}
+                            </Box>
                         </Grid>
                         <Grid item xs={12}>
-                            <TagGroupComponent postId={post.id} tagList={tags} writePage={true}/>
+                            <TagGroupComponent postId={post.id} tagList={tags} writePage={true} listHeight={{
+                                overflowY: 'auto',
+                                maxHeight: '15vh',
+                                mt:1,
+                            }}/>
                         </Grid>
                         <Grid item xs={12}>
                             <Grid container spacing={3}>

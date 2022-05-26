@@ -9,7 +9,7 @@ import _ from "lodash"
 import service from "../../service"
 
 
-export default function TagGroupComponent({postId, tagList, clickable}) {
+export default function TagGroupComponent({postId, tagList, clickable, listHeight}) {
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
     const dispatch = useDispatch()
 
@@ -128,7 +128,7 @@ export default function TagGroupComponent({postId, tagList, clickable}) {
                 </Grid>
             }
 
-            <Grid item xs={12}>
+            <Grid item xs={12} sx={listHeight}>
                 <Box
                     display="flex"
                     sx={{

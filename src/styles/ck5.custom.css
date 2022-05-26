@@ -13,6 +13,6 @@
 @media (min-width: 900px) {
     .ck-editor__editable_inline {
         min-height: 70vh !important;
-        max-height: 70vh !important;
+        /*max-height: 70vh !important;*/
     }
 }

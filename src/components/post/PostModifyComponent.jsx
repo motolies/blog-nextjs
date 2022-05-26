@@ -110,9 +110,9 @@ export default function PostModifyComponent() {
 
     const onInsertFile = (file) => {
         if (file.type.startsWith('image')) {
-            const html = `<figure class="image">
+            const html = `<p style="text-align:center;">
                                 <img src="${file.resourceUri}">
-                            </figure>`
+                            </p>`
             setInsertData(html)
         } else {
             const html = fileLink(file.resourceUri, file.originFileName)

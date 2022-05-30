@@ -45,6 +45,8 @@ docker buildx create --name jarvis \
 
 # -t 옵션을 붙이면 tag를 추가해서 업로드 가능하다
 docker buildx build --platform linux/amd64,linux/arm64 --no-cache --push -t docker.hvy.kr/blog-front  .
+
+docker buildx build --platform linux/amd64 --no-cache --push -t docker.hvy.kr/blog-front  .
 ```
 
 ### 단일 빌드시

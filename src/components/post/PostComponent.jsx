@@ -37,7 +37,7 @@ export default function PostComponent({post, prevNext}) {
             if (prevNext.prev !== 0)
                 router.push(`/post/${prevNext.prev}`)
         } else if (event.ctrlKey && event.key === 'ArrowRight') {
-            if (prevNext.prev !== 0)
+            if (prevNext.next !== 0)
                 router.push(`/post/${prevNext.next}`)
         }
     }

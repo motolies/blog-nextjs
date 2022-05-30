@@ -19,6 +19,7 @@ import {fileLink} from "../../util/fileLink"
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import {usePostNavigationShortcut} from "../../util/usePostNavigationShortcut"
+import {getAllTags} from "../../store/actions/tagActions"
 
 export default function PostComponent({post, prevNext}) {
     const router = useRouter()
@@ -57,6 +58,7 @@ export default function PostComponent({post, prevNext}) {
     useEffect(() => {
         const doc = new DOMParser().parseFromString(post.body, 'text/html')
         initVsCode(doc)
+        initJetbrains(doc)
         setPostBody(doc.head.innerHTML + doc.body.innerHTML)
     }, [post.body])
 
@@ -118,6 +120,19 @@ export default function PostComponent({post, prevNext}) {
             element = element.parentNode
         }
         return rtn
+    }
+
+    const initJetbrains = (doc) => {
+        Array.prototype.slice.call(doc.getElementsByTagName("pre"), 0).forEach(pre => {
+            if (pre.style && pre.style.backgroundColor && pre.style.backgroundColor == "rgb(43, 43, 43)") {
+                if (getRootElement(pre)) {
+                    pre.style.padding = "15px"
+                    pre.style.scrollPadding = "15px"
+                    pre.style.overflowX = "scroll"
+                    // TODO : overflow 되는 부분의 right padding이 동작하지 않는다
+                }
+            }
+        })
     }
 
     const showDeleteConfirmDialog = () => {

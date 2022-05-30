@@ -18,6 +18,7 @@ import {base64Encode} from "../../util/base64Util"
 import {fileLink} from "../../util/fileLink"
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
+import {usePostNavigationShortcut} from "../../util/usePostNavigationShortcut"
 
 export default function PostComponent({post}) {
     const router = useRouter()
@@ -30,6 +31,18 @@ export default function PostComponent({post}) {
     const [tags, setTags] = useState(post.tag)
     const [publicConfirmQuestion, setPublicConfirmQuestion] = useState('')
     const [postBody, setPostBody] = useState()
+
+    const onKeyPress = (event) => {
+        if (event.ctrlKey && event.key === 'ArrowLeft') {
+            if (post && post.prev !== 0)
+                router.push(`/post/${post.prev}`)
+        } else if (event.ctrlKey && event.key === 'ArrowRight') {
+            if (post && post.prev !== 0)
+                router.push(`/post/${post.next}`)
+        }
+    }
+
+    usePostNavigationShortcut(['ArrowLeft', 'ArrowRight'], onKeyPress)
 
     useEffect(() => {
         setPostPublic(post.isPublic)
@@ -83,8 +96,6 @@ export default function PostComponent({post}) {
     }
 
 
-
-
     const initVsCode = (doc) => {
         Array.prototype.slice.call(doc.getElementsByTagName("div"), 0).forEach(div => {
             if (div.style && div.style.backgroundColor && div.style.backgroundColor == "rgb(30, 30, 30)") {
@@ -125,7 +136,8 @@ export default function PostComponent({post}) {
             .then(res => {
                 if (res.data.id === post.id.toString()) {
                     enqueueSnackbar("삭제에 성공하였습니다.", {variant: "success"})
-                    router.push("/")
+                    // router.push("/")
+                    location.reload();
                 }
             }).catch(() => {
                 enqueueSnackbar("삭제에 실패하였습니다.", {variant: "error"})

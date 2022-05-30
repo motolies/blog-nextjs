@@ -15,7 +15,6 @@ export const SearchEngineComponent = ({name, url}) => {
     return (
         <Box
             sx={{
-                m: 1,
                 p: 1,
                 '&:hover': {
                     background: "rgba(57, 138, 185, 0.4)"
@@ -28,6 +27,7 @@ export const SearchEngineComponent = ({name, url}) => {
             <TextField type={'search'}
                        value={text}
                        fullWidth
+                       size="small"
                        onChange={(e) => setText(e.target.value)}
                        id="outlined-basic"
                        label={name}

@@ -33,6 +33,10 @@ export default function TagGroupComponent({postId, tagList, clickable, listHeigh
     }, [])
 
     useEffect(() => {
+        if (tagList === undefined) {
+            return
+        }
+
         setPostTags(tagList)
 
         // 이미 포스트에 붙어있는 것은 제외하고 나머지를 보여준다.
@@ -137,7 +141,7 @@ export default function TagGroupComponent({postId, tagList, clickable, listHeigh
                         , flexWrap: 'wrap'
                     }}
                 >
-                    {postTags.map((tag) => <Tag key={tag.id} id={tag.id} name={tag.name} deletePostTag={deletePostTag} clickable={clickable}/>)}
+                    {postTags ? postTags.map((tag) => <Tag key={tag.id} id={tag.id} name={tag.name} deletePostTag={deletePostTag} clickable={clickable}/>) : null}
                 </Box>
             </Grid>
         </Grid>

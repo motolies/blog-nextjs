@@ -8,6 +8,9 @@ const postService = {
     getPost: ({postId}) => {
         return axiosClient.get(`/api/post/${postId}`)
     },
+    getPrevNext: ({postId}) => {
+        return axiosClient.get(`/api/post/prev-next/${postId}`)
+    },
     deletePost: ({postId}) => {
         return axiosClient.delete(`/api/post/${postId}`)
     },

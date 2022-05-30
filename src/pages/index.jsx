@@ -4,7 +4,7 @@ import service from "../service"
 export default function IndexPage({post}) {
     return (
         <>
-            <PostComponent post={post}/>
+            <PostComponent post={post} prevNext={{prev: post.prev, next: post.next}}/>
         </>
     )
 }

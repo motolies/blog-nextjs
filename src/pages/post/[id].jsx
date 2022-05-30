@@ -1,19 +1,26 @@
 import PostComponent from "../../components/post/PostComponent"
 import service from "../../service"
 
-export default function PostPage({children, post}) {
+export default function PostPage({children, post, prevNext}) {
     return (
         <>
-            <PostComponent post={post}/>
+            <PostComponent post={post} prevNext={prevNext}/>
         </>
     )
 }
 
 PostPage.getInitialProps = async (ctx) => {
     const postId = ctx.query.id
-    const post = await service.post.getPost({postId})
-        .then(res => res.data)
+    const postReq = await service.post.getPost({postId})
+    const prevNextReq = await service.post.getPrevNext({postId})
+
+    const [post, prevNext] = await Promise.all([
+        postReq,
+        prevNextReq
+    ])
+
     return {
-        post
+        post: post.data,
+        prevNext: prevNext.data
     }
 }

@@ -20,7 +20,7 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import {usePostNavigationShortcut} from "../../util/usePostNavigationShortcut"
 
-export default function PostComponent({post}) {
+export default function PostComponent({post, prevNext}) {
     const router = useRouter()
     const {enqueueSnackbar, closeSnackbar} = useSnackbar()
     const userState = useSelector((state) => state.user)
@@ -34,11 +34,11 @@ export default function PostComponent({post}) {
 
     const onKeyPress = (event) => {
         if (event.ctrlKey && event.key === 'ArrowLeft') {
-            if (post && post.prev !== 0)
-                router.push(`/post/${post.prev}`)
+            if (prevNext.prev !== 0)
+                router.push(`/post/${prevNext.prev}`)
         } else if (event.ctrlKey && event.key === 'ArrowRight') {
-            if (post && post.prev !== 0)
-                router.push(`/post/${post.next}`)
+            if (prevNext.prev !== 0)
+                router.push(`/post/${prevNext.next}`)
         }
     }
 
@@ -137,7 +137,7 @@ export default function PostComponent({post}) {
                 if (res.data.id === post.id.toString()) {
                     enqueueSnackbar("삭제에 성공하였습니다.", {variant: "success"})
                     // router.push("/")
-                    location.reload();
+                    location.reload()
                 }
             }).catch(() => {
                 enqueueSnackbar("삭제에 실패하였습니다.", {variant: "error"})
@@ -245,12 +245,12 @@ export default function PostComponent({post}) {
                              sx={{overflowWrap: 'break-word'}}/>
                     </Box>
                     <Box sx={{pt: 5, pb: 5, display: 'flex', clear: 'both'}}>
-                        {post.prev === 0 ? null :
-                            <IconButton onClick={() => router.push(`/post/${post.prev}`)} sx={{display: 'inline-flex'}}>
+                        {prevNext.prev === 0 ? null :
+                            <IconButton onClick={() => router.push(`/post/${prevNext.prev}`)} sx={{display: 'inline-flex'}}>
                                 <ArrowBackIosNewIcon/>
                             </IconButton>}
-                        {post.next === 0 ? null :
-                            <IconButton onClick={() => router.push(`/post/${post.next}`)} sx={{display: 'inline-flex', marginLeft: 'auto'}}>
+                        {prevNext.next === 0 ? null :
+                            <IconButton onClick={() => router.push(`/post/${prevNext.next}`)} sx={{display: 'inline-flex', marginLeft: 'auto'}}>
                                 <ArrowForwardIosIcon/>
                             </IconButton>
                         }

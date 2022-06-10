@@ -19,7 +19,6 @@ import {fileLink} from "../../util/fileLink"
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import {usePostNavigationShortcut} from "../../util/usePostNavigationShortcut"
-import {getAllTags} from "../../store/actions/tagActions"
 
 export default function PostComponent({post, prevNext}) {
     const router = useRouter()
@@ -77,6 +76,7 @@ export default function PostComponent({post, prevNext}) {
         const imgs = document.querySelectorAll('#post-content img')
         for (let i = 0; i < imgs.length; i++) {
             let currentImg = imgs[i]
+            currentImg.style.maxWidth = '90vw'
             currentImg.addEventListener('click', function (e) {
                 const imgPopupHtml = `<html>
                                   <head>

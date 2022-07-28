@@ -58,6 +58,7 @@ export default function PostComponent({post, prevNext}) {
         const doc = new DOMParser().parseFromString(post.body, 'text/html')
         initVsCode(doc)
         initJetbrains(doc)
+        initLinkNewTab(doc)
         setPostBody(doc.head.innerHTML + doc.body.innerHTML)
     }, [post.body])
 
@@ -110,6 +111,14 @@ export default function PostComponent({post, prevNext}) {
             }
         })
     }
+
+    const initLinkNewTab = (doc) => {
+        Array.prototype.slice.call(doc.getElementsByTagName("a"), 0).forEach(a => {
+            a.target = '_blank'
+        })
+    }
+
+
     const getRootElement = (element) => {
         let rtn = true
         while (element.parentNode) {

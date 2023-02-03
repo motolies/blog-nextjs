@@ -7,8 +7,8 @@ on:
 
 env:
   DOCKERHUB_USER: knw1234
-  DOCKER_IMAGE_NAME: knw1234/blog-next
-  GHCR_IMAGE_NAME: motolies/blog-next
+  DOCKER_IMAGE_NAME: knw1234/blog-nextjs
+  GHCR_IMAGE_NAME: motolies/blog-nextjs
 
 jobs:
   main:

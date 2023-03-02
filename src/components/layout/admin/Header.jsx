@@ -62,7 +62,7 @@ export default function Header({children}) {
                     spacing={2}
                 >
                     <Grid item xs={4} sm={2}>
-                        <Link href={`/admin`}>
+                        <Link href={`/admin`} legacyBehavior>
                             <a className="main-link">admin</a>
                         </Link>
                     </Grid>
@@ -70,7 +70,7 @@ export default function Header({children}) {
                         <Grid item xs={1} sm={2} md={6}>
                             <Box sx={{display: {xs: 'none', sm: 'none', md: 'block'}}}>
                                 <Box flex sx={{mr: 3, display: 'inline-flex'}}>
-                                    <Link href={'/admin/write'}>
+                                    <Link href={'/admin/write'} legacyBehavior>
                                         <a className="menu-link">
                                             <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
                                                 <CreateIcon/><span>write</span>
@@ -79,7 +79,7 @@ export default function Header({children}) {
                                     </Link>
                                 </Box>
                                 <Box flex sx={{mr: 3, display: 'inline-flex'}}>
-                                    <Link href={'/admin/categories'}>
+                                    <Link href={'/admin/categories'} legacyBehavior>
                                         <a className="menu-link">
                                             <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
                                                 <CategoryIcon/><span>categories</span>
@@ -88,7 +88,7 @@ export default function Header({children}) {
                                     </Link>
                                 </Box>
                                 <Box flex sx={{display: 'inline-flex'}}>
-                                    <Link href={'/admin/tags'}>
+                                    <Link href={'/admin/tags'} legacyBehavior>
                                         <a className="menu-link">
                                             <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
                                                 <TagIcon/><span>tags</span>

@@ -223,7 +223,7 @@ export default function PostComponent({post, prevNext}) {
                           direction="row"
                           spacing={2}>
                         <Grid item={true} xs={8}>
-                            <Link href={searchCategory()}>
+                            <Link href={searchCategory()} legacyBehavior>
                                 <a>
                                     <Box sx={{
                                         px: 3

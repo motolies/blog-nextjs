@@ -56,7 +56,7 @@ export default function Header({children}) {
                     spacing={2}
                 >
                     <Grid item xs={4}>
-                        <Link href={`/`}>
+                        <Link href={`/`} legacyBehavior>
                             <a className="main-link">motolies</a>
                         </Link>
                     </Grid>

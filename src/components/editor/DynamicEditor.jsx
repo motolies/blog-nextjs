@@ -69,7 +69,7 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
         })
     }
 
-    const imageUploadPlugin = (editor) => {
+    const imageUploadPlugin = function (editor) {
         editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
             return imageUploadAdapter(loader)
         }
@@ -103,7 +103,7 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
     }
 
 
-    const fileUploadPlugin = (editor) => {
+    const fileUploadPlugin = function (editor) {
         // https://github.com/ckeditor/ckeditor5/issues/5999
         editor.editing.view.document.on(
             'drop',

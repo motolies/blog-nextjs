@@ -1,0 +1,32 @@
+.container {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 10px;
+    position: relative;
+}
+
+.prevButton {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    /*background-color: #ccc;*/
+    padding: 3px;
+    z-index: 1;
+}
+
+.content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.nextButton {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    /*background-color: #ccc;*/
+    padding: 3px;
+    z-index: 1;
+}

@@ -19,6 +19,7 @@ import {fileLink} from "../../util/fileLink"
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import {usePostNavigationShortcut} from "../../util/usePostNavigationShortcut"
+import styles from './PostComponent.module.css'
 
 export default function PostComponent({post, prevNext}) {
     const router = useRouter()
@@ -214,76 +215,81 @@ export default function PostComponent({post, prevNext}) {
 
     if (post?.id !== 0 && post?.id > 0) {
         return (
-            <>
-                <div className="post">
-                    <div>
-                        <h2>{post.subject}</h2>
-                    </div>
-                    <Grid container
-                          direction="row"
-                          spacing={2}>
-                        <Grid item={true} xs={8}>
-                            <Link href={searchCategory()} legacyBehavior>
-                                <a>
-                                    <Box sx={{
-                                        px: 3
-                                        , py: 1
-                                        , background: "rgba(17, 153, 142, .2)"
-                                        , borderRadius: '.5rem'
-                                        , display: 'inline-flex'
-                                        , fontSize: '1.5rem'
-                                    }}>
-                                        {post.categoryName}
-                                    </Box>
-                                </a>
-                            </Link>
-                        </Grid>
-                        <Grid item={true} xs={4} align={'right'} sx={{alignItems: 'center', display: 'flex'}}>
-                            {!(userState.isAuthenticated && userState.user.userName) ? null :
-                                <>
-                                    {postPublic ?
-                                        <IconButton onClick={showPublicConfirmDialog} sx={{display: 'flex', marginLeft: 'auto'}}>
-                                            <PublicIcon/>
-                                        </IconButton>
-                                        :
-                                        <IconButton onClick={showPublicConfirmDialog} sx={{display: 'flex', marginLeft: 'auto'}}>
-                                            <PublicOffIcon/>
-                                        </IconButton>
-                                    }
-                                    <IconButton aria-label="edit" onClick={onEditor} sx={{display: 'flex'}}>
-                                        <EditIcon/>
-                                    </IconButton>
-                                    <IconButton aria-label="delete" onClick={showDeleteConfirmDialog} sx={{display: 'flex'}}>
-                                        <DeleteIcon/>
-                                    </IconButton>
-                                </>
-                            }
-
-                        </Grid>
-                    </Grid>
-                    <hr/>
-                    <TagGroupComponent postId={post.id} tagList={tags} clickable={true}/>
-                    <hr/>
-                    <Box sx={{mt: 5, mb: 5}}>
-                        <Box className="content" id={'post-content'} dangerouslySetInnerHTML={{__html: postBody}}
-                             sx={{overflowWrap: 'break-word'}}/>
-                    </Box>
-                    <Box sx={{pt: 5, pb: 5, display: 'flex', clear: 'both'}}>
-                        {prevNext.prev === 0 ? null :
-                            <IconButton onClick={() => router.push(`/post/${prevNext.prev}`)} sx={{display: 'inline-flex'}}>
-                                <ArrowBackIosNewIcon/>
-                            </IconButton>}
-                        {prevNext.next === 0 ? null :
-                            <IconButton onClick={() => router.push(`/post/${prevNext.next}`)} sx={{display: 'inline-flex', marginLeft: 'auto'}}>
-                                <ArrowForwardIosIcon/>
-                            </IconButton>
-                        }
-                    </Box>
-
+            <div className={styles.container}>
+                <div className={styles.prevButton}>
+                    {prevNext.prev === 0 ? null :
+                        <IconButton onClick={() => router.push(`/post/${prevNext.prev}`)} sx={{display: 'inline-flex'}}>
+                            <ArrowBackIosNewIcon/>
+                        </IconButton>}
                 </div>
-                <DeleteConfirm open={showDeleteConfirm} question={'현재 포스트를 삭제하시겠습니까?'} onConfirm={deletePost} onCancel={deletePostCancel}/>
-                <PublicConfirm open={showPublicConfirm} question={publicConfirmQuestion} onConfirm={setPublicStatus} onCancel={publicPostCancel}/>
-            </>
+                <div className={styles.content}>
+                    <div className="post">
+                        <div>
+                            <h2>{post.subject}</h2>
+                        </div>
+                        <Grid container
+                              direction="row"
+                              spacing={2}>
+                            <Grid item={true} xs={8}>
+                                <Link href={searchCategory()} legacyBehavior>
+                                    <a>
+                                        <Box sx={{
+                                            px: 3
+                                            , py: 1
+                                            , background: "rgba(17, 153, 142, .2)"
+                                            , borderRadius: '.5rem'
+                                            , display: 'inline-flex'
+                                            , fontSize: '1.5rem'
+                                        }}>
+                                            {post.categoryName}
+                                        </Box>
+                                    </a>
+                                </Link>
+                            </Grid>
+                            <Grid item={true} xs={4} align={'right'} sx={{alignItems: 'center', display: 'flex'}}>
+                                {!(userState.isAuthenticated && userState.user.userName) ? null :
+                                    <>
+                                        {postPublic ?
+                                            <IconButton onClick={showPublicConfirmDialog} sx={{display: 'flex', marginLeft: 'auto'}}>
+                                                <PublicIcon/>
+                                            </IconButton>
+                                            :
+                                            <IconButton onClick={showPublicConfirmDialog} sx={{display: 'flex', marginLeft: 'auto'}}>
+                                                <PublicOffIcon/>
+                                            </IconButton>
+                                        }
+                                        <IconButton aria-label="edit" onClick={onEditor} sx={{display: 'flex'}}>
+                                            <EditIcon/>
+                                        </IconButton>
+                                        <IconButton aria-label="delete" onClick={showDeleteConfirmDialog} sx={{display: 'flex'}}>
+                                            <DeleteIcon/>
+                                        </IconButton>
+                                    </>
+                                }
+
+                            </Grid>
+                        </Grid>
+                        <hr/>
+                        <TagGroupComponent postId={post.id} tagList={tags} clickable={true}/>
+                        <hr/>
+                        <Box sx={{mt: 5, mb: 5}}>
+                            <Box className="content" id={'post-content'} dangerouslySetInnerHTML={{__html: postBody}}
+                                 sx={{overflowWrap: 'break-word'}}/>
+                        </Box>
+
+
+                    </div>
+                    <DeleteConfirm open={showDeleteConfirm} question={'현재 포스트를 삭제하시겠습니까?'} onConfirm={deletePost} onCancel={deletePostCancel}/>
+                    <PublicConfirm open={showPublicConfirm} question={publicConfirmQuestion} onConfirm={setPublicStatus} onCancel={publicPostCancel}/>
+                </div>
+                <div className={styles.nextButton}>
+                    {prevNext.next === 0 ? null :
+                        <IconButton onClick={() => router.push(`/post/${prevNext.next}`)} sx={{display: 'inline-flex', marginLeft: 'auto'}}>
+                            <ArrowForwardIosIcon/>
+                        </IconButton>
+                    }
+                </div>
+            </div>
         )
     } else {
         return (

@@ -1,10 +1,20 @@
 import PostComponent from "../../components/post/PostComponent"
 import service from "../../service"
 import {getAllTags} from "../../store/actions/tagActions"
+import Head from "next/head";
 
 export default function PostPage({children, post, prevNext}) {
+
+    const description = post?.body?.replace(/<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/img, "").replace(/&nbsp;/img, "")
+    const tags = post?.tag?.map(tag => tag.name).join(', ')
+
     return (
         <>
+            <Head>
+                <title>{post.subject}</title>
+                <meta name='description' content={description} />
+                <meta name="keyword" content={tags}/>
+            </Head>
             <PostComponent post={post} prevNext={prevNext}/>
         </>
     )

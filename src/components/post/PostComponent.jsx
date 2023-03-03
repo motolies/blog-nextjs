@@ -215,14 +215,14 @@ export default function PostComponent({post, prevNext}) {
 
     if (post?.id !== 0 && post?.id > 0) {
         return (
-            <div className={styles.container}>
+            <div>
                 <div className={styles.prevButton}>
                     {prevNext.prev === 0 ? null :
                         <IconButton onClick={() => router.push(`/post/${prevNext.prev}`)} sx={{display: 'inline-flex'}}>
                             <ArrowBackIosNewIcon/>
                         </IconButton>}
                 </div>
-                <div className={styles.content}>
+                <div>
                     <div className="post">
                         <div>
                             <h2>{post.subject}</h2>

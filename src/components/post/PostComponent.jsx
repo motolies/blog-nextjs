@@ -20,6 +20,7 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import {usePostNavigationShortcut} from "../../util/usePostNavigationShortcut"
 import styles from './PostComponent.module.css'
+import moment from "moment/moment";
 
 export default function PostComponent({post, prevNext}) {
     const router = useRouter()
@@ -269,9 +270,17 @@ export default function PostComponent({post, prevNext}) {
 
                             </Grid>
                         </Grid>
+                        <Box sx={{display: "flex"}}>
+                            <Box sx={{fontSize: 12, mt: 1, display: 'inline-block', marginLeft: 'auto'}}>
+                                created: {moment(post.createDate).local().format("YYYY-MM-DD HH:mm:ss")}
+                            </Box>
+                            <Box sx={{fontSize: 12, mt: 1, ml: 3, display: 'inline-block'}}>
+                                updated: {moment(post.updateDate).local().format("YYYY-MM-DD HH:mm:ss")}
+                            </Box>
+                        </Box>
                         <hr/>
                         <TagGroupComponent postId={post.id} tagList={tags} clickable={true}/>
-                        <hr/>
+                        {tags.length > 0 ? <hr/> : null}
                         <Box sx={{mt: 5, mb: 5}}>
                             <Box className="content" id={'post-content'} dangerouslySetInnerHTML={{__html: postBody}}
                                  sx={{overflowWrap: 'break-word'}}/>

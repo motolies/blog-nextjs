@@ -5,6 +5,7 @@ import Head from "next/head";
 
 export default function PostPage({children, post, prevNext, meta}) {
 
+
     return (
         <>
             <Head>
@@ -14,7 +15,7 @@ export default function PostPage({children, post, prevNext, meta}) {
                 <meta property="og:type" content="website"/>
                 <meta property="og:url" content={meta.page}/>
                 <meta property="og:title" content={meta.title}/>
-                <meta property="og:image" content="https://hvy.kr/images/logo.png"/>
+                <meta property="og:image" content={meta.logo} />
                 <meta property="og:description" content={meta.description}/>
                 <meta property="og:site_name" content="Skyscape"/>
             </Head>
@@ -42,9 +43,10 @@ PostPage.getInitialProps = async (ctx) => {
         prevNext: prevNext.data,
         meta: {
             title: post?.data?.subject,
-            description: post?.body?.replace(/<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/img, "").replace(/&nbsp;/img, ""),
-            tags: post?.tag?.map(tag => tag.name).join(', '),
-            page: "https://" + ctx.req.headers.host + ctx.req.url
+            description: post?.data?.body?.replace(/<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/img, " ").replace(/&nbsp;/img, "").replace(/\r\n/img, " ").replace(/\s+/img, " ").trim(),
+            tags: post?.data?.tag?.map(tag => tag.name).join(', '),
+            page: process.env.META_URL + "/post/" + postId,
+            logo : process.env.META_URL + "/images/logo.png"
         }
     }
 }

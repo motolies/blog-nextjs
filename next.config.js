@@ -7,6 +7,7 @@ module.exports = {
     env: {
         BLOG_URL_DEV: BACKEND_URL.BLOG_URL_DEV,
         BLOG_URL_PROD: BACKEND_URL.BLOG_URL_PROD,
+        META_URL: 'https://hvy.kr',
     },
     async rewrites() {
         return [

@@ -46,7 +46,7 @@ PostPage.getInitialProps = async (ctx) => {
             description: post?.data?.body?.replace(/<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/img, " ").replace(/&nbsp;/img, "").replace(/\r\n/img, " ").replace(/\s+/img, " ").trim(),
             tags: post?.data?.tag?.map(tag => tag.name).join(', '),
             page: process.env.META_URL + "/post/" + postId,
-            logo : process.env.META_URL + "/images/logo.png"
+            logo : process.env.META_URL + "/images/og-logo.png"
         }
     }
 }

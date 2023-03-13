@@ -47,7 +47,7 @@ jobs:
           echo "BUILD_TIMESTAMP=$BUILD_TIMESTAMP" >> $GITHUB_ENV
       -
         name: Buildx and Push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: .
           file: Dockerfile
@@ -63,4 +63,6 @@ jobs:
             VERSION=${{ env.COMMIT_HASH }}
             BUILD_TIMESTAMP=${{ env.BUILD_TIMESTAMP }}
           push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 

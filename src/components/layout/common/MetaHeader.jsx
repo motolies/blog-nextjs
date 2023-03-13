@@ -6,7 +6,7 @@ export default function MetaHeader({children, ...props}) {
         <Head>
             <title>Skyscape</title>
             <meta name="description" content="IT blog by motolies"/>
-            <meta name="robots" content="nofollow"/>
+            <meta name="robots" content="index,nofollow"/>
             <meta name="author" content="motolies"/>
             <link rel="icon" href="/favicon.ico"/>
             <meta property="og:image" content={logo} />

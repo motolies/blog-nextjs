@@ -18,6 +18,7 @@ export default function PostPage({children, post, prevNext, meta}) {
                 <meta property="og:image" content={meta.logo} />
                 <meta property="og:description" content={meta.description}/>
                 <meta property="og:site_name" content="Skyscape"/>
+                <meta name="robots" content="index,nofollow"/>
             </Head>
             <PostComponent post={post} prevNext={prevNext}/>
         </>

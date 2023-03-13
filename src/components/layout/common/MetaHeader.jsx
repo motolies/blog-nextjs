@@ -10,6 +10,8 @@ export default function MetaHeader({children, ...props}) {
             <meta name="author" content="motolies"/>
             <link rel="icon" href="/favicon.ico"/>
             <meta property="og:image" content={logo} />
+
+            <meta name="naver-site-verification" content="dea29fb1cd45a91583f252df95e93651693297a3" />
         </Head>
     )
 }

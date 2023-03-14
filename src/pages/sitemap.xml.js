@@ -1,21 +1,17 @@
-const API_HOST = process.env.NODE_ENV === 'development'
-    ? process.env.BLOG_URL_DEV
-    : process.env.BLOG_URL_PROD
-
-const HOST = 'https://hvy.kr';
+const API_HOST = process.env.BLOG_URL_PROD
 
 function generateSiteMap(posts) {
     return `<?xml version="1.0" encoding="UTF-8"?>
    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
      <!--We manually set the two URLs we know already-->
      <url>
-       <loc>${HOST}</loc>
+       <loc>${process.env.META_URL}</loc>
      </url>
      ${posts
         .map((id) => {
             return `
        <url>
-           <loc>${`${HOST}/post/${id}`}</loc>
+           <loc>${`${process.env.META_URL}/post/${id}`}</loc>
        </url>
      `;
         })

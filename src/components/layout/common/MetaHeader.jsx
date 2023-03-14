@@ -6,12 +6,13 @@ export default function MetaHeader({children, ...props}) {
         <Head>
             <title>Skyscape</title>
             <meta name="description" content="IT blog by motolies"/>
-            <meta name="robots" content="index,nofollow"/>
+            <meta name="robots" content="ALL"/>
+정            <meta name="robots" content="index,follow"/>
             <meta name="author" content="motolies"/>
             <link rel="icon" href="/favicon.ico"/>
-            <meta property="og:image" content={logo} />
+            <meta property="og:image" content={logo}/>
 
-            <meta name="naver-site-verification" content="dea29fb1cd45a91583f252df95e93651693297a3" />
+            <meta name="naver-site-verification" content="dea29fb1cd45a91583f252df95e93651693297a3"/>
 
             {/*Google Tag Manager */}
             {/*https://morganfeeney.com/how-to/integrate-google-tag-manager-with-next-js*/}

@@ -10,15 +10,14 @@ export default function PostPage({children, post, prevNext, meta}) {
         <>
             <Head>
                 <title>{meta.title}</title>
-                <meta name='description' content={meta.description}/>
-                <meta name="keyword" content={meta.tags}/>
+                <meta name="description" content={meta.description}/>
+                <meta name="keywords" content={meta.tags}/>
                 <meta property="og:type" content="website"/>
                 <meta property="og:url" content={meta.page}/>
                 <meta property="og:title" content={meta.title}/>
-                <meta property="og:image" content={meta.logo} />
+                <meta property="og:image" content={meta.logo}/>
                 <meta property="og:description" content={meta.description}/>
                 <meta property="og:site_name" content="Skyscape"/>
-                <meta name="robots" content="index,nofollow"/>
             </Head>
             <PostComponent post={post} prevNext={prevNext}/>
         </>
@@ -47,7 +46,7 @@ PostPage.getInitialProps = async (ctx) => {
             description: post?.data?.body?.replace(/<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/img, " ").replace(/&nbsp;/img, "").replace(/\r\n/img, " ").replace(/\s+/img, " ").trim(),
             tags: post?.data?.tag?.map(tag => tag.name).join(', '),
             page: process.env.META_URL + "/post/" + postId,
-            logo : process.env.META_URL + "/images/og-logo.png"
+            logo: process.env.META_URL + "/images/og-logo.png"
         }
     }
 }

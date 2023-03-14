@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /admin
-Sitemap: http://hvy.kr/sitemap.xml
+Sitemap: https://hvy.kr/sitemap.xml

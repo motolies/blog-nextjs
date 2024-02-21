@@ -60,6 +60,7 @@ export default function PostComponent({post, prevNext}) {
         const doc = new DOMParser().parseFromString(post.body, 'text/html')
         initVsCode(doc)
         initJetbrains(doc)
+        initIntellij(doc)
         initLinkNewTab(doc)
         setPostBody(doc.head.innerHTML + doc.body.innerHTML)
     }, [post.body])
@@ -79,7 +80,7 @@ export default function PostComponent({post, prevNext}) {
         const imgs = document.querySelectorAll('#post-content img')
         for (let i = 0; i < imgs.length; i++) {
             let currentImg = imgs[i]
-            currentImg.style.maxWidth = '90vw'
+            currentImg.style.maxWidth = '100%'
             currentImg.addEventListener('click', function (e) {
                 const imgPopupHtml = `<html>
                                   <head>
@@ -103,7 +104,33 @@ export default function PostComponent({post, prevNext}) {
 
     const initVsCode = (doc) => {
         Array.prototype.slice.call(doc.getElementsByTagName("div"), 0).forEach(div => {
-            if (div.style && div.style.backgroundColor && div.style.backgroundColor == "rgb(30, 30, 30)") {
+            if (div.style && div.style.backgroundColor && div.style.backgroundColor === "rgb(30, 30, 30)") {
+                if (getRootElement(div)) {
+                    div.style.padding = "15px"
+                    div.style.scrollPadding = "15px"
+                    div.style.overflowX = "scroll"
+                    // TODO : overflow 되는 부분의 right padding이 동작하지 않는다
+                }
+            }
+        })
+    }
+
+    const initIntellij = (doc) => {
+        Array.prototype.slice.call(doc.getElementsByTagName("div"), 0).forEach(div => {
+            if (div.style && div.style.backgroundColor && div.style.backgroundColor === "rgb(40, 44, 52)") {
+                if (getRootElement(div)) {
+                    div.style.padding = "15px"
+                    div.style.scrollPadding = "15px"
+                    div.style.overflowX = "scroll"
+                    // TODO : overflow 되는 부분의 right padding이 동작하지 않는다
+                }
+            }
+        })
+    }
+
+    const initJetbrains = (doc) => {
+        Array.prototype.slice.call(doc.getElementsByTagName("div"), 0).forEach(div => {
+            if (div.style && div.style.backgroundColor && div.style.backgroundColor == "rgb(43, 43, 43)") {
                 if (getRootElement(div)) {
                     div.style.padding = "15px"
                     div.style.scrollPadding = "15px"
@@ -133,18 +160,6 @@ export default function PostComponent({post, prevNext}) {
         return rtn
     }
 
-    const initJetbrains = (doc) => {
-        Array.prototype.slice.call(doc.getElementsByTagName("pre"), 0).forEach(pre => {
-            if (pre.style && pre.style.backgroundColor && pre.style.backgroundColor == "rgb(43, 43, 43)") {
-                if (getRootElement(pre)) {
-                    pre.style.padding = "15px"
-                    pre.style.scrollPadding = "15px"
-                    pre.style.overflowX = "scroll"
-                    // TODO : overflow 되는 부분의 right padding이 동작하지 않는다
-                }
-            }
-        })
-    }
 
     const showDeleteConfirmDialog = () => {
         setShowDeleteConfirm(true)

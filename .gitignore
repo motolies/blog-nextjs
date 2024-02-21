@@ -33,3 +33,5 @@ yarn-error.log*
 # vercel
 .vercel
 /ckeditor5/node_modules/
+
+/ckeditor5/build

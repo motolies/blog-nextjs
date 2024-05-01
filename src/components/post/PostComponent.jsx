@@ -62,6 +62,7 @@ export default function PostComponent({post, prevNext}) {
         initJetbrains(doc)
         initIntellij(doc)
         initLinkNewTab(doc)
+        rewriteFileLink(doc)
         setPostBody(doc.head.innerHTML + doc.body.innerHTML)
     }, [post.body])
 
@@ -147,6 +148,16 @@ export default function PostComponent({post, prevNext}) {
         })
     }
 
+    const rewriteFileLink = (doc) =>{
+        Array.prototype.slice.call(doc.getElementsByTagName("a"), 0).forEach(a => {
+            if(a.pathname.startsWith("/api/file/")){
+                const host = process.env.NODE_ENV === 'development'
+                    ? process.env.BLOG_URL_DEV
+                    : process.env.BLOG_URL_PROD
+                a.setAttribute("href", host + a.pathname)
+            }
+        })
+    }
 
     const getRootElement = (element) => {
         let rtn = true

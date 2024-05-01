@@ -11,13 +11,8 @@ module.exports = {
     },
     async rewrites() {
         return [
-            // {
-            //     source: '/api/file/:path',
-            //     destination: process.env.NODE_ENV === 'production' ?
-            //         (BACKEND_URL.BLOG_URL_PROD + '/api/file/:path') :
-            //         (BACKEND_URL.BLOG_URL_DEV + '/api/file/:path')
-            // },
             {
+                // 이미지 가지고 올 때 사용 중
                 source: '/api/:path*',
                 destination: process.env.NODE_ENV === 'production' ?
                     (BACKEND_URL.BLOG_URL_PROD + '/api/:path*') :

@@ -69,7 +69,7 @@ export default function IndexPage({engines}) {
         {
             name: "Streaming",
             links: [
-                {name: "누누.tv", url: "https://xn--od1ba.com/"},
+                {name: "누누.tv", url: "https://nunutv1.me/"},
             ]
         },
     ]

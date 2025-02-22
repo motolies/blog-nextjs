@@ -1,4 +1,4 @@
-FROM node:19-alpine AS deps
+FROM node:20-alpine AS deps
 RUN apk update && apk upgrade
 RUN apk add --no-cache libc6-compat python3 cmake g++
 WORKDIR /app

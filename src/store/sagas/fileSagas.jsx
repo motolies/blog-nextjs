@@ -4,10 +4,10 @@ import service from "../../service"
 
 function* fileListByPostId({postId}) {
     try {
-        const auth = yield call(service.file.fileByPostId, {postId: postId})
+        const files = yield call(service.file.fileByPostId, {postId: postId})
         yield put({
             type: FILE_LIST_BY_POST_REQUEST_SUCCESS,
-            payload: auth.data
+            payload: files.data
         })
     } catch (err) {
         yield put({type: FILE_LIST_BY_POST_REQUEST_ERROR})

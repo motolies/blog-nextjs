@@ -69,7 +69,7 @@ export const Tag = (props) => {
             onClick={getClickFunction()}
         >
             {props.name}
-            {!(userState.isAuthenticated && userState.user.userName) ? null :
+            {!(userState.isAuthenticated && userState.user.username) ? null :
                 <IconButton aria-label="delete" onClick={showDeleteConfirmDialog}>
                     <DeleteIcon fontSize={'small'}/>
                 </IconButton>

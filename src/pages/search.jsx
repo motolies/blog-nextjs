@@ -9,7 +9,7 @@ import SearchFilter from "../components/search/SearchFilter"
 import {searchObjectInit} from "../model/searchObject"
 import {Pagination} from "@mui/lab"
 import {Stack} from "@mui/material"
-import {uuidV4Generator} from "../util/uuidUtil";
+import { getTsid } from 'tsid-ts'
 
 export default function SearchPage({children}) {
   const {enqueueSnackbar, closeSnackbar} = useSnackbar()
@@ -44,7 +44,7 @@ export default function SearchPage({children}) {
       const newObj = {
         searchCondition: {
           keywords: [{
-            id: uuidV4Generator(),
+            id: getTsid().toString(),
             name: router.query?.query
           }],
           logic: "AND"

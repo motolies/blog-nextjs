@@ -82,7 +82,7 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                     const body = new FormData()
                     loader.file.then(async (file) => {
                         body.append("file", file)
-                        body.append("contentId", postId)
+                        body.append("postId", postId)
                         dispatch(setLoading())
                         await service.file.upload({formData: body})
                             .then(res => {
@@ -138,11 +138,11 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
 
         const body = new FormData()
         body.append("file", file)
-        body.append("contentId", postId)
+        body.append("postId", postId)
         dispatch(setLoading())
         await service.file.upload({formData: body})
             .then(res => {
-                const fileTag = fileLink(res.data.resourceUri, res.data.originFileName)
+                const fileTag = fileLink(res.data.resourceUri, res.data.originName)
                 insertDataOnCursor(editor, fileTag)
             })
             .catch(err => {

@@ -3,7 +3,7 @@ import axiosClient from './axiosClient'
 const fileService = {
     upload: ({formData}) => {
         return axiosClient({
-            url: `/api/file`,
+            url: `/api/file/admin`,
             method: "POST",
             data: formData,
             headers: {
@@ -12,10 +12,10 @@ const fileService = {
         })
     },
     delete: ({fileId}) => {
-        return axiosClient.delete(`/api/file/${fileId}`)
+        return axiosClient.delete(`/api/file/admin/${fileId}`)
     },
     fileByPostId: ({postId}) => {
-        return axiosClient.get(`/api/file/list/${postId}`)
+        return axiosClient.get(`/api/file/admin/list/${postId}`)
     }
 }
 

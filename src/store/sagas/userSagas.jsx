@@ -31,7 +31,7 @@ function encryptPassword(resPublicKey, pass) {
 function* login({username, password}) {
     try {
         const rsa = yield call(service.user.shake)
-        const publicKey = rsa.data.rsaKey
+        const publicKey = rsa.data.publicKey
         const encPassword = encryptPassword(publicKey, password)
         const auth = yield call(service.user.login, {
             username,

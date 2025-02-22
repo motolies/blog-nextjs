@@ -108,7 +108,7 @@ export default function TagGroupComponent({postId, tagList, clickable, listHeigh
             direction="row"
             spacing={2}
         >
-            {!(userState.isAuthenticated && userState.user.userName) ? null :
+            {!(userState.isAuthenticated && userState.user.username) ? null :
                 <Grid item xs={12}>
                     <Autocomplete
                         disablePortal

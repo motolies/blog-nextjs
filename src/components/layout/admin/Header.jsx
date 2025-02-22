@@ -5,7 +5,7 @@ import {useSelector} from 'react-redux'
 import IconButton from "@mui/material/IconButton"
 import {useEffect, useState} from "react"
 import {base64Encode} from "../../../util/base64Util"
-import {uuidV4Generator} from "../../../util/uuidUtil"
+import { getTsid } from 'tsid-ts'
 import {searchObjectInit} from "../../../model/searchObject"
 import CreateIcon from '@mui/icons-material/Create'
 import CategoryIcon from '@mui/icons-material/Category'
@@ -31,7 +31,7 @@ export default function Header({children}) {
             const condition = {
                 ...searchObjectInit, ...{
                     searchCondition: {
-                        keywords: [{id: uuidV4Generator(), name: searchText}], logic: 'AND'
+                        keywords: [{id: getTsid().toString(), name: searchText}], logic: 'AND'
                     }
                 }
             }

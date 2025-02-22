@@ -7,7 +7,7 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import LoginIcon from '@mui/icons-material/Login'
 import {useEffect, useState} from "react"
 import {base64Encode} from "../../../util/base64Util"
-import {uuidV4Generator} from "../../../util/uuidUtil"
+import { getTsid } from 'tsid-ts'
 import {searchObjectInit} from "../../../model/searchObject"
 
 export default function Header({children}) {
@@ -27,7 +27,7 @@ export default function Header({children}) {
                 ...searchObjectInit,
                 ...{
                     searchCondition: {
-                        keywords: [{id: uuidV4Generator(), name: searchText}],
+                        keywords: [{id: getTsid().toString(), name: searchText}],
                         logic: 'AND'
                     }
                 }
@@ -85,10 +85,10 @@ export default function Header({children}) {
                                 display: {md: 'none', lg: 'none'}
                             }}/>
 
-                            {router.pathname === '/login' || userState.user.userName ? null : <IconButton aria-label="delete" onClick={onClickLogin}>
+                            {router.pathname === '/login' || userState.user.username ? null : <IconButton aria-label="delete" onClick={onClickLogin}>
                                 <LoginIcon/>
                             </IconButton>}
-                            {!userState.user.userName ? null : <IconButton onClick={onClickAdmin}>
+                            {!userState.user.username ? null : <IconButton onClick={onClickAdmin}>
                                 <AdminPanelSettingsIcon/>
                             </IconButton>}
 

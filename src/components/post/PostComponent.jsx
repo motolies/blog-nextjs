@@ -29,8 +29,8 @@ export default function PostComponent({post, prevNext}) {
 
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [showPublicConfirm, setShowPublicConfirm] = useState(false)
-    const [postPublic, setPostPublic] = useState(post.isPublic)
-    const [tags, setTags] = useState(post.tag)
+    const [postPublic, setPostPublic] = useState(post?.public)
+    const [tags, setTags] = useState(post?.tags)
     const [publicConfirmQuestion, setPublicConfirmQuestion] = useState('')
     const [postBody, setPostBody] = useState()
 
@@ -47,8 +47,8 @@ export default function PostComponent({post, prevNext}) {
     usePostNavigationShortcut(['ArrowLeft', 'ArrowRight'], onKeyPress)
 
     useEffect(() => {
-        setPostPublic(post.isPublic)
-        setTags(post.tag)
+        setPostPublic(post?.public)
+        setTags(post?.tags)
     }, [post])
 
     useEffect(() => {
@@ -57,14 +57,14 @@ export default function PostComponent({post, prevNext}) {
     }, [postBody])
 
     useEffect(() => {
-        const doc = new DOMParser().parseFromString(post.body, 'text/html')
+        const doc = new DOMParser().parseFromString(post?.body, 'text/html')
         initVsCode(doc)
         initJetbrains(doc)
         initIntellij(doc)
         initLinkNewTab(doc)
         rewriteFileLink(doc)
         setPostBody(doc.head.innerHTML + doc.body.innerHTML)
-    }, [post.body])
+    }, [post?.body])
 
     const postIconChange = () => {
         document.querySelectorAll('i.fa-file').forEach(icon => {
@@ -184,12 +184,13 @@ export default function PostComponent({post, prevNext}) {
         setShowPublicConfirm(true)
     }
     const deletePost = async () => {
-        await service.post.deletePost({postId: post.id})
+        await service.post.deletePost({postId: post?.id})
             .then(res => {
-                if (res.data.id === post.id.toString()) {
+                if (res.data.id === post?.id) {
                     enqueueSnackbar("삭제에 성공하였습니다.", {variant: "success"})
-                    // router.push("/")
-                    location.reload()
+                    router.push("/")
+                    // todo : reload 하면 계속 빙글거림
+                    // location.reload()
                 }
             }).catch(() => {
                 enqueueSnackbar("삭제에 실패하였습니다.", {variant: "error"})
@@ -204,12 +205,12 @@ export default function PostComponent({post, prevNext}) {
         setShowPublicConfirm(false)
     }
     const onEditor = () => {
-        router.push(`/admin/write/${post.id}`)
+        router.push(`/admin/write/${post?.id}`)
     }
 
     const setPublicStatus = async () => {
         if (postPublic) {
-            await service.post.setPublicPost({postId: post.id, publicStatus: false}).then(res => {
+            await service.post.setPublicPost({postId: post?.id, publicStatus: false}).then(res => {
                 if (res.status === 200) {
                     setPostPublic(false)
                     enqueueSnackbar("공개를 비공개로 변경하였습니다.", {variant: "success"})
@@ -218,7 +219,7 @@ export default function PostComponent({post, prevNext}) {
                 enqueueSnackbar("공개를 비공개로 변경하지 못했습니다.", {variant: "error"})
             })
         } else {
-            await service.post.setPublicPost({postId: post.id, publicStatus: true}).then(res => {
+            await service.post.setPublicPost({postId: post?.id, publicStatus: true}).then(res => {
                 if (res.status === 200) {
                     setPostPublic(true)
                     enqueueSnackbar("비공개를 공개로 변경하였습니다.", {variant: "success"})
@@ -268,13 +269,13 @@ export default function PostComponent({post, prevNext}) {
                                             , display: 'inline-flex'
                                             , fontSize: '1.5rem'
                                         }}>
-                                            {post.categoryName}
+                                            {post.category.name}
                                         </Box>
                                     </a>
                                 </Link>
                             </Grid>
                             <Grid item={true} xs={4} align={'right'} sx={{alignItems: 'center', display: 'flex'}}>
-                                {!(userState.isAuthenticated && userState.user.userName) ? null :
+                                {!(userState.isAuthenticated && userState.user.username) ? null :
                                     <>
                                         {postPublic ?
                                             <IconButton onClick={showPublicConfirmDialog} sx={{display: 'flex', marginLeft: 'auto'}}>
@@ -305,7 +306,7 @@ export default function PostComponent({post, prevNext}) {
                             </Box>
                         </Box>
                         <hr/>
-                        <TagGroupComponent postId={post.id} tagList={tags} clickable={true}/>
+                        <TagGroupComponent postId={post?.id} tagList={tags} clickable={true}/>
                         {tags.length > 0 ? <hr/> : null}
                         <Box sx={{mt: 5, mb: 5}}>
                             <Box className="content" id={'post-content'} dangerouslySetInnerHTML={{__html: postBody}}

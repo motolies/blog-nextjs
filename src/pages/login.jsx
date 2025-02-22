@@ -15,7 +15,7 @@ export default function LoginPage() {
 
     useEffect(() => {
         // 로그인 완료 후 이동
-        if (userState.isAuthenticated && userState.user.userName) {
+        if (userState.isAuthenticated && userState.user.username) {
             router.push('/')
         }
     }, [userState])
@@ -26,7 +26,7 @@ export default function LoginPage() {
             type: LOAD_USER_REQUEST,
         })
 
-        if (userState.isAuthenticated && userState.user.userName) {
+        if (userState.isAuthenticated && userState.user.username) {
             // 사용자 정보가 있으면 루트로 이동
             router.push('/')
         }

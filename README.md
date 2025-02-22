@@ -7,7 +7,7 @@
 ```shell
 # ckeditor5를 먼저 빌드 한 후에
 cd ckeditor5
-npm install
+npm ci
 npm run build
 
 # 메인 소스에 포함시킨다.

@@ -12,20 +12,20 @@ const postService = {
         return axiosClient.get(`/api/post/prev-next/${postId}`)
     },
     deletePost: ({postId}) => {
-        return axiosClient.delete(`/api/post/${postId}`)
+        return axiosClient.delete(`/api/post/admin/${postId}`)
     },
     setPublicPost: ({postId, publicStatus}) => {
-        return axiosClient.post(`/api/post/public`, {
+        return axiosClient.post(`/api/post/admin/public`, {
             id: postId,
             publicStatus: publicStatus
         })
     },
     deleteTag: ({postId, tagId}) => {
-        return axiosClient.delete(`/api/post/${postId}/tag/${tagId}`)
+        return axiosClient.delete(`/api/post/admin/${postId}/tag/${tagId}`)
     },
     addTag: ({postId, tagName}) => {
-        return axiosClient.post(`/api/post/${postId}/tag`, {
-            tagName: tagName
+        return axiosClient.post(`/api/post/admin/${postId}/tag`, {
+            name: tagName
         })
     },
     search: ({searchAllParam}) => {
@@ -36,10 +36,10 @@ const postService = {
         })
     },
     new: () => {
-        return axiosClient.post('/api/post')
+        return axiosClient.post('/api/post/admin')
     },
     save: ({post}) => {
-        return axiosClient.put(`/api/post/${post.id}`, post)
+        return axiosClient.put(`/api/post/admin/${post.id}`, post)
     }
 }
 

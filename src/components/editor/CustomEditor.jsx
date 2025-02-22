@@ -106,7 +106,7 @@ export default function CustomEditor({postId, defaultData, onChangeData, insertD
         dispatch(setLoading())
         await service.file.upload({formData: body})
             .then(res => {
-                const content = `<a href="${res.data.resourceUri}"/>${res.data.originFileName}</a>`
+                const content = `<a href="${res.data.resourceUri}"/>${res.data.originName}</a>`
                 insertDataOnCursor(editor, content)
             })
             .catch(err => {

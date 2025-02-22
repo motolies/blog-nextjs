@@ -5,7 +5,7 @@ import IconButton from "@mui/material/IconButton"
 import SaveIcon from '@mui/icons-material/Save'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {useState} from "react"
-import {uuidV4Generator} from "../../util/uuidUtil"
+import { getTsid } from 'tsid-ts'
 import CategoryAutoComplete from "../../components/CategoryAutoComplete"
 import DeleteConfirm from "../../components/confirm/DeleteConfirm"
 import {useSnackbar} from "notistack"
@@ -15,9 +15,9 @@ import {getCategoryFlatAction, getCategoryTreeAction} from "../../store/actions/
 
 
 const initCategory = {
-    id: uuidV4Generator(),
+    id: getTsid().toString(),
     name: '',
-    pId: 'ROOT'
+    parentId: 'ROOT'
 }
 
 export default function CategoriesPage() {
@@ -32,7 +32,7 @@ export default function CategoriesPage() {
     const [isEditing, setIsEditing] = useState(false)
 
     const addNewCategory = () => {
-        const newCategory = {...initCategory, ...{pId: category.id}}
+        const newCategory = {...initCategory, ...{parentId: category.id}}
         setCategory(newCategory)
         setIsEditing(true)
     }
@@ -49,9 +49,10 @@ export default function CategoriesPage() {
         }
 
         if (parentCategory !== null)
-            setCategory({...category, pId: parentCategory.id})
+            setCategory({...category, parentId: parentCategory.id})
     }
     const onSaveCategory = async () => {
+        // todo : save/update 분리 필요
         await service.category.save({category}).then(() => {
             enqueueSnackbar("카테고리가 저장되었습니다.", {variant: "success"})
             setIsEditing(false)
@@ -136,7 +137,7 @@ export default function CategoriesPage() {
                             />
                         </Grid>
                         <Grid item xs={12}>
-                            <CategoryAutoComplete onChangeCategory={onChangeParentCategory} setCategoryId={category.pId} label={'Parent Category'}/>
+                            <CategoryAutoComplete onChangeCategory={onChangeParentCategory} setCategoryId={category.parentId} label={'Parent Category'}/>
                         </Grid>
                         <Grid item xs={12}>
                             <TextField

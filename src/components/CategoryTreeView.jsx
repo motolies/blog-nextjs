@@ -37,7 +37,7 @@ export default function CategoryTreeView({onChangeCategory}) {
         <TreeItem
             key={nodes.id}
             nodeId={nodes.id ? nodes.id : "defaultNodeId"}
-            label={nodes.name + ` (${nodes.contentCount})`}
+            label={nodes.name + ` (${nodes.postCount})`}
             category={nodes}
             onClick={() => {
                 onChangeCategory(nodes)

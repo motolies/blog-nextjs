@@ -2,7 +2,7 @@ import {Box, Grid, MenuItem, Paper, TextField} from "@mui/material"
 import {useEffect, useState} from "react"
 import {useSnackbar} from "notistack"
 import {ConditionComponent} from "../ConditionComponent"
-import {uuidV4Generator} from "../../util/uuidUtil"
+import { getTsid } from 'tsid-ts'
 import SearchCategory from "./SearchCategory"
 import SearchTag from "./SearchTag"
 import Button from "@mui/material/Button"
@@ -65,7 +65,7 @@ export default function SearchFilter({onSearch, defaultLogic, defaultKeyword, de
             setKeyword('')
             return
         }
-        const newKeyword = {id: uuidV4Generator(), name: keyword.trim()}
+        const newKeyword = {id: getTsid().toString(), name: keyword.trim()}
         setKeywords([...keywords, newKeyword])
         setKeyword('')
     }

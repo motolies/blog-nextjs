@@ -5,7 +5,7 @@ import {useSnackbar} from "notistack"
 import {useEffect, useState} from "react"
 import {useDispatch, useSelector} from "react-redux"
 import {POST_LOCAL_MODIFY_BODY, POST_LOCAL_MODIFY_CATEGORY_ID, POST_LOCAL_MODIFY_PUBLIC, POST_LOCAL_MODIFY_SUBJECT} from "../../store/types/postTypes"
-import {uuidV4Generator} from "../../util/uuidUtil"
+import { getTsid } from 'tsid-ts'
 import DynamicEditor from "../editor/DynamicEditor"
 import service from "../../service"
 import {cancelLoading, setLoading} from "../../store/actions/commonActions"
@@ -28,8 +28,8 @@ export default function PostModifyComponent() {
     const [tags, setTags] = useState([])
 
     useEffect(() => {
-        setTags(post.tag)
-    }, [post.tag])
+        setTags(post.tags)
+    }, [post.tags])
 
     useEffect(() => {
         if (!saveAble)
@@ -80,7 +80,7 @@ export default function PostModifyComponent() {
         for (const file of [...files]) {
             const body = new FormData()
             body.append("file", file)
-            body.append("contentId", post.id)
+            body.append("postId", post.id)
 
             await service.file.upload({formData: body})
                 .then(res => {
@@ -116,7 +116,7 @@ export default function PostModifyComponent() {
                             </p>`
             setInsertData(html)
         } else {
-            const html = fileLink(file.resourceUri, file.originFileName)
+            const html = fileLink(file.resourceUri, file.originName)
             setInsertData(html)
         }
     }
@@ -152,7 +152,7 @@ export default function PostModifyComponent() {
 
                     <Grid container spacing={3}>
                         <Grid item xs={12}>
-                            <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={post.categoryId} label={'Category'}/>
+                            <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={post.category.id} label={'Category'}/>
                         </Grid>
                         <Grid item xs={12}>
                             <TextField
@@ -160,7 +160,7 @@ export default function PostModifyComponent() {
                                 select
                                 fullWidth
                                 label="isPublic"
-                                value={post.isPublic}
+                                value={post.public}
                                 onChange={(e) =>
                                     dispatch({
                                         type: POST_LOCAL_MODIFY_PUBLIC,
@@ -178,7 +178,7 @@ export default function PostModifyComponent() {
                             <Button fullWidth size="large" variant="outlined"
                                     onClick={() => {
                                         enqueueSnackbar("모달창에서 검색해서 선택할 수 있도록 하자.", {variant: "warning"})
-                                        setInsertData(`${uuidV4Generator()}`)
+                                        setInsertData(`${getTsid().toString()}`)
                                     }}>이전 글 넣기</Button>
                         </Grid>
                         <Grid item xs={12}>
@@ -187,10 +187,10 @@ export default function PostModifyComponent() {
                                 overflowY: 'auto',
                                 maxHeight: '25vh',
                             }}>
-                                {post.file?.filter(f => f.type.startsWith('image')).map((file) => (
+                                {post.files?.filter(f => f.type.startsWith('image')).map((file) => (
                                     <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
                                 ))}
-                                {post.file?.filter(f => !f.type.startsWith('image')).map((file) => (
+                                {post.files?.filter(f => !f.type.startsWith('image')).map((file) => (
                                     <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
                                 ))}
                             </Box>
@@ -205,7 +205,7 @@ export default function PostModifyComponent() {
                         <Grid item xs={12}>
                             <Grid container spacing={3}>
                                 <Grid item xs={6}>
-                                    <Button fullWidth size="large" variant="contained" onClick={() => setTriggerGetData(uuidV4Generator)}>저장</Button>
+                                    <Button fullWidth size="large" variant="contained" onClick={() => setTriggerGetData(getTsid().toString())}>저장</Button>
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Button fullWidth size="large" color="error" variant="contained">취소</Button>

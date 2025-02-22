@@ -14,7 +14,7 @@ export const FileComponent = (props) => {
 
     const showDeleteConfirmDialog = (e) => {
         e.stopPropagation()
-        setQuestion(`${props.file.originFileName} 파일을 삭제하시겠습니까?`)
+        setQuestion(`${props.file.originName} 파일을 삭제하시겠습니까?`)
         setShowDeleteConfirm(true)
     }
 
@@ -69,7 +69,7 @@ export const FileComponent = (props) => {
                 , overflow: 'hidden'
                 , whiteSpace: 'nowrap'
             }}>
-                {props.file.originFileName}
+                {props.file.originName}
             </Box>
             {!props.file.type.startsWith('image') ? null :
                 <IconButton aria-label="delete" onClick={(e) => {

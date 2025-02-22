@@ -8,7 +8,7 @@ const userService = {
         return axiosClient.post(`/api/auth/login`, {
             username: username,
             password: encPassword,
-            rsaKey: publicKey
+            publicKey: publicKey
         })
     },
     profile: () => {

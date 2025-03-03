@@ -1,7 +1,7 @@
 const BACKEND_URL = {
-    BLOG_URL_DEV: 'http://localhost:9090',
-    // BLOG_URL_DEV: 'https://api.hvy.kr',
-    BLOG_URL_PROD: 'https://api.hvy.kr',
+    // BLOG_URL_DEV: 'http://localhost:9090',
+    BLOG_URL_DEV: 'https://api.hvy.kr',
+    BLOG_URL_PROD: 'http://blogback:8080',
 }
 
 module.exports = {

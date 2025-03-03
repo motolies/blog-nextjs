@@ -1,7 +1,8 @@
 const BACKEND_URL = {
     // BLOG_URL_DEV: 'http://localhost:9090',
     BLOG_URL_DEV: 'https://api.hvy.kr',
-    BLOG_URL_PROD: 'http://blogback:8080',
+    BLOG_URL_PROD: 'https://api.hvy.kr',
+    BLOG_URL_PROD_INTERNAL: 'http://blogback:8080',
 }
 
 module.exports = {
@@ -13,10 +14,9 @@ module.exports = {
     async rewrites() {
         return [
             {
-                // 이미지 가지고 올 때 사용 중
                 source: '/api/:path*',
                 destination: process.env.NODE_ENV === 'production' ?
-                    (BACKEND_URL.BLOG_URL_PROD + '/api/:path*') :
+                    (BACKEND_URL.BLOG_URL_PROD_INTERNAL + '/api/:path*') :
                     (BACKEND_URL.BLOG_URL_DEV + '/api/:path*')
             }
         ]

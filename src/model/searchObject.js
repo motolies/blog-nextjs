@@ -6,6 +6,6 @@ export const searchObjectInit = {
   },
   categories: [],
   tags: [],
-  page: 1,
+  page: 0,
   pageSize: 100
 }

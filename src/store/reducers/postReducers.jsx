@@ -79,7 +79,7 @@ export default function postReducers(stats = {
       return {
         ...stats,
         modifyPost: {
-          ...stats.modifyPost, categoryId: action.payload
+          ...stats.modifyPost, categoryId: action.payload, category: {id: action.payload}
         }
       }
     case POST_LOCAL_MODIFY_BODY_SUCCESS:

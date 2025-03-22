@@ -15,7 +15,7 @@ import {getCategoryFlatAction, getCategoryTreeAction} from "../../store/actions/
 
 
 const initCategory = {
-    id: getTsid().toString(),
+    id: 'NEW',
     name: '',
     parentId: 'ROOT'
 }
@@ -52,15 +52,24 @@ export default function CategoriesPage() {
             setCategory({...category, parentId: parentCategory.id})
     }
     const onSaveCategory = async () => {
-        // todo : save/update 분리 필요
-        await service.category.save({category}).then(() => {
-            enqueueSnackbar("카테고리가 저장되었습니다.", {variant: "success"})
-            setIsEditing(false)
-            refresh()
-        }).catch(() => {
-            enqueueSnackbar("카테고리 저장에 실패하였습니다.", {variant: "error"})
-        })
-    }
+        try {
+            if (category.id === 'NEW') {
+                await service.category.save({ category });
+                enqueueSnackbar("카테고리가 저장되었습니다.", { variant: "success" });
+            } else {
+                await service.category.update({ category });
+                enqueueSnackbar("카테고리가 수정되었습니다.", { variant: "success" });
+            }
+            setIsEditing(false);
+            refresh();
+        } catch (error) {
+            if (category.id === 'NEW') {
+                enqueueSnackbar("카테고리 저장에 실패하였습니다.", { variant: "error" });
+            } else {
+                enqueueSnackbar("카테고리 수정에 실패하였습니다.", { variant: "error" });
+            }
+        }
+    };
 
     const refresh = () => {
         dispatch(getCategoryFlatAction())

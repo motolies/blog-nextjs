@@ -1,10 +1,10 @@
-import {TreeView} from '@mui/lab'
+import { TreeView } from '@mui/x-tree-view/TreeView';
+import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import {useDispatch, useSelector} from "react-redux"
 import {useEffect, useState} from "react"
 import {getCategoryTreeAction} from "../store/actions/categoryActions"
-import TreeItem from "@mui/lab/TreeItem"
 
 
 export default function CategoryTreeView({onChangeCategory}) {

@@ -109,6 +109,7 @@ docker buildx build --platform linux/amd64,linux/arm64 --no-cache --push -t dock
 
 ### UI 컴포넌트
 - Material-UI 기반 디자인 시스템
+- Apache Echarts 구성 
 - `CategoryTreeView`: 계층형 카테고리 트리
 - `TagComponent`, `TagGroupComponent`: 태그 표시 및 관리
 - `PreviewDialog`: 글 미리보기

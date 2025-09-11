@@ -16,10 +16,21 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
     const [editorInstance, setEditorInstance] = useState(null)
 
     useEffect(() => {
-        editorRef.current = {
-            Editor: require('ckeditor5-custom-build')
+        // CKEditor5 v46+ 호환성을 위한 dynamic import
+        const loadEditor = async () => {
+            try {
+                const editorModule = require('ckeditor5-custom-build')
+                // v46+에서는 default export를 확인해야 함
+                const Editor = editorModule.default || editorModule
+                editorRef.current = { Editor }
+                setEditorLoaded(true)
+            } catch (error) {
+                console.error('CKEditor 로딩 실패:', error)
+            }
         }
-        setEditorLoaded(true)
+        
+        loadEditor()
+        
         return () => {
             // https://stackoverflow.com/questions/53960532/how-to-destroy-a-ckeditor-5-instance
             const ckIns = document.querySelector('.ck-editor__editable')
@@ -30,25 +41,31 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
     }, [])
 
     useEffect(() => {
-        if (!editorLoaded || postId === null)
+        if (!editorLoaded || postId === null || !Editor)
             return
 
-        Editor.create(document.getElementById('editor'), {
+        const editorElement = document.getElementById('editor')
+        if (!editorElement) {
+            console.error('Editor DOM 요소를 찾을 수 없습니다.')
+            return
+        }
+
+        Editor.create(editorElement, {
             extraPlugins: [
                 imageUploadPlugin,
                 fileUploadPlugin
             ],
         })
             .then(editor => {
+                console.log('CKEditor5 성공적으로 로드됨')
                 setEditorInstance(editor)
             })
             .catch(error => {
-                console.error('Oops, something went wrong!')
-                console.error('Please, report the following error on https://github.com/ckeditor/ckeditor5/issues with the build id and the error stack trace:')
-                console.warn('Build id: 5wt7uafw81ce-w6cyizl4wv1b')
-                console.error(error)
+                console.error('CKEditor5 생성 실패:')
+                console.error('에러 상세:', error)
+                enqueueSnackbar('에디터 로딩에 실패했습니다. 페이지를 새로고침해 주세요.', { variant: 'error' })
             })
-    }, [editorLoaded, postId])
+    }, [editorLoaded, postId, Editor])
 
     useEffect(() => {
         if (editorLoaded && insertData !== '') {

@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2014-2022, CKSource Holding sp. z o.o. All rights reserved.
+ * @license Copyright (c) 2014-2025, CKSource Holding sp. z o.o. All rights reserved.
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
@@ -10,7 +10,7 @@
 const path = require( 'path' );
 const webpack = require( 'webpack' );
 const { bundler, styles } = require( '@ckeditor/ckeditor5-dev-utils' );
-const CKEditorWebpackPlugin = require( '@ckeditor/ckeditor5-dev-webpack-plugin' );
+const { CKEditorTranslationsPlugin } = require( '@ckeditor/ckeditor5-dev-translations' );
 const TerserWebpackPlugin = require( 'terser-webpack-plugin' );
 
 module.exports = {
@@ -21,22 +21,21 @@ module.exports = {
 
 	output: {
 		// The name under which the editor will be exported.
-		library: 'ClassicEditor',
+		library: {
+			name: 'ClassicEditor',
+			type: 'umd',
+			export: 'default'
+		},
 
 		path: path.resolve( __dirname, 'build' ),
-		filename: 'ckeditor.js',
-		libraryTarget: 'umd',
-		libraryExport: 'default'
+		filename: 'ckeditor.js'
 	},
 
 	optimization: {
 		minimizer: [
 			new TerserWebpackPlugin( {
-				// move
-				// https://webpack.js.org/plugins/terser-webpack-plugin/
 				terserOptions: {
-					sourceMap: true,
-					output: {
+					format: {
 						// Preserve CKEditor 5 license comments.
 						comments: /^!/
 					}
@@ -47,7 +46,7 @@ module.exports = {
 	},
 
 	plugins: [
-		new CKEditorWebpackPlugin( {
+		new CKEditorTranslationsPlugin( {
 			// UI language. Language codes follow the https://en.wikipedia.org/wiki/ISO_639-1 format.
 			// When changing the built-in language, remember to also change it in the editor's configuration (src/ckeditor.js).
 			language: 'ko',
@@ -66,7 +65,7 @@ module.exports = {
 				use: [ 'raw-loader' ]
 			},
 			{
-				test: /\.css$/,
+				test: /ckeditor5-[^/\\]+[/\\]theme[/\\].+\.css$/,
 				use: [
 					{
 						loader: 'style-loader',
@@ -90,7 +89,7 @@ module.exports = {
 								minify: true
 							} )
 						}
-					},
+					}
 				]
 			}
 		]

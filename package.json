@@ -18,6 +18,8 @@
     "@mui/x-tree-view": "^6.17.0",
     "axios": "^1.6.0",
     "ckeditor5-custom-build": "file:ckeditor5",
+    "echarts": "^5.6.0",
+    "echarts-for-react": "^3.0.2",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "next": "^14.2.28",

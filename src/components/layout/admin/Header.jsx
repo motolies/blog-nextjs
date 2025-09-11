@@ -10,6 +10,7 @@ import {searchObjectInit} from "../../../model/searchObject"
 import CreateIcon from '@mui/icons-material/Create'
 import CategoryIcon from '@mui/icons-material/Category'
 import TagIcon from '@mui/icons-material/Tag'
+import AssessmentIcon from '@mui/icons-material/Assessment'
 import MenuIcon from '@mui/icons-material/Menu'
 
 export default function Header({children}) {
@@ -87,11 +88,20 @@ export default function Header({children}) {
                                         </a>
                                     </Link>
                                 </Box>
-                                <Box flex sx={{display: 'inline-flex'}}>
+                                <Box flex sx={{mr: 3, display: 'inline-flex'}}>
                                     <Link href={'/admin/tags'} legacyBehavior>
                                         <a className="menu-link">
                                             <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
                                                 <TagIcon/><span>tags</span>
+                                            </Box>
+                                        </a>
+                                    </Link>
+                                </Box>
+                                <Box flex sx={{display: 'inline-flex'}}>
+                                    <Link href={'/admin/sprint'} legacyBehavior>
+                                        <a className="menu-link">
+                                            <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
+                                                <AssessmentIcon/><span>sprint</span>
                                             </Box>
                                         </a>
                                     </Link>
@@ -136,6 +146,7 @@ export default function Header({children}) {
                                     <MenuItem onClick={(event) => onClickMenuItem(event, '/admin/write')}><CreateIcon/>write</MenuItem>
                                     <MenuItem onClick={(event) => onClickMenuItem(event, '/admin/categories')}><CategoryIcon/>categories</MenuItem>
                                     <MenuItem onClick={(event) => onClickMenuItem(event, '/admin/tags')}><TagIcon/>tags</MenuItem>
+                                    <MenuItem onClick={(event) => onClickMenuItem(event, '/admin/sprint')}><AssessmentIcon/>sprint</MenuItem>
                                 </Menu>
                             </Box>
                         </Grid>

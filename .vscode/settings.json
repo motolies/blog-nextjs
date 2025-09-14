@@ -1,0 +1,87 @@
+{
+  // ===========================================
+  // 🚨 AI 워크플로우 강제 설정 (핵심)
+  // ===========================================
+
+  // Cursor AI가 항상 PROJECT_RULES.md 워크플로우를 따르도록 강제
+  "cursor.ai.rules": "Always follow PROJECT_RULES.md workflow",
+
+  // 워크플로우 강제 실행 (실험적 기능 - Cursor 버전에 따라 동작)
+  "cursor.ai.enforceWorkflow": true,
+
+  // ===========================================
+  // 📁 파일 연결 설정 (워크플로우 지원)
+  // ===========================================
+
+  // task*.md 파일들을 마크다운으로 인식하여 올바른 문법 강조 및 미리보기 제공
+  "files.associations": {
+    "task*.md": "markdown"
+  },
+
+  // ===========================================
+  // 📝 마크다운 최적화 설정 (가독성 향상)
+  // ===========================================
+
+  // 마크다운 미리보기에서 줄바꿈을 브라우저처럼 처리 (GitHub 스타일)
+  "markdown.preview.breaks": true,
+
+  // URL을 자동으로 링크로 변환 (이슈 번호 등 링크 활성화)
+  "markdown.preview.linkify": true,
+
+  // ===========================================
+  // ✏️ 에디터 설정 (워크플로우 준수 도움)
+  // ===========================================
+
+  // 80자 ruler 표시로 문서 가독성 향상 (너무 긴 줄 방지)
+  "editor.rulers": [80],
+
+  // 긴 텍스트 자동 줄바꿈 (마크다운 문서 편집 시 도움)
+  "editor.wordWrap": "on",
+
+  // 자동 저장 시 포맷팅 비활성화 (마크다운 구조 보존)
+  "editor.formatOnSave": false,
+
+  // Import 자동 정리 비활성화 (의도치 않은 코드 변경 방지)
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": false
+  },
+
+  // ===========================================
+  // 🎨 시각적 강화 설정 (경고/오류 강조)
+  // ===========================================
+
+  // 워크플로우 위반 시 눈에 띄는 경고/오류 색상
+  "workbench.colorCustomizations": {
+    // 경고 메시지를 주황색으로 강조 (규칙 위반 알림)
+    "editorWarning.foreground": "#ff6b35",
+
+    // 오류 메시지를 빨간색으로 강조 (심각한 위반 알림)
+    "editorError.foreground": "#ff1744"
+  },
+
+  // ===========================================
+  // 🌈 마크다운 문법 강조 설정 (가독성 극대화)
+  // ===========================================
+
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        // 마크다운 헤딩(제목)을 파란색 볼드로 강조
+        // Plan, Tasks, Progress 섹션 제목이 명확히 보임
+        "scope": "markup.heading.markdown",
+        "settings": {
+          "foreground": "#4a90e2",
+          "fontStyle": "bold"
+        }
+      },
+      {
+        // 마크다운 리스트(체크박스 포함)를 녹색으로 강조
+        // Task 항목들과 진행 상태가 명확히 보임
+        "scope": "markup.list.markdown",
+        "settings": {
+          "foreground": "#7ed321"
+        }
+      }
+    ]
+  }
+}

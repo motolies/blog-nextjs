@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+
+    "ms-vscode.vscode-json",
+    "yzhang.markdown-all-in-one",
+    "DavidAnson.vscode-markdownlint",
+    "bierner.markdown-checkbox",
+    "bierner.markdown-preview-github-styles",
+    "streetsidesoftware.code-spell-checker"
+  ]
+}
+

@@ -6,6 +6,7 @@ const BACKEND_URL = {
 }
 
 module.exports = {
+    output: 'standalone',
     env: {
         BLOG_URL_DEV: BACKEND_URL.BLOG_URL_DEV,
         BLOG_URL_PROD: BACKEND_URL.BLOG_URL_PROD,

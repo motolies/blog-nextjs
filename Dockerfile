@@ -1,17 +1,20 @@
 FROM node:22-alpine AS deps
-RUN apk update && apk upgrade
-RUN apk add --no-cache libc6-compat python3 cmake g++
+RUN apk update && apk upgrade && \
+    apk add --no-cache libc6-compat python3 cmake g++ && \
+    rm -rf /var/cache/apk/*
 WORKDIR /app
 COPY package.json ./
 COPY package-lock.json ./
-COPY ckeditor5 ./ckeditor5
 #RUN yarn install --frozen-lockfile
 RUN npm ci
 
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY package*.json ./
+COPY next.config.js ./
+COPY src ./src
+COPY public ./public
 #RUN yarn build
 RUN npm run build
 
@@ -23,10 +26,10 @@ ENV NODE_ENV production
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
 
+# Standalone 빌드 활용으로 필요한 파일만 복사
 COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
@@ -40,4 +43,4 @@ EXPOSE 3000
 ENV PORT 3000
 ENV NEXT_TELEMETRY_DISABLED 1
 
-CMD ["npm", "start"]
+CMD ["node", "server.js"]

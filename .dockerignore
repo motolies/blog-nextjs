@@ -1,6 +1,6 @@
 node_modules
-ckeditor5/node_modules
 npm-debug.log
+.npm
 Dockerfile*
 docker-compose*
 .dockerignore

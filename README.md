@@ -1,24 +1,9 @@
 # CKEditor5 
 
-- https://velog.io/@kbm940526/Ckeditor-with-Next-js-%EB%AF%B8%EC%99%84
-- https://stackoverflow.com/questions/62243323/reactjs-import-ckeditor-5-from-online-build
-
-## 사용법
-```shell
-# ckeditor5를 먼저 빌드 한 후에
-cd ckeditor5
-npm ci
-npm run build
-
-# 메인 소스에 포함시킨다.
-cd ..
-npm add file:./ckeditor5
-```
-<br>
+- https://ckeditor.com/ckeditor-5/builder/
+- 상기 사이트에서 빌드 샘플 받아서 적용
 
 ---
-
-<br>
 
 # blog-nextjs
 

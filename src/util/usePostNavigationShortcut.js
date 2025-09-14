@@ -1,11 +1,11 @@
-import {useCallback, useEffect, useLayoutEffect, useRef} from 'react'
+import {useCallback, useEffect, useRef} from 'react'
 
 // https://devtrium.com/posts/how-keyboard-shortcut
 
 export const usePostNavigationShortcut = (keys, callback, node = null) => {
     // implement the callback ref pattern
     const callbackRef = useRef(callback)
-    useLayoutEffect(() => {
+    useEffect(() => {
         callbackRef.current = callback
     })
 

@@ -33,6 +33,7 @@ export default function PostComponent({post, prevNext}) {
     const [tags, setTags] = useState(post?.tags)
     const [publicConfirmQuestion, setPublicConfirmQuestion] = useState('')
     const [postBody, setPostBody] = useState()
+    const [isClientMounted, setIsClientMounted] = useState(false)
 
     const onKeyPress = (event) => {
         if (event.ctrlKey && event.key === 'ArrowLeft') {
@@ -50,6 +51,10 @@ export default function PostComponent({post, prevNext}) {
         setPostPublic(post?.public)
         setTags(post?.tags)
     }, [post])
+
+    useEffect(() => {
+        setIsClientMounted(true)
+    }, [])
 
     useEffect(() => {
         postImagePopup()
@@ -235,7 +240,7 @@ export default function PostComponent({post, prevNext}) {
         const condition = {
             ...searchObjectInit,
             ...{
-                categories: [{id: post.categoryId, name: post.categoryName}],
+                categories: [{id: post.category.id, name: post.category.name}],
             }
         }
         return `/search?q=${base64Encode(JSON.stringify(condition))}`
@@ -299,10 +304,10 @@ export default function PostComponent({post, prevNext}) {
                         </Grid>
                         <Box sx={{display: "flex"}}>
                             <Box sx={{fontSize: 12, mt: 1, display: 'inline-block', marginLeft: 'auto'}}>
-                                created: {moment(post.createDate).local().format("YYYY-MM-DD HH:mm:ss")}
+                                created: {isClientMounted ? moment(post.createDate).local().format("YYYY-MM-DD HH:mm:ss") : ''}
                             </Box>
                             <Box sx={{fontSize: 12, mt: 1, ml: 3, display: 'inline-block'}}>
-                                updated: {moment(post.updateDate).local().format("YYYY-MM-DD HH:mm:ss")}
+                                updated: {isClientMounted ? moment(post.updateDate).local().format("YYYY-MM-DD HH:mm:ss") : ''}
                             </Box>
                         </Box>
                         <hr/>

@@ -36,3 +36,4 @@ yarn-error.log*
 /ckeditor5/node_modules/
 
 /ckeditor5/build
+html-admin-template

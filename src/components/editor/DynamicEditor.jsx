@@ -7,6 +7,8 @@ import { fileLink } from "../../util/fileLink"
 import { FILE_LIST_BY_POST_REQUEST } from "../../store/types/fileTypes"
 
 export default function DynamicEditor({postId, defaultData, onChangeData, insertData, getDataTrigger}) {
+    const prevDefaultDataRef = useRef()
+    const prevPostIdRef = useRef()
     const { enqueueSnackbar } = useSnackbar()
     const dispatch = useDispatch()
     const [isLayoutReady, setIsLayoutReady] = useState(false)
@@ -59,6 +61,20 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
             onChangeData(editorInstance.getData())
         }
     }, [getDataTrigger, isLayoutReady, editorInstance])
+
+    useEffect(() => {
+        if (editorInstance && defaultData) {
+            // postId가 변경되었거나 defaultData가 변경되었을 때 무조건 설정
+            const postIdChanged = prevPostIdRef.current !== postId
+            const dataChanged = prevDefaultDataRef.current !== defaultData
+            
+            if (postIdChanged || dataChanged) {
+                editorInstance.setData(defaultData)
+                prevDefaultDataRef.current = defaultData
+                prevPostIdRef.current = postId
+            }
+        }
+    }, [defaultData, editorInstance, postId])
 
     const refreshFileList = () => {
         dispatch({
@@ -389,12 +405,12 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
     const [editorConfig, setEditorConfig] = useState(null)
 
     useEffect(() => {
-        if (isLayoutReady && !editorConfig) {
+        if (isLayoutReady) {
             createEditorConfig().then(config => {
                 setEditorConfig(config)
             })
         }
-    }, [isLayoutReady, editorConfig])
+    }, [isLayoutReady, defaultData])
 
     // 서버 사이드에서는 로딩 메시지만 렌더링
     if (typeof window === 'undefined') {
@@ -408,6 +424,11 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                     onReady={async (editor) => {
                         console.log('CKEditor5 성공적으로 로드됨')
                         setEditorInstance(editor)
+                        if (defaultData) {
+                            editor.setData(defaultData)
+                            prevDefaultDataRef.current = defaultData
+                            prevPostIdRef.current = postId
+                        }
                     }}
                     onAfterDestroy={() => {
                         setEditorInstance(null)

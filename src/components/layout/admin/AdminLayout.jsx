@@ -17,26 +17,35 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import styles from './AdminLayout.module.css'
 
 const theme = createTheme({
-    palette: {
-        primary: {
-            main: '#1565c0'
+  components: {
+    MuiDialogContent: {
+      styleOverrides: {
+        root: {
+          padding: '16px !important', // basicTheme.spacing(2.5)도 가능
         },
-        secondary: {
-            main: '#7b1fa2',
-        },
-        error: {
-            main: '#c62828',
-        },
-        warning: {
-            main: '#e65100',
-        },
-        info: {
-            main: '#01579b',
-        },
-        success: {
-            main: '#1b5e20',
-        },
+      },
     },
+  },
+  palette: {
+    primary: {
+      main: '#1565c0'
+    },
+    secondary: {
+      main: '#7b1fa2',
+    },
+    error: {
+      main: '#c62828',
+    },
+    warning: {
+      main: '#e65100',
+    },
+    info: {
+      main: '#01579b',
+    },
+    success: {
+      main: '#1b5e20',
+    },
+  },
 })
 
 export default function AdminLayout({children}) {

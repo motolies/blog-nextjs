@@ -6,7 +6,8 @@ WORKDIR /app
 COPY package.json ./
 COPY package-lock.json ./
 #RUN yarn install --frozen-lockfile
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 
 FROM node:22-alpine AS builder
 WORKDIR /app

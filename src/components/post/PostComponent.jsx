@@ -264,19 +264,17 @@ export default function PostComponent({post, prevNext}) {
                               direction="row"
                               spacing={2}>
                             <Grid item={true} xs={8}>
-                                <Link href={searchCategory()} legacyBehavior>
-                                    <a>
-                                        <Box sx={{
-                                            px: 3
-                                            , py: 1
-                                            , background: "rgba(17, 153, 142, .2)"
-                                            , borderRadius: '.5rem'
-                                            , display: 'inline-flex'
-                                            , fontSize: '1.5rem'
-                                        }}>
-                                            {post.category.name}
-                                        </Box>
-                                    </a>
+                                <Link href={searchCategory()}>
+                                    <Box sx={{
+                                        px: 3
+                                        , py: 1
+                                        , background: "rgba(17, 153, 142, .2)"
+                                        , borderRadius: '.5rem'
+                                        , display: 'inline-flex'
+                                        , fontSize: '1.5rem'
+                                    }}>
+                                        {post.category.name}
+                                    </Box>
                                 </Link>
                             </Grid>
                             <Grid item={true} xs={4} align={'right'} sx={{alignItems: 'center', display: 'flex'}}>

@@ -115,10 +115,12 @@ export default function IndexPage({engines}) {
         </>
     )
 }
-IndexPage.getInitialProps = async (ctx) => {
+export async function getServerSideProps() {
     const enginesReq = await service.search.getAll()
     return {
-        engines: enginesReq.data
+        props: {
+            engines: enginesReq.data
+        }
     }
 }
 

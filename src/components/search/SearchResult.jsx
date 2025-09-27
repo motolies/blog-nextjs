@@ -35,8 +35,8 @@ export default function SearchResult(props) {
             {searchedPost.map(post => (
                 <Grid container key={post.id} item sx={{m: 0, p: 1}} xs={12}>
                     <Grid item xs={12}>
-                        <Link href={`/post/${post.id}`} legacyBehavior>
-                            <a>{post.subject}</a>
+                        <Link href={`/post/${post.id}`}>
+                            {post.subject}
                         </Link>
                     </Grid>
                     <Grid item xs={12} sm={8}

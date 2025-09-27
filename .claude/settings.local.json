@@ -2,13 +2,11 @@
   "permissions": {
     "allow": [
       "Bash",
-      "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs",
       "WebSearch",
-      "mcp__playwright__browser_navigate",
-      "mcp__playwright__browser_console_messages",
-      "mcp__playwright__browser_close",
-      "mcp__sequential-thinking__sequentialthinking"
+      "mcp__context7",
+      "mcp__magic",
+      "mcp__playwright",
+      "mcp__sequential-thinking"
     ],
     "defaultMode": "plan"
   }

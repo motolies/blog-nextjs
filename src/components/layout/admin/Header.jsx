@@ -63,47 +63,39 @@ export default function Header({children}) {
                     spacing={2}
                 >
                     <Grid item xs={4} sm={2}>
-                        <Link href={`/admin`} legacyBehavior>
-                            <a className="main-link">admin</a>
+                        <Link href={`/admin`} className="main-link">
+                            admin
                         </Link>
                     </Grid>
                     <Grid item xs={8} sm={10} display="flex">
                         <Grid item xs={1} sm={2} md={6}>
                             <Box sx={{display: {xs: 'none', sm: 'none', md: 'block'}}}>
                                 <Box flex sx={{mr: 3, display: 'inline-flex'}}>
-                                    <Link href={'/admin/write'} legacyBehavior>
-                                        <a className="menu-link">
-                                            <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
-                                                <CreateIcon/><span>write</span>
-                                            </Box>
-                                        </a>
+                                    <Link href={'/admin/write'} className="menu-link">
+                                        <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
+                                            <CreateIcon/><span>write</span>
+                                        </Box>
                                     </Link>
                                 </Box>
                                 <Box flex sx={{mr: 3, display: 'inline-flex'}}>
-                                    <Link href={'/admin/categories'} legacyBehavior>
-                                        <a className="menu-link">
-                                            <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
-                                                <CategoryIcon/><span>categories</span>
-                                            </Box>
-                                        </a>
+                                    <Link href={'/admin/categories'} className="menu-link">
+                                        <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
+                                            <CategoryIcon/><span>categories</span>
+                                        </Box>
                                     </Link>
                                 </Box>
                                 <Box flex sx={{mr: 3, display: 'inline-flex'}}>
-                                    <Link href={'/admin/tags'} legacyBehavior>
-                                        <a className="menu-link">
-                                            <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
-                                                <TagIcon/><span>tags</span>
-                                            </Box>
-                                        </a>
+                                    <Link href={'/admin/tags'} className="menu-link">
+                                        <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
+                                            <TagIcon/><span>tags</span>
+                                        </Box>
                                     </Link>
                                 </Box>
                                 <Box flex sx={{display: 'inline-flex'}}>
-                                    <Link href={'/admin/sprint'} legacyBehavior>
-                                        <a className="menu-link">
-                                            <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
-                                                <AssessmentIcon/><span>sprint</span>
-                                            </Box>
-                                        </a>
+                                    <Link href={'/admin/sprint'} className="menu-link">
+                                        <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
+                                            <AssessmentIcon/><span>sprint</span>
+                                        </Box>
                                     </Link>
                                 </Box>
                             </Box>

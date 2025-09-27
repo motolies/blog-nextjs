@@ -5,7 +5,7 @@ export default function Loading() {
     return (
         <>
             <div className="loading">
-                <Image src="/images/loading.gif" alt="loading" width={128} height={128}/>
+                <Image src="/images/loading.gif" alt="loading" width={128} height={128} unoptimized/>
             </div>
             <style jsx>
                 {`

@@ -1,22 +1,27 @@
 import Head from "next/head";
+import Script from "next/script";
 
 export default function MetaHeader({children, ...props}) {
     const logo = process.env.META_URL + "/images/og-logo.png"
     return (
-        <Head>
-            <title>Skyscape</title>
-            <meta name="description" content="IT blog by motolies"/>
-            <meta name="robots" content="ALL"/>
-            <meta name="robots" content="index,follow"/>
-            <meta name="author" content="motolies"/>
-            <link rel="icon" href="/favicon.ico"/>
-            <meta property="og:image" content={logo}/>
+        <>
+            <Head>
+                <title>Skyscape</title>
+                <meta name="description" content="IT blog by motolies"/>
+                <meta name="robots" content="ALL"/>
+                <meta name="robots" content="index,follow"/>
+                <meta name="author" content="motolies"/>
+                <link rel="icon" href="/favicon.ico"/>
+                <meta property="og:image" content={logo}/>
 
-            <meta name="naver-site-verification" content="dea29fb1cd45a91583f252df95e93651693297a3"/>
+                <meta name="naver-site-verification" content="dea29fb1cd45a91583f252df95e93651693297a3"/>
+            </Head>
 
             {/*Google Tag Manager */}
             {/*https://morganfeeney.com/how-to/integrate-google-tag-manager-with-next-js*/}
-            <script
+            <Script
+                id="gtm-script"
+                strategy="afterInteractive"
                 dangerouslySetInnerHTML={{
                     __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
                 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -25,8 +30,7 @@ export default function MetaHeader({children, ...props}) {
             })(window,document,'script','dataLayer','GTM-TC3HJL9');`,
                 }}
             />
-
             {/*End Google Tag Manager*/}
-        </Head>
+        </>
     )
 }

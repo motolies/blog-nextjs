@@ -27,9 +27,11 @@ import {
   GridRowModesModel,
   GridRowEditStopReasons,
   useGridApiRef,
-  GRID_TREE_DATA_GROUPING_COL_DEF,
-  GridTreeDataGroupingCell,
 } from '@mui/x-data-grid'
+import {
+  TreeView,
+  TreeItem,
+} from '@mui/x-tree-view'
 import {
   Add as AddIcon,
   Edit as EditIcon,
@@ -45,6 +47,7 @@ import {
 import commonCodeService from '../../service/commonCodeService'
 
 export default function CommonCode() {
+  // === 모든 상태 선언 ===
   const apiRef = useGridApiRef()
   const [rows, setRows] = useState([])
   const [rowModesModel, setRowModesModel] = useState({})
@@ -54,7 +57,11 @@ export default function CommonCode() {
   const [selectedRow, setSelectedRow] = useState(null)
   const [snackbar, setSnackbar] = useState({open: false, message: '', severity: 'info'})
   const [searchQuery, setSearchQuery] = useState('')
-  const [apiError, setApiError] = useState(null) // API 에러 상태 추가
+  const [apiError, setApiError] = useState(null)
+  const [selectedNodeId, setSelectedNodeId] = useState(null)
+  const [expandedNodes, setExpandedNodes] = useState([])
+  const [treeData, setTreeData] = useState([])
+  const [filteredRows, setFilteredRows] = useState([])
 
   // 다이얼로그 폼 상태
   const [formData, setFormData] = useState({
@@ -80,17 +87,95 @@ export default function CommonCode() {
     sort: 0
   })
 
-  // 트리 데이터 경로 함수
-  const getTreeDataPath = (row) => {
-    return row.hierarchy || []
-  }
+  // === 모든 헬퍼 함수들 (상태 사용 전에 정의) ===
 
-  // 데이터 로드
+  // 트리에서 노드 찾기 헬퍼 함수
+  const findNodeById = useCallback((nodes, id) => {
+    if (!nodes || !Array.isArray(nodes)) return null
+    for (const node of nodes) {
+      if (node.id === id) return node
+      if (node.children) {
+        const found = findNodeById(node.children, id)
+        if (found) return found
+      }
+    }
+    return null
+  }, [])
+
+  // 검색 기능을 위한 필터링 로직
+  const applySearchFilter = useCallback((data, query) => {
+    if (!data || !Array.isArray(data)) return []
+    if (!query || !query.trim()) return data
+
+    const searchQuery = query.toLowerCase()
+    return data.filter(row => {
+      if (!row) return false
+      if (row.type === 'class') {
+        return (
+            row.name?.toLowerCase().includes(searchQuery) ||
+            row.displayName?.toLowerCase().includes(searchQuery) ||
+            row.description?.toLowerCase().includes(searchQuery)
+        )
+      } else {
+        return (
+            row.code?.toLowerCase().includes(searchQuery) ||
+            row.name?.toLowerCase().includes(searchQuery) ||
+            row.description?.toLowerCase().includes(searchQuery) ||
+            row.className?.toLowerCase().includes(searchQuery)
+        )
+      }
+    })
+  }, [])
+
+  // 트리 데이터 구성 함수
+  const buildTreeData = useCallback((data) => {
+    if (!data || !Array.isArray(data)) return []
+
+    const tree = []
+    const classItems = data.filter(item => item?.type === 'class')
+    const codeItems = data.filter(item => item?.type === 'code')
+
+    classItems.forEach(classItem => {
+      if (!classItem) return
+      const childCodes = codeItems.filter(code =>
+        code && (code.parentId === classItem.id || code.classId === classItem.id)
+      )
+
+      tree.push({
+        id: `class-${classItem.id}`,
+        label: classItem.name || classItem.displayName,
+        type: 'class',
+        data: classItem,
+        children: childCodes.map(code => ({
+          id: `code-${code.id}`,
+          label: code.name || code.displayName,
+          type: 'code',
+          data: code
+        }))
+      })
+    })
+
+    // 부모가 없는 코드들을 루트 레벨에 추가
+    const rootCodes = codeItems.filter(code => code && !code.parentId && !code.classId)
+    rootCodes.forEach(code => {
+      if (!code) return
+      tree.push({
+        id: `code-${code.id}`,
+        label: code.name || code.displayName,
+        type: 'code',
+        data: code
+      })
+    })
+
+    return tree
+  }, [])
+
+  // 데이터 로드 함수
   const loadData = useCallback(async () => {
     try {
       setLoading(true)
       const treeData = await commonCodeService.loadAllTreeData()
-      setRows(treeData)
+      setRows(treeData || [])
     } catch (error) {
       console.error('공통코드 데이터 로드 실패:', error)
       let errorMessage = '알 수 없는 오류가 발생했습니다.'
@@ -113,31 +198,119 @@ export default function CommonCode() {
         message: `데이터 로드 실패: ${errorMessage}`,
         severity: 'error'
       })
-      console.error('공통코드 데이터 로드 오류:', error)
+      setRows([])
     } finally {
       setLoading(false)
     }
   }, [])
 
+  // 트리 노드 선택 핸들러
+  const handleNodeSelect = useCallback((event, nodeId) => {
+    if (!nodeId) return
+    setSelectedNodeId(nodeId)
+
+    const selectedNode = findNodeById(treeData, nodeId)
+    if (selectedNode) {
+      let baseData = []
+
+      if (selectedNode.type === 'class') {
+        const classData = selectedNode.data
+        const childCodes = rows.filter(row =>
+          row && row.type === 'code' && (row.parentId === classData.id || row.classId === classData.id)
+        )
+        baseData = [classData, ...childCodes]
+      } else if (selectedNode.type === 'code') {
+        baseData = [selectedNode.data]
+      }
+
+      const finalData = applySearchFilter(baseData, searchQuery)
+      setFilteredRows(finalData)
+    }
+  }, [treeData, rows, searchQuery, applySearchFilter, findNodeById])
+
+  // === 이펙트들 ===
+
+  // 초기 데이터 로드
   useEffect(() => {
     loadData()
   }, [loadData])
 
-  // 트리 그룹핑 컬럼 정의
-  const TREE_DATA_GROUPING_COL_DEF = {
-    ...GRID_TREE_DATA_GROUPING_COL_DEF,
-    headerName: '구조',
-    width: 400,
-    renderCell: (params) => (
-        <GridTreeDataGroupingCell
-            {...params}
-            icon={params.row?.type === 'class' ?
-                <ClassIcon color="primary" fontSize="small"/> :
-                <CodeIcon color="secondary" fontSize="small"/>
-            }
-        />
-    ),
-  }
+  // rows 데이터가 변경될 때 트리 데이터 구성
+  useEffect(() => {
+    if (rows && rows.length > 0) {
+      const tree = buildTreeData(rows)
+      setTreeData(tree)
+      setFilteredRows(rows)
+
+      // 첫 번째 클래스를 기본 확장
+      if (tree.length > 0 && tree[0].type === 'class') {
+        setExpandedNodes([tree[0].id])
+      }
+    } else {
+      setTreeData([])
+      setFilteredRows([])
+    }
+  }, [rows, buildTreeData])
+
+  // 검색어 변경시 필터링 재적용
+  useEffect(() => {
+    if (!rows || rows.length === 0) {
+      setFilteredRows([])
+      return
+    }
+
+    if (selectedNodeId && treeData.length > 0) {
+      const selectedNode = findNodeById(treeData, selectedNodeId)
+      if (selectedNode) {
+        let baseData = []
+
+        if (selectedNode.type === 'class' && selectedNode.data) {
+          const classData = selectedNode.data
+          const childCodes = rows.filter(row =>
+            row && row.type === 'code' && (row.parentId === classData.id || row.classId === classData.id)
+          )
+          baseData = [classData, ...childCodes]
+        } else if (selectedNode.type === 'code' && selectedNode.data) {
+          baseData = [selectedNode.data]
+        }
+
+        const finalData = applySearchFilter(baseData, searchQuery)
+        setFilteredRows(finalData)
+      } else {
+        setFilteredRows([])
+      }
+    } else {
+      const finalData = applySearchFilter(rows, searchQuery)
+      setFilteredRows(finalData)
+    }
+  }, [searchQuery, selectedNodeId, treeData, rows, applySearchFilter, findNodeById])
+
+  // 트리 노드 확장/축소 핸들러
+  const handleNodeToggle = useCallback((event, nodeIds) => {
+    setExpandedNodes(nodeIds)
+  }, [])
+
+  // 트리 렌더링 함수
+  const renderTreeItems = useCallback((nodes) => {
+    return nodes.map((node) => (
+      <TreeItem
+        key={node.id}
+        nodeId={node.id}
+        label={
+          <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5 }}>
+            {node.type === 'class' ? (
+              <ClassIcon color="primary" fontSize="small" sx={{ mr: 1 }} />
+            ) : (
+              <CodeIcon color="secondary" fontSize="small" sx={{ mr: 1 }} />
+            )}
+            <Typography variant="body2">{node.label}</Typography>
+          </Box>
+        }
+      >
+        {node.children && renderTreeItems(node.children)}
+      </TreeItem>
+    ))
+  }, [])
 
   // 컬럼 정의
   const columns = [
@@ -687,31 +860,6 @@ export default function CommonCode() {
     }
   }
 
-  // 필터링된 데이터 (성능 최적화를 위한 메모이제이션)
-  const filteredRows = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return rows
-    }
-
-    const query = searchQuery.toLowerCase()
-    return rows.filter(row => {
-      if (row.type === 'class') {
-        return (
-            row.name?.toLowerCase().includes(query) ||
-            row.displayName?.toLowerCase().includes(query) ||
-            row.description?.toLowerCase().includes(query)
-        )
-      } else {
-        return (
-            row.code?.toLowerCase().includes(query) ||
-            row.name?.toLowerCase().includes(query) ||
-            row.description?.toLowerCase().includes(query) ||
-            row.className?.toLowerCase().includes(query)
-        )
-      }
-    })
-  }, [rows, searchQuery])
-
   // 다이얼로그 폼 렌더링
   const renderDialogContent = () => {
     const isClass = dialogType === 'class' || dialogType === 'childClass' || (dialogType === 'edit' && selectedRow?.type === 'class')
@@ -878,46 +1026,80 @@ export default function CommonCode() {
           </Toolbar>
         </Paper>
 
-        <Paper sx={{height: 600, width: '100%'}}>
-          <DataGrid
-              apiRef={apiRef}
-              rows={filteredRows}
-              columns={columns}
-              loading={loading}
-              treeData
-              getTreeDataPath={getTreeDataPath}
-              groupingColDef={TREE_DATA_GROUPING_COL_DEF}
-              defaultGroupingExpansionDepth={2}
-              initialState={{
-                pagination: {
-                  paginationModel: {page: 0, pageSize: 25},
-                },
-              }}
-              pageSizeOptions={[25, 50, 100]}
-              disableRowSelectionOnClick
-              sx={{
-                '& .MuiDataGrid-root': {
-                  border: 1,
-                  borderColor: 'divider',
-                },
-                '& .MuiDataGrid-row': {
-                  '&:hover': {
-                    backgroundColor: 'action.hover',
+        <Box sx={{ display: 'flex', height: 600, width: '100%', gap: 2 }}>
+          {/* TreeView 패널 */}
+          <Paper sx={{ width: 300, minWidth: 250, p: 2, overflow: 'auto' }}>
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+              <TreeIcon sx={{ mr: 1 }} />
+              구조
+            </Typography>
+            {treeData.length > 0 ? (
+              <TreeView
+                expanded={expandedNodes}
+                selected={selectedNodeId}
+                onNodeSelect={handleNodeSelect}
+                onNodeToggle={handleNodeToggle}
+                sx={{
+                  flexGrow: 1,
+                  maxWidth: 400,
+                  overflowY: 'auto',
+                  '& .MuiTreeItem-content': {
+                    padding: '4px 8px',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    },
+                    '&.Mui-selected': {
+                      backgroundColor: 'primary.light',
+                      color: 'primary.contrastText',
+                      '&:hover': {
+                        backgroundColor: 'primary.main',
+                      },
+                    },
                   },
-                },
-                '& .MuiDataGrid-cell': {
-                  borderRight: 1,
-                  borderColor: 'divider',
-                },
-                '& .MuiDataGrid-treeDataGroupingCell': {
-                  paddingLeft: '8px !important',
-                },
-                '& .MuiDataGrid-treeDataGroupingCellToggle': {
-                  marginRight: '8px',
-                },
-              }}
-          />
-        </Paper>
+                }}
+              >
+                {renderTreeItems(treeData)}
+              </TreeView>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                데이터가 없습니다.
+              </Typography>
+            )}
+          </Paper>
+
+          {/* DataGrid 패널 */}
+          <Paper sx={{ flex: 1, overflow: 'hidden' }}>
+            <DataGrid
+                apiRef={apiRef}
+                rows={filteredRows}
+                columns={columns}
+                loading={loading}
+                initialState={{
+                  pagination: {
+                    paginationModel: {page: 0, pageSize: 25},
+                  },
+                }}
+                pageSizeOptions={[25, 50, 100]}
+                disableRowSelectionOnClick
+                sx={{
+                  '& .MuiDataGrid-root': {
+                    border: 1,
+                    borderColor: 'divider',
+                  },
+                  '& .MuiDataGrid-row': {
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    },
+                  },
+                  '& .MuiDataGrid-cell': {
+                    borderRight: 1,
+                    borderColor: 'divider',
+                  },
+                }}
+            />
+          </Paper>
+        </Box>
 
         {/* 추가/편집 다이얼로그 */}
         <Dialog

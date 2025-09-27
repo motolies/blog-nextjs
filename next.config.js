@@ -12,14 +12,7 @@ module.exports = {
         BLOG_URL_PROD: BACKEND_URL.BLOG_URL_PROD,
         META_URL: 'https://hvy.kr',
     },
-    experimental: {
-        esmExternals: 'loose'
-    },
     transpilePackages: ['@mui/x-data-grid'],
-    webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-        // CSS 로더 설정은 이미 Next.js가 관리하므로 제거
-        return config
-    },
     async rewrites() {
         return [
             {

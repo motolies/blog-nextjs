@@ -1,24 +1,17 @@
 # CLAUDE.md
 
-- This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-- 가능한 모든 대답은 한글로 합니다. 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+- 가능한 모든 대답은 한글로 합니다.
 
 ## 프로젝트 개요
 
-한국어로 작성된 개인 블로그 Next.js 프론트엔드 애플리케이션입니다. Redux-Saga를 사용한 상태 관리, 커스텀 CKEditor5를 이용한 글 작성 기능, 그리고 Material-UI를 사용한 사용자 인터페이스로 구성되어 있습니다.
+한국어로 작성된 개인 블로그 Next.js 프론트엔드 애플리케이션입니다. Redux-Saga를 사용한 상태 관리, 표준 CKEditor5를 이용한 글 작성 기능, 그리고 Material-UI를 사용한 사용자 인터페이스로 구성되어 있습니다. Next.js 15와 Turbopack을 사용하여 최적화된 개발 경험을 제공합니다.
 
 ## 개발 명령어
 
 ### 기본 개발 환경
 ```bash
-# CKEditor5 빌드 (최초 1회 또는 CKEditor 수정시)
-cd ckeditor5
-npm ci
-npm run build
-cd ..
-npm add file:./ckeditor5
-
-# 메인 애플리케이션 설치 및 실행
+# 의존성 설치 및 개발 서버 실행 (Turbopack 사용)
 npm ci
 npm run dev
 ```
@@ -75,9 +68,10 @@ docker buildx build --platform linux/amd64,linux/arm64 --no-cache --push -t dock
 - `/admin` 경로 접근시 자동 로그인 페이지 리다이렉션
 
 ### CKEditor 통합
-- `ckeditor5/` 디렉토리에 커스텀 빌드 설정
+- 표준 CKEditor5 패키지 사용 (`ckeditor5: 46.1.0`)
 - `DynamicEditor.jsx`에서 동적 임포트로 SSR 이슈 해결
 - 파일 업로드 컴포넌트와 연동
+- 한국어 번역 및 다양한 플러그인 설정
 
 ## 주요 페이지 구조
 
@@ -132,16 +126,23 @@ docker buildx build --platform linux/amd64,linux/arm64 --no-cache --push -t dock
 
 ## 중요 설정 파일
 
-- `next.config.js`: Next.js 설정, API 프록시, 환경변수
-- `package.json`: 의존성 관리, CKEditor5 로컬 패키지 포함
+- `next.config.js`: Next.js 설정, API 프록시, 환경변수, Turbopack 최적화
+- `package.json`: 의존성 관리, Turbopack 스크립트 설정
 - `Dockerfile`: 멀티스테이지 빌드, Node.js 22-alpine 기반
 - `PROJECT_RULES.md`: 코드 포맷팅 및 프로젝트 규칙
+- `.github/workflows/buildx.yml`: GitHub Actions 빌드 파이프라인 (캐시 최적화)
 
 ## 개발 시 주의사항
 
 ### CKEditor5 관련
-- CKEditor5 수정시 반드시 `cd ckeditor5 && npm run build` 실행 후 메인 프로젝트에서 `npm add file:./ckeditor5` 실행
+- 표준 CKEditor5 패키지를 사용하므로 별도 빌드 불필요
 - SSR 환경에서 CKEditor5는 `DynamicEditor`를 통한 동적 로딩 필수
+- `import('ckeditor5')`로 클라이언트 사이드에서만 로드
+
+### Turbopack 최적화
+- 개발 및 프로덕션 빌드에서 Turbopack 사용으로 빠른 개발 경험
+- HMR(Hot Module Replacement) 성능 대폭 향상
+- `next.config.js`에서 Turbopack 비호환 설정 제거됨
 
 ### 상태 관리 패턴
 - 모든 비동기 액션은 Saga를 통해 처리

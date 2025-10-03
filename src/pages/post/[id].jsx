@@ -31,10 +31,12 @@ export const getServerSideProps = wrapper.getServerSideProps(
         await store.dispatch(getAllTags())
 
         const postId = context.params.id
+        const cookie = context.req?.headers?.cookie
+        const headers = cookie ? { Cookie: cookie } : undefined
         // 두 요청을 동시에 실행
         const [postResult, prevNextResult] = await Promise.allSettled([
-            service.post.getPost({ postId }),
-            service.post.getPrevNext({ postId })
+            service.post.getPost({ postId }, headers ? { headers } : undefined),
+            service.post.getPrevNext({ postId }, headers ? { headers } : undefined)
         ]);
 
         // 각 요청의 결과 상태에 따라 처리
@@ -52,9 +54,15 @@ export const getServerSideProps = wrapper.getServerSideProps(
                 post: post,
                 prevNext: prevNext,
                 meta: {
-                    title: post?.subject,
-                    description: post?.body?.replace(/<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/img, " ").replace(/&nbsp;/img, "").replace(/\r\n/img, " ").replace(/\s+/img, " ").trim(),
-                    tags: post?.tags?.map(tag => tag.name).join(', '),
+                    title: post?.subject ?? null,
+                    description: post?.body
+                        ? post.body.replace(/<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/img, " ")
+                            .replace(/&nbsp;/img, "")
+                            .replace(/\r\n/img, " ")
+                            .replace(/\s+/img, " ")
+                            .trim()
+                        : null,
+                    tags: post?.tags?.map(tag => tag.name).join(', ') ?? null,
                     page: process.env.META_URL + "/post/" + postId,
                     logo: process.env.META_URL + "/images/og-logo.png"
                 }

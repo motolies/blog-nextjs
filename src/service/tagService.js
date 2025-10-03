@@ -1,8 +1,8 @@
 import axiosClient from './axiosClient'
 
 const tagService = {
-    allTags: () => {
-        return axiosClient.get(`/api/tag/all`)
+    allTags: (config) => {
+        return axiosClient.get(`/api/tag/all`, config)
     },
 }
 

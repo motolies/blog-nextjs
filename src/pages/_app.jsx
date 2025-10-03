@@ -12,7 +12,6 @@ import Loading from "../components/Loading"
 import {useSelector} from "react-redux"
 import {SERVER_LOAD_USER_REQUEST_SUCCESS} from "../store/types/userTypes"
 import service from "../service"
-import axiosClient from "../service/axiosClient"
 import {useEffect} from "react"
 import {useDispatch} from "react-redux"
 import {LOAD_USER_REQUEST} from "../store/types/userTypes"
@@ -50,5 +49,68 @@ function Skyscape({Component, pageProps}) {
         </SnackbarProvider>
     )
 }
+
+Skyscape.getInitialProps = wrapper.getInitialAppProps(
+    store => async ({Component, ctx}) => {
+        const req = ctx.req
+        const cookie = req?.headers?.cookie
+
+        // 디버깅용: 들어온 쿠키 키만 로깅 (값은 마스킹)
+        if (cookie) {
+            try {
+                const keys = cookie.split(';').map(s => s.split('=')[0].trim())
+                console.log('[SSR] Incoming Cookie keys:', keys.join(','), `len=${cookie.length}`)
+            } catch (_) {}
+        } else {
+            console.log('[SSR] No Cookie on incoming request')
+        }
+
+        if (cookie) {
+            try {
+                // 쿠키에서 Authorization 값을 추출해 Bearer 헤더도 함께 전달 (백엔드가 둘 다 지원)
+                let bearer
+                try {
+                    // 대소문자 무시하고 Authorization 쿠키 탐색
+                    const parts = cookie.split(';')
+                    const authPair = parts.find((p) => p.trim().toLowerCase().startsWith('authorization='))
+                    if (authPair) {
+                        const token = authPair.split('=')[1]
+                        if (token) bearer = `Bearer ${token}`
+                    }
+                } catch (_) { /* ignore parse error */ }
+
+                const headers = {
+                    // Node/axios에서는 소문자/대문자 무관하지만, 명시적으로 지정
+                    Cookie: cookie,
+                    ...(bearer ? { Authorization: bearer } : {}),
+                }
+
+                console.log('[SSR] Forward headers to API:', {
+                    hasCookie: !!headers.Cookie,
+                    hasBearer: !!headers.Authorization,
+                })
+
+                const res = await service.user.profile({ headers })
+                store.dispatch({
+                    type: SERVER_LOAD_USER_REQUEST_SUCCESS,
+                    user: res.data,
+                })
+            } catch (err) {
+                // 인증 실패시 로그만 기록하고 계속 진행
+                console.log('서버사이드 인증 실패:', err?.response?.status || err.message)
+            }
+        }
+
+        return {
+            pageProps: {
+                // 페이지 레벨 getInitialProps 호출
+                ...(Component.getInitialProps
+                    ? await Component.getInitialProps({...ctx, store})
+                    : {}),
+                pathname: ctx.pathname,
+            },
+        }
+    }
+)
 
 export default wrapper.withRedux(Skyscape)

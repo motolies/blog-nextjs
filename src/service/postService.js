@@ -2,44 +2,45 @@ import axiosClient from './axiosClient'
 import {base64Encode} from "../util/base64Util"
 
 const postService = {
-    mainPost: () => {
-        return axiosClient.get(`/api/post`)
+    mainPost: (config) => {
+        return axiosClient.get(`/api/post`, config)
     },
-    getPost: ({postId}) => {
-        return axiosClient.get(`/api/post/${postId}`)
+    getPost: ({postId}, config) => {
+        return axiosClient.get(`/api/post/${postId}`, config)
     },
-    getPrevNext: ({postId}) => {
-        return axiosClient.get(`/api/post/prev-next/${postId}`)
+    getPrevNext: ({postId}, config) => {
+        return axiosClient.get(`/api/post/prev-next/${postId}`, config)
     },
-    deletePost: ({postId}) => {
-        return axiosClient.delete(`/api/post/admin/${postId}`)
+    deletePost: ({postId}, config) => {
+        return axiosClient.delete(`/api/post/admin/${postId}`, config)
     },
-    setPublicPost: ({postId, publicStatus}) => {
+    setPublicPost: ({postId, publicStatus}, config) => {
         return axiosClient.post(`/api/post/admin/public`, {
             id: postId,
             publicStatus: publicStatus
-        })
+        }, config)
     },
-    deleteTag: ({postId, tagId}) => {
-        return axiosClient.delete(`/api/post/admin/${postId}/tag/${tagId}`)
+    deleteTag: ({postId, tagId}, config) => {
+        return axiosClient.delete(`/api/post/admin/${postId}/tag/${tagId}`, config)
     },
-    addTag: ({postId, tagName}) => {
+    addTag: ({postId, tagName}, config) => {
         return axiosClient.post(`/api/post/admin/${postId}/tag`, {
             name: tagName
-        })
+        }, config)
     },
-    search: ({searchAllParam}) => {
+    search: ({searchAllParam}, config) => {
         return axiosClient.get('/api/post/search', {
             params: {
                 query: base64Encode(JSON.stringify(searchAllParam))
-            }
+            },
+            ...(config || {})
         })
     },
-    new: () => {
-        return axiosClient.post('/api/post/admin')
+    new: (config) => {
+        return axiosClient.post('/api/post/admin', undefined, config)
     },
-    save: ({post}) => {
-        return axiosClient.put(`/api/post/admin/${post.id}`, post)
+    save: ({post}, config) => {
+        return axiosClient.put(`/api/post/admin/${post.id}`, post, config)
     }
 }
 

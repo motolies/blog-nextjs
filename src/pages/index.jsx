@@ -115,12 +115,13 @@ export default function IndexPage({engines}) {
         </>
     )
 }
-export async function getServerSideProps() {
-    const enginesReq = await service.search.getAll()
+export async function getServerSideProps(context) {
+    const cookie = context.req?.headers?.cookie
+    const headers = cookie ? { Cookie: cookie } : undefined
+    const enginesReq = await service.search.getAll(headers ? { headers } : undefined)
     return {
         props: {
             engines: enginesReq.data
         }
     }
 }
-

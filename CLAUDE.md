@@ -162,3 +162,7 @@ docker buildx build --platform linux/amd64,linux/arm64 --no-cache --push -t dock
 - 개발/프로덕션 환경별 백엔드 URL 자동 전환
 - Docker 환경에서는 내부 서비스명 사용
 - Node.js 디버깅은 개발 환경에서 `--inspect` 옵션 활성화
+
+### 주요 라이브러리
+- mui 시리즈 컴포넌트를 주로 사용하며 버전에 맞는 문서를 확인하여 관리
+- 컴포넌트의 CSS를 직접 수정하지 않음 

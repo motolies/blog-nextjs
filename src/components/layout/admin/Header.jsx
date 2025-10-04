@@ -64,7 +64,7 @@ export default function Header({children}) {
                     spacing={2}
                 >
                     <Grid item xs={4} sm={2}>
-                        <Link href={`/admin`} className={styles.mainLink}>
+                        <Link href={`/`} className={styles.mainLink}>
                             admin
                         </Link>
                     </Grid>

@@ -1069,7 +1069,8 @@ export default function CommonCode() {
           </Paper>
 
           {/* DataGrid 패널 */}
-          <Paper sx={{ flex: 1, overflow: 'hidden' }}>
+          <Paper sx={{ flex: 1, minWidth: 0 }}>
+            <Box sx={{ minWidth: 0, overflowX: 'auto', height: '100%' }}>
             <DataGrid
                 apiRef={apiRef}
                 rows={filteredRows}
@@ -1082,7 +1083,10 @@ export default function CommonCode() {
                 }}
                 pageSizeOptions={[25, 50, 100]}
                 disableRowSelectionOnClick
+                disableExtendRowFullWidth
+                scrollbarSize={12}
                 sx={{
+                  scrollbarGutter: 'stable both-edges',
                   '& .MuiDataGrid-root': {
                     border: 1,
                     borderColor: 'divider',
@@ -1098,6 +1102,7 @@ export default function CommonCode() {
                   },
                 }}
             />
+            </Box>
           </Paper>
         </Box>
 

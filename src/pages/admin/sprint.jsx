@@ -219,23 +219,23 @@ export default function SprintPage() {
 
     // 스프린트 상세 DataGrid 컬럼 정의
     const sprintDetailColumns = [
-        { field: 'sprint', headerName: '스프린트', width: 150 },
-        { field: 'assignee', headerName: '작업자', width: 120 },
-        { field: 'issueKey', headerName: '이슈', width: 120 },
-        { field: 'status', headerName: '상태', width: 100 },
-        { field: 'summary', headerName: '서머리', width: 300, flex: 1 },
-        { field: 'startDate', headerName: '시작일', width: 120 },
-        { field: 'totalTimeHours', headerName: '작업시간', width: 120, type: 'number' },
-        { field: 'storyPoints', headerName: '스토리포인트', width: 120, type: 'number' }
+        { field: 'sprint', headerName: '스프린트', width: 150, headerAlign: 'left', align: 'left' },
+        { field: 'assignee', headerName: '작업자', width: 120, headerAlign: 'left', align: 'left' },
+        { field: 'issueKey', headerName: '이슈', width: 120, headerAlign: 'left', align: 'left' },
+        { field: 'status', headerName: '상태', width: 100, headerAlign: 'left', align: 'left' },
+        { field: 'summary', headerName: '서머리', width: 300, flex: 1, headerAlign: 'left', align: 'left' },
+        { field: 'startDate', headerName: '시작일', width: 120, headerAlign: 'left', align: 'left' },
+        { field: 'totalTimeHours', headerName: '작업시간', width: 120, type: 'number', headerAlign: 'right', align: 'right' },
+        { field: 'storyPoints', headerName: '스토리포인트', width: 120, type: 'number', headerAlign: 'right', align: 'right' }
     ]
 
     // 이슈 작업로그 DataGrid 컬럼 정의
     const issueWorklogColumns = [
-        { field: 'issueKey', headerName: '이슈', width: 120 },
-        { field: 'author', headerName: '작업자', width: 120 },
-        { field: 'comment', headerName: '작업 코멘트', width: 300, flex: 1 },
-        { field: 'started', headerName: '작업시작시간', width: 180 },
-        { field: 'timeHours', headerName: '작업시간', width: 120, type: 'number' }
+        { field: 'issueKey', headerName: '이슈', width: 120, headerAlign: 'left', align: 'left' },
+        { field: 'author', headerName: '작업자', width: 120, headerAlign: 'left', align: 'left' },
+        { field: 'comment', headerName: '작업 코멘트', width: 300, flex: 1, headerAlign: 'left', align: 'left' },
+        { field: 'started', headerName: '작업시작시간', width: 180, headerAlign: 'left', align: 'left' },
+        { field: 'timeHours', headerName: '작업시간', width: 120, type: 'number', headerAlign: 'right', align: 'right' }
     ]
 
     // UTC를 KST로 변환하는 함수
@@ -454,13 +454,16 @@ export default function SprintPage() {
                                             <CircularProgress />
                                         </Box>
                                     ) : (
-                                        <DataGrid
+                                        <Box sx={{ minWidth: 0, overflowX: 'auto' }}>
+                                            <DataGrid
                                             rows={sprintDetailRowsWithTotal}
                                             columns={sprintDetailColumns}
                                             hideFooter
                                             disableRowSelectionOnClick
                                             autoHeight
                                             density="compact"
+                                            disableExtendRowFullWidth
+                                            scrollbarSize={12}
                                             onRowClick={(params) => {
                                                 // 합계 로우는 클릭 불가
                                                 if (params.row.id !== 'total') {
@@ -473,6 +476,7 @@ export default function SprintPage() {
                                                 return ''
                                             }}
                                             sx={{
+                                                scrollbarGutter: 'stable both-edges',
                                                 border: 'none',
                                                 '& .MuiDataGrid-main': {
                                                     border: '1px solid rgba(224, 224, 224, 1)'
@@ -517,7 +521,8 @@ export default function SprintPage() {
                                                     }
                                                 }
                                             }}
-                                        />
+                                            />
+                                        </Box>
                                     )}
                                 </Paper>
                             </Grid>
@@ -537,14 +542,18 @@ export default function SprintPage() {
                                             <CircularProgress />
                                         </Box>
                                     ) : (
-                                        <DataGrid
+                                        <Box sx={{ minWidth: 0, overflowX: 'auto' }}>
+                                            <DataGrid
                                             rows={issueWorklogRows}
                                             columns={issueWorklogColumns}
                                             hideFooter
                                             disableRowSelectionOnClick
                                             autoHeight
                                             density="compact"
+                                            disableExtendRowFullWidth
+                                            scrollbarSize={12}
                                             sx={{
+                                                scrollbarGutter: 'stable both-edges',
                                                 border: 'none',
                                                 '& .MuiDataGrid-main': {
                                                     border: '1px solid rgba(224, 224, 224, 1)'
@@ -562,7 +571,8 @@ export default function SprintPage() {
                                                     padding: '6px 16px'
                                                 }
                                             }}
-                                        />
+                                            />
+                                        </Box>
                                     )}
                                 </Paper>
                             </Grid>

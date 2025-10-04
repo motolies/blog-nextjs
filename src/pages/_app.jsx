@@ -67,28 +67,10 @@ Skyscape.getInitialProps = wrapper.getInitialAppProps(
 
         if (cookie) {
             try {
-                // 쿠키에서 Authorization 값을 추출해 Bearer 헤더도 함께 전달 (백엔드가 둘 다 지원)
-                let bearer
-                try {
-                    // 대소문자 무시하고 Authorization 쿠키 탐색
-                    const parts = cookie.split(';')
-                    const authPair = parts.find((p) => p.trim().toLowerCase().startsWith('authorization='))
-                    if (authPair) {
-                        const token = authPair.split('=')[1]
-                        if (token) bearer = `Bearer ${token}`
-                    }
-                } catch (_) { /* ignore parse error */ }
+                // 백엔드가 Cookie에서 Authorization을 직접 읽으므로 Cookie만 전달
+                const headers = { Cookie: cookie }
 
-                const headers = {
-                    // Node/axios에서는 소문자/대문자 무관하지만, 명시적으로 지정
-                    Cookie: cookie,
-                    ...(bearer ? { Authorization: bearer } : {}),
-                }
-
-                console.log('[SSR] Forward headers to API:', {
-                    hasCookie: !!headers.Cookie,
-                    hasBearer: !!headers.Authorization,
-                })
+                console.log('[SSR] Forward Cookie to API')
 
                 const res = await service.user.profile({ headers })
                 store.dispatch({

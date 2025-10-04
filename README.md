@@ -1,11 +1,10 @@
-# CKEditor5 
-
-- https://ckeditor.com/ckeditor-5/builder/
-- 상기 사이트에서 빌드 샘플 받아서 적용
-
----
-
 # blog-nextjs
+
+개인 블로그 Next.js 프론트엔드 애플리케이션
+
+## 📚 문서
+
+- [인증 시스템 (Authentication)](./docs/authentication.md) - 쿠키 기반 인증 구조 및 SSR/CSR 플로우
 
 ## 사용법
 
@@ -13,6 +12,13 @@
 npm ci
 npm run dev
 ```
+
+---
+
+## CKEditor5
+
+- https://ckeditor.com/ckeditor-5/builder/
+- 상기 사이트에서 빌드 샘플 받아서 적용
 
 ---
 

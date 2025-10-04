@@ -12,6 +12,7 @@ import CategoryIcon from '@mui/icons-material/Category'
 import TagIcon from '@mui/icons-material/Tag'
 import AssessmentIcon from '@mui/icons-material/Assessment'
 import MenuIcon from '@mui/icons-material/Menu'
+import styles from './Header.module.css'
 
 export default function Header({children}) {
     const router = useRouter()
@@ -54,16 +55,16 @@ export default function Header({children}) {
         }
     }
 
-    return (<>
-        <nav className="top admin-back-color">
-            <div className="back">
+    return (
+        <nav className={`${styles.top} admin-back-color`}>
+            <div className={styles.back}>
                 <Grid
                     container
                     direction="row"
                     spacing={2}
                 >
                     <Grid item xs={4} sm={2}>
-                        <Link href={`/admin`} className="main-link">
+                        <Link href={`/admin`} className={styles.mainLink}>
                             admin
                         </Link>
                     </Grid>
@@ -71,28 +72,28 @@ export default function Header({children}) {
                         <Grid item xs={1} sm={2} md={6}>
                             <Box sx={{display: {xs: 'none', sm: 'none', md: 'block'}}}>
                                 <Box flex sx={{mr: 3, display: 'inline-flex'}}>
-                                    <Link href={'/admin/write'} className="menu-link">
+                                    <Link href={'/admin/write'} className={styles.menuLink}>
                                         <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
                                             <CreateIcon/><span>write</span>
                                         </Box>
                                     </Link>
                                 </Box>
                                 <Box flex sx={{mr: 3, display: 'inline-flex'}}>
-                                    <Link href={'/admin/categories'} className="menu-link">
+                                    <Link href={'/admin/categories'} className={styles.menuLink}>
                                         <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
                                             <CategoryIcon/><span>categories</span>
                                         </Box>
                                     </Link>
                                 </Box>
                                 <Box flex sx={{mr: 3, display: 'inline-flex'}}>
-                                    <Link href={'/admin/tags'} className="menu-link">
+                                    <Link href={'/admin/tags'} className={styles.menuLink}>
                                         <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
                                             <TagIcon/><span>tags</span>
                                         </Box>
                                     </Link>
                                 </Box>
                                 <Box flex sx={{display: 'inline-flex'}}>
-                                    <Link href={'/admin/sprint'} className="menu-link">
+                                    <Link href={'/admin/sprint'} className={styles.menuLink}>
                                         <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
                                             <AssessmentIcon/><span>sprint</span>
                                         </Box>
@@ -146,49 +147,5 @@ export default function Header({children}) {
                 </Grid>
             </div>
         </nav>
-        <style jsx>
-            {`
-              .top {
-                height: 4rem;
-                position: fixed;
-                top: 0;
-                right: 0;
-                left: 0;
-                z-index: 1024;
-              }
-
-              .back {
-                display: inline-block;
-                position: relative;
-                width: 100%;
-                height: 100%;
-                line-height: 4rem;
-              }
-
-              .menu-link {
-                color: #fff;
-              }
-
-              .main-link {
-                margin-left: 1rem;
-                font-size: 1.25rem;
-                color: #fff;
-              }
-
-              @media (min-width: 600px) {
-                .top {
-                  position: fixed;
-                  top: 0;
-                  right: 0;
-                  left: 0;
-                  z-index: 1024;
-                }
-
-                .back {
-                  line-height: 4rem;
-                }
-              }
-            `}
-        </style>
-    </>)
+    )
 }

@@ -38,16 +38,9 @@ export default function PreviewDialog({open, imageSrc, onClose}) {
                      onClick={(e) => {
                          close(e)
                      }}>
-                    <img className={'previewer'} src={window.location.origin + imageSrc}/>
+                    <img src={window.location.origin + imageSrc} style={{maxWidth: '90%'}}/>
                 </Box>
             </Dialog>
-            <style jsx>
-                {`
-                  .previewer {
-                    max-width: 90%;
-                  }
-                `}
-            </style>
         </div>
     )
 }

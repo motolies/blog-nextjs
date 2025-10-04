@@ -9,6 +9,7 @@ import {useEffect, useState} from "react"
 import {base64Encode} from "../../../util/base64Util"
 import { getTsid } from 'tsid-ts'
 import {searchObjectInit} from "../../../model/searchObject"
+import styles from './Header.module.css'
 
 export default function Header({children}) {
     const router = useRouter()
@@ -47,16 +48,16 @@ export default function Header({children}) {
         router.push('/admin')
     }
 
-    return (<>
-        <nav className="top back-color">
-            <div className="back">
+    return (
+        <nav className={`${styles.top} back-color`}>
+            <div className={styles.back}>
                 <Grid
                     container
                     direction="row"
                     spacing={2}
                 >
                     <Grid item xs={4}>
-                        <Link href={`/`} className="main-link">
+                        <Link href={`/`} className={styles.mainLink} >
                             motolies
                         </Link>
                     </Grid>
@@ -100,46 +101,5 @@ export default function Header({children}) {
 
             </div>
         </nav>
-        <style jsx>
-            {`
-              .top {
-                height: 4rem;
-                position: fixed;
-                top: 0;
-                right: 0;
-                left: 0;
-                z-index: 1024;
-              }
-
-              .back {
-                display: inline-block;
-                position: relative;
-                width: 100%;
-                height: 100%;
-                line-height: 4rem;
-              }
-
-              .main-link {
-                margin-left: 1rem;
-                font-size: 1.25rem;
-                color: #fff;
-                text-decoration: none;
-              }
-
-              @media (min-width: 600px) {
-                .top {
-                  position: fixed;
-                  top: 0;
-                  right: 0;
-                  left: 0;
-                  z-index: 1024;
-                }
-
-                .back {
-                  line-height: 4rem;
-                }
-              }
-            `}
-        </style>
-    </>)
+    )
 }

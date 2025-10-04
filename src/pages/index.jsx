@@ -86,32 +86,19 @@ export default function IndexPage({engines}) {
             {favoriteSite.map((c) =>
                 <Box key={c.name}>
                     <h3>{c.name}</h3>
-                    <ul className={'list'}>
+                    <Box component="ul" sx={{margin: 0}}>
                         {c.links.map((c) =>
-                            <li key={c.name} className={'item'}>
+                            <Box component="li" key={c.name} sx={{display: 'inline-table', padding: '.5rem 1rem .5rem .5rem'}}>
                                 <a href={c.url} target="_blank" rel="noreferrer">
                                     <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
                                         <LinkIcon/><span>{c.name}</span>
                                     </Box>
                                 </a>
-                            </li>
+                            </Box>
                         )}
-                    </ul>
+                    </Box>
                 </Box>
             )}
-
-            <style jsx>
-                {`
-                  ul.list {
-                    margin: 0px;
-                  }
-
-                  li.item {
-                    display: inline-table;
-                    padding: .5rem 1rem .5rem .5rem;
-                  }
-                `}
-            </style>
         </>
     )
 }

@@ -43,7 +43,7 @@
 
   // Import 자동 정리 비활성화 (의도치 않은 코드 변경 방지)
   "editor.codeActionsOnSave": {
-    "source.organizeImports": false
+    "source.organizeImports": "never"
   },
 
   // ===========================================

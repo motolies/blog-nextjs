@@ -16,10 +16,10 @@ import {
     Typography,
     CircularProgress
 } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import ReactECharts from 'echarts-for-react'
 import { useSnackbar } from 'notistack'
 import service from '../../service'
+import DataGridTable from '../../components/common/DataGridTable'
 
 export default function SprintPage() {
     const { enqueueSnackbar } = useSnackbar()
@@ -259,7 +259,7 @@ export default function SprintPage() {
         }
     }
 
-    // DataGrid 행 데이터 준비
+    // DataGrid 행 데이터 준비 (id 추가)
     const sprintDetailRows = sprintDetailData.map((item, index) => ({
         id: index,
         ...item
@@ -271,22 +271,6 @@ export default function SprintPage() {
         totals.storyPoints += parseFloat(item.storyPoints || 0)
         return totals
     }, { totalTimeHours: 0, storyPoints: 0 })
-
-    // 스프린트 상세에 합계 로우 추가
-    const sprintDetailRowsWithTotal = [
-        ...sprintDetailRows,
-        {
-            id: 'total',
-            sprint: '',
-            assignee: '',
-            issueKey: '',
-            status: '',
-            summary: '합계',
-            startDate: '',
-            totalTimeHours: sprintDetailTotals.totalTimeHours.toFixed(2),
-            storyPoints: sprintDetailTotals.storyPoints.toFixed(2)
-        }
-    ]
 
     const issueWorklogRows = issueWorklogData.map((item, index) => ({
         id: index,
@@ -454,73 +438,36 @@ export default function SprintPage() {
                                             <CircularProgress />
                                         </Box>
                                     ) : (
-                                        <Box sx={{ minWidth: 0, overflowX: 'auto' }}>
-                                            <DataGrid
-                                            rows={sprintDetailRowsWithTotal}
-                                            columns={sprintDetailColumns}
-                                            hideFooter
-                                            disableRowSelectionOnClick
-                                            autoHeight
-                                            density="compact"
-                                            disableExtendRowFullWidth
-                                            scrollbarSize={12}
-                                            onRowClick={(params) => {
-                                                // 합계 로우는 클릭 불가
-                                                if (params.row.id !== 'total') {
-                                                    loadIssueWorklog(params.row.issueKey)
-                                                }
-                                            }}
-                                            getRowClassName={(params) => {
-                                                if (params.row.id === 'total') return 'total-row'
-                                                if (params.row.issueKey === selectedIssue) return 'selected-issue-row'
-                                                return ''
-                                            }}
-                                            sx={{
-                                                scrollbarGutter: 'stable both-edges',
-                                                border: 'none',
-                                                '& .MuiDataGrid-main': {
-                                                    border: '1px solid rgba(224, 224, 224, 1)'
-                                                },
-                                                '& .MuiDataGrid-columnHeaders': {
-                                                    backgroundColor: '#f5f5f5',
-                                                    fontWeight: 'bold',
-                                                    fontSize: '0.875rem'
-                                                },
-                                                '& .MuiDataGrid-columnHeaderTitle': {
-                                                    fontWeight: 'bold'
-                                                },
-                                                '& .MuiDataGrid-cell': {
-                                                    fontSize: '0.875rem',
-                                                    padding: '6px 16px'
-                                                },
-                                                '& .MuiDataGrid-row:hover': {
-                                                    cursor: 'pointer',
-                                                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                                                },
-                                                '& .total-row': {
-                                                    backgroundColor: '#f0f0f0',
-                                                    fontWeight: 'bold',
-                                                    '& .MuiDataGrid-cell': {
-                                                        fontWeight: 'bold'
+                                        <Box sx={{ minWidth: 0, width: '85vw', mx: 'auto' }}>
+                                            <DataGridTable
+                                                paginationMode="client"
+                                                clientSideData={sprintDetailRows}
+                                                columns={sprintDetailColumns}
+                                                hidePagination={true}
+                                                summaryRow={{
+                                                    sprint: '',
+                                                    assignee: '',
+                                                    issueKey: '',
+                                                    status: '',
+                                                    summary: '합계',
+                                                    startDate: '',
+                                                    totalTimeHours: sprintDetailTotals.totalTimeHours.toFixed(2),
+                                                    storyPoints: sprintDetailTotals.storyPoints.toFixed(2)
+                                                }}
+                                                onRowClick={(params) => {
+                                                    // 합계 로우는 클릭 불가
+                                                    if (params.row.id !== 'summary') {
+                                                        loadIssueWorklog(params.row.issueKey)
                                                     }
-                                                },
-                                                '& .total-row:hover': {
-                                                    backgroundColor: '#f0f0f0 !important',
-                                                    cursor: 'default !important'
-                                                },
-                                                '& .selected-issue-row': {
-                                                    backgroundColor: '#e3f2fd',
-                                                    '& .MuiDataGrid-cell': {
-                                                        backgroundColor: '#e3f2fd'
-                                                    }
-                                                },
-                                                '& .selected-issue-row:hover': {
-                                                    backgroundColor: '#bbdefb',
-                                                    '& .MuiDataGrid-cell': {
-                                                        backgroundColor: '#bbdefb'
-                                                    }
-                                                }
-                                            }}
+                                                }}
+                                                getRowClassName={(params) => {
+                                                    if (params.row.id === 'summary') return 'total-row'
+                                                    if (params.row.issueKey === selectedIssue) return 'selected-issue-row'
+                                                    return ''
+                                                }}
+                                                autoHeight={true}
+                                                density="compact"
+
                                             />
                                         </Box>
                                     )}
@@ -542,35 +489,15 @@ export default function SprintPage() {
                                             <CircularProgress />
                                         </Box>
                                     ) : (
-                                        <Box sx={{ minWidth: 0, overflowX: 'auto' }}>
-                                            <DataGrid
-                                            rows={issueWorklogRows}
-                                            columns={issueWorklogColumns}
-                                            hideFooter
-                                            disableRowSelectionOnClick
-                                            autoHeight
-                                            density="compact"
-                                            disableExtendRowFullWidth
-                                            scrollbarSize={12}
-                                            sx={{
-                                                scrollbarGutter: 'stable both-edges',
-                                                border: 'none',
-                                                '& .MuiDataGrid-main': {
-                                                    border: '1px solid rgba(224, 224, 224, 1)'
-                                                },
-                                                '& .MuiDataGrid-columnHeaders': {
-                                                    backgroundColor: '#f5f5f5',
-                                                    fontWeight: 'bold',
-                                                    fontSize: '0.875rem'
-                                                },
-                                                '& .MuiDataGrid-columnHeaderTitle': {
-                                                    fontWeight: 'bold'
-                                                },
-                                                '& .MuiDataGrid-cell': {
-                                                    fontSize: '0.875rem',
-                                                    padding: '6px 16px'
-                                                }
-                                            }}
+                                        <Box sx={{ minWidth: 0, width: '85vw', mx: 'auto' }}>
+                                            <DataGridTable
+                                                paginationMode="client"
+                                                clientSideData={issueWorklogRows}
+                                                columns={issueWorklogColumns}
+                                                hidePagination={true}
+                                                autoHeight={true}
+                                                density="compact"
+
                                             />
                                         </Box>
                                     )}

@@ -51,16 +51,16 @@ export default function ApiLog() {
       headerName: 'HTTP Method',
       width: 120,
       renderCell: (params) => (
-        <Chip
-          label={params.value}
-          size="small"
-          color={
-            params.value === 'GET' ? 'primary' :
-            params.value === 'POST' ? 'success' :
-            params.value === 'PUT' ? 'warning' :
-            params.value === 'DELETE' ? 'error' : 'default'
-          }
-        />
+          <Chip
+              label={params.value}
+              size="small"
+              color={
+                params.value === 'GET' ? 'primary' :
+                    params.value === 'POST' ? 'success' :
+                        params.value === 'PUT' ? 'warning' :
+                            params.value === 'DELETE' ? 'error' : 'default'
+              }
+          />
       ),
     },
     {
@@ -76,11 +76,11 @@ export default function ApiLog() {
         else if (statusCode >= 500) color = 'error'
 
         return (
-          <Chip
-            label={params.value}
-            size="small"
-            color={color}
-          />
+            <Chip
+                label={params.value}
+                size="small"
+                color={color}
+            />
         )
       },
     },
@@ -89,12 +89,12 @@ export default function ApiLog() {
       headerName: 'Request Header',
       width: 200,
       renderCell: (params) => (
-        <div
-          style={{cursor: 'pointer', color: '#1976d2'}}
-          onClick={() => handleDetailClick('Request Header', params.value)}
-        >
-          {truncateText(params.value)}
-        </div>
+          <div
+              style={{cursor: 'pointer', color: '#1976d2'}}
+              onClick={() => handleDetailClick('Request Header', params.value)}
+          >
+            {truncateText(params.value)}
+          </div>
       ),
     },
     {
@@ -102,12 +102,12 @@ export default function ApiLog() {
       headerName: 'Request Param',
       width: 300,
       renderCell: (params) => (
-        <div
-          style={{cursor: 'pointer', color: '#1976d2'}}
-          onClick={() => handleDetailClick('Request Param', params.value)}
-        >
-          {truncateText(params.value)}
-        </div>
+          <div
+              style={{cursor: 'pointer', color: '#1976d2'}}
+              onClick={() => handleDetailClick('Request Param', params.value)}
+          >
+            {truncateText(params.value)}
+          </div>
       ),
     },
     {
@@ -115,12 +115,12 @@ export default function ApiLog() {
       headerName: 'Request Body',
       width: 300,
       renderCell: (params) => (
-        <div
-          style={{cursor: 'pointer', color: '#1976d2'}}
-          onClick={() => handleDetailClick('Request Body', params.value)}
-        >
-          {truncateText(params.value)}
-        </div>
+          <div
+              style={{cursor: 'pointer', color: '#1976d2'}}
+              onClick={() => handleDetailClick('Request Body', params.value)}
+          >
+            {truncateText(params.value)}
+          </div>
       ),
     },
     {
@@ -128,12 +128,12 @@ export default function ApiLog() {
       headerName: 'Response Body',
       width: 300,
       renderCell: (params) => (
-        <div
-          style={{cursor: 'pointer', color: '#1976d2'}}
-          onClick={() => handleDetailClick('Response Body', params.value)}
-        >
-          {truncateText(params.value)}
-        </div>
+          <div
+              style={{cursor: 'pointer', color: '#1976d2'}}
+              onClick={() => handleDetailClick('Response Body', params.value)}
+          >
+            {truncateText(params.value)}
+          </div>
       ),
     },
     {
@@ -164,22 +164,25 @@ export default function ApiLog() {
   ]
 
   return (
-    <Box sx={{p: 3}}>
-      <Typography variant="h4" sx={{mb: 3}}>
-        API 로그
-      </Typography>
-      <DataGridTable
-        columns={columns}
-        fetchData={(searchRequest) => logService.searchApiLogs({searchRequest})}
-        searchFields={searchFields}
-        defaultPageSize={25}
-      />
-      <DetailDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        title={dialogTitle}
-        content={dialogContent}
-      />
-    </Box>
+      <Box sx={{p: 3}}>
+        <Typography variant="h4" sx={{mb: 3}}>
+          API 로그
+        </Typography>
+        <Box sx={{width: '85vw', mx: 'auto'}}>
+          <DataGridTable
+              columns={columns}
+              fetchData={(searchRequest) => logService.searchApiLogs(
+                  {searchRequest})}
+              searchFields={searchFields}
+              defaultPageSize={25}
+          />
+        </Box>
+        <DetailDialog
+            open={dialogOpen}
+            onClose={() => setDialogOpen(false)}
+            title={dialogTitle}
+            content={dialogContent}
+        />
+      </Box>
   )
 }

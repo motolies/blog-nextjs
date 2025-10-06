@@ -167,13 +167,15 @@ export default function SystemLog() {
         <Typography variant="h4" sx={{mb: 3}}>
           시스템 로그
         </Typography>
-        <DataGridTable
-            columns={columns}
-            fetchData={(searchRequest) => logService.searchSystemLogs(
-                {searchRequest})}
-            searchFields={searchFields}
-            defaultPageSize={25}
-        />
+        <Box sx={{width: '85vw', mx: 'auto'}}>
+          <DataGridTable
+              columns={columns}
+              fetchData={(searchRequest) => logService.searchSystemLogs(
+                  {searchRequest})}
+              searchFields={searchFields}
+              defaultPageSize={25}
+          />
+        </Box>
         <DetailDialog
             open={dialogOpen}
             onClose={() => setDialogOpen(false)}

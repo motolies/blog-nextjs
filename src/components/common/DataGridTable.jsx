@@ -34,17 +34,35 @@ function CustomPagination() {
  *
  * @param {Object} props
  * @param {Array} props.columns - DataGrid 컬럼 정의
- * @param {Function} props.fetchData - 데이터 조회 함수 (searchRequest) => Promise<PageResponse>
+ * @param {Function} props.fetchData - 데이터 조회 함수 (searchRequest) => Promise<PageResponse> (서버 모드에서 필수)
  * @param {Array} props.searchFields - 검색 필드 정의 [{name, label, type}]
  * @param {Object} props.defaultSearchParams - 기본 검색 조건
  * @param {number} props.defaultPageSize - 기본 페이지 크기 (default: 10)
+ * @param {'server'|'client'} props.paginationMode - 페이지네이션 모드 (default: 'server')
+ * @param {Array} props.clientSideData - 클라이언트 모드에서 사용할 데이터
+ * @param {boolean} props.hidePagination - 페이지네이션 숨김 여부 (default: false)
+ * @param {Object} props.summaryRow - 합계 행 데이터 (id는 'summary'로 자동 설정)
+ * @param {Function} props.onRowClick - 행 클릭 핸들러
+ * @param {Function} props.getRowClassName - 행 클래스명 지정 함수
+ * @param {Object} props.dataGridSx - DataGrid 커스텀 스타일
+ * @param {boolean} props.autoHeight - DataGrid autoHeight 설정 (default: false)
+ * @param {'compact'|'standard'|'comfortable'} props.density - DataGrid density (default: 'standard')
  */
 export default function DataGridTable({
   columns,
   fetchData,
   searchFields = [],
   defaultSearchParams = {},
-  defaultPageSize = 10
+  defaultPageSize = 10,
+  paginationMode = 'server',
+  clientSideData = [],
+  hidePagination = false,
+  summaryRow = null,
+  onRowClick,
+  getRowClassName,
+  dataGridSx = {},
+  autoHeight = false,
+  density = 'standard'
 }) {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
@@ -60,8 +78,28 @@ export default function DataGridTable({
   // Race condition 방지를 위한 요청 시퀀스 추적
   const requestRef = useRef(0)
 
-  // 페이지, 정렬, 검색 조건 변경 시 데이터 로드
+  // 클라이언트 모드: clientSideData 변경 시 데이터 설정
   useEffect(() => {
+    if (paginationMode !== 'client') return
+
+    // 클라이언트 모드: clientSideData를 직접 사용
+    let processedRows = [...clientSideData]
+
+    // summaryRow 추가
+    if (summaryRow) {
+      processedRows = [...processedRows, { ...summaryRow, id: 'summary' }]
+    }
+
+    setRows(processedRows)
+    setRowCount(clientSideData.length)
+    setLoading(false)
+  }, [paginationMode, clientSideData, summaryRow])
+
+  // 서버 모드: 페이지, 정렬, 검색 조건 변경 시 데이터 로드
+  useEffect(() => {
+    if (paginationMode !== 'server') return
+
+    // 서버 모드: fetchData 호출
     const currentRequest = ++requestRef.current
 
     const loadData = async () => {
@@ -99,7 +137,7 @@ export default function DataGridTable({
     }
 
     loadData()
-  }, [paginationModel.page, paginationModel.pageSize, sortModel, searchParams])
+  }, [paginationMode, paginationModel.page, paginationModel.pageSize, sortModel, searchParams])
 
   // 검색 입력 핸들러
   const handleSearchInputChange = (fieldName, value) => {
@@ -206,8 +244,8 @@ export default function DataGridTable({
           loading={loading}
           rowCount={rowCount}
           paginationModel={paginationModel}
-          paginationMode="server"
-          sortingMode="server"
+          paginationMode={paginationMode}
+          sortingMode={paginationMode}
           onPaginationModelChange={setPaginationModel}
           onSortModelChange={setSortModel}
           pageSizeOptions={[10, 25, 50, 100]}
@@ -216,8 +254,13 @@ export default function DataGridTable({
           columnBuffer={3}
           disableExtendRowFullWidth
           scrollbarSize={12}
+          hideFooter={hidePagination}
+          autoHeight={autoHeight}
+          density={density}
+          onRowClick={onRowClick}
+          getRowClassName={getRowClassName}
           slots={{
-            pagination: CustomPagination,
+            pagination: hidePagination ? undefined : CustomPagination,
           }}
           sx={{
             width: '100%',
@@ -248,6 +291,7 @@ export default function DataGridTable({
             '& .MuiDataGrid-row:hover': {
               backgroundColor: '#f5f5f5',
             },
+            ...dataGridSx
           }}
         />
       </Paper>

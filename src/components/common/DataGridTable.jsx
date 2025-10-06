@@ -237,12 +237,12 @@ export default function DataGridTable({
             // Cell 클릭 시 Row 전체에 연한 파랑 배경 (Cell보다 연한 색상)
             '& .MuiDataGrid-row': {
               '&:has(.MuiDataGrid-cell:focus), &:has(.MuiDataGrid-cell:focus-within)': {
-                backgroundColor: '#f0f8ff',
+                backgroundColor: '#e2f1fd',
               },
             },
             // Cell 포커스 시 진한 파랑 배경
             '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
-              backgroundColor: '#e3f2fd',
+              backgroundColor: '#bae0fd',
               outline: 'none',
             },
             '& .MuiDataGrid-row:hover': {

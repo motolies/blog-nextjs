@@ -11,8 +11,25 @@
     clear: both;
 }
 
+.header {
+    margin-bottom: 2rem;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: #666;
+    margin: 0;
+}
+
 .content {
-    scroll: auto;
+    overflow: auto;
 }
 
 @media (min-width: 992px) {

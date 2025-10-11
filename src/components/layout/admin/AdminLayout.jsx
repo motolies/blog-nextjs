@@ -1,10 +1,12 @@
-import Footer from '../admin/Footer'
+import Footer from './Footer'
+import Header from './Header'
+import MenuHeader from './menu/MenuHeader'
+import MenuGroup from './menu/MenuGroup'
+import MenuItem from './menu/MenuItem'
 import {createTheme, ThemeProvider} from "@mui/material"
 import {useEffect, useState} from "react"
 import {useRouter} from "next/router"
-import Link from "next/link"
 import CategoryIcon from '@mui/icons-material/Category'
-import MenuIcon from '@mui/icons-material/Menu'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import LabelIcon from '@mui/icons-material/Label'
@@ -18,7 +20,7 @@ const theme = createTheme({
     MuiDialogContent: {
       styleOverrides: {
         root: {
-          padding: '16px !important', // basicTheme.spacing(2.5)도 가능
+          padding: '16px !important',
         },
       },
     },
@@ -88,182 +90,114 @@ export default function AdminLayout({children}) {
   }
 
   return (
-      <>
         <ThemeProvider theme={theme}>
           <div className={styles.layoutWrapper}>
             <div className={styles.layoutContainer}>
               {/* Navigation Bar */}
-              <nav className={styles.layoutNavbar}>
-                <div className={styles.navbarContent}>
-                  <button className={styles.menuToggleBtn} onClick={toggleMenu}>
-                    <MenuIcon/>
-                  </button>
-                  <Link href="/admin" className={styles.brandLink}>
-                    Admin
-                  </Link>
-                </div>
-              </nav>
+              <Header toggleMenu={toggleMenu} />
 
               {/* Sidebar */}
               <aside className={`${styles.layoutMenu} ${isMenuCollapsed ? styles.collapsed : ''}`}>
-
-
                 <div className={styles.menuInner}>
                   <ul className={styles.menuList}>
                     {/* 관리자 섹션 */}
-                    <li className={styles.menuHeader}>
-                      <span className={styles.menuHeaderText}>관리자</span>
-                    </li>
-                    <li className={`${styles.menuItem} ${expandedMenus.commonCode ? 'open' : ''}`}>
-                      <button
-                          className={`${styles.menuLink} menu-toggle`}
-                          onClick={() => toggleSubMenu('commonCode')}
-                      >
-                        <CodeIcon className={styles.menuIcon}/>
-                        <span className={styles.menuText}>공통코드</span>
-                        {expandedMenus.commonCode ?
-                            <ExpandLessIcon className={styles.menuArrow}/> :
-                            <ExpandMoreIcon className={styles.menuArrow}/>
-                        }
-                      </button>
-                      {expandedMenus.commonCode && (
-                          <ul className={styles.menuSub}>
-                            <li className={`${styles.menuItem} ${router.pathname === '/admin/common-code' ? styles.active : ''}`}>
-                              <Link href="/admin/common-code" className={styles.menuLink}>
-                                <span className={styles.menuText}>공통코드 관리</span>
-                              </Link>
-                            </li>
-                          </ul>
-                      )}
-                    </li>
+                    <MenuHeader title="관리자" />
 
-                    <li className={`${styles.menuItem} ${expandedMenus.systemLog ? 'open' : ''}`}>
-                      <button
-                          className={`${styles.menuLink} menu-toggle`}
-                          onClick={() => toggleSubMenu('systemLog')}
-                      >
-                        <BugReportIcon className={styles.menuIcon}/>
-                        <span className={styles.menuText}>시스템 로그</span>
-                        {expandedMenus.systemLog ?
-                            <ExpandLessIcon className={styles.menuArrow}/> :
-                            <ExpandMoreIcon className={styles.menuArrow}/>
-                        }
-                      </button>
-                      {expandedMenus.systemLog && (
-                          <ul className={styles.menuSub}>
-                            <li className={`${styles.menuItem} ${router.pathname === '/admin/system-log' ? styles.active : ''}`}>
-                              <Link href="/admin/system-log" className={styles.menuLink}>
-                                <span className={styles.menuText}>System</span>
-                              </Link>
-                            </li>
-                            <li className={`${styles.menuItem} ${router.pathname === '/admin/api-log' ? styles.active : ''}`}>
-                              <Link href="/admin/api-log" className={styles.menuLink}>
-                                <span className={styles.menuText}>Api</span>
-                              </Link>
-                            </li>
-                          </ul>
-                      )}
-                    </li>
+                    <MenuGroup
+                      title="공통코드"
+                      icon={<CodeIcon className={styles.menuIcon}/>}
+                      isExpanded={expandedMenus.commonCode}
+                      onToggle={() => toggleSubMenu('commonCode')}
+                    >
+                      <MenuItem
+                        href="/admin/common-code"
+                        label="공통코드 관리"
+                        isActive={router.pathname === '/admin/common-code'}
+                        isSubItem
+                      />
+                    </MenuGroup>
+
+                    <MenuGroup
+                      title="시스템 로그"
+                      icon={<BugReportIcon className={styles.menuIcon}/>}
+                      isExpanded={expandedMenus.systemLog}
+                      onToggle={() => toggleSubMenu('systemLog')}
+                    >
+                      <MenuItem
+                        href="/admin/system-log"
+                        label="System"
+                        isActive={router.pathname === '/admin/system-log'}
+                        isSubItem
+                      />
+                      <MenuItem
+                        href="/admin/api-log"
+                        label="Api"
+                        isActive={router.pathname === '/admin/api-log'}
+                        isSubItem
+                      />
+                    </MenuGroup>
 
                     {/* 포스트 관리 섹션 */}
-                    <li className={styles.menuHeader}>
-                      <span className={styles.menuHeaderText}>포스트 관리</span>
-                    </li>
-                    <li className={`${styles.menuItem} ${expandedMenus.posts ? 'open' : ''}`}>
-                      <button
-                          className={`${styles.menuLink} menu-toggle`}
-                          onClick={() => toggleSubMenu('posts')}
-                      >
-                        <EditIcon className={styles.menuIcon}/>
-                        <span className={styles.menuText}>포스트</span>
-                        {expandedMenus.posts ?
-                            <ExpandLessIcon className={styles.menuArrow}/> :
-                            <ExpandMoreIcon className={styles.menuArrow}/>
-                        }
-                      </button>
-                      {expandedMenus.posts && (
-                          <ul className={styles.menuSub}>
-                            <li className={`${styles.menuItem} ${router.pathname === '/admin/write' || router.pathname.startsWith('/admin/write/') ? styles.active : ''}`}>
-                              <Link href="/admin/write" className={styles.menuLink}>
-                                <span className={styles.menuText}>글 작성</span>
-                              </Link>
-                            </li>
-                          </ul>
-                      )}
-                    </li>
+                    <MenuHeader title="포스트 관리" />
 
-                    <li className={`${styles.menuItem} ${expandedMenus.category ? 'open' : ''}`}>
-                      <button
-                          className={`${styles.menuLink} menu-toggle`}
-                          onClick={() => toggleSubMenu('category')}
-                      >
-                        <CategoryIcon className={styles.menuIcon}/>
-                        <span className={styles.menuText}>카테고리</span>
-                        {expandedMenus.category ?
-                            <ExpandLessIcon className={styles.menuArrow}/> :
-                            <ExpandMoreIcon className={styles.menuArrow}/>
-                        }
-                      </button>
-                      {expandedMenus.category && (
-                          <ul className={styles.menuSub}>
-                            <li className={`${styles.menuItem} ${router.pathname === '/admin/categories' ? styles.active : ''}`}>
-                              <Link href="/admin/categories" className={styles.menuLink}>
-                                <span className={styles.menuText}>카테고리 관리</span>
-                              </Link>
-                            </li>
-                          </ul>
-                      )}
-                    </li>
+                    <MenuGroup
+                      title="포스트"
+                      icon={<EditIcon className={styles.menuIcon}/>}
+                      isExpanded={expandedMenus.posts}
+                      onToggle={() => toggleSubMenu('posts')}
+                    >
+                      <MenuItem
+                        href="/admin/write"
+                        label="글 작성"
+                        isActive={router.pathname === '/admin/write' || router.pathname.startsWith('/admin/write/')}
+                        isSubItem
+                      />
+                    </MenuGroup>
 
-                    <li className={`${styles.menuItem} ${expandedMenus.tags ? 'open' : ''}`}>
-                      <button
-                          className={`${styles.menuLink} menu-toggle`}
-                          onClick={() => toggleSubMenu('tags')}
-                      >
-                        <LabelIcon className={styles.menuIcon}/>
-                        <span className={styles.menuText}>태그</span>
-                        {expandedMenus.tags ?
-                            <ExpandLessIcon className={styles.menuArrow}/> :
-                            <ExpandMoreIcon className={styles.menuArrow}/>
-                        }
-                      </button>
-                      {expandedMenus.tags && (
-                          <ul className={styles.menuSub}>
-                            <li className={`${styles.menuItem} ${router.pathname === '/admin/tags' ? styles.active : ''}`}>
-                              <Link href="/admin/tags" className={styles.menuLink}>
-                                <span className={styles.menuText}>태그 관리</span>
-                              </Link>
-                            </li>
-                          </ul>
-                      )}
-                    </li>
+                    <MenuGroup
+                      title="카테고리"
+                      icon={<CategoryIcon className={styles.menuIcon}/>}
+                      isExpanded={expandedMenus.category}
+                      onToggle={() => toggleSubMenu('category')}
+                    >
+                      <MenuItem
+                        href="/admin/categories"
+                        label="카테고리 관리"
+                        isActive={router.pathname === '/admin/categories'}
+                        isSubItem
+                      />
+                    </MenuGroup>
+
+                    <MenuGroup
+                      title="태그"
+                      icon={<LabelIcon className={styles.menuIcon}/>}
+                      isExpanded={expandedMenus.tags}
+                      onToggle={() => toggleSubMenu('tags')}
+                    >
+                      <MenuItem
+                        href="/admin/tags"
+                        label="태그 관리"
+                        isActive={router.pathname === '/admin/tags'}
+                        isSubItem
+                      />
+                    </MenuGroup>
 
                     {/* 스프린트 관리 섹션 */}
-                    <li className={styles.menuHeader}>
-                      <span className={styles.menuHeaderText}>업무 관리</span>
-                    </li>
-                    <li className={`${styles.menuItem} ${expandedMenus.sprint ? 'open' : ''}`}>
-                      <button
-                          className={`${styles.menuLink} menu-toggle`}
-                          onClick={() => toggleSubMenu('sprint')}
-                      >
-                        <CodeIcon className={styles.menuIcon}/>
-                        <span className={styles.menuText}>스프린트</span>
-                        {expandedMenus.sprint ?
-                            <ExpandLessIcon className={styles.menuArrow}/> :
-                            <ExpandMoreIcon className={styles.menuArrow}/>
-                        }
-                      </button>
-                      {expandedMenus.sprint && (
-                          <ul className={styles.menuSub}>
-                            <li className={`${styles.menuItem} ${router.pathname === '/admin/sprint' ? styles.active : ''}`}>
-                              <Link href="/admin/sprint" className={styles.menuLink}>
-                                <span className={styles.menuText}>스프린트 관리</span>
-                              </Link>
-                            </li>
-                          </ul>
-                      )}
-                    </li>
+                    <MenuHeader title="업무 관리" />
+
+                    <MenuGroup
+                      title="스프린트"
+                      icon={<CodeIcon className={styles.menuIcon}/>}
+                      isExpanded={expandedMenus.sprint}
+                      onToggle={() => toggleSubMenu('sprint')}
+                    >
+                      <MenuItem
+                        href="/admin/sprint"
+                        label="스프린트 관리"
+                        isActive={router.pathname === '/admin/sprint'}
+                        isSubItem
+                      />
+                    </MenuGroup>
 
                   </ul>
                 </div>
@@ -282,6 +216,5 @@ export default function AdminLayout({children}) {
           </div>
 
         </ThemeProvider>
-      </>
   )
 }

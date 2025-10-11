@@ -22,19 +22,27 @@ function Skyscape({Component, pageProps}) {
     const {isLoading} = useSelector((state) => state.common)
     const {isAuthenticated} = useSelector((state) => state.user)
 
-    useEffect(() => {
-        // 사용자 정보를 로드합니다 (SSR이 아닌 경우)
-        if (typeof window !== 'undefined' && !isAuthenticated) {
-            dispatch({type: LOAD_USER_REQUEST})
-        }
-    }, [])
+useEffect(() => {
+    // 사용자 정보를 로드합니다 (CSR에서, 아직 인증 상태를 모를 때만)
+    if (typeof window !== 'undefined' && !isAuthenticated) {
+        dispatch({ type: LOAD_USER_REQUEST });
+    }
+}, [dispatch, isAuthenticated]);
 
-    useEffect(() => {
-        if (router.pathname.startsWith('/admin') && !isAuthenticated) {
-            // TODO : 로그인한 상태인지 redux에서 확인해보고 로그인 상태가 아니라면 login 페이지로 보낸다, provider 같은걸 만들면 화면 깜빡임을 없을 수 있을 것 같다.
-            router.push('/login')
+useEffect(() => {
+    // 보호 라우트 접근 제어: /admin* 은 인증 필요
+    if (router.pathname.startsWith('/admin')) {
+        if (isAuthenticated === false) {
+            router.replace('/login');
         }
-    }, [router.query.q, isAuthenticated])
+        return;
+    }
+
+    // 로그인 페이지에서 인증이 확인되면 관리자 홈으로
+    if (router.pathname === '/login' && isAuthenticated) {
+        router.replace('/admin');
+    }
+}, [isAuthenticated, router.pathname]);
 
     return (
         <SnackbarProvider autoHideDuration={2000}>

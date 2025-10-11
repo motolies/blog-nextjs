@@ -9,97 +9,105 @@ import {wrapper} from '../store'
 import {SnackbarProvider} from "notistack"
 import {useRouter} from "next/router"
 import Loading from "../components/Loading"
-import {useSelector} from "react-redux"
-import {SERVER_LOAD_USER_REQUEST_SUCCESS} from "../store/types/userTypes"
+import {useDispatch, useSelector} from "react-redux"
+import {
+  LOAD_USER_REQUEST,
+  SERVER_LOAD_USER_REQUEST_SUCCESS
+} from "../store/types/userTypes"
 import service from "../service"
 import {useEffect} from "react"
-import {useDispatch} from "react-redux"
-import {LOAD_USER_REQUEST} from "../store/types/userTypes"
 
 function Skyscape({Component, pageProps}) {
-    const router = useRouter()
-    const dispatch = useDispatch()
-    const {isLoading} = useSelector((state) => state.common)
-    const {isAuthenticated} = useSelector((state) => state.user)
+  const router = useRouter()
+  const dispatch = useDispatch()
+  const {isLoading} = useSelector((state) => state.common)
+  const {isAuthenticated} = useSelector((state) => state.user)
 
-useEffect(() => {
+  useEffect(() => {
     // 사용자 정보를 로드합니다 (CSR에서, 아직 인증 상태를 모를 때만)
-    if (typeof window !== 'undefined' && !isAuthenticated) {
-        dispatch({ type: LOAD_USER_REQUEST });
+    if (typeof window !== 'undefined' && isAuthenticated === undefined) {
+      dispatch({type: LOAD_USER_REQUEST});
     }
-}, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated]);
 
-useEffect(() => {
+  useEffect(() => {
+    // 인증 상태가 아직 확인되지 않은 경우 라우팅하지 않음
+    if (isAuthenticated === undefined) {
+      return;
+    }
+
     // 보호 라우트 접근 제어: /admin* 은 인증 필요
     if (router.pathname.startsWith('/admin')) {
-        if (isAuthenticated === false) {
-            router.replace('/login');
-        }
-        return;
+      if (isAuthenticated === false) {
+        router.replace('/login');
+      }
+      return;
     }
 
     // 로그인 페이지에서 인증이 확인되면 관리자 홈으로
-    if (router.pathname === '/login' && isAuthenticated) {
-        router.replace('/admin');
+    if (router.pathname === '/login' && isAuthenticated === true) {
+      router.replace('/admin');
     }
-}, [isAuthenticated, router.pathname]);
+  }, [isAuthenticated, router]);
 
-    return (
-        <SnackbarProvider autoHideDuration={2000}>
-            {isLoading && <Loading/>}
-            {router.pathname.startsWith('/admin') ?
-                <AdminLayout>
-                    <Component {...pageProps} />
-                </AdminLayout>
-                : <CommonLayout>
-                    <Component {...pageProps} />
-                </CommonLayout>}
-        </SnackbarProvider>
-    )
+  return (
+      <SnackbarProvider autoHideDuration={2000}>
+        {isLoading && <Loading/>}
+        {router.pathname.startsWith('/admin') ?
+            <AdminLayout>
+              <Component {...pageProps} />
+            </AdminLayout>
+            : <CommonLayout>
+              <Component {...pageProps} />
+            </CommonLayout>}
+      </SnackbarProvider>
+  )
 }
 
 Skyscape.getInitialProps = wrapper.getInitialAppProps(
     store => async ({Component, ctx}) => {
-        const req = ctx.req
-        const cookie = req?.headers?.cookie
+      const req = ctx.req
+      const cookie = req?.headers?.cookie
 
-        // 디버깅용: 들어온 쿠키 키만 로깅 (값은 마스킹)
-        if (cookie) {
-            try {
-                const keys = cookie.split(';').map(s => s.split('=')[0].trim())
-                console.log('[SSR] Incoming Cookie keys:', keys.join(','), `len=${cookie.length}`)
-            } catch (_) {}
-        } else {
-            console.log('[SSR] No Cookie on incoming request')
+      // 디버깅용: 들어온 쿠키 키만 로깅 (값은 마스킹)
+      if (cookie) {
+        try {
+          const keys = cookie.split(';').map(s => s.split('=')[0].trim())
+          console.log('[SSR] Incoming Cookie keys:', keys.join(','),
+              `len=${cookie.length}`)
+        } catch (_) {
         }
+      } else {
+        console.log('[SSR] No Cookie on incoming request')
+      }
 
-        if (cookie) {
-            try {
-                // 백엔드가 Cookie에서 Authorization을 직접 읽으므로 Cookie만 전달
-                const headers = { Cookie: cookie }
+      if (cookie) {
+        try {
+          // 백엔드가 Cookie에서 Authorization을 직접 읽으므로 Cookie만 전달
+          const headers = {Cookie: cookie}
 
-                console.log('[SSR] Forward Cookie to API')
+          console.log('[SSR] Forward Cookie to API')
 
-                const res = await service.user.profile({ headers })
-                store.dispatch({
-                    type: SERVER_LOAD_USER_REQUEST_SUCCESS,
-                    user: res.data,
-                })
-            } catch (err) {
-                // 인증 실패시 로그만 기록하고 계속 진행
-                console.log('서버사이드 인증 실패:', err?.response?.status || err.message)
-            }
+          const res = await service.user.profile({headers})
+          store.dispatch({
+            type: SERVER_LOAD_USER_REQUEST_SUCCESS,
+            user: res.data,
+          })
+        } catch (err) {
+          // 인증 실패시 로그만 기록하고 계속 진행
+          console.log('서버사이드 인증 실패:', err?.response?.status || err.message)
         }
+      }
 
-        return {
-            pageProps: {
-                // 페이지 레벨 getInitialProps 호출
-                ...(Component.getInitialProps
-                    ? await Component.getInitialProps({...ctx, store})
-                    : {}),
-                pathname: ctx.pathname,
-            },
-        }
+      return {
+        pageProps: {
+          // 페이지 레벨 getInitialProps 호출
+          ...(Component.getInitialProps
+              ? await Component.getInitialProps({...ctx, store})
+              : {}),
+          pathname: ctx.pathname,
+        },
+      }
     }
 )
 

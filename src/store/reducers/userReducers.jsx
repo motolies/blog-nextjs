@@ -10,7 +10,7 @@ import {
 } from '../types/userTypes'
 
 export default function userReducers(stats = {
-    isAuthenticated: false,
+    isAuthenticated: undefined,
     isLoading: false,
     user: {},
     error: ''

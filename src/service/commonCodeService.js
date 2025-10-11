@@ -386,6 +386,147 @@ class CommonCodeService {
       throw error
     }
   }
+
+  /**
+   * 계층형 트리 데이터 로드 (HierarchicalTreeView용)
+   * Class → Code → Class → Code 재귀 구조
+   */
+  async loadHierarchicalTree() {
+    try {
+      // 모든 클래스 조회 (codes 포함)
+      const classes = await this.getAllClasses()
+      return this.buildHierarchicalTree(classes)
+    } catch (error) {
+      console.error('계층형 트리 로드 실패:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 계층형 트리 구조 생성
+   * @param {Array} classes - 전체 클래스 배열
+   * @returns {Array} 계층형 트리 데이터
+   */
+  buildHierarchicalTree(classes) {
+    if (!classes || !Array.isArray(classes)) {
+      return []
+    }
+
+    // 1. 하위 클래스로 참조되는 클래스명 수집
+    const childClassNames = new Set()
+    classes.forEach(cls => {
+      if (cls.codes && Array.isArray(cls.codes)) {
+        cls.codes.forEach(code => {
+          if (code.childClassName) {
+            childClassNames.add(code.childClassName)
+          }
+        })
+      }
+    })
+
+    // 2. 최상위 클래스 찾기 (다른 클래스의 childClassName으로 참조되지 않는 클래스)
+    const rootClasses = classes.filter(cls => !childClassNames.has(cls.name))
+
+    // 3. 순환 참조 방지를 위한 처리된 클래스 추적
+    const processedClasses = new Set()
+
+    // 4. 재귀적으로 트리 구성
+    return rootClasses.map(cls => this.buildClassNode(cls, classes, processedClasses))
+  }
+
+  /**
+   * 클래스 노드 생성
+   * @param {Object} classData - 클래스 데이터
+   * @param {Array} allClasses - 전체 클래스 배열
+   * @param {Set} processedClasses - 처리된 클래스 집합 (순환 참조 방지)
+   * @returns {Object} 클래스 노드
+   */
+  buildClassNode(classData, allClasses, processedClasses) {
+    // 순환 참조 방지
+    if (processedClasses.has(classData.name)) {
+      console.warn(`순환 참조 감지: ${classData.name}`)
+      return null
+    }
+
+    processedClasses.add(classData.name)
+
+    const node = {
+      id: `class_${classData.name}`,
+      type: 'class',
+      name: classData.name,
+      displayName: classData.displayName,
+      description: classData.description,
+      isActive: classData.isActive,
+      attribute1Name: classData.attribute1Name,
+      attribute2Name: classData.attribute2Name,
+      attribute3Name: classData.attribute3Name,
+      attribute4Name: classData.attribute4Name,
+      attribute5Name: classData.attribute5Name,
+      createdAt: classData.createdAt,
+      createdBy: classData.createdBy,
+      updatedAt: classData.updatedAt,
+      updatedBy: classData.updatedBy,
+      codes: []
+    }
+
+    // 코드 노드 추가
+    if (classData.codes && Array.isArray(classData.codes)) {
+      // 정렬 순서 적용
+      const sortedCodes = [...classData.codes].sort((a, b) => (a.sort || 0) - (b.sort || 0))
+
+      node.codes = sortedCodes
+        .map(code => this.buildCodeNode(code, allClasses, new Set(processedClasses)))
+        .filter(codeNode => codeNode !== null)
+    }
+
+    return node
+  }
+
+  /**
+   * 코드 노드 생성
+   * @param {Object} codeData - 코드 데이터
+   * @param {Array} allClasses - 전체 클래스 배열
+   * @param {Set} processedClasses - 처리된 클래스 집합 (순환 참조 방지)
+   * @returns {Object} 코드 노드
+   */
+  buildCodeNode(codeData, allClasses, processedClasses) {
+    const node = {
+      id: `code_${codeData.className}_${codeData.code}`,
+      type: 'code',
+      className: codeData.className,
+      code: codeData.code,
+      name: codeData.name,
+      description: codeData.description,
+      attribute1Value: codeData.attribute1Value,
+      attribute2Value: codeData.attribute2Value,
+      attribute3Value: codeData.attribute3Value,
+      attribute4Value: codeData.attribute4Value,
+      attribute5Value: codeData.attribute5Value,
+      childClassName: codeData.childClassName,
+      sort: codeData.sort,
+      isActive: codeData.isActive,
+      createdAt: codeData.createdAt,
+      createdBy: codeData.createdBy,
+      updatedAt: codeData.updatedAt,
+      updatedBy: codeData.updatedBy,
+      childClass: null
+    }
+
+    // 하위 클래스가 있으면 재귀적으로 추가
+    if (codeData.childClassName) {
+      const childClass = allClasses.find(cls => cls.name === codeData.childClassName)
+      if (childClass) {
+        const childClassNode = this.buildClassNode(childClass, allClasses, processedClasses)
+        if (childClassNode) {
+          node.childClass = childClassNode
+        }
+      } else {
+        console.warn(`하위 클래스를 찾을 수 없음: ${codeData.childClassName}`)
+      }
+    }
+
+    return node
+  }
 }
 
 const commonCodeService = new CommonCodeService()

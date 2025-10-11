@@ -27,8 +27,8 @@ export default function LoginPage() {
         })
 
         if (userState.isAuthenticated && userState.user.username) {
-            // 사용자 정보가 있으면 루트로 이동
-            router.push('/')
+            // 사용자 정보가 있으면 admin으로 이동
+            router.push('/admin')
         }
 
         return () => {

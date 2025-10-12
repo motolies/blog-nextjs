@@ -165,4 +165,47 @@ docker buildx build --platform linux/amd64,linux/arm64 --no-cache --push -t dock
 
 ### 주요 라이브러리
 - mui 시리즈 컴포넌트를 주로 사용하며 버전에 맞는 문서를 확인하여 관리
-- 컴포넌트의 CSS를 직접 수정하지 않음 
+- 컴포넌트의 CSS를 직접 수정하지 않음
+
+### 알림 시스템 (Snackbar) 사용 패턴
+
+**notistack 라이브러리 사용 필수**
+- `_app.jsx`에 `SnackbarProvider`가 설정되어 있음 (`autoHideDuration: 2000`)
+- **모든 페이지에서 `useSnackbar` 훅을 사용하여 알림 표시**
+- MUI의 기본 `Snackbar`, `Alert` 컴포넌트를 직접 사용하지 않음
+
+**기본 사용 패턴**:
+```javascript
+import {useSnackbar} from 'notistack'
+
+export default function MyPage() {
+  const {enqueueSnackbar} = useSnackbar()
+
+  const handleSuccess = () => {
+    enqueueSnackbar('성공 메시지', {variant: 'success'})
+  }
+
+  const handleError = (error) => {
+    enqueueSnackbar(`실패: ${error.message}`, {variant: 'error'})
+  }
+
+  const handleWarning = () => {
+    enqueueSnackbar('경고 메시지', {variant: 'warning'})
+  }
+
+  const handleInfo = () => {
+    enqueueSnackbar('정보 메시지', {variant: 'info'})
+  }
+}
+```
+
+**Variant 종류**:
+- `success`: 성공 메시지 (녹색)
+- `error`: 오류 메시지 (빨간색)
+- `warning`: 경고 메시지 (주황색)
+- `info`: 정보 메시지 (파란색)
+
+**참고 예시 파일**:
+- `/admin/categories.jsx`: 카테고리 관리 (CRUD 작업)
+- `/admin/sprint.jsx`: 스프린트 보고서 (데이터 로드 실패 처리)
+- `/admin/common-code.jsx`: 공통코드 관리 (다양한 알림 시나리오) 

@@ -37,7 +37,9 @@ export default function HierarchicalTreeView({
 
   // 모든 노드 ID 수집 (autoExpandAll용)
   const allNodeIds = useMemo(() => {
-    if (!autoExpandAll) return []
+    if (!autoExpandAll) {
+      return []
+    }
 
     const ids = []
     const collectIds = (nodes) => {
@@ -69,7 +71,9 @@ export default function HierarchicalTreeView({
 
   // 노드 선택 핸들러
   const handleSelect = useCallback((event, nodeId) => {
-    if (!onSelect || !nodeId) return
+    if (!onSelect || !nodeId) {
+      return
+    }
 
     // 트리에서 해당 노드 찾기
     const findNode = (nodes, id) => {
@@ -80,11 +84,13 @@ export default function HierarchicalTreeView({
         if (node.codes) {
           for (const code of node.codes) {
             if (code.id === id) {
-              return {node: code, type: 'code'}
+              return {node: code, type: 'CODE'}
             }
             if (code.childClass) {
               const found = findNode([code.childClass], id)
-              if (found) return found
+              if (found) {
+                return found
+              }
             }
           }
         }
@@ -100,151 +106,155 @@ export default function HierarchicalTreeView({
 
   // 기본 클래스 레이블 렌더러
   const defaultClassLabelRenderer = useCallback((node) => (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
-      <ClassIcon fontSize="small" />
-      <Typography variant="body2" fontWeight="bold">
-        {node.displayName || node.name}
-      </Typography>
-      <Typography variant="caption" sx={{ opacity: 0.8 }}>
-        ({node.name})
-      </Typography>
-      {node.codes?.length > 0 && (
-        <Chip
-          label={node.codes.length}
-          size="small"
-          variant="outlined"
-          sx={{
-            height: 18,
-            fontSize: '0.7rem',
-            borderColor: 'currentColor'
-          }}
-        />
-      )}
-      {!node.isActive && (
-        <Chip
-          label="비활성"
-          size="small"
-          variant="outlined"
-          sx={{
-            height: 18,
-            fontSize: '0.7rem',
-            borderColor: 'currentColor',
-            opacity: 0.7
-          }}
-        />
-      )}
-    </Box>
+      <Box sx={{display: 'flex', alignItems: 'center', gap: 1, py: 0.5}}>
+        <ClassIcon fontSize="small"/>
+        <Typography variant="body2" fontWeight="bold">
+          {node.displayName || node.name}
+        </Typography>
+        <Typography variant="caption" sx={{opacity: 0.8}}>
+          ({node.code})
+        </Typography>
+        {node.codes?.length > 0 && (
+            <Chip
+                label={node.codes.length}
+                size="small"
+                variant="outlined"
+                sx={{
+                  height: 18,
+                  fontSize: '0.7rem',
+                  borderColor: 'currentColor'
+                }}
+            />
+        )}
+        {!node.isActive && (
+            <Chip
+                label="비활성"
+                size="small"
+                variant="outlined"
+                sx={{
+                  height: 18,
+                  fontSize: '0.7rem',
+                  borderColor: 'currentColor',
+                  opacity: 0.7
+                }}
+            />
+        )}
+      </Box>
   ), [])
 
   // 기본 코드 레이블 렌더러
   const defaultCodeLabelRenderer = useCallback((node) => (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
-      <CodeIcon fontSize="small" />
-      <Typography variant="body2">
-        {node.name}
-      </Typography>
-      <Typography variant="caption" sx={{ opacity: 0.8 }}>
-        ({node.code})
-      </Typography>
-      {node.childClass && (
-        <Chip
-          label="하위"
-          size="small"
-          variant="outlined"
-          sx={{
-            height: 18,
-            fontSize: '0.7rem',
-            borderColor: 'currentColor',
-            opacity: 0.9
-          }}
-        />
-      )}
-      {!node.isActive && (
-        <Chip
-          label="비활성"
-          size="small"
-          variant="outlined"
-          sx={{
-            height: 18,
-            fontSize: '0.7rem',
-            borderColor: 'currentColor',
-            opacity: 0.7
-          }}
-        />
-      )}
-    </Box>
+      <Box sx={{display: 'flex', alignItems: 'center', gap: 1, py: 0.5}}>
+        <CodeIcon fontSize="small"/>
+        <Typography variant="body2">
+          {node.name}
+        </Typography>
+        <Typography variant="caption" sx={{opacity: 0.8}}>
+          ({node.code})
+        </Typography>
+        {node.childClass && (
+            <Chip
+                label="하위"
+                size="small"
+                variant="outlined"
+                sx={{
+                  height: 18,
+                  fontSize: '0.7rem',
+                  borderColor: 'currentColor',
+                  opacity: 0.9
+                }}
+            />
+        )}
+        {!node.isActive && (
+            <Chip
+                label="비활성"
+                size="small"
+                variant="outlined"
+                sx={{
+                  height: 18,
+                  fontSize: '0.7rem',
+                  borderColor: 'currentColor',
+                  opacity: 0.7
+                }}
+            />
+        )}
+      </Box>
   ), [])
 
   // 트리 노드 재귀 렌더링
   const renderTreeNode = useCallback((node, depth = 0) => {
-    if (!node || !node.id) return null
+    if (!node || !node.id) {
+      return null
+    }
 
-    if (node.type === 'class') {
-      const label = renderClassLabel ? renderClassLabel(node) : defaultClassLabelRenderer(node)
+    if (node.type === 'CLASS') {
+      const label = renderClassLabel ? renderClassLabel(node)
+          : defaultClassLabelRenderer(node)
 
       return (
-        <TreeItem
-          key={node.id}
-          nodeId={node.id}
-          label={label}
-          sx={{
-            '& .MuiTreeItem-content': {
-              padding: '4px 8px',
-              borderRadius: 1,
-              transition: 'all 0.2s ease',
+          <TreeItem
+              key={node.id}
+              nodeId={node.id}
+              label={label}
+              sx={{
+                '& .MuiTreeItem-content': {
+                  padding: '4px 8px',
+                  borderRadius: 1,
+                  transition: 'all 0.2s ease',
 
-              // 기본 상태: 파란색 텍스트/아이콘
-              color: 'primary.main',
-
-              '& .MuiSvgIcon-root': {
-                color: 'primary.main',
-              },
-
-              // Hover: 연한 파란색 배경, 진한 파란색 텍스트
-              '&:hover': {
-                backgroundColor: 'rgba(25, 118, 210, 0.1)',
-                color: 'primary.dark',
-
-                '& .MuiSvgIcon-root': {
-                  color: 'primary.dark',
-                },
-              },
-
-              // Selected: 파란색 배경, 흰색 텍스트
-              '&.Mui-selected.Mui-focused': {
-                backgroundColor: 'primary.main',
-                color: 'common.white',
-                fontWeight: 'bold',
-
-                '& .MuiSvgIcon-root': {
-                  color: 'common.white',
-                },
-
-                '& .MuiTypography-root': {
-                  color: 'common.white',
-                  fontWeight: 'bold',
-                },
-
-                '& .MuiChip-root': {
-                  borderColor: 'rgba(255, 255, 255, 0.7)',
-                  color: 'common.white',
-                },
-
-                // Selected + Hover: 더 진한 파란색
-                '&:hover': {
-                  backgroundColor: 'primary.dark',
-                  color: 'common.white',
+                  // 기본 상태: 파란색 텍스트/아이콘
+                  color: 'primary.main',
 
                   '& .MuiSvgIcon-root': {
+                    color: 'primary.main',
+                  },
+
+                  // Hover: 연한 파란색 배경, 진한 파란색 텍스트
+                  '&:hover': {
+                    backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                    color: 'primary.dark',
+
+                    '& .MuiSvgIcon-root': {
+                      color: 'primary.dark',
+                    },
+                  },
+
+                  // Selected: 파란색 배경, 흰색 텍스트
+                  '&.Mui-selected, &.Mui-focused': {
+                    backgroundColor: (theme) => `${theme.palette.primary.main} !important`,
+
                     color: 'common.white',
+                    fontWeight: 'bold',
+
+                    '& .MuiSvgIcon-root': {
+                      color: 'common.white',
+                    },
+
+                    '& .MuiTypography-root': {
+                      color: 'common.white',
+                      fontWeight: 'bold',
+                    },
+
+                    '& .MuiChip-root': {
+                      borderColor: 'rgba(255, 255, 255, 0.7)',
+                      color: 'common.white',
+                    },
+
+                    // Selected + Hover: 더 진한 파란색
+                    '&:hover': {
+                      backgroundColor: 'primary.dark',
+                      color: 'common.white',
+
+                      '& .MuiSvgIcon-root': {
+                        color: 'common.white',
+                      },
+                    },
                   },
                 },
-              },
-            },
-          }}
-        >
-          {node.codes?.map(code => renderCodeNode(code, depth + 1))}
-        </TreeItem>
+              }}
+          >
+            {node.codes?.map(code => renderCodeNode(code, depth + 1))}
+          </TreeItem>
       )
     }
     return null
@@ -252,114 +262,123 @@ export default function HierarchicalTreeView({
 
   // 코드 노드 렌더링
   const renderCodeNode = useCallback((codeNode, depth = 0) => {
-    if (!codeNode || !codeNode.id) return null
+    if (!codeNode || !codeNode.id) {
+      return null
+    }
 
-    const label = renderCodeLabel ? renderCodeLabel(codeNode) : defaultCodeLabelRenderer(codeNode)
+    const label = renderCodeLabel ? renderCodeLabel(codeNode)
+        : defaultCodeLabelRenderer(codeNode)
 
     return (
-      <TreeItem
-        key={codeNode.id}
-        nodeId={codeNode.id}
-        label={label}
-        sx={{
-          '& .MuiTreeItem-content': {
-            padding: '4px 8px',
-            borderRadius: 1,
-            transition: 'all 0.2s ease',
+        <TreeItem
+            key={codeNode.id}
+            nodeId={codeNode.id}
+            label={label}
+            sx={{
+              '& .MuiTreeItem-content': {
+                padding: '4px 8px',
+                borderRadius: 1,
+                transition: 'all 0.2s ease',
 
-            // 기본 상태: 기본 텍스트, 보라색 아이콘
-            color: 'text.primary',
-
-            '& .MuiSvgIcon-root': {
-              color: 'secondary.main',
-              opacity: 0.7,
-            },
-
-            // Hover: 연한 보라색 배경, 진한 보라색 텍스트
-            '&:hover': {
-              backgroundColor: 'rgba(156, 39, 176, 0.08)',
-              color: 'secondary.dark',
-
-              '& .MuiSvgIcon-root': {
-                color: 'secondary.main',
-                opacity: 1,
-              },
-            },
-
-            // Selected: 보라색 배경, 흰색 텍스트
-            '&.Mui-selected.Mui-focused': {
-              backgroundColor: 'secondary.main',
-              color: 'common.white',
-
-              '& .MuiSvgIcon-root': {
-                color: 'common.white',
-                opacity: 1,
-              },
-
-              '& .MuiTypography-root': {
-                color: 'common.white',
-              },
-
-              '& .MuiChip-root': {
-                borderColor: 'rgba(255, 255, 255, 0.7)',
-                color: 'common.white',
-              },
-
-              // Selected + Hover: 더 진한 보라색
-              '&:hover': {
-                backgroundColor: 'secondary.dark',
-                color: 'common.white',
+                // 기본 상태: 기본 텍스트, 보라색 아이콘
+                color: 'text.primary',
 
                 '& .MuiSvgIcon-root': {
+                  color: 'secondary.main',
+                  opacity: 0.7,
+                },
+
+                // Hover: 연한 보라색 배경, 진한 보라색 텍스트
+                '&:hover': {
+                  backgroundColor: 'rgba(156, 39, 176, 0.08)',
+                  color: 'secondary.dark',
+
+                  '& .MuiSvgIcon-root': {
+                    color: 'secondary.main',
+                    opacity: 1,
+                  },
+                },
+
+                // Selected: 보라색 배경, 흰색 텍스트
+                '&.Mui-selected, &.Mui-focused': {
+                  backgroundColor: (theme) => `${theme.palette.secondary.main} !important`,
                   color: 'common.white',
+
+                  '& .MuiSvgIcon-root': {
+                    color: 'common.white',
+                    opacity: 1,
+                  },
+
+                  '& .MuiTypography-root': {
+                    color: 'common.white',
+                  },
+
+                  '& .MuiChip-root': {
+                    borderColor: 'rgba(255, 255, 255, 0.7)',
+                    color: 'common.white',
+                  },
+
+                  // Selected + Hover: 더 진한 보라색
+                  '&:hover': {
+                    backgroundColor: 'secondary.dark',
+                    color: 'common.white',
+
+                    '& .MuiSvgIcon-root': {
+                      color: 'common.white',
+                    },
+                  },
                 },
               },
-            },
-          },
-        }}
-      >
-        {codeNode.childClass && renderTreeNode(codeNode.childClass, depth + 1)}
-      </TreeItem>
+            }}
+        >
+          {codeNode.childClass && renderTreeNode(codeNode.childClass,
+              depth + 1)}
+        </TreeItem>
     )
   }, [renderCodeLabel, defaultCodeLabelRenderer, renderTreeNode])
 
   // 로딩 상태
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <CircularProgress />
-      </Box>
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100%'
+        }}>
+          <CircularProgress/>
+        </Box>
     )
   }
 
   // 데이터 없음
   if (!data || data.length === 0) {
     return (
-      <Box sx={{ p: 2 }}>
-        <Typography variant="body2" color="text.secondary">
-          데이터가 없습니다.
-        </Typography>
-      </Box>
+        <Box sx={{p: 2}}>
+          <Typography variant="body2" color="text.secondary">
+            데이터가 없습니다.
+          </Typography>
+        </Box>
     )
   }
 
   return (
-    <Box sx={{ width: '100%', height: '100%', overflow: 'auto', p: 2 }}>
-      <TreeView
-        aria-label="hierarchical tree"
-        defaultCollapseIcon={<ExpandMoreIcon />}
-        defaultExpandIcon={<ChevronRightIcon />}
-        expanded={effectiveExpanded}
-        selected={selectedId}
-        onNodeToggle={handleToggle}
-        onNodeSelect={handleSelect}
-        sx={{
-          flexGrow: 1,
-          overflowY: 'auto',
-        }}
-      >
-        {data.map(node => renderTreeNode(node, 0))}
-      </TreeView>
-    </Box>
+      <Box sx={{width: '100%', height: '100%', overflow: 'auto', p: 2}}>
+        <TreeView
+            aria-label="hierarchical tree"
+            defaultCollapseIcon={<ExpandMoreIcon/>}
+            defaultExpandIcon={<ChevronRightIcon/>}
+            expanded={effectiveExpanded}
+            selected={selectedId}
+            onNodeToggle={handleToggle}
+            onNodeSelect={handleSelect}
+            sx={{
+              flexGrow: 1,
+              overflowY: 'auto',
+            }}
+        >
+          {data.map(node => renderTreeNode(node, 0))}
+        </TreeView>
+      </Box>
   )
 }

@@ -20,14 +20,14 @@ class CommonCodeService {
 
   /**
    * 클래스 상세 조회
-   * @param {string} className - 클래스명
+   * @param {string} classCode - 클래스 코드
    */
-  async getClassDetail(className) {
+  async getClassDetail(classCode) {
     try {
-      const response = await axiosClient.get(`${COMMON_CODE_API_BASE}/class/${className}`)
+      const response = await axiosClient.get(`${COMMON_CODE_API_BASE}/class/${classCode}`)
       return response.data
     } catch (error) {
-      console.error(`클래스 상세 조회 실패 [${className}]:`, error)
+      console.error(`클래스 상세 조회 실패 [${classCode}]:`, error)
       throw error
     }
   }
@@ -57,29 +57,29 @@ class CommonCodeService {
 
   /**
    * 클래스 수정
-   * @param {string} className - 클래스명
+   * @param {string} classCode - 클래스 코드
    * @param {Object} updateData - 수정할 데이터
    */
-  async updateClass(className, updateData) {
+  async updateClass(classCode, updateData) {
     try {
-      const response = await axiosClient.put(`${COMMON_CODE_API_BASE}/class/${className}`, updateData)
+      const response = await axiosClient.put(`${COMMON_CODE_API_BASE}/class/${classCode}`, updateData)
       return response.data
     } catch (error) {
-      console.error(`클래스 수정 실패 [${className}]:`, error)
+      console.error(`클래스 수정 실패 [${classCode}]:`, error)
       throw error
     }
   }
 
   /**
    * 클래스 삭제
-   * @param {string} className - 클래스명
+   * @param {string} classCode - 클래스 코드
    */
-  async deleteClass(className) {
+  async deleteClass(classCode) {
     try {
-      const response = await axiosClient.delete(`${COMMON_CODE_API_BASE}/class/${className}`)
+      const response = await axiosClient.delete(`${COMMON_CODE_API_BASE}/class/${classCode}`)
       return response.data
     } catch (error) {
-      console.error(`클래스 삭제 실패 [${className}]:`, error)
+      console.error(`클래스 삭제 실패 [${classCode}]:`, error)
       throw error
     }
   }
@@ -88,14 +88,14 @@ class CommonCodeService {
 
   /**
    * 특정 클래스의 코드 목록 조회 (클래스 조회에서 codes 배열 추출)
-   * @param {string} className - 클래스명
+   * @param {string} classCode - 클래스 코드
    */
-  async getCodesByClassName(className) {
+  async getCodesByClassCode(classCode) {
     try {
-      const classData = await this.getClassDetail(className)
+      const classData = await this.getClassDetail(classCode)
       return classData.codes || []
     } catch (error) {
-      console.error(`코드 목록 조회 실패 [${className}]:`, error)
+      console.error(`코드 목록 조회 실패 [${classCode}]:`, error)
       throw error
     }
   }
@@ -103,7 +103,7 @@ class CommonCodeService {
   /**
    * 코드 생성
    * @param {Object} codeData - 코드 데이터
-   * @param {string} codeData.className - 클래스명
+   * @param {string} codeData.classCode - 클래스 코드
    * @param {string} codeData.code - 코드값
    * @param {string} codeData.name - 코드명
    * @param {string} codeData.description - 설명
@@ -112,7 +112,7 @@ class CommonCodeService {
    * @param {string} codeData.attribute3Value - 속성3 값
    * @param {string} codeData.attribute4Value - 속성4 값
    * @param {string} codeData.attribute5Value - 속성5 값
-   * @param {string} codeData.childClassName - 하위 클래스명
+   * @param {string} codeData.childClassCode - 하위 클래스 코드
    * @param {number} codeData.sort - 정렬순서
    * @param {boolean} codeData.isActive - 활성화 여부
    */
@@ -128,46 +128,46 @@ class CommonCodeService {
 
   /**
    * 코드 수정
-   * @param {string} className - 클래스명
+   * @param {string} classCode - 클래스 코드
    * @param {string} code - 코드값
    * @param {Object} updateData - 수정할 데이터
    */
-  async updateCode(className, code, updateData) {
+  async updateCode(classCode, code, updateData) {
     try {
-      const response = await axiosClient.put(`${COMMON_CODE_API_BASE}/code/${className}/${code}`, updateData)
+      const response = await axiosClient.put(`${COMMON_CODE_API_BASE}/code/${classCode}/${code}`, updateData)
       return response.data
     } catch (error) {
-      console.error(`코드 수정 실패 [${className}/${code}]:`, error)
+      console.error(`코드 수정 실패 [${classCode}/${code}]:`, error)
       throw error
     }
   }
 
   /**
    * 코드 삭제
-   * @param {string} className - 클래스명
+   * @param {string} classCode - 클래스 코드
    * @param {string} code - 코드값
    */
-  async deleteCode(className, code) {
+  async deleteCode(classCode, code) {
     try {
-      const response = await axiosClient.delete(`${COMMON_CODE_API_BASE}/code/${className}/${code}`)
+      const response = await axiosClient.delete(`${COMMON_CODE_API_BASE}/code/${classCode}/${code}`)
       return response.data
     } catch (error) {
-      console.error(`코드 삭제 실패 [${className}/${code}]:`, error)
+      console.error(`코드 삭제 실패 [${classCode}/${code}]:`, error)
       throw error
     }
   }
 
   /**
    * 배치 코드 생성
-   * @param {string} className - 클래스명
+   * @param {string} classCode - 클래스 코드
    * @param {Array} codesArray - 코드 배열
    */
-  async batchCreateCodes(className, codesArray) {
+  async batchCreateCodes(classCode, codesArray) {
     try {
-      const response = await axiosClient.post(`${COMMON_CODE_API_BASE}/class/${className}/codes/batch`, codesArray)
+      const response = await axiosClient.post(`${COMMON_CODE_API_BASE}/class/${classCode}/codes/batch`, codesArray)
       return response.data
     } catch (error) {
-      console.error(`배치 코드 생성 실패 [${className}]:`, error)
+      console.error(`배치 코드 생성 실패 [${classCode}]:`, error)
       throw error
     }
   }
@@ -175,30 +175,30 @@ class CommonCodeService {
   // =============== 유틸리티 ===============
 
   /**
-   * 클래스명 중복 확인
-   * @param {string} className - 클래스명
+   * 클래스 코드 중복 확인
+   * @param {string} classCode - 클래스 코드
    */
-  async checkClassExists(className) {
+  async checkClassExists(classCode) {
     try {
-      const response = await axiosClient.get(`${COMMON_CODE_API_BASE}/class/${className}/exists`)
+      const response = await axiosClient.get(`${COMMON_CODE_API_BASE}/class/${classCode}/exists`)
       return response.data.exists
     } catch (error) {
-      console.error(`클래스명 중복 확인 실패 [${className}]:`, error)
+      console.error(`클래스 코드 중복 확인 실패 [${classCode}]:`, error)
       throw error
     }
   }
 
   /**
    * 코드값 중복 확인
-   * @param {string} className - 클래스명
+   * @param {string} classCode - 클래스 코드
    * @param {string} code - 코드값
    */
-  async checkCodeExists(className, code) {
+  async checkCodeExists(classCode, code) {
     try {
-      const response = await axiosClient.get(`${COMMON_CODE_API_BASE}/code/${className}/${code}/exists`)
+      const response = await axiosClient.get(`${COMMON_CODE_API_BASE}/code/${classCode}/${code}/exists`)
       return response.data.exists
     } catch (error) {
-      console.error(`코드값 중복 확인 실패 [${className}/${code}]:`, error)
+      console.error(`코드값 중복 확인 실패 [${classCode}/${code}]:`, error)
       throw error
     }
   }
@@ -214,14 +214,14 @@ class CommonCodeService {
     const treeData = []
     const processedClasses = new Set() // 순환 참조 방지
 
-    // 최상위 클래스부터 시작 (다른 클래스에서 childClassName으로 참조되지 않는 클래스)
+    // 최상위 클래스부터 시작 (다른 클래스에서 childClassCode로 참조되지 않는 클래스)
     const topLevelClasses = classes.filter(cls =>
-        cls.isActive && !this.isChildClass(cls.name, codesByClass)
+        cls.isActive && !this.isChildClass(cls.code, codesByClass)
     )
 
     topLevelClasses.forEach(cls => {
-      if (!processedClasses.has(cls.name)) {
-        const classNode = this.createClassNode(cls, [cls.name])
+      if (!processedClasses.has(cls.code)) {
+        const classNode = this.createClassNode(cls, [cls.code])
         this.addCodeNodes(classNode, cls, codesByClass, classes, processedClasses)
         treeData.push(classNode)
       }
@@ -232,12 +232,12 @@ class CommonCodeService {
 
   /**
    * 해당 클래스가 다른 클래스의 하위 클래스인지 확인
-   * @param {string} className - 클래스명
+   * @param {string} classCode - 클래스 코드
    * @param {Object} codesByClass - 클래스별 코드 맵
    */
-  isChildClass(className, codesByClass) {
+  isChildClass(classCode, codesByClass) {
     return Object.values(codesByClass).some(codes =>
-        codes.some(code => code.childClassName === className)
+        codes.some(code => code.childClassCode === classCode)
     )
   }
 
@@ -248,8 +248,9 @@ class CommonCodeService {
    */
   createClassNode(cls, hierarchy) {
     return {
-      id: `class_${cls.name}_${hierarchy.join('_')}`,
+      id: `class_${cls.code}_${hierarchy.join('_')}`,
       type: 'class',
+      code: cls.code,
       name: cls.name,
       displayName: cls.displayName,
       description: cls.description,
@@ -274,9 +275,9 @@ class CommonCodeService {
    */
   createCodeNode(code, hierarchy) {
     return {
-      id: `code_${code.className}_${code.code}_${hierarchy.join('_')}`,
+      id: `code_${code.classCode}_${code.code}_${hierarchy.join('_')}`,
       type: 'code',
-      className: code.className,
+      classCode: code.classCode,
       code: code.code,
       name: code.name,
       description: code.description,
@@ -285,10 +286,10 @@ class CommonCodeService {
       attribute3Value: code.attribute3Value,
       attribute4Value: code.attribute4Value,
       attribute5Value: code.attribute5Value,
-      childClassName: code.childClassName,
+      childClassCode: code.childClassCode,
       sort: code.sort,
       isActive: code.isActive,
-      hasChildren: !!code.childClassName,
+      hasChildren: !!code.childClassCode,
       createdAt: code.createdAt,
       createdBy: code.createdBy,
       updatedAt: code.updatedAt,
@@ -306,9 +307,9 @@ class CommonCodeService {
    * @param {Set} processedClasses - 처리된 클래스 집합
    */
   addCodeNodes(classNode, cls, codesByClass, allClasses, processedClasses) {
-    processedClasses.add(cls.name)
+    processedClasses.add(cls.code)
 
-    const codes = codesByClass[cls.name] || []
+    const codes = codesByClass[cls.code] || []
     codes.sort((a, b) => (a.sort || 0) - (b.sort || 0)) // 정렬
 
     codes.forEach(code => {
@@ -316,13 +317,13 @@ class CommonCodeService {
       const codeNode = this.createCodeNode(code, codeHierarchy)
 
       // 하위 클래스가 있으면 재귀적으로 추가
-      if (code.childClassName && codesByClass[code.childClassName]) {
-        const childClass = allClasses.find(c => c.name === code.childClassName)
-        if (childClass && !processedClasses.has(code.childClassName)) {
-          const childClassHierarchy = [...codeHierarchy, childClass.name]
+      if (code.childClassCode && codesByClass[code.childClassCode]) {
+        const childClass = allClasses.find(c => c.code === code.childClassCode)
+        if (childClass && !processedClasses.has(code.childClassCode)) {
+          const childClassHierarchy = [...codeHierarchy, childClass.code]
           const childClassNode = this.createClassNode(childClass, childClassHierarchy)
           this.addCodeNodes(childClassNode, childClass, codesByClass, allClasses, processedClasses)
-          codeNode.childClassName = childClass.name
+          codeNode.childClassCode = childClass.code
         }
       }
 
@@ -374,7 +375,7 @@ class CommonCodeService {
       const codesByClass = {}
       classes.forEach(classItem => {
         if (classItem.codes && Array.isArray(classItem.codes)) {
-          codesByClass[classItem.name] = classItem.codes
+          codesByClass[classItem.code] = classItem.codes
         }
       })
 
@@ -389,13 +390,13 @@ class CommonCodeService {
 
   /**
    * 계층형 트리 데이터 로드 (HierarchicalTreeView용)
+   * 백엔드에서 구성된 트리 구조를 그대로 반환
    * Class → Code → Class → Code 재귀 구조
    */
   async loadHierarchicalTree() {
     try {
-      // 모든 클래스 조회 (codes 포함)
-      const classes = await this.getAllClasses()
-      return this.buildHierarchicalTree(classes)
+      const response = await axiosClient.get(`${COMMON_CODE_API_BASE}/tree`)
+      return this.transformTreeForUI(response.data)
     } catch (error) {
       console.error('계층형 트리 로드 실패:', error)
       throw error
@@ -403,129 +404,39 @@ class CommonCodeService {
   }
 
   /**
-   * 계층형 트리 구조 생성
-   * @param {Array} classes - 전체 클래스 배열
-   * @returns {Array} 계층형 트리 데이터
+   * 백엔드 트리 응답을 UI에 맞게 변환
+   * - CLASS 노드: children에서 codes로 변환
+   * - CODE 노드: children에서 childClass로 변환
+   * @param {Array} treeData - 백엔드 트리 데이터
+   * @returns {Array} UI용 트리 데이터
    */
-  buildHierarchicalTree(classes) {
-    if (!classes || !Array.isArray(classes)) {
+  transformTreeForUI(treeData) {
+    if (!treeData || !Array.isArray(treeData)) {
       return []
     }
 
-    // 1. 하위 클래스로 참조되는 클래스명 수집
-    const childClassNames = new Set()
-    classes.forEach(cls => {
-      if (cls.codes && Array.isArray(cls.codes)) {
-        cls.codes.forEach(code => {
-          if (code.childClassName) {
-            childClassNames.add(code.childClassName)
-          }
-        })
-      }
-    })
-
-    // 2. 최상위 클래스 찾기 (다른 클래스의 childClassName으로 참조되지 않는 클래스)
-    const rootClasses = classes.filter(cls => !childClassNames.has(cls.name))
-
-    // 3. 순환 참조 방지를 위한 처리된 클래스 추적
-    const processedClasses = new Set()
-
-    // 4. 재귀적으로 트리 구성
-    return rootClasses.map(cls => this.buildClassNode(cls, classes, processedClasses))
-  }
-
-  /**
-   * 클래스 노드 생성
-   * @param {Object} classData - 클래스 데이터
-   * @param {Array} allClasses - 전체 클래스 배열
-   * @param {Set} processedClasses - 처리된 클래스 집합 (순환 참조 방지)
-   * @returns {Object} 클래스 노드
-   */
-  buildClassNode(classData, allClasses, processedClasses) {
-    // 순환 참조 방지
-    if (processedClasses.has(classData.name)) {
-      console.warn(`순환 참조 감지: ${classData.name}`)
-      return null
-    }
-
-    processedClasses.add(classData.name)
-
-    const node = {
-      id: `class_${classData.name}`,
-      type: 'class',
-      name: classData.name,
-      displayName: classData.displayName,
-      description: classData.description,
-      isActive: classData.isActive,
-      attribute1Name: classData.attribute1Name,
-      attribute2Name: classData.attribute2Name,
-      attribute3Name: classData.attribute3Name,
-      attribute4Name: classData.attribute4Name,
-      attribute5Name: classData.attribute5Name,
-      createdAt: classData.createdAt,
-      createdBy: classData.createdBy,
-      updatedAt: classData.updatedAt,
-      updatedBy: classData.updatedBy,
-      codes: []
-    }
-
-    // 코드 노드 추가
-    if (classData.codes && Array.isArray(classData.codes)) {
-      // 정렬 순서 적용
-      const sortedCodes = [...classData.codes].sort((a, b) => (a.sort || 0) - (b.sort || 0))
-
-      node.codes = sortedCodes
-        .map(code => this.buildCodeNode(code, allClasses, new Set(processedClasses)))
-        .filter(codeNode => codeNode !== null)
-    }
-
-    return node
-  }
-
-  /**
-   * 코드 노드 생성
-   * @param {Object} codeData - 코드 데이터
-   * @param {Array} allClasses - 전체 클래스 배열
-   * @param {Set} processedClasses - 처리된 클래스 집합 (순환 참조 방지)
-   * @returns {Object} 코드 노드
-   */
-  buildCodeNode(codeData, allClasses, processedClasses) {
-    const node = {
-      id: `code_${codeData.className}_${codeData.code}`,
-      type: 'code',
-      className: codeData.className,
-      code: codeData.code,
-      name: codeData.name,
-      description: codeData.description,
-      attribute1Value: codeData.attribute1Value,
-      attribute2Value: codeData.attribute2Value,
-      attribute3Value: codeData.attribute3Value,
-      attribute4Value: codeData.attribute4Value,
-      attribute5Value: codeData.attribute5Value,
-      childClassName: codeData.childClassName,
-      sort: codeData.sort,
-      isActive: codeData.isActive,
-      createdAt: codeData.createdAt,
-      createdBy: codeData.createdBy,
-      updatedAt: codeData.updatedAt,
-      updatedBy: codeData.updatedBy,
-      childClass: null
-    }
-
-    // 하위 클래스가 있으면 재귀적으로 추가
-    if (codeData.childClassName) {
-      const childClass = allClasses.find(cls => cls.name === codeData.childClassName)
-      if (childClass) {
-        const childClassNode = this.buildClassNode(childClass, allClasses, processedClasses)
-        if (childClassNode) {
-          node.childClass = childClassNode
+    return treeData.map(node => {
+      if (node.type === 'CLASS') {
+        // CLASS 노드: children → codes로 변환
+        const classNode = {
+          ...node,
+          codes: node.children ? this.transformTreeForUI(node.children) : []
         }
-      } else {
-        console.warn(`하위 클래스를 찾을 수 없음: ${codeData.childClassName}`)
+        delete classNode.children
+        return classNode
+      } else if (node.type === 'CODE') {
+        // CODE 노드: children[0] → childClass로 변환
+        const codeNode = {
+          ...node,
+          childClass: node.children && node.children.length > 0
+            ? this.transformTreeForUI([node.children[0]])[0]
+            : null
+        }
+        delete codeNode.children
+        return codeNode
       }
-    }
-
-    return node
+      return node
+    })
   }
 }
 

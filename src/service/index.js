@@ -5,6 +5,7 @@ import categoryService from "./categoryService"
 import fileService from "./fileService"
 import searchEngineService from "./searchEngineService"
 import sprintService from "./sprintService"
+import favoriteService from "./favoriteService"
 
 const service = {
     user: userService
@@ -14,6 +15,7 @@ const service = {
     , file: fileService
     , search: searchEngineService
     , sprint: sprintService
+    , favorite: favoriteService
 }
 
 export default service

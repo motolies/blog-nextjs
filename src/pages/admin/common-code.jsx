@@ -24,6 +24,7 @@ import {
   AccountTree as TreeIcon,
   Add as AddIcon,
   Class as ClassIcon,
+  ClearAll as ClearAllIcon,
   Code as CodeIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
@@ -338,6 +339,30 @@ export default function CommonCode() {
       await loadData()
     } catch (error) {
       enqueueSnackbar(`삭제 실패: ${error.response?.data?.message || error.message}`, {variant: 'error'})
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 전체 캐시 삭제
+  const handleClearAllCache = async () => {
+    if (!confirm('전체 캐시를 삭제하시겠습니까?\n\n모든 캐시가 삭제되며 시스템 성능에 일시적인 영향을 줄 수 있습니다.')) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      const result = await commonCodeService.evictAllCaches()
+
+      enqueueSnackbar(
+        `${result.message} (${result.evictedCacheCount}개 캐시 삭제됨)`,
+        {variant: 'success'}
+      )
+    } catch (error) {
+      enqueueSnackbar(
+        `캐시 삭제 실패: ${error.response?.data?.message || error.message}`,
+        {variant: 'error'}
+      )
     } finally {
       setLoading(false)
     }
@@ -734,6 +759,15 @@ export default function CommonCode() {
                 disabled={loading}
             >
               클래스 추가
+            </Button>
+            <Button
+                variant="outlined"
+                color="warning"
+                startIcon={<ClearAllIcon/>}
+                onClick={handleClearAllCache}
+                disabled={loading}
+            >
+              전체 캐시 삭제
             </Button>
           </Toolbar>
         </Paper>

@@ -403,6 +403,22 @@ class CommonCodeService {
     }
   }
 
+  // =============== 캐시 관리 ===============
+
+  /**
+   * 전체 캐시 삭제
+   * @returns {Object} 캐시 삭제 결과 (success, message, evictedCacheCount, evictedCacheNames)
+   */
+  async evictAllCaches() {
+    try {
+      const response = await axiosClient.post('/api/cache/admin/evict-all')
+      return response.data
+    } catch (error) {
+      console.error('전체 캐시 삭제 실패:', error)
+      throw error
+    }
+  }
+
   /**
    * 백엔드 트리 응답을 UI에 맞게 변환
    * - CLASS 노드: children에서 codes로 변환

@@ -161,7 +161,7 @@ export default function CategoryTreeView({onChangeCategory}) {
             sx={{
                 flexGrow: 1,
                 minWidth: 400,
-                maxHeight: '70vh',
+                maxHeight: 'calc(100vh - 160px)',
                 overflowY: 'auto',
                 '&::-webkit-scrollbar': {
                     width: '8px',

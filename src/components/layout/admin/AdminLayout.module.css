@@ -69,6 +69,7 @@
 .contentWrapper {
   flex: 1;
   padding: 24px;
+  padding-bottom: 48px; /* Footer height (40px) + extra spacing (24px) */
 }
 
 .containerFluid {

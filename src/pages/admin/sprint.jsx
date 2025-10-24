@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
     Box,
     Grid,
@@ -265,18 +265,28 @@ export default function SprintPage() {
         ...item
     }))
 
-    // 스프린트 상세 합계 계산
-    const sprintDetailTotals = sprintDetailData.reduce((totals, item) => {
-        totals.totalTimeHours += parseFloat(item.totalTimeHours || 0)
-        totals.storyPoints += parseFloat(item.storyPoints || 0)
-        return totals
-    }, { totalTimeHours: 0, storyPoints: 0 })
+    // 스프린트 상세 합계 계산 (useMemo로 메모이제이션)
+    const sprintDetailTotals = useMemo(() => {
+        return sprintDetailData.reduce((totals, item) => {
+            totals.totalTimeHours += parseFloat(item.totalTimeHours || 0)
+            totals.storyPoints += parseFloat(item.storyPoints || 0)
+            return totals
+        }, { totalTimeHours: 0, storyPoints: 0 })
+    }, [sprintDetailData])
 
     const issueWorklogRows = issueWorklogData.map((item, index) => ({
         id: index,
         ...item,
         started: convertUTCToKST(item.started) // UTC를 KST로 변환
     }))
+
+    // 이슈 작업로그 합계 계산 (useMemo로 메모이제이션)
+    const issueWorklogTotals = useMemo(() => {
+        return issueWorklogData.reduce((totals, item) => {
+            totals.timeHours += parseFloat(item.timeHours || 0)
+            return totals
+        }, { timeHours: 0 })
+    }, [issueWorklogData])
 
     return (
         <Box sx={{ m: 2 }}>
@@ -444,7 +454,7 @@ export default function SprintPage() {
                                                 clientSideData={sprintDetailRows}
                                                 columns={sprintDetailColumns}
                                                 hidePagination={true}
-                                                summaryRow={{
+                                                summaryRow={sprintDetailData.length > 0 ? {
                                                     sprint: '',
                                                     assignee: '',
                                                     issueKey: '',
@@ -453,7 +463,7 @@ export default function SprintPage() {
                                                     startDate: '',
                                                     totalTimeHours: sprintDetailTotals.totalTimeHours.toFixed(2),
                                                     storyPoints: sprintDetailTotals.storyPoints.toFixed(2)
-                                                }}
+                                                } : undefined}
                                                 onRowClick={(params) => {
                                                     // 합계 로우는 클릭 불가
                                                     if (params.row.id !== 'summary') {
@@ -495,6 +505,13 @@ export default function SprintPage() {
                                                 clientSideData={issueWorklogRows}
                                                 columns={issueWorklogColumns}
                                                 hidePagination={true}
+                                                summaryRow={issueWorklogData.length > 0 ? {
+                                                    issueKey: '',
+                                                    author: '',
+                                                    comment: '합계',
+                                                    started: '',
+                                                    timeHours: issueWorklogTotals.timeHours.toFixed(2)
+                                                } : undefined}
                                                 autoHeight={true}
                                                 density="compact"
 

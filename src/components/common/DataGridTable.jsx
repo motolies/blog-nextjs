@@ -68,7 +68,7 @@ export default function DataGridTable({
   const [loading, setLoading] = useState(false)
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: defaultPageSize,
+    pageSize: hidePagination ? 100 : defaultPageSize,
   })
   const [sortModel, setSortModel] = useState([])
   const [rowCount, setRowCount] = useState(0)
@@ -82,18 +82,11 @@ export default function DataGridTable({
   useEffect(() => {
     if (paginationMode !== 'client') return
 
-    // 클라이언트 모드: clientSideData를 직접 사용
-    let processedRows = [...clientSideData]
-
-    // summaryRow 추가
-    if (summaryRow) {
-      processedRows = [...processedRows, { ...summaryRow, id: 'summary' }]
-    }
-
-    setRows(processedRows)
+    // 클라이언트 모드: clientSideData를 직접 사용 (summaryRow는 외부에서 별도 렌더링)
+    setRows([...clientSideData])
     setRowCount(clientSideData.length)
     setLoading(false)
-  }, [paginationMode, clientSideData, summaryRow])
+  }, [paginationMode, clientSideData])
 
   // 서버 모드: 페이지, 정렬, 검색 조건 변경 시 데이터 로드
   useEffect(() => {
@@ -237,7 +230,7 @@ export default function DataGridTable({
       )}
 
       {/* DataGrid */}
-      <Paper sx={{flex: 1, display: 'flex', minHeight: 0}}>
+      <Paper sx={{flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0}}>
         <DataGrid
           rows={rows}
           columns={normalizedColumns}
@@ -294,6 +287,40 @@ export default function DataGridTable({
             ...dataGridSx
           }}
         />
+
+        {/* 총합 행 (summaryRow가 있을 때만 표시) */}
+        {summaryRow && (
+          <Box sx={{
+            display: 'flex',
+            borderTop: '2px solid rgba(224, 224, 224, 1)',
+            backgroundColor: '#f5f5f5',
+            fontWeight: 'bold',
+            minHeight: density === 'compact' ? 36 : density === 'comfortable' ? 56 : 52,
+            alignItems: 'center'
+          }}>
+            {normalizedColumns.map((col) => (
+              <Box
+                key={col.field}
+                sx={{
+                  flex: col.flex || 0,
+                  width: col.flex ? 'auto' : (col.width || 'auto'),
+                  minWidth: col.minWidth || col.width,
+                  padding: '0 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: col.align === 'right' ? 'flex-end' :
+                                 col.align === 'center' ? 'center' : 'flex-start',
+                  fontSize: '0.875rem',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {summaryRow[col.field] !== undefined ? summaryRow[col.field] : ''}
+              </Box>
+            ))}
+          </Box>
+        )}
       </Paper>
     </Box>
   )

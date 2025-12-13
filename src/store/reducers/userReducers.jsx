@@ -1,5 +1,6 @@
 import {
     LOAD_USER_REQUEST_SUCCESS,
+    SERVER_LOAD_USER_REQUEST_SUCCESS,
     USER_LOGIN_REQUEST,
     USER_LOGIN_REQUEST_ERROR,
     USER_LOGIN_ERROR_MESSAGE_SUCCESS,
@@ -10,7 +11,7 @@ import {
 } from '../types/userTypes'
 
 export default function userReducers(stats = {
-    isAuthenticated: undefined,
+    isAuthenticated: null,
     isLoading: false,
     user: {},
     error: ''
@@ -27,6 +28,7 @@ export default function userReducers(stats = {
                 ...stats,
                 isLoading: true
             }
+        case SERVER_LOAD_USER_REQUEST_SUCCESS:
         case LOAD_USER_REQUEST_SUCCESS:
         case USER_LOGIN_REQUEST_SUCCESS:
             return {

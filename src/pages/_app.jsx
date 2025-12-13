@@ -25,14 +25,14 @@ function Skyscape({Component, pageProps}) {
 
   useEffect(() => {
     // 사용자 정보를 로드합니다 (CSR에서, 아직 인증 상태를 모를 때만)
-    if (typeof window !== 'undefined' && isAuthenticated === undefined) {
+    if (typeof window !== 'undefined' && isAuthenticated === null) {
       dispatch({type: LOAD_USER_REQUEST});
     }
   }, [dispatch, isAuthenticated]);
 
   useEffect(() => {
     // 인증 상태가 아직 확인되지 않은 경우 라우팅하지 않음
-    if (isAuthenticated === undefined) {
+    if (isAuthenticated === null) {
       return;
     }
 
@@ -83,10 +83,18 @@ Skyscape.getInitialProps = wrapper.getInitialAppProps(
 
       if (cookie) {
         try {
-          // 백엔드가 Cookie에서 Authorization을 직접 읽으므로 Cookie만 전달
-          const headers = {Cookie: cookie}
+          // Cookie에서 Authorization 값 추출
+          const authToken = cookie.split(';')
+              .map(c => c.trim())
+              .find(c => c.startsWith('Authorization='))
+              ?.split('=')[1]
 
-          console.log('[SSR] Forward Cookie to API')
+          const headers = {
+            Cookie: cookie,
+            ...(authToken && {Authorization: `Bearer ${authToken}`})
+          }
+
+          console.log('[SSR] Forward Cookie to API, hasAuthToken:', !!authToken)
 
           const res = await service.user.profile({headers})
           store.dispatch({

@@ -35,6 +35,9 @@ export default function PostModifyComponent() {
         if (!saveAble)
             return
 
+        // 중복 저장 방지를 위해 즉시 false로 리셋
+        setSaveAble(false)
+
         dispatch(setLoading())
         service.post.save({post: post}).then(res => {
             router.push(`/post/${post.id}`)

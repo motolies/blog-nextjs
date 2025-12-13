@@ -10,6 +10,20 @@ const axiosClient = axios.create({
 
 axiosClient.defaults.headers.post['Content-Type'] = 'application/json'
 
+// 요청 인터셉터 (디버깅용)
+axiosClient.interceptors.request.use(
+    (config) => {
+        if (typeof window === 'undefined') {
+            console.log('[SSR Axios] Request URL:', config.url)
+            console.log('[SSR Axios] Request Headers:', JSON.stringify(config.headers, null, 2))
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
 // 응답 인터셉터
 axiosClient.interceptors.response.use(
     (response) => {

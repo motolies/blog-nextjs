@@ -2,6 +2,8 @@ import {Box, Card, CardActionArea, CardContent, Typography, Grid} from '@mui/mat
 import {useRouter} from 'next/router'
 import TransformIcon from '@mui/icons-material/Transform'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
+import QrCode2Icon from '@mui/icons-material/QrCode2'
+import EnhancedEncryptionIcon from '@mui/icons-material/EnhancedEncryption'
 
 const utilities = [
     {
@@ -17,6 +19,20 @@ const utilities = [
         description: '실시간 Mermaid 다이어그램 에디터. 차트를 편집하고 이미지로 내보낼 수 있습니다.',
         icon: <AccountTreeIcon sx={{fontSize: 40, color: 'primary.main'}}/>,
         path: '/util/mermaid'
+    },
+    {
+        id: 'barcode',
+        title: 'Barcode Generator',
+        description: '1D 바코드(CODE128, EAN 등)와 QR 코드를 생성하고 이미지로 다운로드할 수 있습니다.',
+        icon: <QrCode2Icon sx={{fontSize: 40, color: 'primary.main'}}/>,
+        path: '/util/barcode'
+    },
+    {
+        id: 'encode',
+        title: 'Encoder / Decoder',
+        description: 'Base64, URL, HTML, Unicode, 해시(MD5/SHA256), JWT, JSON 등 다양한 인코딩/디코딩 도구입니다.',
+        icon: <EnhancedEncryptionIcon sx={{fontSize: 40, color: 'primary.main'}}/>,
+        path: '/util/encode'
     }
 ]
 

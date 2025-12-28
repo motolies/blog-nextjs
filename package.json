@@ -20,6 +20,7 @@
     "@mui/x-tree-view": "^6.17.0",
     "axios": "^1.6.0",
     "ckeditor5": "46.1.0",
+    "croner": "^9.1.0",
     "crypto-js": "^4.2.0",
     "echarts": "^5.6.0",
     "echarts-for-react": "^3.0.2",

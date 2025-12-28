@@ -4,6 +4,7 @@ import TransformIcon from '@mui/icons-material/Transform'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import QrCode2Icon from '@mui/icons-material/QrCode2'
 import EnhancedEncryptionIcon from '@mui/icons-material/EnhancedEncryption'
+import ScheduleIcon from '@mui/icons-material/Schedule'
 
 const utilities = [
     {
@@ -33,6 +34,13 @@ const utilities = [
         description: 'Base64, URL, HTML, Unicode, 해시(MD5/SHA256), JWT, JSON 등 다양한 인코딩/디코딩 도구입니다.',
         icon: <EnhancedEncryptionIcon sx={{fontSize: 40, color: 'primary.main'}}/>,
         path: '/util/encode'
+    },
+    {
+        id: 'crontab',
+        title: 'Crontab Calculator',
+        description: 'Unix crontab과 Spring Scheduler cron 표현식을 분석하고 다음 실행 시간을 계산합니다.',
+        icon: <ScheduleIcon sx={{fontSize: 40, color: 'primary.main'}}/>,
+        path: '/util/crontab'
     }
 ]
 

@@ -5,6 +5,7 @@ import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import QrCode2Icon from '@mui/icons-material/QrCode2'
 import EnhancedEncryptionIcon from '@mui/icons-material/EnhancedEncryption'
 import ScheduleIcon from '@mui/icons-material/Schedule'
+import DataObjectIcon from '@mui/icons-material/DataObject'
 
 const utilities = [
     {
@@ -41,6 +42,13 @@ const utilities = [
         description: 'Unix crontab과 Spring Scheduler cron 표현식을 분석하고 다음 실행 시간을 계산합니다.',
         icon: <ScheduleIcon sx={{fontSize: 40, color: 'primary.main'}}/>,
         path: '/util/crontab'
+    },
+    {
+        id: 'regex-tester',
+        title: '정규식 테스터',
+        description: 'JavaScript, Java, C#, Python 정규식 패턴을 테스트하고 매칭 결과와 그룹 캡처를 확인합니다.',
+        icon: <DataObjectIcon sx={{fontSize: 40, color: 'primary.main'}}/>,
+        path: '/util/regex-tester'
     }
 ]
 

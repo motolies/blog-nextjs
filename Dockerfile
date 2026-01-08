@@ -22,6 +22,10 @@ RUN npm run build
 FROM node:22-alpine AS runner
 WORKDIR /app
 
+# [핵심] 기본값: 외부 설정이 없으면 힙 메모리 256MB로 제한 (보수적 설정)
+# 이렇게 해두면 CMD를 건드리지 않아도 됩니다.
+ENV NODE_OPTIONS="--max-old-space-size=256"
+
 ENV NODE_ENV production
 
 RUN addgroup -g 1001 -S nodejs

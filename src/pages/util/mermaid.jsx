@@ -6,6 +6,13 @@ import {
 } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import ZoomInIcon from '@mui/icons-material/ZoomIn'
+import ZoomOutIcon from '@mui/icons-material/ZoomOut'
+import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong'
+import FullscreenIcon from '@mui/icons-material/Fullscreen'
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import {useSnackbar} from 'notistack'
 import {useRouter} from 'next/router'
 
@@ -26,28 +33,68 @@ const SAMPLE_CODES = {
     D --> E
     E --> F[완료]`,
     sequence: `sequenceDiagram
-    participant Client
-    participant Server
-    participant Database
+    participant Subject as Subject<br/>(OrderService)
+    participant Observer1 as Observer 1<br/>(EmailService)
+    participant Observer2 as Observer 2<br/>(PointService)
+    participant Observer3 as Observer 3<br/>(InventoryService)
 
-    Client->>Server: 요청 전송
-    Server->>Database: 데이터 조회
-    Database-->>Server: 결과 반환
-    Server-->>Client: 응답 전송`,
+    Note over Subject,Observer3: 1. 옵저버 등록
+    Observer1->>Subject: registerObserver()
+    Observer2->>Subject: registerObserver()
+    Observer3->>Subject: registerObserver()
+
+    Note over Subject,Observer3: 2. 상태 변경 발생
+    Subject->>Subject: 주문 완료 처리
+
+    Note over Subject,Observer3: 3. 모든 옵저버에게 알림
+    Subject->>Observer1: update(OrderEvent)
+    Subject->>Observer2: update(OrderEvent)
+    Subject->>Observer3: update(OrderEvent)
+
+    Observer1-->>Subject: 이메일 발송 완료
+    Observer2-->>Subject: 포인트 적립 완료
+    Observer3-->>Subject: 재고 감소 완료`,
     classDiagram: `classDiagram
-    class Animal {
-        +String name
-        +int age
-        +makeSound()
+    class Subject {
+        <<interface>>
+        +registerObserver(Observer): void
+        +removeObserver(Observer): void
+        +notifyObservers(): void
     }
-    class Dog {
-        +bark()
+
+    class ConcreteSubject {
+        -observers: List~Observer~
+        -state: Object
+        +registerObserver(Observer): void
+        +removeObserver(Observer): void
+        +notifyObservers(): void
+        +getState(): Object
+        +setState(Object): void
     }
-    class Cat {
-        +meow()
+
+    class Observer {
+        <<interface>>
+        +update(Object): void
     }
-    Animal <|-- Dog
-    Animal <|-- Cat`,
+
+    class ConcreteObserverA {
+        -subject: Subject
+        +update(Object): void
+    }
+
+    class ConcreteObserverB {
+        -subject: Subject
+        +update(Object): void
+    }
+
+    Subject <|.. ConcreteSubject
+    Observer <|.. ConcreteObserverA
+    Observer <|.. ConcreteObserverB
+    Subject o--> Observer : notifies
+    ConcreteSubject --> Observer : "1..*"
+
+    note for Subject "상태 변경을 알리는 주제"
+    note for Observer "상태 변경에 반응하는 관찰자"`,
     erDiagram: `erDiagram
     USER ||--o{ ORDER : places
     ORDER ||--|{ LINE_ITEM : contains
@@ -76,6 +123,17 @@ export default function MermaidPage() {
     const [error, setError] = useState(null)
     const [isClient, setIsClient] = useState(false)
     const [selectedSample, setSelectedSample] = useState('flowchart')
+
+    // 미리보기 줌/팬 상태
+    const [previewZoom, setPreviewZoom] = useState(1)
+    const [panOffset, setPanOffset] = useState({x: 0, y: 0})
+    const [isDragging, setIsDragging] = useState(false)
+    const [dragStart, setDragStart] = useState({x: 0, y: 0})
+
+    // 전체화면 상태
+    const [isFullscreen, setIsFullscreen] = useState(false)
+    const [isEditorVisible, setIsEditorVisible] = useState(true)
+
     const previewRef = useRef(null)
     const mermaidRef = useRef(null)
 
@@ -117,6 +175,18 @@ export default function MermaidPage() {
 
         return () => clearTimeout(timer)
     }, [code])
+
+    // 전체화면 모드 전환 시 다이어그램 재렌더링
+    useEffect(() => {
+        if (!mermaidRef.current) return
+
+        // DOM이 업데이트된 후 렌더링
+        const timer = setTimeout(() => {
+            renderDiagram()
+        }, 50)
+
+        return () => clearTimeout(timer)
+    }, [isFullscreen])
 
     const renderDiagram = useCallback(async () => {
         if (!mermaidRef.current || !previewRef.current) return
@@ -214,6 +284,58 @@ export default function MermaidPage() {
         setCode(SAMPLE_CODES[sample])
     }
 
+    // 줌/패닝 이벤트 핸들러
+    const handleWheel = useCallback((e) => {
+        e.preventDefault()
+        const delta = e.deltaY > 0 ? 0.9 : 1.1
+        setPreviewZoom(prev => Math.min(Math.max(prev * delta, 0.1), 5))
+    }, [])
+
+    const handleMouseDown = useCallback((e) => {
+        if (e.button !== 0) return
+        setIsDragging(true)
+        setDragStart({x: e.clientX - panOffset.x, y: e.clientY - panOffset.y})
+    }, [panOffset])
+
+    const handleMouseMove = useCallback((e) => {
+        if (!isDragging) return
+        setPanOffset({
+            x: e.clientX - dragStart.x,
+            y: e.clientY - dragStart.y
+        })
+    }, [isDragging, dragStart])
+
+    const handleMouseUp = useCallback(() => {
+        setIsDragging(false)
+    }, [])
+
+    const handleResetZoom = useCallback(() => {
+        setPreviewZoom(1)
+        setPanOffset({x: 0, y: 0})
+    }, [])
+
+    // 전체화면 토글
+    const toggleFullscreen = useCallback(() => {
+        setIsFullscreen(prev => {
+            if (!prev) {
+                // 전체화면 진입 시 줌 리셋
+                handleResetZoom()
+            }
+            return !prev
+        })
+    }, [handleResetZoom])
+
+    // ESC 키로 전체화면 종료
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape' && isFullscreen) {
+                setIsFullscreen(false)
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [isFullscreen])
+
     if (!isClient) {
         return (
             <Box sx={{p: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh'}}>
@@ -222,6 +344,239 @@ export default function MermaidPage() {
         )
     }
 
+    // 미리보기 컨테이너 공통 컴포넌트
+    const PreviewContainer = ({fullscreen = false}) => (
+        <Box
+            ref={!fullscreen ? previewRef : undefined}
+            onWheel={handleWheel}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            sx={{
+                flexGrow: 1,
+                overflow: 'hidden',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: '#fafafa',
+                borderRadius: 1,
+                cursor: isDragging ? 'grabbing' : 'grab',
+                userSelect: 'none',
+                '& svg': {
+                    transform: `scale(${previewZoom}) translate(${panOffset.x / previewZoom}px, ${panOffset.y / previewZoom}px)`,
+                    transformOrigin: 'center center',
+                    transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+                }
+            }}
+        />
+    )
+
+    // 줌 컨트롤 공통 컴포넌트
+    const ZoomControls = () => (
+        <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
+            <IconButton size="small" onClick={() => setPreviewZoom(z => Math.max(z * 0.8, 0.1))}>
+                <ZoomOutIcon fontSize="small"/>
+            </IconButton>
+            <Typography variant="body2" sx={{minWidth: 45, textAlign: 'center'}}>
+                {Math.round(previewZoom * 100)}%
+            </Typography>
+            <IconButton size="small" onClick={() => setPreviewZoom(z => Math.min(z * 1.2, 5))}>
+                <ZoomInIcon fontSize="small"/>
+            </IconButton>
+            <IconButton size="small" onClick={handleResetZoom} title="리셋">
+                <CenterFocusStrongIcon fontSize="small"/>
+            </IconButton>
+        </Box>
+    )
+
+    // 다운로드 컨트롤 공통 컴포넌트
+    const DownloadControls = () => (
+        <Box sx={{display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap'}}>
+            <FormControl size="small" sx={{minWidth: 80}}>
+                <InputLabel>모드</InputLabel>
+                <Select
+                    value={scaleMode}
+                    label="모드"
+                    onChange={(e) => setScaleMode(e.target.value)}
+                >
+                    <MenuItem value="ratio">배율</MenuItem>
+                    <MenuItem value="custom">픽셀</MenuItem>
+                </Select>
+            </FormControl>
+
+            {scaleMode === 'ratio' ? (
+                <FormControl size="small" sx={{minWidth: 70}}>
+                    <InputLabel>배율</InputLabel>
+                    <Select
+                        value={scale}
+                        label="배율"
+                        onChange={(e) => setScale(e.target.value)}
+                    >
+                        <MenuItem value={1}>1x</MenuItem>
+                        <MenuItem value={2}>2x</MenuItem>
+                        <MenuItem value={3}>3x</MenuItem>
+                        <MenuItem value={4}>4x</MenuItem>
+                    </Select>
+                </FormControl>
+            ) : (
+                <>
+                    <TextField
+                        size="small"
+                        label="너비"
+                        type="number"
+                        value={customWidth}
+                        onChange={(e) => setCustomWidth(Number(e.target.value))}
+                        sx={{width: 80}}
+                        InputProps={{inputProps: {min: 100, max: 8000}}}
+                    />
+                    <Typography variant="body2">×</Typography>
+                    <TextField
+                        size="small"
+                        label="높이"
+                        type="number"
+                        value={customHeight}
+                        onChange={(e) => setCustomHeight(Number(e.target.value))}
+                        sx={{width: 80}}
+                        InputProps={{inputProps: {min: 100, max: 8000}}}
+                    />
+                </>
+            )}
+
+            <ButtonGroup variant="contained" size="small">
+                <Button onClick={downloadPng} startIcon={<DownloadIcon/>}>PNG</Button>
+                <Button onClick={downloadSvg} startIcon={<DownloadIcon/>}>SVG</Button>
+            </ButtonGroup>
+        </Box>
+    )
+
+    // 전체화면 모드
+    if (isFullscreen) {
+        return (
+            <Box sx={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 1200,
+                backgroundColor: '#fff',
+                display: 'flex',
+                flexDirection: 'column'
+            }}>
+                {/* 상단 툴바 */}
+                <Paper elevation={2} sx={{p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1}}>
+                    <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
+                        <IconButton onClick={toggleFullscreen}>
+                            <FullscreenExitIcon/>
+                        </IconButton>
+                        <Typography variant="h6">미리보기</Typography>
+                        <Typography variant="caption" color="text.secondary">(ESC로 닫기)</Typography>
+                    </Box>
+                    <Box sx={{display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap'}}>
+                        <ZoomControls/>
+                        <Divider orientation="vertical" flexItem/>
+                        <DownloadControls/>
+                    </Box>
+                </Paper>
+
+                {/* 에러 표시 */}
+                {error && (
+                    <Paper sx={{p: 1, mx: 2, mt: 1, backgroundColor: 'error.light'}}>
+                        <Typography color="error.contrastText" variant="body2">
+                            {error}
+                        </Typography>
+                    </Paper>
+                )}
+
+                {/* 전체화면 미리보기 */}
+                <Box
+                    ref={previewRef}
+                    onWheel={handleWheel}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                    sx={{
+                        flexGrow: 1,
+                        overflow: 'hidden',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        backgroundColor: '#fafafa',
+                        cursor: isDragging ? 'grabbing' : 'grab',
+                        userSelect: 'none',
+                        '& svg': {
+                            transform: `scale(${previewZoom}) translate(${panOffset.x / previewZoom}px, ${panOffset.y / previewZoom}px)`,
+                            transformOrigin: 'center center',
+                            transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+                        }
+                    }}
+                />
+
+                {/* 플로팅 코드 에디터 */}
+                <Paper
+                    elevation={8}
+                    sx={{
+                        position: 'fixed',
+                        bottom: 20,
+                        right: 20,
+                        width: isEditorVisible ? 420 : 'auto',
+                        maxHeight: isEditorVisible ? '45vh' : 'auto',
+                        zIndex: 1300,
+                        transition: 'all 0.3s ease',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden'
+                    }}
+                >
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        p: 1,
+                        borderBottom: isEditorVisible ? 1 : 0,
+                        borderColor: 'divider',
+                        backgroundColor: 'grey.100'
+                    }}>
+                        <Typography variant="subtitle2" sx={{flexGrow: 1, fontWeight: 'bold'}}>
+                            코드
+                        </Typography>
+                        <IconButton size="small" onClick={() => setIsEditorVisible(!isEditorVisible)}>
+                            {isEditorVisible ? <VisibilityOffIcon fontSize="small"/> : <VisibilityIcon fontSize="small"/>}
+                        </IconButton>
+                    </Box>
+                    {isEditorVisible && (
+                        <TextField
+                            multiline
+                            fullWidth
+                            value={code}
+                            onChange={(e) => setCode(e.target.value)}
+                            sx={{
+                                flexGrow: 1,
+                                '& .MuiInputBase-root': {
+                                    height: '100%',
+                                    alignItems: 'flex-start',
+                                    borderRadius: 0
+                                },
+                                '& .MuiInputBase-input': {
+                                    height: 'calc(45vh - 56px) !important',
+                                    overflow: 'auto !important'
+                                },
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                    border: 'none'
+                                }
+                            }}
+                            InputProps={{
+                                sx: {fontFamily: 'D2Coding, monospace', fontSize: 13}
+                            }}
+                        />
+                    )}
+                </Paper>
+            </Box>
+        )
+    }
+
+    // 일반 모드
     return (
         <Box sx={{p: 2}}>
             <Box sx={{display: 'flex', alignItems: 'center', mb: 3}}>
@@ -295,65 +650,20 @@ export default function MermaidPage() {
                 {/* 프리뷰 영역 */}
                 <Grid item xs={12} md={6}>
                     <Paper sx={{p: 2, height: '65vh', display: 'flex', flexDirection: 'column'}}>
-                        <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1}}>
+                        {/* 헤더: 제목 + 줌 컨트롤 + 전체화면 */}
+                        <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1}}>
                             <Typography variant="h6">미리보기</Typography>
-                            <Box sx={{display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap'}}>
-                                {/* 해상도 모드 선택 */}
-                                <FormControl size="small" sx={{minWidth: 100}}>
-                                    <InputLabel>모드</InputLabel>
-                                    <Select
-                                        value={scaleMode}
-                                        label="모드"
-                                        onChange={(e) => setScaleMode(e.target.value)}
-                                    >
-                                        <MenuItem value="ratio">배율</MenuItem>
-                                        <MenuItem value="custom">픽셀</MenuItem>
-                                    </Select>
-                                </FormControl>
-
-                                {scaleMode === 'ratio' ? (
-                                    <FormControl size="small" sx={{minWidth: 80}}>
-                                        <InputLabel>배율</InputLabel>
-                                        <Select
-                                            value={scale}
-                                            label="배율"
-                                            onChange={(e) => setScale(e.target.value)}
-                                        >
-                                            <MenuItem value={1}>1x</MenuItem>
-                                            <MenuItem value={2}>2x</MenuItem>
-                                            <MenuItem value={3}>3x</MenuItem>
-                                            <MenuItem value={4}>4x</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                ) : (
-                                    <>
-                                        <TextField
-                                            size="small"
-                                            label="너비"
-                                            type="number"
-                                            value={customWidth}
-                                            onChange={(e) => setCustomWidth(Number(e.target.value))}
-                                            sx={{width: 90}}
-                                            InputProps={{inputProps: {min: 100, max: 8000}}}
-                                        />
-                                        <Typography variant="body2">×</Typography>
-                                        <TextField
-                                            size="small"
-                                            label="높이"
-                                            type="number"
-                                            value={customHeight}
-                                            onChange={(e) => setCustomHeight(Number(e.target.value))}
-                                            sx={{width: 90}}
-                                            InputProps={{inputProps: {min: 100, max: 8000}}}
-                                        />
-                                    </>
-                                )}
-
-                                <ButtonGroup variant="contained" size="small">
-                                    <Button onClick={downloadPng} startIcon={<DownloadIcon/>}>PNG</Button>
-                                    <Button onClick={downloadSvg} startIcon={<DownloadIcon/>}>SVG</Button>
-                                </ButtonGroup>
+                            <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
+                                <ZoomControls/>
+                                <IconButton size="small" onClick={toggleFullscreen} title="전체화면">
+                                    <FullscreenIcon/>
+                                </IconButton>
                             </Box>
+                        </Box>
+
+                        {/* 다운로드 컨트롤 */}
+                        <Box sx={{display: 'flex', justifyContent: 'flex-end', mb: 1, flexWrap: 'wrap', gap: 1}}>
+                            <DownloadControls/>
                         </Box>
 
                         {error && (
@@ -366,18 +676,25 @@ export default function MermaidPage() {
 
                         <Box
                             ref={previewRef}
+                            onWheel={handleWheel}
+                            onMouseDown={handleMouseDown}
+                            onMouseMove={handleMouseMove}
+                            onMouseUp={handleMouseUp}
+                            onMouseLeave={handleMouseUp}
                             sx={{
                                 flexGrow: 1,
-                                overflow: 'auto',
+                                overflow: 'hidden',
                                 display: 'flex',
                                 justifyContent: 'center',
-                                alignItems: 'flex-start',
+                                alignItems: 'center',
                                 backgroundColor: '#fafafa',
                                 borderRadius: 1,
-                                p: 2,
+                                cursor: isDragging ? 'grabbing' : 'grab',
+                                userSelect: 'none',
                                 '& svg': {
-                                    maxWidth: '100%',
-                                    height: 'auto'
+                                    transform: `scale(${previewZoom}) translate(${panOffset.x / previewZoom}px, ${panOffset.y / previewZoom}px)`,
+                                    transformOrigin: 'center center',
+                                    transition: isDragging ? 'none' : 'transform 0.1s ease-out'
                                 }
                             }}
                         />

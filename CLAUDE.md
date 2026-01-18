@@ -5,7 +5,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 프로젝트 개요
 
-한국어로 작성된 개인 블로그 Next.js 프론트엔드 애플리케이션입니다. Redux-Saga를 사용한 상태 관리, 표준 CKEditor5를 이용한 글 작성 기능, 그리고 Material-UI를 사용한 사용자 인터페이스로 구성되어 있습니다. Next.js 15와 Turbopack을 사용하여 최적화된 개발 경험을 제공합니다.
+한국어로 작성된 개인 블로그 Next.js 프론트엔드 애플리케이션입니다. Redux-Saga를 사용한 상태 관리, 표준 CKEditor5를 이용한 글 작성 기능, 그리고 Material-UI를 사용한 사용자 인터페이스로 구성되어 있습니다.
+
+**기술 스택**:
+- Next.js 15.5.9 (Turbopack)
+- React 18.3.1
+- Redux + Redux-Saga
+- Material-UI 5.x
+- CKEditor5 46.1.0
 
 ## 개발 명령어
 
@@ -126,11 +133,12 @@ docker buildx build --platform linux/amd64,linux/arm64 --no-cache --push -t dock
 
 ## 중요 설정 파일
 
-- `next.config.js`: Next.js 설정, API 프록시, 환경변수, Turbopack 최적화
+- `next.config.js`: Next.js 설정, API rewrites, 환경변수
 - `package.json`: 의존성 관리, Turbopack 스크립트 설정
 - `Dockerfile`: 멀티스테이지 빌드, Node.js 22-alpine 기반
-- `PROJECT_RULES.md`: 코드 포맷팅 및 프로젝트 규칙
-- `.github/workflows/buildx.yml`: GitHub Actions 빌드 파이프라인 (캐시 최적화)
+- `PROJECT_RULES.md`: 코드 포맷팅 및 AI 협업 워크플로우 규칙
+- `.github/workflows/buildx.yml`: GitHub Actions 빌드 파이프라인
+- `docs/authentication.md`: 인증 시스템 상세 문서
 
 ## 개발 시 주의사항
 
@@ -156,7 +164,8 @@ docker buildx build --platform linux/amd64,linux/arm64 --no-cache --push -t dock
 ### 라우팅 및 인증
 - `/admin` 경로는 인증 확인 후 접근 가능
 - `getInitialProps`를 통한 서버사이드 인증 상태 관리
-- 로그인 상태는 Redux store의 `user.isAuthenticated`에서 관리
+- 로그인 상태는 Redux store의 `user.isAuthenticated`에서 관리 (3-state: `null`/`true`/`false`)
+- 인증 시스템 상세 내용은 `docs/authentication.md` 참조
 
 ### 환경 분리
 - 개발/프로덕션 환경별 백엔드 URL 자동 전환
@@ -208,4 +217,16 @@ export default function MyPage() {
 **참고 예시 파일**:
 - `/admin/categories.jsx`: 카테고리 관리 (CRUD 작업)
 - `/admin/sprint.jsx`: 스프린트 보고서 (데이터 로드 실패 처리)
-- `/admin/common-code.jsx`: 공통코드 관리 (다양한 알림 시나리오) 
+- `/admin/common-code.jsx`: 공통코드 관리 (다양한 알림 시나리오)
+
+## AI 협업 워크플로우
+
+**작업 상태 표시**:
+- `[ ]` : 대기
+- `[🔄]` : 진행중
+- `[x]` : 완료
+- `[⚠️]` : 이슈발생
+
+**필수 규칙**:
+- 각 Task 완료 시 Progress 섹션 업데이트 필수
+- 여러 Task 동시 진행 금지

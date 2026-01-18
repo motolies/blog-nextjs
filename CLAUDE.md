@@ -13,6 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Redux + Redux-Saga
 - Material-UI 5.x
 - CKEditor5 46.1.0
+- Material React Table(MRT) 2.13
 
 ## 개발 명령어
 

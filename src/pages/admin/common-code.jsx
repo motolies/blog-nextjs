@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react'
+import React, {useCallback, useEffect, useState, useMemo} from 'react'
 import {
   Alert,
   Box,
@@ -11,15 +11,16 @@ import {
   DialogTitle,
   FormControlLabel,
   Grid,
+  IconButton,
   Paper,
   Stack,
   Switch,
   TextField,
   Toolbar,
+  Tooltip,
   Typography
 } from '@mui/material'
 import {useSnackbar} from 'notistack'
-import {GridActionsCellItem} from '@mui/x-data-grid'
 import {
   AccountTree as TreeIcon,
   Add as AddIcon,
@@ -31,7 +32,7 @@ import {
   Save as SaveIcon
 } from '@mui/icons-material'
 import HierarchicalTreeView from '../../components/common/HierarchicalTreeView'
-import DataGridTable from '../../components/common/DataGridTable'
+import MRTTable from '../../components/common/MRTTable'
 import commonCodeService from '../../service/commonCodeService'
 
 export default function CommonCode() {
@@ -466,14 +467,15 @@ export default function CommonCode() {
     }
   }
 
-  // DataGrid 컬럼 정의
-  const columns = [
+  // MRT 컬럼 정의
+  const columns = useMemo(() => [
     {
-      field: 'type',
-      headerName: '타입',
-      width: 100,
-      renderCell: (params) => {
-        const isClass = params.value === 'CLASS' || params.value === 'class'
+      accessorKey: 'type',
+      header: '타입',
+      size: 100,
+      Cell: ({cell}) => {
+        const value = cell.getValue()
+        const isClass = value === 'CLASS' || value === 'class'
         return isClass ? (
             <Chip icon={<ClassIcon/>} label="클래스" size="small" color="primary"/>
         ) : (
@@ -482,91 +484,78 @@ export default function CommonCode() {
       }
     },
     {
-      field: 'identifier',
-      headerName: '식별자',
-      flex: 1,
-      minWidth: 150,
-      renderCell: (params) => {
-        const {row} = params
-        const isClass = row.type === 'CLASS'
-        return isClass ? row.code : `${row.classCode}.${row.code}`
+      accessorKey: 'identifier',
+      header: '식별자',
+      grow: true,
+      minSize: 150,
+      Cell: ({row}) => {
+        const data = row.original
+        const isClass = data.type === 'CLASS'
+        return isClass ? data.code : `${data.classCode}.${data.code}`
       }
     },
     {
-      field: 'displayName',
-      headerName: '표시명/코드명',
-      flex: 1,
-      minWidth: 150,
-      renderCell: (params) => {
-        const {row} = params
-        return row.name
+      accessorKey: 'displayName',
+      header: '표시명/코드명',
+      grow: true,
+      minSize: 150,
+      Cell: ({row}) => {
+        return row.original.name
       }
     },
     {
-      field: 'description',
-      headerName: '설명',
-      flex: 1,
-      minWidth: 200,
+      accessorKey: 'description',
+      header: '설명',
+      grow: true,
+      minSize: 200,
     },
     {
-      field: 'isActive',
-      headerName: '활성',
-      width: 80,
-      type: 'boolean',
-      renderCell: (params) => (
+      accessorKey: 'isActive',
+      header: '활성',
+      size: 80,
+      Cell: ({cell}) => (
           <Chip
-              label={params.value ? '활성' : '비활성'}
+              label={cell.getValue() ? '활성' : '비활성'}
               size="small"
-              color={params.value ? 'success' : 'default'}
+              color={cell.getValue() ? 'success' : 'default'}
           />
       )
-    },
-    {
-      field: 'actions',
-      type: 'actions',
-      headerName: '액션',
-      width: 120,
-      getActions: ({row}) => {
-        const actions = [
-          <GridActionsCellItem
-              icon={<EditIcon/>}
-              label="편집"
-              onClick={handleEditClick(row)}
-              color="inherit"
-          />,
-          <GridActionsCellItem
-              icon={<DeleteIcon/>}
-              label="삭제"
-              onClick={handleDeleteClick(row)}
-              color="inherit"
-          />
-        ]
+    }
+  ], [])
 
-        const isClass = row.type === 'CLASS'
-        if (isClass) {
-          actions.unshift(
-              <GridActionsCellItem
-                  icon={<AddIcon/>}
-                  label="코드 추가"
-                  onClick={handleAddCodeClick(row)}
-                  color="inherit"
-              />
-          )
-        } else {
-          actions.unshift(
-              <GridActionsCellItem
-                  icon={<TreeIcon/>}
-                  label="하위 클래스 추가"
-                  onClick={handleAddChildClassClick(row)}
-                  color="inherit"
-              />
-          )
-        }
+  // 행 액션 렌더링 함수
+  const renderRowActions = useCallback(({row}) => {
+    const data = row.original
+    const isClass = data.type === 'CLASS'
 
-        return actions
-      },
-    },
-  ]
+    return (
+        <Box sx={{display: 'flex', gap: '2px'}}>
+          {isClass ? (
+              <Tooltip title="코드 추가">
+                <IconButton size="small" onClick={handleAddCodeClick(data)}>
+                  <AddIcon fontSize="small"/>
+                </IconButton>
+              </Tooltip>
+          ) : (
+              <Tooltip title="하위 클래스 추가">
+                <IconButton size="small" onClick={handleAddChildClassClick(data)}>
+                  <TreeIcon fontSize="small"/>
+                </IconButton>
+              </Tooltip>
+          )}
+          <Tooltip title="편집">
+            <IconButton size="small" onClick={handleEditClick(data)}>
+              <EditIcon fontSize="small"/>
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="삭제">
+            <IconButton size="small" onClick={handleDeleteClick(data)}>
+              <DeleteIcon fontSize="small"/>
+            </IconButton>
+          </Tooltip>
+        </Box>
+    )
+  }, [handleAddCodeClick, handleAddChildClassClick, handleEditClick, handleDeleteClick])
 
   // 다이얼로그 폼 렌더링
   const renderDialogContent = () => {
@@ -826,18 +815,17 @@ export default function CommonCode() {
                 )}
               </Box>
               <Box sx={{flex: 1, minHeight: 0}}>
-                <DataGridTable
+                <MRTTable
                     columns={columns}
                     paginationMode="client"
                     clientSideData={filteredGridRows}
                     defaultPageSize={25}
                     hidePagination={false}
-                    dataGridSx={{
+                    enableRowActions={true}
+                    renderRowActions={renderRowActions}
+                    positionActionsColumn="last"
+                    tableSx={{
                       border: 'none',
-                      '& .MuiDataGrid-cell': {
-                        borderRight: 1,
-                        borderColor: 'divider',
-                      },
                     }}
                 />
               </Box>

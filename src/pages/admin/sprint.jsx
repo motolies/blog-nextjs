@@ -19,7 +19,7 @@ import {
 import ReactECharts from 'echarts-for-react'
 import { useSnackbar } from 'notistack'
 import service from '../../service'
-import DataGridTable from '../../components/common/DataGridTable'
+import MRTTable from '../../components/common/MRTTable'
 
 export default function SprintPage() {
     const { enqueueSnackbar } = useSnackbar()
@@ -217,26 +217,26 @@ export default function SprintPage() {
 
     const tableData = getTableData()
 
-    // 스프린트 상세 DataGrid 컬럼 정의
-    const sprintDetailColumns = [
-        { field: 'sprint', headerName: '스프린트', width: 150, headerAlign: 'left', align: 'left' },
-        { field: 'assignee', headerName: '작업자', width: 120, headerAlign: 'left', align: 'left' },
-        { field: 'issueKey', headerName: '이슈', width: 120, headerAlign: 'left', align: 'left' },
-        { field: 'status', headerName: '상태', width: 100, headerAlign: 'left', align: 'left' },
-        { field: 'summary', headerName: '서머리', width: 300, flex: 1, headerAlign: 'left', align: 'left' },
-        { field: 'startDate', headerName: '시작일', width: 120, headerAlign: 'left', align: 'left' },
-        { field: 'totalTimeHours', headerName: '작업시간', width: 120, type: 'number', headerAlign: 'right', align: 'right' },
-        { field: 'storyPoints', headerName: '스토리포인트', width: 120, type: 'number', headerAlign: 'right', align: 'right' }
-    ]
+    // 스프린트 상세 MRT 컬럼 정의
+    const sprintDetailColumns = useMemo(() => [
+        { accessorKey: 'sprint', header: '스프린트', size: 150, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
+        { accessorKey: 'assignee', header: '작업자', size: 120, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
+        { accessorKey: 'issueKey', header: '이슈', size: 120, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
+        { accessorKey: 'status', header: '상태', size: 100, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
+        { accessorKey: 'summary', header: '서머리', size: 300, grow: true, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
+        { accessorKey: 'startDate', header: '시작일', size: 120, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
+        { accessorKey: 'totalTimeHours', header: '작업시간', size: 120, muiTableHeadCellProps: { align: 'right' }, muiTableBodyCellProps: { align: 'right' } },
+        { accessorKey: 'storyPoints', header: '스토리포인트', size: 120, muiTableHeadCellProps: { align: 'right' }, muiTableBodyCellProps: { align: 'right' } }
+    ], [])
 
-    // 이슈 작업로그 DataGrid 컬럼 정의
-    const issueWorklogColumns = [
-        { field: 'issueKey', headerName: '이슈', width: 120, headerAlign: 'left', align: 'left' },
-        { field: 'author', headerName: '작업자', width: 120, headerAlign: 'left', align: 'left' },
-        { field: 'comment', headerName: '작업 코멘트', width: 300, flex: 1, headerAlign: 'left', align: 'left' },
-        { field: 'started', headerName: '작업시작시간', width: 180, headerAlign: 'left', align: 'left' },
-        { field: 'timeHours', headerName: '작업시간', width: 120, type: 'number', headerAlign: 'right', align: 'right' }
-    ]
+    // 이슈 작업로그 MRT 컬럼 정의
+    const issueWorklogColumns = useMemo(() => [
+        { accessorKey: 'issueKey', header: '이슈', size: 120, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
+        { accessorKey: 'author', header: '작업자', size: 120, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
+        { accessorKey: 'comment', header: '작업 코멘트', size: 300, grow: true, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
+        { accessorKey: 'started', header: '작업시작시간', size: 180, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
+        { accessorKey: 'timeHours', header: '작업시간', size: 120, muiTableHeadCellProps: { align: 'right' }, muiTableBodyCellProps: { align: 'right' } }
+    ], [])
 
     // UTC를 KST로 변환하는 함수
     const convertUTCToKST = (utcTimeString) => {
@@ -449,7 +449,7 @@ export default function SprintPage() {
                                         </Box>
                                     ) : (
                                         <Box sx={{ minWidth: 0, width: '85vw', mx: 'auto' }}>
-                                            <DataGridTable
+                                            <MRTTable
                                                 paginationMode="client"
                                                 clientSideData={sprintDetailRows}
                                                 columns={sprintDetailColumns}
@@ -466,18 +466,17 @@ export default function SprintPage() {
                                                 } : undefined}
                                                 onRowClick={(params) => {
                                                     // 합계 로우는 클릭 불가
-                                                    if (params.row.id !== 'summary') {
+                                                    if (params.id !== 'summary') {
                                                         loadIssueWorklog(params.row.issueKey)
                                                     }
                                                 }}
                                                 getRowClassName={(params) => {
-                                                    if (params.row.id === 'summary') return 'total-row'
-                                                    if (params.row.issueKey === selectedIssue) return 'selected-issue-row'
-                                                    return ''
+                                                    if (params.id === 'summary') return { backgroundColor: '#f0f0f0' }
+                                                    if (params.row.issueKey === selectedIssue) return { backgroundColor: '#e3f2fd' }
+                                                    return {}
                                                 }}
                                                 autoHeight={true}
                                                 density="compact"
-
                                             />
                                         </Box>
                                     )}
@@ -500,7 +499,7 @@ export default function SprintPage() {
                                         </Box>
                                     ) : (
                                         <Box sx={{ minWidth: 0, width: '85vw', mx: 'auto' }}>
-                                            <DataGridTable
+                                            <MRTTable
                                                 paginationMode="client"
                                                 clientSideData={issueWorklogRows}
                                                 columns={issueWorklogColumns}
@@ -514,7 +513,6 @@ export default function SprintPage() {
                                                 } : undefined}
                                                 autoHeight={true}
                                                 density="compact"
-
                                             />
                                         </Box>
                                     )}

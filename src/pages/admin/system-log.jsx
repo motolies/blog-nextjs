@@ -1,6 +1,6 @@
-import React, {useCallback, useState} from 'react'
+import React, {useCallback, useMemo, useState} from 'react'
 import {Box, Chip, Typography} from '@mui/material'
-import DataGridTable from '../../components/common/DataGridTable'
+import MRTTable from '../../components/common/MRTTable'
 import DetailDialog from '../../components/common/DetailDialog'
 import logService from '../../service/logService'
 import {formatUtcToLocal} from '../../util/dateTimeUtil'
@@ -27,126 +27,120 @@ export default function SystemLog() {
     return text.substring(0, maxLength) + '...'
   }, [])
 
-  // DataGrid 컬럼 정의 (메모이제이션)
-  const columns = [
-    {
-      field: 'id',
-      headerName: 'ID',
-      width: 150,
-    },
-    {
-      field: 'traceId',
-      headerName: 'Trace ID',
-      width: 300,
-    },
-    // {
-    //   field: 'spanId',
-    //   headerName: 'Span ID',
-    //   width: 150,
-    // },
-    {
-      field: 'requestUri',
-      headerName: 'Request URI',
-      width: 400,
+  // fetchData 메모이제이션: Dialog 상태 변경 시 재검색 방지
+  const fetchSystemLogs = useCallback((searchRequest) =>
+    logService.searchSystemLogs({searchRequest}),
+    []
+  )
 
-    },
-    // {
-    //   field: 'controllerName',
-    //   headerName: 'Controller',
-    //   width: 200,
-    // },
+  // MRT 컬럼 정의 (메모이제이션)
+  const columns = useMemo(() => [
     {
-      field: 'methodName',
-      headerName: 'Method',
-      width: 300,
+      accessorKey: 'id',
+      header: 'ID',
+      size: 150,
     },
     {
-      field: 'httpMethodType',
-      headerName: 'HTTP Method',
-      width: 120,
-      renderCell: (params) => (
+      accessorKey: 'traceId',
+      header: 'Trace ID',
+      size: 300,
+    },
+    {
+      accessorKey: 'requestUri',
+      header: 'Request URI',
+      size: 400,
+    },
+    {
+      accessorKey: 'methodName',
+      header: 'Method',
+      size: 300,
+    },
+    {
+      accessorKey: 'httpMethodType',
+      header: 'HTTP Method',
+      size: 120,
+      Cell: ({cell}) => (
           <Chip
-              label={params.value}
+              label={cell.getValue()}
               size="small"
               color={
-                params.value === 'GET' ? 'primary' :
-                    params.value === 'POST' ? 'success' :
-                        params.value === 'PUT' ? 'warning' :
-                            params.value === 'DELETE' ? 'error' : 'default'
+                cell.getValue() === 'GET' ? 'primary' :
+                    cell.getValue() === 'POST' ? 'success' :
+                        cell.getValue() === 'PUT' ? 'warning' :
+                            cell.getValue() === 'DELETE' ? 'error' : 'default'
               }
           />
       ),
     },
     {
-      field: 'status',
-      headerName: 'Status',
-      width: 100,
-      renderCell: (params) => (
+      accessorKey: 'status',
+      header: 'Status',
+      size: 100,
+      Cell: ({cell}) => (
           <Chip
-              label={params.value}
+              label={cell.getValue()}
               size="small"
-              color={params.value === 'SUCC' ? 'success' : 'error'}
+              color={cell.getValue() === 'SUCC' ? 'success' : 'error'}
           />
       ),
     },
-
     {
-      field: 'paramData',
-      headerName: 'Param Data',
-      flex: 1,
-      renderCell: (params) => (
+      accessorKey: 'paramData',
+      header: 'Param Data',
+      grow: true,
+      Cell: ({cell}) => (
           <div
               style={{cursor: 'pointer', color: '#1976d2'}}
-              onClick={() => handleDetailClick('Param Data', params.value)}
+              onClick={() => handleDetailClick('Param Data', cell.getValue())}
           >
-            {truncateText(params.value, 150)}
+            {truncateText(cell.getValue(), 150)}
           </div>
       ),
     },
     {
-      field: 'responseBody',
-      headerName: 'Response Body',
-      width: 300,
-      renderCell: (params) => (
+      accessorKey: 'responseBody',
+      header: 'Response Body',
+      size: 300,
+      Cell: ({cell}) => (
           <div
               style={{cursor: 'pointer', color: '#1976d2'}}
-              onClick={() => handleDetailClick('Response Body', params.value)}
+              onClick={() => handleDetailClick('Response Body', cell.getValue())}
           >
-            {truncateText(params.value)}
+            {truncateText(cell.getValue())}
           </div>
       ),
     },
     {
-      field: 'stackTrace',
-      headerName: 'Stack Trace',
-      width: 300,
-      renderCell: (params) => (
+      accessorKey: 'stackTrace',
+      header: 'Stack Trace',
+      size: 300,
+      Cell: ({cell}) => (
           <div
               style={{cursor: 'pointer', color: '#1976d2'}}
-              onClick={() => handleDetailClick('Stack Trace', params.value)}
+              onClick={() => handleDetailClick('Stack Trace', cell.getValue())}
           >
-            {truncateText(params.value)}
+            {truncateText(cell.getValue())}
           </div>
       ),
     },
     {
-      field: 'processTime',
-      headerName: 'Process Time (ms)',
-      width: 150,
-      type: 'number',
+      accessorKey: 'processTime',
+      header: 'Process Time (ms)',
+      size: 150,
+      muiTableBodyCellProps: {align: 'right'},
     },
     {
-      field: 'remoteAddr',
-      headerName: 'Remote IP',
-      width: 150,
+      accessorKey: 'remoteAddr',
+      header: 'Remote IP',
+      size: 150,
     },
     {
-      field: 'createdAt',
-      headerName: 'Created At',
-      width: 200,
-      valueFormatter: (value) => formatUtcToLocal(value),
+      accessorKey: 'createdAt',
+      header: 'Created At',
+      size: 200,
+      Cell: ({cell}) => formatUtcToLocal(cell.getValue()),
     },
-  ]
+  ], [handleDetailClick, truncateText])
 
   // 검색 필드 정의
   const searchFields = [
@@ -168,10 +162,9 @@ export default function SystemLog() {
           시스템 로그
         </Typography>
         <Box sx={{width: '85vw', mx: 'auto'}}>
-          <DataGridTable
+          <MRTTable
               columns={columns}
-              fetchData={(searchRequest) => logService.searchSystemLogs(
-                  {searchRequest})}
+              fetchData={fetchSystemLogs}
               searchFields={searchFields}
               defaultPageSize={25}
           />

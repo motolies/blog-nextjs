@@ -1,6 +1,6 @@
 import React, {useState, useCallback, useMemo} from 'react'
 import {Box, Typography, Chip} from '@mui/material'
-import DataGridTable from '../../components/common/DataGridTable'
+import MRTTable from '../../components/common/MRTTable'
 import DetailDialog from '../../components/common/DetailDialog'
 import logService from '../../service/logService'
 import {formatUtcToLocal} from '../../util/dateTimeUtil'
@@ -23,52 +23,53 @@ export default function ApiLog() {
     return text.substring(0, maxLength) + '...'
   }, [])
 
-  // DataGrid 컬럼 정의 (메모이제이션)
+  // fetchData 메모이제이션: Dialog 상태 변경 시 재검색 방지
+  const fetchApiLogs = useCallback((searchRequest) =>
+    logService.searchApiLogs({searchRequest}),
+    []
+  )
+
+  // MRT 컬럼 정의 (메모이제이션)
   const columns = useMemo(() => [
     {
-      field: 'id',
-      headerName: 'ID',
-      width: 150,
-      type: 'number',
+      accessorKey: 'id',
+      header: 'ID',
+      size: 150,
+      muiTableBodyCellProps: {align: 'right'},
     },
     {
-      field: 'traceId',
-      headerName: 'Trace ID',
-      width: 300,
-    },
-    // {
-    //   field: 'spanId',
-    //   headerName: 'Span ID',
-    //   width: 150,
-    // },
-    {
-      field: 'requestUri',
-      headerName: 'Request URI',
-      flex: 1,
+      accessorKey: 'traceId',
+      header: 'Trace ID',
+      size: 300,
     },
     {
-      field: 'httpMethodType',
-      headerName: 'HTTP Method',
-      width: 120,
-      renderCell: (params) => (
+      accessorKey: 'requestUri',
+      header: 'Request URI',
+      grow: true,
+    },
+    {
+      accessorKey: 'httpMethodType',
+      header: 'HTTP Method',
+      size: 120,
+      Cell: ({cell}) => (
           <Chip
-              label={params.value}
+              label={cell.getValue()}
               size="small"
               color={
-                params.value === 'GET' ? 'primary' :
-                    params.value === 'POST' ? 'success' :
-                        params.value === 'PUT' ? 'warning' :
-                            params.value === 'DELETE' ? 'error' : 'default'
+                cell.getValue() === 'GET' ? 'primary' :
+                    cell.getValue() === 'POST' ? 'success' :
+                        cell.getValue() === 'PUT' ? 'warning' :
+                            cell.getValue() === 'DELETE' ? 'error' : 'default'
               }
           />
       ),
     },
     {
-      field: 'responseStatus',
-      headerName: 'Response Status',
-      width: 150,
-      renderCell: (params) => {
-        const statusCode = parseInt(params.value)
+      accessorKey: 'responseStatus',
+      header: 'Response Status',
+      size: 150,
+      Cell: ({cell}) => {
+        const statusCode = parseInt(cell.getValue())
         let color = 'default'
         if (statusCode >= 200 && statusCode < 300) color = 'success'
         else if (statusCode >= 300 && statusCode < 400) color = 'info'
@@ -77,7 +78,7 @@ export default function ApiLog() {
 
         return (
             <Chip
-                label={params.value}
+                label={cell.getValue()}
                 size="small"
                 color={color}
             />
@@ -85,68 +86,68 @@ export default function ApiLog() {
       },
     },
     {
-      field: 'requestHeader',
-      headerName: 'Request Header',
-      width: 200,
-      renderCell: (params) => (
+      accessorKey: 'requestHeader',
+      header: 'Request Header',
+      size: 200,
+      Cell: ({cell}) => (
           <div
               style={{cursor: 'pointer', color: '#1976d2'}}
-              onClick={() => handleDetailClick('Request Header', params.value)}
+              onClick={() => handleDetailClick('Request Header', cell.getValue())}
           >
-            {truncateText(params.value)}
+            {truncateText(cell.getValue())}
           </div>
       ),
     },
     {
-      field: 'requestParam',
-      headerName: 'Request Param',
-      width: 300,
-      renderCell: (params) => (
+      accessorKey: 'requestParam',
+      header: 'Request Param',
+      size: 300,
+      Cell: ({cell}) => (
           <div
               style={{cursor: 'pointer', color: '#1976d2'}}
-              onClick={() => handleDetailClick('Request Param', params.value)}
+              onClick={() => handleDetailClick('Request Param', cell.getValue())}
           >
-            {truncateText(params.value)}
+            {truncateText(cell.getValue())}
           </div>
       ),
     },
     {
-      field: 'requestBody',
-      headerName: 'Request Body',
-      width: 300,
-      renderCell: (params) => (
+      accessorKey: 'requestBody',
+      header: 'Request Body',
+      size: 300,
+      Cell: ({cell}) => (
           <div
               style={{cursor: 'pointer', color: '#1976d2'}}
-              onClick={() => handleDetailClick('Request Body', params.value)}
+              onClick={() => handleDetailClick('Request Body', cell.getValue())}
           >
-            {truncateText(params.value)}
+            {truncateText(cell.getValue())}
           </div>
       ),
     },
     {
-      field: 'responseBody',
-      headerName: 'Response Body',
-      width: 300,
-      renderCell: (params) => (
+      accessorKey: 'responseBody',
+      header: 'Response Body',
+      size: 300,
+      Cell: ({cell}) => (
           <div
               style={{cursor: 'pointer', color: '#1976d2'}}
-              onClick={() => handleDetailClick('Response Body', params.value)}
+              onClick={() => handleDetailClick('Response Body', cell.getValue())}
           >
-            {truncateText(params.value)}
+            {truncateText(cell.getValue())}
           </div>
       ),
     },
     {
-      field: 'processTime',
-      headerName: 'Process Time (ms)',
-      width: 150,
-      type: 'number',
+      accessorKey: 'processTime',
+      header: 'Process Time (ms)',
+      size: 150,
+      muiTableBodyCellProps: {align: 'right'},
     },
     {
-      field: 'createdAt',
-      headerName: 'Created At',
-      width: 200,
-      valueFormatter: (value) => formatUtcToLocal(value),
+      accessorKey: 'createdAt',
+      header: 'Created At',
+      size: 200,
+      Cell: ({cell}) => formatUtcToLocal(cell.getValue()),
     },
   ], [handleDetailClick, truncateText])
 
@@ -169,10 +170,9 @@ export default function ApiLog() {
           API 로그
         </Typography>
         <Box sx={{width: '85vw', mx: 'auto'}}>
-          <DataGridTable
+          <MRTTable
               columns={columns}
-              fetchData={(searchRequest) => logService.searchApiLogs(
-                  {searchRequest})}
+              fetchData={fetchApiLogs}
               searchFields={searchFields}
               defaultPageSize={25}
           />

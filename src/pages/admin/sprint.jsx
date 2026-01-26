@@ -221,7 +221,28 @@ export default function SprintPage() {
     const sprintDetailColumns = useMemo(() => [
         { accessorKey: 'sprint', header: '스프린트', size: 150, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
         { accessorKey: 'assignee', header: '작업자', size: 120, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
-        { accessorKey: 'issueKey', header: '이슈', size: 120, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
+        {
+            accessorKey: 'issueKey',
+            header: '이슈',
+            size: 120,
+            muiTableHeadCellProps: { align: 'left' },
+            muiTableBodyCellProps: { align: 'left' },
+            Cell: ({ cell }) => {
+                const issueKey = cell.getValue()
+                if (!issueKey) return null
+                return (
+                    <a
+                        href={`${process.env.JIRA_BROWSE_URL}/${issueKey}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ color: '#1976d2', textDecoration: 'none' }}
+                    >
+                        {issueKey}
+                    </a>
+                )
+            }
+        },
         { accessorKey: 'status', header: '상태', size: 100, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
         { accessorKey: 'summary', header: '서머리', size: 300, grow: true, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
         { accessorKey: 'startDate', header: '시작일', size: 120, muiTableHeadCellProps: { align: 'left' }, muiTableBodyCellProps: { align: 'left' } },
@@ -473,6 +494,12 @@ export default function SprintPage() {
                                                 getRowClassName={(params) => {
                                                     if (params.id === 'summary') return { backgroundColor: '#f0f0f0' }
                                                     if (params.row.issueKey === selectedIssue) return { backgroundColor: '#e3f2fd' }
+                                                    // 작업완료 상태인데 스토리포인트가 없으면 연한 핑크색
+                                                    const isCompleted = params.row.status === '작업완료'
+                                                    const noStoryPoints = !params.row.storyPoints || params.row.storyPoints === 0
+                                                    if (isCompleted && noStoryPoints) {
+                                                        return { backgroundColor: '#ffebee' }
+                                                    }
                                                     return {}
                                                 }}
                                                 autoHeight={true}

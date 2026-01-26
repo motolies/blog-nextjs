@@ -11,6 +11,7 @@ module.exports = {
         BLOG_URL_DEV: BACKEND_URL.BLOG_URL_DEV,
         BLOG_URL_PROD: BACKEND_URL.BLOG_URL_PROD,
         META_URL: 'https://hvy.kr',
+        JIRA_BROWSE_URL: 'https://deleokorea.atlassian.net/browse',
     },
     transpilePackages: ['@mui/x-data-grid'],
     async rewrites() {

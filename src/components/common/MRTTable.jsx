@@ -7,6 +7,30 @@ import {MRT_Localization_KO} from 'material-react-table/locales/ko'
 import {Box, TextField, Button, Stack, Paper, Typography, Pagination} from '@mui/material'
 import {Search as SearchIcon, Refresh as RefreshIcon} from '@mui/icons-material'
 
+const SPACING_CONFIG = {
+  s: {
+    filterPadding: 1, filterMarginBottom: 1, stackSpacing: 1,
+    textFieldMinWidth: 160, paginationPadding: 0.5,
+    headerFontSize: '0.8rem', bodyFontSize: '0.8rem',
+    defaultDensity: 'compact',
+    totalTypographyVariant: 'caption', buttonSize: 'small',
+  },
+  m: {
+    filterPadding: 2, filterMarginBottom: 2, stackSpacing: 2,
+    textFieldMinWidth: 200, paginationPadding: 1,
+    headerFontSize: '0.875rem', bodyFontSize: '0.875rem',
+    defaultDensity: 'comfortable',
+    totalTypographyVariant: 'body2', buttonSize: 'medium',
+  },
+  l: {
+    filterPadding: 3, filterMarginBottom: 3, stackSpacing: 3,
+    textFieldMinWidth: 240, paginationPadding: 2,
+    headerFontSize: '1rem', bodyFontSize: '1rem',
+    defaultDensity: 'spacious',
+    totalTypographyVariant: 'body1', buttonSize: 'medium',
+  },
+}
+
 /**
  * Material React Table 기반 공통 테이블 컴포넌트
  *
@@ -24,7 +48,8 @@ import {Search as SearchIcon, Refresh as RefreshIcon} from '@mui/icons-material'
  * @param {Function} props.getRowClassName - 행 클래스명 지정 함수 (sx 스타일 반환)
  * @param {Object} props.tableSx - 테이블 커스텀 스타일
  * @param {boolean} props.autoHeight - 자동 높이 설정 (default: false)
- * @param {'compact'|'comfortable'|'spacious'} props.density - 테이블 밀도 (default: 'comfortable')
+ * @param {'s'|'m'|'l'} props.spacing - 컴포넌트 여백 크기 (default: 's')
+ * @param {'compact'|'comfortable'|'spacious'} props.density - 테이블 밀도 (default: spacing에 연동)
  * @param {boolean} props.enableRowActions - 행 액션 활성화 (default: false)
  * @param {Function} props.renderRowActions - 행 액션 렌더링 함수
  * @param {string} props.positionActionsColumn - 액션 컬럼 위치 ('first' | 'last')
@@ -43,11 +68,14 @@ export default function MRTTable({
   getRowClassName,
   tableSx = {},
   autoHeight = false,
-  density = 'comfortable',
+  spacing = 's',
+  density,
   enableRowActions = false,
   renderRowActions,
   positionActionsColumn = 'last'
 }) {
+  const spacingConfig = SPACING_CONFIG[spacing] || SPACING_CONFIG.s
+  const resolvedDensity = density || spacingConfig.defaultDensity
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(false)
   const [pagination, setPagination] = useState({
@@ -217,7 +245,7 @@ export default function MRTTable({
       isLoading: loading,
       pagination,
       sorting,
-      density
+      density: resolvedDensity
     },
 
     // 이벤트 핸들러
@@ -256,10 +284,10 @@ export default function MRTTable({
         },
         '& .MuiTableHead-root .MuiTableCell-root': {
           fontWeight: 700,
-          fontSize: '0.875rem',
+          fontSize: spacingConfig.headerFontSize,
         },
         '& .MuiTableBody-root .MuiTableCell-root': {
-          fontSize: '0.875rem',
+          fontSize: spacingConfig.bodyFontSize,
         },
         '& .MuiTableBody-root .MuiTableRow-root:hover': {
           backgroundColor: '#f5f5f5 !important',
@@ -285,8 +313,8 @@ export default function MRTTable({
       const pageCount = Math.ceil(totalRows / pageSize)
 
       return (
-        <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1}}>
-          <Typography variant="body2" sx={{color: 'text.secondary'}}>
+        <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: spacingConfig.paginationPadding}}>
+          <Typography variant={spacingConfig.totalTypographyVariant} sx={{color: 'text.secondary'}}>
             총 {totalRows.toLocaleString('ko-KR')}개
           </Typography>
           <Pagination
@@ -294,6 +322,7 @@ export default function MRTTable({
             page={pageIndex + 1}
             onChange={(e, newPage) => setPagination(prev => ({...prev, pageIndex: newPage - 1}))}
             color="primary"
+            size={spacingConfig.buttonSize === 'small' ? 'small' : 'medium'}
             showFirstButton
             showLastButton
           />
@@ -309,8 +338,8 @@ export default function MRTTable({
     <Box sx={{height: '100%', width: '100%', display: 'flex', flexDirection: 'column'}}>
       {/* 검색 필터 */}
       {searchFields.length > 0 && (
-        <Paper sx={{p: 2, mb: 2}}>
-          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+        <Paper sx={{p: spacingConfig.filterPadding, mb: spacingConfig.filterMarginBottom}}>
+          <Stack direction="row" spacing={spacingConfig.stackSpacing} flexWrap="wrap" useFlexGap>
             {searchFields.map(field => (
               <TextField
                 key={field.name}
@@ -320,11 +349,12 @@ export default function MRTTable({
                 value={searchInputs[field.name] || ''}
                 onChange={(e) => handleSearchInputChange(field.name, e.target.value)}
                 onKeyPress={handleKeyPress}
-                sx={{minWidth: 200}}
+                sx={{minWidth: spacingConfig.textFieldMinWidth}}
               />
             ))}
             <Button
               variant="contained"
+              size={spacingConfig.buttonSize}
               startIcon={<SearchIcon />}
               onClick={handleSearch}
             >
@@ -332,6 +362,7 @@ export default function MRTTable({
             </Button>
             <Button
               variant="outlined"
+              size={spacingConfig.buttonSize}
               startIcon={<RefreshIcon />}
               onClick={handleReset}
             >

@@ -4,11 +4,8 @@ import {
   useMaterialReactTable
 } from 'material-react-table'
 import {MRT_Localization_KO} from 'material-react-table/locales/ko'
-import {Box, TextField, Button, Stack, Paper, Typography, Pagination} from '@mui/material'
-import {Search as SearchIcon, Refresh as RefreshIcon} from '@mui/icons-material'
-import dynamic from 'next/dynamic'
-
-const DateRangePicker = dynamic(() => import('./DateRangePicker'), {ssr: false})
+import {Box, Paper, Typography, Pagination} from '@mui/material'
+import DynamicSearchFields from './DynamicSearchFields'
 
 const SPACING_CONFIG = {
   s: {
@@ -56,6 +53,9 @@ const SPACING_CONFIG = {
  * @param {boolean} props.enableRowActions - 행 액션 활성화 (default: false)
  * @param {Function} props.renderRowActions - 행 액션 렌더링 함수
  * @param {string} props.positionActionsColumn - 액션 컬럼 위치 ('first' | 'last')
+ * @param {boolean} props.enableDynamicSearch - 동적 검색 활성화 (default: false)
+ *   false: 모든 검색 필드를 일렬로 표시 (기존 동작)
+ *   true: pinned 필드만 기본 노출, 나머지는 '검색 조건 추가' 메뉴로 동적 추가/제거
  */
 export default function MRTTable({
   columns,
@@ -75,7 +75,8 @@ export default function MRTTable({
   density,
   enableRowActions = false,
   renderRowActions,
-  positionActionsColumn = 'last'
+  positionActionsColumn = 'last',
+  enableDynamicSearch = false,
 }) {
   const spacingConfig = SPACING_CONFIG[spacing] || SPACING_CONFIG.s
   const resolvedDensity = density || spacingConfig.defaultDensity
@@ -341,54 +342,17 @@ export default function MRTTable({
     <Box sx={{height: '100%', width: '100%', display: 'flex', flexDirection: 'column'}}>
       {/* 검색 필터 */}
       {searchFields.length > 0 && (
-        <Paper sx={{p: spacingConfig.filterPadding, mb: spacingConfig.filterMarginBottom}}>
-          <Stack direction="row" spacing={spacingConfig.stackSpacing} flexWrap="wrap" useFlexGap>
-            {searchFields.map(field => {
-              if (field.type === 'dateRange') {
-                return (
-                  <DateRangePicker
-                    key={field.fromName}
-                    fromValue={searchInputs[field.fromName] || ''}
-                    toValue={searchInputs[field.toName] || ''}
-                    onFromChange={(val) => handleSearchInputChange(field.fromName, val)}
-                    onToChange={(val) => handleSearchInputChange(field.toName, val)}
-                    fromLabel={field.fromLabel}
-                    toLabel={field.toLabel}
-                    size="small"
-                  />
-                )
-              }
-              return (
-                <TextField
-                  key={field.name}
-                  label={field.label}
-                  size="small"
-                  type={field.type || 'text'}
-                  value={searchInputs[field.name] || ''}
-                  onChange={(e) => handleSearchInputChange(field.name, e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  sx={{minWidth: spacingConfig.textFieldMinWidth}}
-                />
-              )
-            })}
-            <Button
-              variant="contained"
-              size={spacingConfig.buttonSize}
-              startIcon={<SearchIcon />}
-              onClick={handleSearch}
-            >
-              검색
-            </Button>
-            <Button
-              variant="outlined"
-              size={spacingConfig.buttonSize}
-              startIcon={<RefreshIcon />}
-              onClick={handleReset}
-            >
-              초기화
-            </Button>
-          </Stack>
-        </Paper>
+        <DynamicSearchFields
+          searchFields={searchFields}
+          searchInputs={searchInputs}
+          defaultSearchParams={defaultSearchParams}
+          onInputChange={handleSearchInputChange}
+          onSearch={handleSearch}
+          onReset={handleReset}
+          onKeyPress={handleKeyPress}
+          spacingConfig={spacingConfig}
+          enableDynamic={enableDynamicSearch}
+        />
       )}
 
       {/* Material React Table */}

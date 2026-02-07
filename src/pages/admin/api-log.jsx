@@ -156,7 +156,7 @@ export default function ApiLog() {
 
   // 검색 필드 정의
   const searchFields = [
-    {type: 'dateRange', fromName: 'createdAtFrom', toName: 'createdAtTo', fromLabel: '시작일', toLabel: '종료일'},
+    {type: 'dateRange', fromName: 'createdAtFrom', toName: 'createdAtTo', fromLabel: '시작일', toLabel: '종료일', pinned: true},
     {name: 'traceId', label: 'Trace ID'},
     {name: 'spanId', label: 'Span ID'},
     {name: 'requestUri', label: 'Request URI'},
@@ -180,6 +180,7 @@ export default function ApiLog() {
               searchFields={searchFields}
               defaultSearchParams={{createdAtFrom: today, createdAtTo: today}}
               defaultPageSize={25}
+              enableDynamicSearch={true}
           />
         </Box>
         <DetailDialog

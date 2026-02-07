@@ -16,6 +16,7 @@
     "@mui/lab": "^5.0.0-alpha.161",
     "@mui/material": "^5.15.12",
     "@mui/system": "^5.15.12",
+    "@mui/x-date-pickers": "^8.27.0",
     "@mui/x-tree-view": "^6.17.0",
     "axios": "^1.6.0",
     "ckeditor5": "46.1.0",

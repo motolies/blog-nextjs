@@ -6,6 +6,9 @@ import {
 import {MRT_Localization_KO} from 'material-react-table/locales/ko'
 import {Box, TextField, Button, Stack, Paper, Typography, Pagination} from '@mui/material'
 import {Search as SearchIcon, Refresh as RefreshIcon} from '@mui/icons-material'
+import dynamic from 'next/dynamic'
+
+const DateRangePicker = dynamic(() => import('./DateRangePicker'), {ssr: false})
 
 const SPACING_CONFIG = {
   s: {
@@ -340,18 +343,34 @@ export default function MRTTable({
       {searchFields.length > 0 && (
         <Paper sx={{p: spacingConfig.filterPadding, mb: spacingConfig.filterMarginBottom}}>
           <Stack direction="row" spacing={spacingConfig.stackSpacing} flexWrap="wrap" useFlexGap>
-            {searchFields.map(field => (
-              <TextField
-                key={field.name}
-                label={field.label}
-                size="small"
-                type={field.type || 'text'}
-                value={searchInputs[field.name] || ''}
-                onChange={(e) => handleSearchInputChange(field.name, e.target.value)}
-                onKeyPress={handleKeyPress}
-                sx={{minWidth: spacingConfig.textFieldMinWidth}}
-              />
-            ))}
+            {searchFields.map(field => {
+              if (field.type === 'dateRange') {
+                return (
+                  <DateRangePicker
+                    key={field.fromName}
+                    fromValue={searchInputs[field.fromName] || ''}
+                    toValue={searchInputs[field.toName] || ''}
+                    onFromChange={(val) => handleSearchInputChange(field.fromName, val)}
+                    onToChange={(val) => handleSearchInputChange(field.toName, val)}
+                    fromLabel={field.fromLabel}
+                    toLabel={field.toLabel}
+                    size="small"
+                  />
+                )
+              }
+              return (
+                <TextField
+                  key={field.name}
+                  label={field.label}
+                  size="small"
+                  type={field.type || 'text'}
+                  value={searchInputs[field.name] || ''}
+                  onChange={(e) => handleSearchInputChange(field.name, e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  sx={{minWidth: spacingConfig.textFieldMinWidth}}
+                />
+              )
+            })}
             <Button
               variant="contained"
               size={spacingConfig.buttonSize}

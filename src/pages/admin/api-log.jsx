@@ -1,9 +1,12 @@
 import React, {useState, useCallback, useMemo} from 'react'
+import moment from 'moment'
 import {Box, Typography, Chip} from '@mui/material'
 import MRTTable from '../../components/common/MRTTable'
 import DetailDialog from '../../components/common/DetailDialog'
 import logService from '../../service/logService'
 import {formatUtcToLocal} from '../../util/dateTimeUtil'
+
+const today = moment().format('YYYY-MM-DD')
 
 export default function ApiLog() {
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -153,6 +156,7 @@ export default function ApiLog() {
 
   // 검색 필드 정의
   const searchFields = [
+    {type: 'dateRange', fromName: 'createdAtFrom', toName: 'createdAtTo', fromLabel: '시작일', toLabel: '종료일'},
     {name: 'traceId', label: 'Trace ID'},
     {name: 'spanId', label: 'Span ID'},
     {name: 'requestUri', label: 'Request URI'},
@@ -174,6 +178,7 @@ export default function ApiLog() {
               columns={columns}
               fetchData={fetchApiLogs}
               searchFields={searchFields}
+              defaultSearchParams={{createdAtFrom: today, createdAtTo: today}}
               defaultPageSize={25}
           />
         </Box>

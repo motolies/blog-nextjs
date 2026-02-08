@@ -216,7 +216,7 @@ export default function PostComponent({post, prevNext}) {
     const setPublicStatus = async () => {
         if (postPublic) {
             await service.post.setPublicPost({postId: post?.id, publicStatus: false}).then(res => {
-                if (res.status === 200) {
+                if (res.status >= 200 && res.status < 300) {
                     setPostPublic(false)
                     enqueueSnackbar("공개를 비공개로 변경하였습니다.", {variant: "success"})
                 }
@@ -225,7 +225,7 @@ export default function PostComponent({post, prevNext}) {
             })
         } else {
             await service.post.setPublicPost({postId: post?.id, publicStatus: true}).then(res => {
-                if (res.status === 200) {
+                if (res.status >= 200 && res.status < 300) {
                     setPostPublic(true)
                     enqueueSnackbar("비공개를 공개로 변경하였습니다.", {variant: "success"})
                 }

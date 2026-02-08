@@ -64,7 +64,7 @@ export default function TagGroupComponent({postId, tagList, clickable, listHeigh
         setIsAddTag(false)
         service.post.addTag({postId: postId, tagName: tagName})
             .then(res => {
-                if (res.status === 200) {
+                if (res.status >= 200 && res.status < 300) {
                     const newTag = res.data
 
                     const filteredPostArray = _.unionBy(postTags, [newTag], 'id')
@@ -88,7 +88,7 @@ export default function TagGroupComponent({postId, tagList, clickable, listHeigh
         const oldTags = postTags.filter(t => t.id === tagId)
         service.post.deleteTag({postId: postId, tagId: tagId})
             .then(res => {
-                if (res.status === 200) {
+                if (res.status >= 200 && res.status < 300) {
                     const filteredArray = postTags.filter(t => t.id !== tagId)
                     setPostTags(filteredArray)
                     enqueueSnackbar("태그 삭제에 성공하였습니다.", {variant: "success"})

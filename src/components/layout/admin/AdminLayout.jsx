@@ -11,6 +11,7 @@ import LabelIcon from '@mui/icons-material/Label'
 import EditIcon from '@mui/icons-material/Edit'
 import CodeIcon from '@mui/icons-material/Code'
 import BugReportIcon from '@mui/icons-material/BugReport'
+import StickyNote2Icon from '@mui/icons-material/StickyNote2'
 import styles from './AdminLayout.module.css'
 
 const theme = createTheme({
@@ -69,6 +70,8 @@ export default function AdminLayout({children}) {
       newExpandedMenus.commonCode = true
     } else if (path === '/admin/system-log' || path === '/admin/api-log') {
       newExpandedMenus.systemLog = true
+    } else if (path === '/admin/memo') {
+      newExpandedMenus.memo = true
     } else if (path === '/admin/sprint') {
       newExpandedMenus.sprint = true
     }
@@ -132,6 +135,20 @@ export default function AdminLayout({children}) {
                         href="/admin/api-log"
                         label="Api"
                         isActive={router.pathname === '/admin/api-log'}
+                        isSubItem
+                    />
+                  </MenuGroup>
+
+                  <MenuGroup
+                      title="메모"
+                      icon={<StickyNote2Icon className={styles.menuIcon}/>}
+                      isExpanded={expandedMenus.memo}
+                      onToggle={() => toggleSubMenu('memo')}
+                  >
+                    <MenuItem
+                        href="/admin/memo"
+                        label="메모 관리"
+                        isActive={router.pathname === '/admin/memo'}
                         isSubItem
                     />
                   </MenuGroup>

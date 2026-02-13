@@ -5,7 +5,9 @@ import {useSelector} from 'react-redux'
 import IconButton from "@mui/material/IconButton"
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import LoginIcon from '@mui/icons-material/Login'
+import NoteAddIcon from '@mui/icons-material/NoteAdd'
 import {useEffect, useState} from "react"
+import MemoDialog from "../../memo/MemoDialog"
 import {base64Encode} from "../../../util/base64Util"
 import { getTsid } from 'tsid-ts'
 import {searchObjectInit} from "../../../model/searchObject"
@@ -15,6 +17,7 @@ export default function Header({children}) {
     const router = useRouter()
     const userState = useSelector((state) => state.user)
     const [searchText, setSearchText] = useState('')
+    const [memoDialogOpen, setMemoDialogOpen] = useState(false)
 
     useEffect(() => {
         if (!router.pathname.startsWith('/search')) {
@@ -89,12 +92,16 @@ export default function Header({children}) {
                             {router.pathname === '/login' || userState.user.username ? null : <IconButton aria-label="delete" onClick={onClickLogin}>
                                 <LoginIcon/>
                             </IconButton>}
+                            {!userState.user.username ? null : <IconButton onClick={() => setMemoDialogOpen(true)} title="메모 작성">
+                                <NoteAddIcon/>
+                            </IconButton>}
                             {!userState.user.username ? null : <IconButton onClick={onClickAdmin}>
                                 <AdminPanelSettingsIcon/>
                             </IconButton>}
 
 
                         </Box>
+                        <MemoDialog open={memoDialogOpen} onClose={() => setMemoDialogOpen(false)}/>
 
                     </Grid>
                 </Grid>

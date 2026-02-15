@@ -39,19 +39,30 @@ export default function MemoPage() {
 
   const columns = useMemo(() => [
     {
-      accessorKey: 'content',
-      header: '내용',
-      grow: true,
-      Cell: ({cell}) => {
-        const text = cell.getValue() || ''
-        return text.length > 100 ? text.substring(0, 100) + '...' : text
-      }
-    },
-    {
       accessorKey: 'category',
       header: '카테고리',
       size: 120,
       Cell: ({cell}) => cell.getValue()?.name || '-'
+    },
+    {
+      accessorKey: 'content',
+      header: '내용',
+      grow: true,
+      Cell: ({cell, row}) => {
+        const text = cell.getValue() || ''
+        const display = text.length > 100 ? text.substring(0, 100) + '...' : text
+        return (
+          <Box
+            onClick={(e) => {
+              e.stopPropagation()
+              handleEdit(row.original)
+            }}
+            sx={{cursor: 'pointer', '&:hover': {color: 'primary.main'}}}
+          >
+            {display}
+          </Box>
+        )
+      }
     },
     {
       accessorKey: 'created',
@@ -59,7 +70,10 @@ export default function MemoPage() {
       size: 160,
       Cell: ({cell}) => {
         const val = cell.getValue()
-        return val?.at ? new Date(val.at).toLocaleString('ko-KR') : '-'
+        if (!val?.at) return '-'
+        const d = new Date(val.at)
+        const pad = (n) => String(n).padStart(2, '0')
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
       }
     },
   ], [])
@@ -67,7 +81,7 @@ export default function MemoPage() {
   const searchFields = useMemo(() => [
     {name: 'keyword', label: '키워드', pinned: true},
     {name: 'categoryId', label: '카테고리', type: 'select', options: categoryOptions},
-    {name: 'includeDeleted', label: '삭제 포함', type: 'select', options: [{value: true, label: '포함'}, {value: false, label: '미포함'}]},
+    {name: 'includeDeleted', label: '삭제 여부', type: 'select', defaultValue: true, options: [{value: true, label: '포함'}, {value: false, label: '미포함'}]},
   ], [categoryOptions])
 
   const fetchMemos = useCallback((searchRequest) =>
@@ -101,7 +115,7 @@ export default function MemoPage() {
   }
 
   return (
-    <Box sx={{m: 2}}>
+    <Box sx={{width: '85vw', mx: 'auto'}}>
       <Tabs value={tabIndex} onChange={(e, v) => setTabIndex(v)} sx={{mb: 2}}>
         <Tab label="메모 목록"/>
         <Tab label="카테고리 관리"/>
@@ -117,11 +131,12 @@ export default function MemoPage() {
           enableDynamicSearch={true}
           enableRowActions={true}
           positionActionsColumn="last"
+          displayColumnDefOptions={{
+            'mrt-row-actions': {size: 80, minSize: 80, grow: false},
+          }}
           renderRowActions={({row}) => (
             <Box sx={{display: 'flex', gap: 0.5}}>
-              <IconButton size="small" onClick={() => handleEdit(row.original)} title="수정">
-                <EditIcon fontSize="small"/>
-              </IconButton>
+
               {!row.original.deleted && (
                 <IconButton size="small" onClick={() => handleDeleteClick(row.original)} title="삭제" color="error">
                   <DeleteIcon fontSize="small"/>

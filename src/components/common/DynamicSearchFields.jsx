@@ -56,7 +56,7 @@ const renderField = (field, searchInputs, onInputChange, onKeyPress, spacingConf
         select
         label={field.label}
         size="small"
-        value={searchInputs[field.name] || ''}
+        value={searchInputs[field.name] ?? ''}
         onChange={(e) => onInputChange(field.name, e.target.value)}
         sx={{minWidth: spacingConfig.textFieldMinWidth}}
       >
@@ -74,7 +74,7 @@ const renderField = (field, searchInputs, onInputChange, onKeyPress, spacingConf
       label={field.label}
       size="small"
       type={field.type || 'text'}
-      value={searchInputs[field.name] || ''}
+      value={searchInputs[field.name] ?? ''}
       onChange={(e) => onInputChange(field.name, e.target.value)}
       onKeyPress={onKeyPress}
       sx={{minWidth: spacingConfig.textFieldMinWidth}}
@@ -160,6 +160,9 @@ export default function DynamicSearchFields({
     const key = getFieldKey(field)
     if (!activeFields.includes(key)) {
       setActiveFields(prev => [...prev, key])
+      if (field.defaultValue !== undefined) {
+        onInputChange(field.name, field.defaultValue)
+      }
     }
     setMenuAnchorEl(null)
 

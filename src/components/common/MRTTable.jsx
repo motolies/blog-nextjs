@@ -56,6 +56,7 @@ const SPACING_CONFIG = {
  * @param {boolean} props.enableDynamicSearch - 동적 검색 활성화 (default: false)
  *   false: 모든 검색 필드를 일렬로 표시 (기존 동작)
  *   true: pinned 필드만 기본 노출, 나머지는 '검색 조건 추가' 메뉴로 동적 추가/제거
+ * @param {Object} props.displayColumnDefOptions - MRT 표시 컬럼(액션 등) 옵션 오버라이드
  * @param {boolean} props.enableColumnOrdering - 컬럼 드래그 앤 드롭 순서 변경 (default: false)
  * @param {boolean} props.enableColumnResizing - 컬럼 헤더 경계 드래그로 너비 조절 (default: false)
  * @param {boolean} props.enableColumnPinning - 컬럼 좌/우 고정 (default: false)
@@ -83,6 +84,7 @@ export default function MRTTable({
   renderRowActions,
   positionActionsColumn = 'last',
   enableDynamicSearch = false,
+  displayColumnDefOptions,
   enableColumnOrdering = true,
   enableColumnResizing = true,
   enableColumnPinning = true,
@@ -259,7 +261,8 @@ export default function MRTTable({
     enableColumnResizing,
     columnResizeMode: 'onChange',
     enableColumnPinning,
-    defaultColumn: {minSize: 120},
+    layoutMode: 'grid',
+    defaultColumn: {minSize: 120, maxSize: 9999, grow: false},
 
     // 서버/클라이언트 모드 설정
     manualPagination: paginationMode === 'server',
@@ -286,6 +289,16 @@ export default function MRTTable({
     enableRowActions,
     renderRowActions,
     positionActionsColumn,
+    displayColumnDefOptions: {
+      ...(enableRowActions && {
+        'mrt-row-actions': {
+          size: 80,
+          minSize: 80,
+          grow: false,
+        },
+      }),
+      ...displayColumnDefOptions,
+    },
 
     // 행 클릭 및 스타일
     muiTableBodyRowProps: ({row}) => ({
@@ -406,7 +419,7 @@ export default function MRTTable({
       )}
 
       {/* Material React Table */}
-      <Paper sx={{flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0}}>
+      <Paper sx={{flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden'}}>
         <MaterialReactTable table={table} />
       </Paper>
     </Box>

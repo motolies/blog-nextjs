@@ -23,14 +23,21 @@ export default function MemoDialog({open, onClose, memoId = null, onSaved}) {
 
   useEffect(() => {
     if (open) {
-      loadCategories()
-      if (memoId) {
-        loadMemo(memoId)
-      } else {
-        setContent('')
-        setCategoryId(null)
-        setSelectedCategory(null)
-      }
+      loadCategories().then(cats => {
+        if (memoId) {
+          loadMemo(memoId)
+        } else {
+          setContent('')
+          if (cats.length > 0) {
+            const sorted = [...cats].sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0))
+            setCategoryId(sorted[0].id)
+            setSelectedCategory(sorted[0])
+          } else {
+            setCategoryId(null)
+            setSelectedCategory(null)
+          }
+        }
+      })
     }
   }, [open, memoId])
 
@@ -38,8 +45,10 @@ export default function MemoDialog({open, onClose, memoId = null, onSaved}) {
     try {
       const data = await service.memo.getCategories()
       setCategories(data || [])
+      return data || []
     } catch (error) {
       console.error('카테고리 로드 실패:', error)
+      return []
     }
   }
 
@@ -93,7 +102,7 @@ export default function MemoDialog({open, onClose, memoId = null, onSaved}) {
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="sm"
+      maxWidth="md"
       fullWidth
       PaperProps={{sx: {maxHeight: '80vh'}}}
     >
@@ -113,26 +122,27 @@ export default function MemoDialog({open, onClose, memoId = null, onSaved}) {
         </IconButton>
       </DialogTitle>
       <DialogContent dividers>
-        <TextField
-          autoFocus
-          multiline
-          minRows={4}
-          maxRows={12}
-          fullWidth
-          placeholder="메모 내용을 입력하세요..."
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          sx={{mb: 2}}
-        />
         <Autocomplete
-          options={categories}
-          getOptionLabel={(option) => option.name || ''}
-          value={selectedCategory}
-          onChange={handleCategoryChange}
-          isOptionEqualToValue={(option, value) => option.id === value?.id}
-          renderInput={(params) => (
-            <TextField {...params} label="카테고리" size="small"/>
-          )}
+            options={categories}
+            getOptionLabel={(option) => option.name || ''}
+            value={selectedCategory}
+            onChange={handleCategoryChange}
+            isOptionEqualToValue={(option, value) => option.id === value?.id}
+            renderInput={(params) => (
+                <TextField {...params} label="카테고리" size="small"/>
+            )}
+            sx={{mb: 2}}
+        />
+        <TextField
+            autoFocus
+            multiline
+            minRows={8}
+            maxRows={24}
+            fullWidth
+            placeholder="메모 내용을 입력하세요..."
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+
         />
       </DialogContent>
       <DialogActions>

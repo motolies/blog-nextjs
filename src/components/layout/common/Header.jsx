@@ -85,6 +85,10 @@ export default function Header({children}) {
                                        onKeyDown={onSearchTextKeyDown}
                             />
 
+                            {!userState.user.username ? null : <IconButton onClick={() => setMemoDialogOpen(true)} title="메모 작성">
+                                <NoteAddIcon/>
+                            </IconButton>}
+
                             <Divider orientation="vertical" variant="middle" flexItem sx={{
                                 display: {md: 'none', lg: 'none'}
                             }}/>
@@ -92,9 +96,7 @@ export default function Header({children}) {
                             {router.pathname === '/login' || userState.user.username ? null : <IconButton aria-label="delete" onClick={onClickLogin}>
                                 <LoginIcon/>
                             </IconButton>}
-                            {!userState.user.username ? null : <IconButton onClick={() => setMemoDialogOpen(true)} title="메모 작성">
-                                <NoteAddIcon/>
-                            </IconButton>}
+
                             {!userState.user.username ? null : <IconButton onClick={onClickAdmin}>
                                 <AdminPanelSettingsIcon/>
                             </IconButton>}

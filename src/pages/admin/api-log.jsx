@@ -38,7 +38,7 @@ export default function ApiLog() {
       accessorKey: 'id',
       header: 'ID',
       size: 150,
-      muiTableBodyCellProps: {align: 'right'},
+      // muiTableBodyCellProps: {align: 'right'},
     },
     {
       accessorKey: 'traceId',

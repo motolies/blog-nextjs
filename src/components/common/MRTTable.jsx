@@ -56,6 +56,12 @@ const SPACING_CONFIG = {
  * @param {boolean} props.enableDynamicSearch - 동적 검색 활성화 (default: false)
  *   false: 모든 검색 필드를 일렬로 표시 (기존 동작)
  *   true: pinned 필드만 기본 노출, 나머지는 '검색 조건 추가' 메뉴로 동적 추가/제거
+ * @param {boolean} props.enableColumnOrdering - 컬럼 드래그 앤 드롭 순서 변경 (default: false)
+ * @param {boolean} props.enableColumnResizing - 컬럼 헤더 경계 드래그로 너비 조절 (default: false)
+ * @param {boolean} props.enableColumnPinning - 컬럼 좌/우 고정 (default: false)
+ * @param {Array<string>} props.initialColumnOrder - 초기 컬럼 순서 (선택)
+ * @param {Object} props.initialColumnPinning - 초기 핀 설정 { left?: string[], right?: string[] } (선택)
+ * @param {'left'|'center'|'right'} props.defaultHeaderAlign - 헤더 기본 정렬 (default: 'left')
  */
 export default function MRTTable({
   columns,
@@ -77,6 +83,12 @@ export default function MRTTable({
   renderRowActions,
   positionActionsColumn = 'last',
   enableDynamicSearch = false,
+  enableColumnOrdering = true,
+  enableColumnResizing = true,
+  enableColumnPinning = true,
+  initialColumnOrder,
+  initialColumnPinning,
+  defaultHeaderAlign = 'left',
 }) {
   const spacingConfig = SPACING_CONFIG[spacing] || SPACING_CONFIG.s
   const resolvedDensity = density || spacingConfig.defaultDensity
@@ -90,6 +102,8 @@ export default function MRTTable({
   const [rowCount, setRowCount] = useState(0)
   const [searchParams, setSearchParams] = useState(defaultSearchParams)
   const [searchInputs, setSearchInputs] = useState(defaultSearchParams)
+  const [columnOrder, setColumnOrder] = useState(initialColumnOrder || [])
+  const [columnPinning, setColumnPinning] = useState(initialColumnPinning || {left: [], right: []})
 
   // Race condition 방지를 위한 요청 시퀀스 추적
   const requestRef = useRef(0)
@@ -183,7 +197,7 @@ export default function MRTTable({
 
       // muiTableHeadCellProps로 헤더 스타일 설정
       if (!next.muiTableHeadCellProps) {
-        next.muiTableHeadCellProps = {align: 'center'}
+        next.muiTableHeadCellProps = {align: defaultHeaderAlign}
       }
 
       // 숫자형 기본 우측 정렬
@@ -227,7 +241,7 @@ export default function MRTTable({
   const table = useMaterialReactTable({
     columns: columnsWithFooter,
     data,
-    enableColumnActions: false,
+    enableColumnActions: enableColumnPinning || enableColumnResizing,
     enableColumnFilters: false,
     enableGlobalFilter: false,
     enableTopToolbar: false,
@@ -239,6 +253,14 @@ export default function MRTTable({
     enableFullScreenToggle: false,
     enableHiding: false,
 
+    // 컬럼 조작 기능
+    enableColumnOrdering,
+    enableColumnDragging: enableColumnOrdering,
+    enableColumnResizing,
+    columnResizeMode: 'onChange',
+    enableColumnPinning,
+    defaultColumn: {minSize: 120},
+
     // 서버/클라이언트 모드 설정
     manualPagination: paginationMode === 'server',
     manualSorting: paginationMode === 'server',
@@ -249,12 +271,16 @@ export default function MRTTable({
       isLoading: loading,
       pagination,
       sorting,
-      density: resolvedDensity
+      density: resolvedDensity,
+      ...(enableColumnOrdering && {columnOrder}),
+      ...(enableColumnPinning && {columnPinning}),
     },
 
     // 이벤트 핸들러
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
+    ...(enableColumnOrdering && {onColumnOrderChange: setColumnOrder}),
+    ...(enableColumnPinning && {onColumnPinningChange: setColumnPinning}),
 
     // 행 액션
     enableRowActions,
@@ -278,6 +304,11 @@ export default function MRTTable({
         ...tableSx
       }
     },
+    muiTableHeadCellProps: {
+      sx: {
+        px: 1,
+      },
+    },
     muiTableContainerProps: {
       sx: autoHeight ? {} : {maxHeight: '100%'}
     },
@@ -298,6 +329,18 @@ export default function MRTTable({
         },
         '& .MuiTableFooter-root': {
           backgroundColor: '#f5f5f5',
+        },
+        '& .Mui-TableHeadCell-Content': {
+          gap: '2px',
+        },
+        '& .Mui-TableHeadCell-Content-Labels': {
+          flex: 1,
+          minWidth: 0,
+          overflow: 'hidden',
+          paddingLeft: '0 !important',
+        },
+        '& .Mui-TableHeadCell-Content-Actions': {
+          flexShrink: 0,
         },
         '& .MuiTableFooter-root .MuiTableCell-root': {
           fontWeight: 700,
@@ -333,6 +376,13 @@ export default function MRTTable({
         </Box>
       )
     },
+
+    // 핀된 컬럼 배경색
+    ...(enableColumnPinning && {
+      mrtTheme: () => ({
+        pinnedColumnBackgroundColor: '#f9f9f9',
+      }),
+    }),
 
     // 한국어 로케일
     localization: MRT_Localization_KO

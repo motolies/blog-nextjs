@@ -9,6 +9,7 @@ import { FILE_LIST_BY_POST_REQUEST } from "../../store/types/fileTypes"
 export default function DynamicEditor({postId, defaultData, onChangeData, insertData, getDataTrigger}) {
     const prevDefaultDataRef = useRef()
     const prevPostIdRef = useRef()
+    const postIdRef = useRef(postId)
     const { enqueueSnackbar } = useSnackbar()
     const dispatch = useDispatch()
     const [isLayoutReady, setIsLayoutReady] = useState(false)
@@ -63,6 +64,10 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
     }, [getDataTrigger, isLayoutReady, editorInstance])
 
     useEffect(() => {
+        postIdRef.current = postId
+    }, [postId])
+
+    useEffect(() => {
         if (editorInstance && defaultData) {
             // postId가 변경되었거나 defaultData가 변경되었을 때 무조건 설정
             const postIdChanged = prevPostIdRef.current !== postId
@@ -89,8 +94,13 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                 return new Promise((resolve, reject) => {
                     const body = new FormData()
                     loader.file.then(async (file) => {
+                        if (!postIdRef.current) {
+                            enqueueSnackbar("게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.", { variant: "warning" })
+                            reject(new Error("postId is null"))
+                            return
+                        }
                         body.append("file", file)
-                        body.append("postId", postId)
+                        body.append("postId", postIdRef.current)
                         dispatch(setLoading())
                         await service.file.upload({ formData: body })
                             .then(res => {
@@ -115,9 +125,14 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
             return
         }
 
+        if (!postIdRef.current) {
+            enqueueSnackbar("게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.", { variant: "warning" })
+            return
+        }
+
         const body = new FormData()
         body.append("file", file)
-        body.append("postId", postId)
+        body.append("postId", postIdRef.current)
         dispatch(setLoading())
         await service.file.upload({ formData: body })
             .then(res => {

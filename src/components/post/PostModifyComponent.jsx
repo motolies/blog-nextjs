@@ -79,6 +79,11 @@ export default function PostModifyComponent() {
         if (files === undefined || files.length === 0)
             return
 
+        if (!post.id) {
+            enqueueSnackbar("게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.", {variant: "warning"})
+            return
+        }
+
         dispatch(setLoading())
         for (const file of [...files]) {
             const body = new FormData()

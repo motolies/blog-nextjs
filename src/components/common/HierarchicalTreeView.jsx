@@ -1,6 +1,6 @@
 import React, {useState, useCallback, useMemo} from 'react'
 import {Box, Typography, Chip, Paper, CircularProgress} from '@mui/material'
-import {TreeView, TreeItem} from '@mui/x-tree-view'
+import {SimpleTreeView, TreeItem} from '@mui/x-tree-view'
 import {
   ExpandMore as ExpandMoreIcon,
   ChevronRight as ChevronRightIcon,
@@ -194,7 +194,7 @@ export default function HierarchicalTreeView({
       return (
           <TreeItem
               key={node.id}
-              nodeId={node.id}
+              itemId={node.id}
               label={label}
               sx={{
                 '& .MuiTreeItem-content': {
@@ -272,7 +272,7 @@ export default function HierarchicalTreeView({
     return (
         <TreeItem
             key={codeNode.id}
-            nodeId={codeNode.id}
+            itemId={codeNode.id}
             label={label}
             sx={{
               '& .MuiTreeItem-content': {
@@ -364,21 +364,20 @@ export default function HierarchicalTreeView({
 
   return (
       <Box sx={{width: '100%', height: '100%', overflow: 'auto', p: 2}}>
-        <TreeView
+        <SimpleTreeView
             aria-label="hierarchical tree"
-            defaultCollapseIcon={<ExpandMoreIcon/>}
-            defaultExpandIcon={<ChevronRightIcon/>}
-            expanded={effectiveExpanded}
-            selected={selectedId}
-            onNodeToggle={handleToggle}
-            onNodeSelect={handleSelect}
+            slots={{ collapseIcon: ExpandMoreIcon, expandIcon: ChevronRightIcon }}
+            expandedItems={effectiveExpanded}
+            selectedItems={selectedId}
+            onExpandedItemsChange={handleToggle}
+            onSelectedItemsChange={handleSelect}
             sx={{
               flexGrow: 1,
               overflowY: 'auto',
             }}
         >
           {data.map(node => renderTreeNode(node, 0))}
-        </TreeView>
+        </SimpleTreeView>
       </Box>
   )
 }

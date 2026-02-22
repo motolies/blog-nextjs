@@ -8,12 +8,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 한국어로 작성된 개인 블로그 Next.js 프론트엔드 애플리케이션입니다. Redux-Saga를 사용한 상태 관리, 표준 CKEditor5를 이용한 글 작성 기능, 그리고 Material-UI를 사용한 사용자 인터페이스로 구성되어 있습니다.
 
 **기술 스택**:
-- Next.js 15.5.9 (Turbopack)
+- Next.js 15.5.12 (Turbopack)
 - React 18.3.1
 - Redux + Redux-Saga
-- Material-UI 5.x
+- Material-UI 6.x (`@mui/material`, `@mui/icons-material`, `@mui/system`)
 - CKEditor5 46.1.0
-- Material React Table(MRT) 2.13
+- Material React Table(MRT) 3.x
+- `@mui/x-tree-view` 7.x
+- `@mui/x-date-pickers` 8.x
+- notistack 3.x (MUI 독립형)
 
 ## 개발 명령어
 
@@ -63,6 +66,7 @@ docker buildx build --platform linux/amd64,linux/arm64 --no-cache --push -t dock
 - **CommonLayout**: 일반 사용자용 레이아웃 (`src/components/layout/common/`)
 - **AdminLayout**: 관리자용 레이아웃 (`src/components/layout/admin/`)
 - `_app.jsx`에서 경로에 따라 자동 레이아웃 선택 (`/admin` 경로는 AdminLayout)
+- 각 레이아웃에 `createTheme` + `ThemeProvider` 독립 적용
 
 ### API 통신
 - **axiosClient**: `src/service/axiosClient.js`에서 중앙 집중식 HTTP 클라이언트
@@ -110,9 +114,11 @@ docker buildx build --platform linux/amd64,linux/arm64 --no-cache --push -t dock
 - 확인 다이얼로그: `DeleteConfirm`, `PublicConfirm`
 
 ### UI 컴포넌트
-- Material-UI 기반 디자인 시스템
-- Apache Echarts 구성 
-- `CategoryTreeView`: 계층형 카테고리 트리
+- Material-UI 6.x 기반 디자인 시스템
+- Apache Echarts 구성
+- `CategoryTreeView`: 계층형 카테고리 트리 (`SimpleTreeView` 사용)
+- `HierarchicalTreeView`: 공통 계층형 트리 (`src/components/common/`)
+- `MRTTable`: MRT 기반 공통 테이블 (`src/components/common/MRTTable.jsx`)
 - `TagComponent`, `TagGroupComponent`: 태그 표시 및 관리
 - `PreviewDialog`: 글 미리보기
 
@@ -142,6 +148,91 @@ docker buildx build --platform linux/amd64,linux/arm64 --no-cache --push -t dock
 - `docs/authentication.md`: 인증 시스템 상세 문서
 
 ## 개발 시 주의사항
+
+### MUI v6 관련
+
+**`@mui/lab` 제거됨** - MUI v6부터 `@mui/lab`이 제거되었으므로 아래 컴포넌트는 반드시 `@mui/material`에서 import:
+```javascript
+// ✅ 올바름 (MUI v6)
+import {Autocomplete, Pagination} from "@mui/material"
+
+// ❌ 금지 (@mui/lab 제거됨)
+import {Autocomplete} from "@mui/lab"
+import {Pagination} from "@mui/lab"
+```
+
+**`Grid` → `Grid2`** - MUI v6에서 `Grid`의 `item`/`container` prop 방식은 deprecated. 신규 코드는 `Grid2` 사용:
+```javascript
+// ✅ 신규 코드 권장
+import {Grid2} from "@mui/material"
+<Grid2 container spacing={2}>
+  <Grid2 size={4}>...</Grid2>
+</Grid2>
+
+// ⚠️ 기존 코드 (동작은 하지만 deprecated)
+import {Grid} from "@mui/material"
+<Grid container><Grid item xs={4}>...</Grid></Grid>
+```
+
+### TreeView v7 관련 (@mui/x-tree-view)
+
+`TreeView`가 deprecated되어 `SimpleTreeView`를 사용. prop 이름도 변경됨:
+
+```javascript
+// ✅ 올바름 (v7)
+import {SimpleTreeView, TreeItem} from '@mui/x-tree-view'
+
+<SimpleTreeView
+  slots={{ collapseIcon: ExpandMoreIcon, expandIcon: ChevronRightIcon }}
+  expandedItems={expanded}
+  onExpandedItemsChange={(event, nodeIds) => setExpanded(nodeIds)}
+  selectedItems={selectedId}
+  onSelectedItemsChange={handleSelect}
+>
+  <TreeItem itemId="node-1" label="항목 1" />
+</SimpleTreeView>
+
+// ❌ 금지 (v6 이전 방식)
+<TreeView
+  defaultCollapseIcon={<ExpandMoreIcon/>}
+  expanded={expanded}
+  onNodeToggle={...}
+  selected={selectedId}
+  onNodeSelect={...}
+>
+  <TreeItem nodeId="node-1" label="항목 1" />
+</TreeView>
+```
+
+**변경된 prop 정리**:
+| v6 이전 (TreeView) | v7 (SimpleTreeView) |
+|---|---|
+| `defaultCollapseIcon` | `slots={{ collapseIcon: Icon }}` |
+| `defaultExpandIcon` | `slots={{ expandIcon: Icon }}` |
+| `expanded` | `expandedItems` |
+| `onNodeToggle` | `onExpandedItemsChange` |
+| `selected` | `selectedItems` |
+| `onNodeSelect` | `onSelectedItemsChange` |
+| `nodeId` (TreeItem) | `itemId` (TreeItem) |
+
+### MRT v3 관련 (material-react-table)
+
+MRT v3는 MUI v6를 기반으로 하며 API 변경은 거의 없음. 공통 테이블 컴포넌트는 `src/components/common/MRTTable.jsx` 사용:
+
+```javascript
+import MRTTable from '../../components/common/MRTTable'
+
+<MRTTable
+  columns={columns}
+  fetchData={fetchData}          // 서버 모드: (searchRequest) => Promise<{list, totalCount}>
+  searchFields={searchFields}    // 검색 필드 정의
+  defaultSearchParams={{}}
+  paginationMode="server"        // 'server' | 'client'
+  onRowClick={({row}) => ...}
+  enableRowActions={true}
+  renderRowActions={({row}) => <IconButton>...</IconButton>}
+/>
+```
 
 ### CKEditor5 관련
 - 표준 CKEditor5 패키지를 사용하므로 별도 빌드 불필요
@@ -174,12 +265,12 @@ docker buildx build --platform linux/amd64,linux/arm64 --no-cache --push -t dock
 - Node.js 디버깅은 개발 환경에서 `--inspect` 옵션 활성화
 
 ### 주요 라이브러리
-- mui 시리즈 컴포넌트를 주로 사용하며 버전에 맞는 문서를 확인하여 관리
+- MUI v6 컴포넌트를 주로 사용하며 버전에 맞는 공식 문서를 확인하여 관리
 - 컴포넌트의 CSS를 직접 수정하지 않음
 
 ### 알림 시스템 (Snackbar) 사용 패턴
 
-**notistack 라이브러리 사용 필수**
+**notistack 3.x 라이브러리 사용 필수** (MUI 독립형 - MUI theme에 영향받지 않음)
 - `_app.jsx`에 `SnackbarProvider`가 설정되어 있음 (`autoHideDuration: 2000`)
 - **모든 페이지에서 `useSnackbar` 훅을 사용하여 알림 표시**
 - MUI의 기본 `Snackbar`, `Alert` 컴포넌트를 직접 사용하지 않음

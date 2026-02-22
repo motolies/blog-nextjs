@@ -3,7 +3,7 @@ import {useDispatch, useSelector} from "react-redux"
 import {useEffect, useState} from "react"
 import {getAllTags} from "../../store/actions/tagActions"
 import {ConditionComponent} from "../ConditionComponent"
-import {Autocomplete} from "@mui/lab"
+import {Autocomplete} from "@mui/material"
 import {useSnackbar} from "notistack"
 
 export default function SearchTag({onChangeAddTag, onChangeDeleteTag, defaultTag}) {

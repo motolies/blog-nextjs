@@ -1,4 +1,4 @@
-import { TreeView } from '@mui/x-tree-view/TreeView';
+import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
@@ -11,7 +11,7 @@ import { getCategoryTreeAction } from "../store/actions/categoryActions"
 import { Box, Chip, Typography, styled } from '@mui/material'
 
 // Styled components for better UI
-const StyledTreeView = styled(TreeView)(({ theme }) => ({
+const StyledTreeView = styled(SimpleTreeView)(({ theme }) => ({
     backgroundColor: theme.palette.background.paper,
     borderRadius: '8px',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
@@ -117,7 +117,7 @@ export default function CategoryTreeView({onChangeCategory}) {
         return (
             <TreeItem
                 key={nodes.id}
-                nodeId={nodes.id ? nodes.id : "defaultNodeId"}
+                itemId={nodes.id ? nodes.id : "defaultNodeId"}
                 label={
                     <CategoryLabel>
                         <Box className="category-info">
@@ -150,13 +150,11 @@ export default function CategoryTreeView({onChangeCategory}) {
     return (
         <StyledTreeView
             aria-label="category tree"
-            defaultCollapseIcon={<ExpandMoreIcon/>}
-            defaultExpanded={['ROOT']}
-            expanded={expanded}
-            onNodeToggle={(event, nodeIds) => {
+            slots={{ collapseIcon: ExpandMoreIcon, expandIcon: ChevronRightIcon }}
+            expandedItems={expanded}
+            onExpandedItemsChange={(event, nodeIds) => {
                 setExpanded(nodeIds);
             }}
-            defaultExpandIcon={<ChevronRightIcon/>}
             multiSelect={false}
             sx={{
                 flexGrow: 1,

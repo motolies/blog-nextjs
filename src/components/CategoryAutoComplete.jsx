@@ -1,6 +1,6 @@
 import {Box, TextField} from "@mui/material"
 import {useDispatch, useSelector} from "react-redux"
-import {Autocomplete} from "@mui/lab"
+import {Autocomplete} from "@mui/material"
 import {useEffect, useState} from "react"
 import {getCategoryFlatAction} from "../store/actions/categoryActions"
 

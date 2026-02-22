@@ -7,7 +7,7 @@ import SearchResult from "../components/search/SearchResult"
 import {base64Decode, base64Encode} from "../util/base64Util"
 import SearchFilter from "../components/search/SearchFilter"
 import {searchObjectInit} from "../model/searchObject"
-import {Pagination} from "@mui/lab"
+import {Pagination} from "@mui/material"
 import {Stack} from "@mui/material"
 import { getTsid } from 'tsid-ts'
 

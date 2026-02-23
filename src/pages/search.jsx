@@ -71,8 +71,9 @@ export default function SearchPage({children}) {
   }, [searchAllParam])
 
   const goPage = (event, newPage) => {
-    if (page !== newPage) {
-      const newSearchAllParam = {...searchAllParam, ...{page: newPage}}
+    const targetPage = newPage - 1  // MUI Pagination은 1-based, 백엔드는 0-based
+    if (page !== targetPage) {
+      const newSearchAllParam = {...searchAllParam, ...{page: targetPage}}
       router.push({
         pathname: '/search',
         query: {q: base64Encode(JSON.stringify(newSearchAllParam))}
@@ -91,7 +92,7 @@ export default function SearchPage({children}) {
         <SearchResult/>
         <Stack spacing={2} alignItems="center">
           <Pagination
-              count={searchedPostState.totalPage} page={page} onChange={goPage}
+              count={searchedPostState.totalPage} page={page + 1} onChange={goPage}
               color="primary"
               sx={{
                 '& .Mui-selected': {

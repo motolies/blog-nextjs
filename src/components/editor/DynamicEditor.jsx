@@ -200,6 +200,7 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                     'redo',
                     '|',
                     'sourceEditing',
+                    'horizontalLine',
                     '|',
                     'heading',
                     '|',
@@ -215,6 +216,7 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                     'subscript',
                     'superscript',
                     'code',
+                    'codeBlock',
                     'removeFormat',
                     '-',
                     'emoji',
@@ -243,6 +245,7 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                 ckEditorModules.BlockQuote,
                 ckEditorModules.Bold,
                 ckEditorModules.Code,
+                ckEditorModules.CodeBlock,
                 ckEditorModules.Emoji,
                 ckEditorModules.Essentials,
                 ckEditorModules.FontBackgroundColor,
@@ -253,6 +256,7 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                 ckEditorModules.GeneralHtmlSupport,
                 ckEditorModules.Heading,
                 ckEditorModules.Highlight,
+                ckEditorModules.HorizontalLine,
                 ckEditorModules.HtmlComment,
                 ckEditorModules.HtmlEmbed,
                 ckEditorModules.ImageBlock,
@@ -407,6 +411,22 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                         marker: '@',
                         feed: []
                     }
+                ]
+            },
+            codeBlock: {
+                languages: [
+                    { language: 'plaintext', label: 'Plain text' },
+                    { language: 'javascript', label: 'JavaScript' },
+                    { language: 'typescript', label: 'TypeScript' },
+                    { language: 'python', label: 'Python' },
+                    { language: 'java', label: 'Java' },
+                    { language: 'css', label: 'CSS' },
+                    { language: 'html', label: 'HTML' },
+                    { language: 'sql', label: 'SQL' },
+                    { language: 'shell', label: 'Shell' },
+                    { language: 'json', label: 'JSON' },
+                    { language: 'xml', label: 'XML' },
+                    { language: 'yaml', label: 'YAML' }
                 ]
             },
             placeholder: '내용을 입력하세요...',

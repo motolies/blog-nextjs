@@ -130,99 +130,100 @@ export default function PostModifyComponent() {
     }
 
 
-    return (<Grid container spacing={3}>
-        <Grid item xs={12}>
+    return (<Box sx={{
+        display: 'grid',
+        gridTemplateColumns: {xs: '1fr', md: 'minmax(0, 3fr) 1fr'},
+        gap: 3,
+    }}>
+        {/* 에디터 영역 */}
+        <Box sx={{minWidth: 0}}>
+            <TextField
+                label="Title"
+                value={post.subject}
+                onChange={(e) =>
+                    dispatch({
+                        type: POST_LOCAL_MODIFY_SUBJECT,
+                        subject: e.target.value,
+                    })
+                }
+                fullWidth
+                sx={{
+                    marginBottom: "1rem"
+                }}
+            />
+            <DynamicEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData} getDataTrigger={triggerGetData}/>
+        </Box>
+
+        {/* 사이드바 영역 */}
+        <Box sx={{
+            position: {xs: 'static', md: 'sticky'},
+            top: {md: '4rem'},
+            mb: 5,
+            height: '80vh',
+        }}>
             <Grid container spacing={3}>
-                <Grid item xs={12} sm={12} md={9} elevation={3}>
+                <Grid item xs={12}>
+                    <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={post.category.id} label={'Category'}/>
+                </Grid>
+                <Grid item xs={12}>
                     <TextField
-                        label="Title"
-                        value={post.subject}
+                        id="outlined-select-currency"
+                        select
+                        fullWidth
+                        label="isPublic"
+                        value={post.public}
                         onChange={(e) =>
                             dispatch({
-                                type: POST_LOCAL_MODIFY_SUBJECT,
-                                subject: e.target.value,
+                                type: POST_LOCAL_MODIFY_PUBLIC,
+                                isPublic: e.target.value,
                             })
-                        }
-                        fullWidth
-                        sx={{
-                            marginBottom: "1rem"
-                        }}
-                    />
-                    <DynamicEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData} getDataTrigger={triggerGetData}/>
+                        }>
+                        {publicOptions.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                            </MenuItem>
+                        ))}
+                    </TextField>
                 </Grid>
-                <Grid item xs={12} sm={12} md={3}
-                      sx={{
-                          position: {xs: 'static', sm: 'static', md: 'sticky'},
-                          top: {xs: 0, sm: 0, md: '4rem'},
-                          mb: 5,
-                          height: '80vh',
-                      }}>
-
+                <Grid item xs={12}>
+                    <Button fullWidth size="large" variant="outlined"
+                            onClick={() => {
+                                enqueueSnackbar("모달창에서 검색해서 선택할 수 있도록 하자.", {variant: "warning"})
+                                setInsertData(`${getTsid().toString()}`)
+                            }}>이전 글 넣기</Button>
+                </Grid>
+                <Grid item xs={12}>
+                    <MultipleFileUploadComponent onChange={onChangeFile} sx={{mb: 1}}/>
+                    <Box sx={{
+                        overflowY: 'auto',
+                        maxHeight: '25vh',
+                    }}>
+                        {post.files?.filter(f => f.type.startsWith('image')).map((file) => (
+                            <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
+                        ))}
+                        {post.files?.filter(f => !f.type.startsWith('image')).map((file) => (
+                            <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
+                        ))}
+                    </Box>
+                </Grid>
+                <Grid item xs={12}>
+                    <TagGroupComponent postId={post.id} tagList={tags} writePage={true} listHeight={{
+                        overflowY: 'auto',
+                        maxHeight: '15vh',
+                        mt:1,
+                    }}/>
+                </Grid>
+                <Grid item xs={12}>
                     <Grid container spacing={3}>
-                        <Grid item xs={12}>
-                            <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={post.category.id} label={'Category'}/>
+                        <Grid item xs={6}>
+                            <Button fullWidth size="large" variant="contained" onClick={() => setTriggerGetData(getTsid().toString())}>저장</Button>
                         </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                id="outlined-select-currency"
-                                select
-                                fullWidth
-                                label="isPublic"
-                                value={post.public}
-                                onChange={(e) =>
-                                    dispatch({
-                                        type: POST_LOCAL_MODIFY_PUBLIC,
-                                        isPublic: e.target.value,
-                                    })
-                                }>
-                                {publicOptions.map((option) => (
-                                    <MenuItem key={option.value} value={option.value}>
-                                        {option.label}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Button fullWidth size="large" variant="outlined"
-                                    onClick={() => {
-                                        enqueueSnackbar("모달창에서 검색해서 선택할 수 있도록 하자.", {variant: "warning"})
-                                        setInsertData(`${getTsid().toString()}`)
-                                    }}>이전 글 넣기</Button>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <MultipleFileUploadComponent onChange={onChangeFile} sx={{mb: 1}}/>
-                            <Box sx={{
-                                overflowY: 'auto',
-                                maxHeight: '25vh',
-                            }}>
-                                {post.files?.filter(f => f.type.startsWith('image')).map((file) => (
-                                    <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
-                                ))}
-                                {post.files?.filter(f => !f.type.startsWith('image')).map((file) => (
-                                    <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
-                                ))}
-                            </Box>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TagGroupComponent postId={post.id} tagList={tags} writePage={true} listHeight={{
-                                overflowY: 'auto',
-                                maxHeight: '15vh',
-                                mt:1,
-                            }}/>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Grid container spacing={3}>
-                                <Grid item xs={6}>
-                                    <Button fullWidth size="large" variant="contained" onClick={() => setTriggerGetData(getTsid().toString())}>저장</Button>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Button fullWidth size="large" color="error" variant="contained">취소</Button>
-                                </Grid>
-                            </Grid>
+                        <Grid item xs={6}>
+                            <Button fullWidth size="large" color="error" variant="contained">취소</Button>
                         </Grid>
                     </Grid>
                 </Grid>
             </Grid>
-        </Grid>
-    </Grid>)
+        </Box>
+    </Box>)
 }

@@ -1,3 +1,11 @@
+.editor-container {
+    min-width: 0;
+}
+
+.ck-editor__editable_inline {
+    overflow-x: auto !important;
+}
+
 @media (max-width: 599px) {
     .ck-editor__editable_inline {
         min-height: 55vh !important;

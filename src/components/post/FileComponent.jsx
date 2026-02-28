@@ -1,10 +1,8 @@
-import {Box} from "@mui/material"
 import {useState} from "react"
-import IconButton from "@mui/material/IconButton"
-import DeleteIcon from "@mui/icons-material/Delete"
+import {Trash2, Eye} from "lucide-react"
+import {Button} from "../ui/button"
 import DeleteConfirm from "../confirm/DeleteConfirm"
 import PreviewDialog from "../PreviewDialog"
-import PreviewIcon from '@mui/icons-material/Preview'
 
 
 export const FileComponent = (props) => {
@@ -26,67 +24,44 @@ export const FileComponent = (props) => {
         setShowDeleteConfirm(false)
     }
 
-    const insertFileLink = (e) => {
+    const insertFileLink = () => {
         props.onInsertFile(props.file)
     }
 
-    const fileTypeStyle = () => {
-        const style = {
-            mb: 1
-            , px: 1
-            , background: "rgba(17, 153, 142, .2)"
-            , '&:hover': {
-                background: "rgba(17, 153, 142, .6)"
-            }
-            , cursor: 'pointer'
-            , display: 'flex'
-            , alignItems: 'center'
-        }
-        if (props.file.type.startsWith('image')) {
-            style.background = 'rgba(253, 187, 45, .2)'
-            style['&:hover'] = {
-                background: 'rgba(253, 187, 45, .6)'
-            }
-        }
-        return style
-    }
-
-    const fileLeftMargin = () => {
-        if(props.file.type.startsWith('image'))
-            return {}
-        else
-            return {marginLeft:'auto'}
-    }
-
+    const isImage = props.file.type.startsWith('image')
 
     return (
-        <Box display="flex-inline"
-             sx={fileTypeStyle}
-             onClick={insertFileLink}
+        <div
+            className={`flex items-center mb-1 px-2 rounded cursor-pointer transition-colors ${isImage ? 'bg-yellow-100 hover:bg-yellow-300' : 'bg-teal-100 hover:bg-teal-300'}`}
+            onClick={insertFileLink}
         >
-            <Box sx={{
-                textOverflow: 'ellipsis'
-                , overflow: 'hidden'
-                , whiteSpace: 'nowrap'
-            }}>
-                {props.file.originName}
-            </Box>
-            {!props.file.type.startsWith('image') ? null :
-                <IconButton aria-label="delete" onClick={(e) => {
-                    e.stopPropagation()
-                    setShowPreview(true)
-                }}
-                            sx={{marginLeft: 'auto'}}>
-                    <PreviewIcon fontSize={'small'}/>
-                </IconButton>
+            <span className="flex-1 truncate text-sm">{props.file.originName}</span>
+            {isImage &&
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 ml-auto"
+                    aria-label="preview"
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        setShowPreview(true)
+                    }}
+                >
+                    <Eye className="h-4 w-4"/>
+                </Button>
             }
-            <IconButton aria-label="delete" onClick={showDeleteConfirmDialog}
-                        sx={fileLeftMargin}>
-                <DeleteIcon fontSize={'small'}/>
-            </IconButton>
+            <Button
+                variant="ghost"
+                size="icon"
+                className={`h-6 w-6 ${isImage ? '' : 'ml-auto'}`}
+                aria-label="delete"
+                onClick={showDeleteConfirmDialog}
+            >
+                <Trash2 className="h-4 w-4"/>
+            </Button>
             <DeleteConfirm open={showDeleteConfirm} question={question} onConfirm={deleteFile} onCancel={deleteFileCancel}/>
             <PreviewDialog open={showPreview} imageSrc={props.file.resourceUri} onClose={() => setShowPreview(false)}/>
-        </Box>
+        </div>
     )
 
 }

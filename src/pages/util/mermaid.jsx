@@ -1,19 +1,9 @@
 import {useState, useEffect, useRef, useCallback} from 'react'
-import {
-    Box, TextField, Button, Paper, Typography, Grid,
-    Select, MenuItem, FormControl, InputLabel, ButtonGroup, Chip,
-    IconButton, Tabs, Tab, Divider
-} from '@mui/material'
-import DownloadIcon from '@mui/icons-material/Download'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import ZoomInIcon from '@mui/icons-material/ZoomIn'
-import ZoomOutIcon from '@mui/icons-material/ZoomOut'
-import CenterFocusStrongIcon from '@mui/icons-material/CenterFocusStrong'
-import FullscreenIcon from '@mui/icons-material/Fullscreen'
-import FullscreenExitIcon from '@mui/icons-material/FullscreenExit'
-import VisibilityIcon from '@mui/icons-material/Visibility'
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
-import {useSnackbar} from 'notistack'
+import {Button} from '../../components/ui/button'
+import {Input} from '../../components/ui/input'
+import {Select, SelectTrigger, SelectValue, SelectContent, SelectItem} from '../../components/ui/select'
+import {Download, ArrowLeft, ZoomIn, ZoomOut, Crosshair, Maximize, Minimize, Eye, EyeOff} from 'lucide-react'
+import {toast} from 'sonner'
 import {useRouter} from 'next/router'
 
 const SAMPLE_CODES = {
@@ -410,11 +400,19 @@ const SAMPLE_CODES = {
     ]
 }
 
+const SAMPLE_TYPES = [
+    {key: 'flowchart', label: 'Flowchart'},
+    {key: 'sequence', label: 'Sequence'},
+    {key: 'classDiagram', label: 'Class'},
+    {key: 'erDiagram', label: 'ER Diagram'},
+    {key: 'blockDiagram', label: 'Block'},
+    {key: 'stateDiagram', label: 'State'},
+]
+
 export default function MermaidPage() {
     const router = useRouter()
-    const {enqueueSnackbar} = useSnackbar()
     const [code, setCode] = useState(SAMPLE_CODES.flowchart[0].code)
-    const [scaleMode, setScaleMode] = useState('ratio') // 'ratio' or 'custom'
+    const [scaleMode, setScaleMode] = useState('ratio')
     const [scale, setScale] = useState(2)
     const [customWidth, setCustomWidth] = useState(1920)
     const [customHeight, setCustomHeight] = useState(1080)
@@ -423,98 +421,72 @@ export default function MermaidPage() {
     const [selectedSample, setSelectedSample] = useState('flowchart')
     const [selectedSampleIndex, setSelectedSampleIndex] = useState(0)
 
-    // 미리보기 줌/팬 상태
     const [previewZoom, setPreviewZoom] = useState(1)
     const [panOffset, setPanOffset] = useState({x: 0, y: 0})
     const [isDragging, setIsDragging] = useState(false)
     const [dragStart, setDragStart] = useState({x: 0, y: 0})
-
-    // 전체화면 상태
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [isEditorVisible, setIsEditorVisible] = useState(true)
 
     const previewRef = useRef(null)
     const mermaidRef = useRef(null)
 
-    // 클라이언트 사이드 체크
-    useEffect(() => {
-        setIsClient(true)
-    }, [])
+    useEffect(() => { setIsClient(true) }, [])
 
-    // Mermaid 초기화
     useEffect(() => {
         if (!isClient) return
-
         const initMermaid = async () => {
             try {
                 const mermaid = (await import('mermaid')).default
                 mermaidRef.current = mermaid
-                mermaid.initialize({
-                    startOnLoad: false,
-                    theme: 'default',
-                    securityLevel: 'loose',
-                    fontFamily: 'D2Coding, monospace'
-                })
+                mermaid.initialize({startOnLoad: false, theme: 'default', securityLevel: 'loose', fontFamily: 'D2Coding, monospace'})
                 renderDiagram()
             } catch (e) {
                 setError('Mermaid 초기화에 실패했습니다.')
             }
         }
-
         initMermaid()
     }, [isClient])
 
-    // 코드 변경 시 다이어그램 재렌더링 (디바운스 적용)
     useEffect(() => {
         if (!mermaidRef.current) return
-
-        const timer = setTimeout(() => {
-            renderDiagram()
-        }, 300)
-
+        const timer = setTimeout(() => renderDiagram(), 300)
         return () => clearTimeout(timer)
     }, [code])
 
-    // 전체화면 모드 전환 시 다이어그램 재렌더링
     useEffect(() => {
         if (!mermaidRef.current) return
-
-        // DOM이 업데이트된 후 렌더링
-        const timer = setTimeout(() => {
-            renderDiagram()
-        }, 50)
-
+        const timer = setTimeout(() => renderDiagram(), 50)
         return () => clearTimeout(timer)
     }, [isFullscreen])
 
+    // SVG transform 적용
+    useEffect(() => {
+        const svg = previewRef.current?.querySelector('svg')
+        if (svg) {
+            svg.style.transform = `scale(${previewZoom}) translate(${panOffset.x / previewZoom}px, ${panOffset.y / previewZoom}px)`
+            svg.style.transformOrigin = 'center center'
+            svg.style.transition = isDragging ? 'none' : 'transform 0.1s ease-out'
+        }
+    }, [previewZoom, panOffset, isDragging])
+
     const renderDiagram = useCallback(async () => {
         if (!mermaidRef.current || !previewRef.current) return
-
-        // 빈 코드일 경우 렌더링 건너뛰기
         const trimmedCode = code.trim()
         if (!trimmedCode) {
             previewRef.current.innerHTML = ''
             setError(null)
             return
         }
-
         try {
-            // 먼저 문법 검사
             await mermaidRef.current.parse(trimmedCode)
-
-            // 이전 렌더링 결과 삭제
             previewRef.current.innerHTML = ''
-
-            // 고유 ID 생성
             const id = `mermaid-${Date.now()}`
-
             const {svg} = await mermaidRef.current.render(id, trimmedCode)
             previewRef.current.innerHTML = svg
             setError(null)
         } catch (e) {
-            // 에러 메시지 정리 (폭탄 이모지 등 제거)
             let errorMsg = e.message || 'Mermaid 문법 오류'
-            // 불필요한 특수문자 제거
             errorMsg = errorMsg.replace(/💣/g, '').replace(/Syntax error in text\s*/gi, '')
             if (errorMsg.includes('No diagram type detected')) {
                 errorMsg = '다이어그램 타입을 인식할 수 없습니다. flowchart, sequenceDiagram 등으로 시작해주세요.'
@@ -528,54 +500,39 @@ export default function MermaidPage() {
         try {
             const {toPng} = await import('html-to-image')
             const svgElement = previewRef.current?.querySelector('svg')
-            if (!svgElement) {
-                enqueueSnackbar('다이어그램을 먼저 생성해주세요.', {variant: 'warning'})
-                return
-            }
-
+            if (!svgElement) { toast.warning('다이어그램을 먼저 생성해주세요.'); return }
             let options = {backgroundColor: 'white'}
-
             if (scaleMode === 'ratio') {
                 options.pixelRatio = scale
             } else {
-                // 커스텀 사이즈: SVG의 원본 비율 유지하면서 스케일 계산
                 const bbox = svgElement.getBoundingClientRect()
                 const scaleX = customWidth / bbox.width
                 const scaleY = customHeight / bbox.height
                 options.pixelRatio = Math.min(scaleX, scaleY)
             }
-
             const dataUrl = await toPng(svgElement, options)
-
             const link = document.createElement('a')
             link.download = `mermaid-diagram-${Date.now()}.png`
             link.href = dataUrl
             link.click()
-
-            enqueueSnackbar('PNG 다운로드 완료', {variant: 'success'})
+            toast.success('PNG 다운로드 완료')
         } catch (e) {
-            enqueueSnackbar('다운로드 실패: ' + e.message, {variant: 'error'})
+            toast.error('다운로드 실패: ' + e.message)
         }
     }
 
     const downloadSvg = () => {
         const svgElement = previewRef.current?.querySelector('svg')
-        if (!svgElement) {
-            enqueueSnackbar('다이어그램을 먼저 생성해주세요.', {variant: 'warning'})
-            return
-        }
-
+        if (!svgElement) { toast.warning('다이어그램을 먼저 생성해주세요.'); return }
         const svgData = new XMLSerializer().serializeToString(svgElement)
         const blob = new Blob([svgData], {type: 'image/svg+xml'})
         const url = URL.createObjectURL(blob)
-
         const link = document.createElement('a')
         link.download = `mermaid-diagram-${Date.now()}.svg`
         link.href = url
         link.click()
-
         URL.revokeObjectURL(url)
-        enqueueSnackbar('SVG 다운로드 완료', {variant: 'success'})
+        toast.success('SVG 다운로드 완료')
     }
 
     const handleSampleChange = (type) => {
@@ -584,12 +541,12 @@ export default function MermaidPage() {
         setCode(SAMPLE_CODES[type][0].code)
     }
 
-    const handleSampleIndexChange = (index) => {
+    const handleSampleIndexChange = (indexStr) => {
+        const index = Number(indexStr)
         setSelectedSampleIndex(index)
         setCode(SAMPLE_CODES[selectedSample][index].code)
     }
 
-    // 줌/패닝 이벤트 핸들러
     const handleWheel = useCallback((e) => {
         e.preventDefault()
         const delta = e.deltaY > 0 ? 0.9 : 1.1
@@ -604,430 +561,236 @@ export default function MermaidPage() {
 
     const handleMouseMove = useCallback((e) => {
         if (!isDragging) return
-        setPanOffset({
-            x: e.clientX - dragStart.x,
-            y: e.clientY - dragStart.y
-        })
+        setPanOffset({x: e.clientX - dragStart.x, y: e.clientY - dragStart.y})
     }, [isDragging, dragStart])
 
-    const handleMouseUp = useCallback(() => {
-        setIsDragging(false)
-    }, [])
+    const handleMouseUp = useCallback(() => { setIsDragging(false) }, [])
 
     const handleResetZoom = useCallback(() => {
         setPreviewZoom(1)
         setPanOffset({x: 0, y: 0})
     }, [])
 
-    // 전체화면 토글
     const toggleFullscreen = useCallback(() => {
         setIsFullscreen(prev => {
-            if (!prev) {
-                // 전체화면 진입 시 줌 리셋
-                handleResetZoom()
-            }
+            if (!prev) handleResetZoom()
             return !prev
         })
     }, [handleResetZoom])
 
-    // ESC 키로 전체화면 종료
     useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.key === 'Escape' && isFullscreen) {
-                setIsFullscreen(false)
-            }
-        }
+        const handleKeyDown = (e) => { if (e.key === 'Escape' && isFullscreen) setIsFullscreen(false) }
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
     }, [isFullscreen])
 
     if (!isClient) {
-        return (
-            <Box sx={{p: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh'}}>
-                <Typography>로딩 중...</Typography>
-            </Box>
-        )
+        return <div className="p-4 flex justify-center items-center min-h-[50vh]">로딩 중...</div>
     }
 
-    // 미리보기 컨테이너 공통 컴포넌트
-    const PreviewContainer = ({fullscreen = false}) => (
-        <Box
-            ref={!fullscreen ? previewRef : undefined}
-            onWheel={handleWheel}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            sx={{
-                flexGrow: 1,
-                overflow: 'hidden',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#fafafa',
-                borderRadius: 1,
-                cursor: isDragging ? 'grabbing' : 'grab',
-                userSelect: 'none',
-                '& svg': {
-                    transform: `scale(${previewZoom}) translate(${panOffset.x / previewZoom}px, ${panOffset.y / previewZoom}px)`,
-                    transformOrigin: 'center center',
-                    transition: isDragging ? 'none' : 'transform 0.1s ease-out'
-                }
-            }}
-        />
-    )
-
-    // 줌 컨트롤 공통 컴포넌트
     const ZoomControls = () => (
-        <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
-            <IconButton size="small" onClick={() => setPreviewZoom(z => Math.max(z * 0.8, 0.1))}>
-                <ZoomOutIcon fontSize="small"/>
-            </IconButton>
-            <Typography variant="body2" sx={{minWidth: 45, textAlign: 'center'}}>
-                {Math.round(previewZoom * 100)}%
-            </Typography>
-            <IconButton size="small" onClick={() => setPreviewZoom(z => Math.min(z * 1.2, 5))}>
-                <ZoomInIcon fontSize="small"/>
-            </IconButton>
-            <IconButton size="small" onClick={handleResetZoom} title="리셋">
-                <CenterFocusStrongIcon fontSize="small"/>
-            </IconButton>
-        </Box>
+        <div className="flex items-center gap-0.5">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPreviewZoom(z => Math.max(z * 0.8, 0.1))}>
+                <ZoomOut className="h-3.5 w-3.5"/>
+            </Button>
+            <span className="text-xs w-11 text-center">{Math.round(previewZoom * 100)}%</span>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPreviewZoom(z => Math.min(z * 1.2, 5))}>
+                <ZoomIn className="h-3.5 w-3.5"/>
+            </Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleResetZoom} title="리셋">
+                <Crosshair className="h-3.5 w-3.5"/>
+            </Button>
+        </div>
     )
 
-    // 다운로드 컨트롤 공통 컴포넌트
     const DownloadControls = () => (
-        <Box sx={{display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap'}}>
-            <FormControl size="small" sx={{minWidth: 80}}>
-                <InputLabel>모드</InputLabel>
-                <Select
-                    value={scaleMode}
-                    label="모드"
-                    onChange={(e) => setScaleMode(e.target.value)}
-                >
-                    <MenuItem value="ratio">배율</MenuItem>
-                    <MenuItem value="custom">픽셀</MenuItem>
-                </Select>
-            </FormControl>
+        <div className="flex gap-1.5 items-center flex-wrap">
+            <Select value={scaleMode} onValueChange={setScaleMode}>
+                <SelectTrigger className="h-8 w-20 text-xs">
+                    <SelectValue/>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="ratio">배율</SelectItem>
+                    <SelectItem value="custom">픽셀</SelectItem>
+                </SelectContent>
+            </Select>
 
             {scaleMode === 'ratio' ? (
-                <FormControl size="small" sx={{minWidth: 70}}>
-                    <InputLabel>배율</InputLabel>
-                    <Select
-                        value={scale}
-                        label="배율"
-                        onChange={(e) => setScale(e.target.value)}
-                    >
-                        <MenuItem value={1}>1x</MenuItem>
-                        <MenuItem value={2}>2x</MenuItem>
-                        <MenuItem value={3}>3x</MenuItem>
-                        <MenuItem value={4}>4x</MenuItem>
-                    </Select>
-                </FormControl>
+                <Select value={String(scale)} onValueChange={(v) => setScale(Number(v))}>
+                    <SelectTrigger className="h-8 w-16 text-xs">
+                        <SelectValue/>
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="1">1x</SelectItem>
+                        <SelectItem value="2">2x</SelectItem>
+                        <SelectItem value="3">3x</SelectItem>
+                        <SelectItem value="4">4x</SelectItem>
+                    </SelectContent>
+                </Select>
             ) : (
-                <>
-                    <TextField
-                        size="small"
-                        label="너비"
-                        type="number"
-                        value={customWidth}
-                        onChange={(e) => setCustomWidth(Number(e.target.value))}
-                        sx={{width: 80}}
-                        InputProps={{inputProps: {min: 100, max: 8000}}}
-                    />
-                    <Typography variant="body2">×</Typography>
-                    <TextField
-                        size="small"
-                        label="높이"
-                        type="number"
-                        value={customHeight}
-                        onChange={(e) => setCustomHeight(Number(e.target.value))}
-                        sx={{width: 80}}
-                        InputProps={{inputProps: {min: 100, max: 8000}}}
-                    />
-                </>
+                <div className="flex items-center gap-1">
+                    <Input type="number" value={customWidth} onChange={(e) => setCustomWidth(Number(e.target.value))} className="h-8 w-20 text-xs" min={100} max={8000}/>
+                    <span className="text-xs">×</span>
+                    <Input type="number" value={customHeight} onChange={(e) => setCustomHeight(Number(e.target.value))} className="h-8 w-20 text-xs" min={100} max={8000}/>
+                </div>
             )}
 
-            <ButtonGroup variant="contained" size="small">
-                <Button onClick={downloadPng} startIcon={<DownloadIcon/>}>PNG</Button>
-                <Button onClick={downloadSvg} startIcon={<DownloadIcon/>}>SVG</Button>
-            </ButtonGroup>
-        </Box>
+            <div className="flex gap-1">
+                <Button size="sm" onClick={downloadPng}>
+                    <Download className="h-3.5 w-3.5 mr-1"/>PNG
+                </Button>
+                <Button size="sm" onClick={downloadSvg}>
+                    <Download className="h-3.5 w-3.5 mr-1"/>SVG
+                </Button>
+            </div>
+        </div>
     )
+
+    const previewAreaProps = {
+        onWheel: handleWheel,
+        onMouseDown: handleMouseDown,
+        onMouseMove: handleMouseMove,
+        onMouseUp: handleMouseUp,
+        onMouseLeave: handleMouseUp,
+        className: `flex-1 overflow-hidden flex justify-center items-center bg-gray-50 rounded border ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`
+    }
 
     // 전체화면 모드
     if (isFullscreen) {
         return (
-            <Box sx={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 1200,
-                backgroundColor: '#fff',
-                display: 'flex',
-                flexDirection: 'column'
-            }}>
+            <div className="fixed inset-0 z-[1200] bg-white flex flex-col">
                 {/* 상단 툴바 */}
-                <Paper elevation={2} sx={{p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1}}>
-                    <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
-                        <IconButton onClick={toggleFullscreen}>
-                            <FullscreenExitIcon/>
-                        </IconButton>
-                        <Typography variant="h6">미리보기</Typography>
-                        <Typography variant="caption" color="text.secondary">(ESC로 닫기)</Typography>
-                    </Box>
-                    <Box sx={{display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap'}}>
+                <div className="p-2 border-b flex justify-between items-center flex-wrap gap-2 bg-white shadow-sm">
+                    <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
+                            <Minimize className="h-5 w-5"/>
+                        </Button>
+                        <span className="font-semibold">미리보기</span>
+                        <span className="text-xs text-gray-400">(ESC로 닫기)</span>
+                    </div>
+                    <div className="flex items-center gap-3 flex-wrap">
                         <ZoomControls/>
-                        <Divider orientation="vertical" flexItem/>
+                        <div className="h-4 border-l"/>
                         <DownloadControls/>
-                    </Box>
-                </Paper>
+                    </div>
+                </div>
 
-                {/* 에러 표시 */}
                 {error && (
-                    <Paper sx={{p: 1, mx: 2, mt: 1, backgroundColor: 'error.light'}}>
-                        <Typography color="error.contrastText" variant="body2">
-                            {error}
-                        </Typography>
-                    </Paper>
+                    <div className="mx-4 mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">{error}</div>
                 )}
 
                 {/* 전체화면 미리보기 */}
-                <Box
-                    ref={previewRef}
-                    onWheel={handleWheel}
-                    onMouseDown={handleMouseDown}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
-                    sx={{
-                        flexGrow: 1,
-                        overflow: 'hidden',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        backgroundColor: '#fafafa',
-                        cursor: isDragging ? 'grabbing' : 'grab',
-                        userSelect: 'none',
-                        '& svg': {
-                            transform: `scale(${previewZoom}) translate(${panOffset.x / previewZoom}px, ${panOffset.y / previewZoom}px)`,
-                            transformOrigin: 'center center',
-                            transition: isDragging ? 'none' : 'transform 0.1s ease-out'
-                        }
-                    }}
-                />
+                <div ref={previewRef} {...previewAreaProps} style={{flexGrow: 1, borderRadius: 0, border: 'none'}}/>
 
                 {/* 플로팅 코드 에디터 */}
-                <Paper
-                    elevation={8}
-                    sx={{
-                        position: 'fixed',
-                        bottom: 20,
-                        right: 20,
-                        width: isEditorVisible ? 420 : 'auto',
-                        maxHeight: isEditorVisible ? '45vh' : 'auto',
-                        zIndex: 1300,
-                        transition: 'all 0.3s ease',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        overflow: 'hidden'
-                    }}
+                <div
+                    className={`fixed bottom-5 right-5 z-[1300] shadow-2xl rounded-lg overflow-hidden border bg-white transition-all duration-300 ${isEditorVisible ? 'w-[420px]' : 'w-auto'}`}
+                    style={{maxHeight: isEditorVisible ? '45vh' : 'auto'}}
                 >
-                    <Box sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        p: 1,
-                        borderBottom: isEditorVisible ? 1 : 0,
-                        borderColor: 'divider',
-                        backgroundColor: 'grey.100'
-                    }}>
-                        <Typography variant="subtitle2" sx={{flexGrow: 1, fontWeight: 'bold'}}>
-                            코드
-                        </Typography>
-                        <IconButton size="small" onClick={() => setIsEditorVisible(!isEditorVisible)}>
-                            {isEditorVisible ? <VisibilityOffIcon fontSize="small"/> : <VisibilityIcon fontSize="small"/>}
-                        </IconButton>
-                    </Box>
+                    <div className="flex items-center px-3 py-2 border-b bg-gray-50">
+                        <span className="text-sm font-bold flex-1">코드</span>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsEditorVisible(!isEditorVisible)}>
+                            {isEditorVisible ? <EyeOff className="h-3.5 w-3.5"/> : <Eye className="h-3.5 w-3.5"/>}
+                        </Button>
+                    </div>
                     {isEditorVisible && (
-                        <TextField
-                            multiline
-                            fullWidth
+                        <textarea
                             value={code}
                             onChange={(e) => setCode(e.target.value)}
-                            sx={{
-                                flexGrow: 1,
-                                '& .MuiInputBase-root': {
-                                    height: '100%',
-                                    alignItems: 'flex-start',
-                                    borderRadius: 0
-                                },
-                                '& .MuiInputBase-input': {
-                                    height: 'calc(45vh - 56px) !important',
-                                    overflow: 'auto !important'
-                                },
-                                '& .MuiOutlinedInput-notchedOutline': {
-                                    border: 'none'
-                                }
-                            }}
-                            InputProps={{
-                                sx: {fontFamily: 'D2Coding, monospace', fontSize: 13}
-                            }}
+                            className="w-full font-mono text-xs p-3 resize-none border-none outline-none"
+                            style={{height: 'calc(45vh - 40px)'}}
                         />
                     )}
-                </Paper>
-            </Box>
+                </div>
+            </div>
         )
     }
 
     // 일반 모드
     return (
-        <Box sx={{p: 2}}>
-            <Box sx={{display: 'flex', alignItems: 'center', mb: 3}}>
-                <IconButton onClick={() => router.push('/util')} sx={{mr: 1}}>
-                    <ArrowBackIcon/>
-                </IconButton>
-                <Typography variant="h4" sx={{fontWeight: 'bold'}}>
-                    Mermaid Editor
-                </Typography>
-            </Box>
+        <div className="p-4">
+            <div className="flex items-center gap-2 mb-4">
+                <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
+                    <ArrowLeft className="h-5 w-5"/>
+                </Button>
+                <h1 className="text-3xl font-bold">Mermaid Editor</h1>
+            </div>
 
             {/* 샘플 선택 */}
-            <Paper elevation={1} sx={{p: 2, mb: 2}}>
-                <Typography variant="subtitle2" sx={{mb: 1}}>샘플 다이어그램</Typography>
-                <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5}}>
-                    {[
-                        {key: 'flowchart', label: 'Flowchart'},
-                        {key: 'sequence', label: 'Sequence'},
-                        {key: 'classDiagram', label: 'Class'},
-                        {key: 'erDiagram', label: 'ER Diagram'},
-                        {key: 'blockDiagram', label: 'Block'},
-                        {key: 'stateDiagram', label: 'State'},
-                    ].map(({key, label}) => (
-                        <Chip
+            <div className="border rounded-md p-3 mb-3">
+                <p className="text-sm font-medium mb-2">샘플 다이어그램</p>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                    {SAMPLE_TYPES.map(({key, label}) => (
+                        <button
                             key={key}
-                            label={label}
                             onClick={() => handleSampleChange(key)}
-                            color={selectedSample === key ? 'primary' : 'default'}
-                            variant={selectedSample === key ? 'filled' : 'outlined'}
-                            sx={{
-                                fontWeight: selectedSample === key ? 600 : 400,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                            }}
-                        />
+                            className={`text-sm px-3 py-1 rounded-full border transition-all ${selectedSample === key ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'hover:bg-gray-100'}`}
+                        >
+                            {label}
+                        </button>
                     ))}
-                </Box>
-                <FormControl size="small" sx={{minWidth: 220}}>
-                    <InputLabel>샘플</InputLabel>
-                    <Select
-                        value={selectedSampleIndex}
-                        label="샘플"
-                        onChange={(e) => handleSampleIndexChange(e.target.value)}
-                    >
+                </div>
+                <Select value={String(selectedSampleIndex)} onValueChange={handleSampleIndexChange}>
+                    <SelectTrigger className="w-56">
+                        <SelectValue/>
+                    </SelectTrigger>
+                    <SelectContent>
                         {SAMPLE_CODES[selectedSample].map((sample, index) => (
-                            <MenuItem key={index} value={index}>{sample.name}</MenuItem>
+                            <SelectItem key={index} value={String(index)}>{sample.name}</SelectItem>
                         ))}
-                    </Select>
-                </FormControl>
-            </Paper>
+                    </SelectContent>
+                </Select>
+            </div>
 
-            <Grid container spacing={2}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3" style={{height: '65vh'}}>
                 {/* 에디터 영역 */}
-                <Grid item xs={12} md={6}>
-                    <Paper sx={{p: 2, height: '65vh', display: 'flex', flexDirection: 'column'}}>
-                        <Typography variant="h6" gutterBottom>코드</Typography>
-                        <TextField
-                            multiline
-                            fullWidth
-                            value={code}
-                            onChange={(e) => setCode(e.target.value)}
-                            sx={{
-                                flexGrow: 1,
-                                '& .MuiInputBase-root': {
-                                    height: '100%',
-                                    alignItems: 'flex-start'
-                                },
-                                '& .MuiInputBase-input': {
-                                    height: '100% !important',
-                                    overflow: 'auto !important'
-                                }
-                            }}
-                            InputProps={{
-                                sx: {fontFamily: 'D2Coding, monospace', fontSize: 14}
-                            }}
-                        />
-                    </Paper>
-                </Grid>
+                <div className="border rounded-md p-3 flex flex-col">
+                    <p className="font-semibold mb-2">코드</p>
+                    <textarea
+                        value={code}
+                        onChange={(e) => setCode(e.target.value)}
+                        className="flex-1 w-full font-mono text-sm resize-none border rounded p-2 outline-none focus:ring-1 focus:ring-blue-400"
+                    />
+                </div>
 
                 {/* 프리뷰 영역 */}
-                <Grid item xs={12} md={6}>
-                    <Paper sx={{p: 2, height: '65vh', display: 'flex', flexDirection: 'column'}}>
-                        {/* 헤더: 제목 + 줌 컨트롤 + 전체화면 */}
-                        <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1}}>
-                            <Typography variant="h6">미리보기</Typography>
-                            <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
-                                <ZoomControls/>
-                                <IconButton size="small" onClick={toggleFullscreen} title="전체화면">
-                                    <FullscreenIcon/>
-                                </IconButton>
-                            </Box>
-                        </Box>
+                <div className="border rounded-md p-3 flex flex-col">
+                    {/* 헤더 */}
+                    <div className="flex justify-between items-center mb-2">
+                        <p className="font-semibold">미리보기</p>
+                        <div className="flex items-center gap-1">
+                            <ZoomControls/>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleFullscreen} title="전체화면">
+                                <Maximize className="h-3.5 w-3.5"/>
+                            </Button>
+                        </div>
+                    </div>
 
-                        {/* 다운로드 컨트롤 */}
-                        <Box sx={{display: 'flex', justifyContent: 'flex-end', mb: 1, flexWrap: 'wrap', gap: 1}}>
-                            <DownloadControls/>
-                        </Box>
+                    {/* 다운로드 컨트롤 */}
+                    <div className="flex justify-end mb-2">
+                        <DownloadControls/>
+                    </div>
 
-                        {error && (
-                            <Paper sx={{p: 1, mb: 1, backgroundColor: 'error.light'}}>
-                                <Typography color="error.contrastText" variant="body2">
-                                    {error}
-                                </Typography>
-                            </Paper>
-                        )}
+                    {error && (
+                        <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">{error}</div>
+                    )}
 
-                        <Box
-                            ref={previewRef}
-                            onWheel={handleWheel}
-                            onMouseDown={handleMouseDown}
-                            onMouseMove={handleMouseMove}
-                            onMouseUp={handleMouseUp}
-                            onMouseLeave={handleMouseUp}
-                            sx={{
-                                flexGrow: 1,
-                                overflow: 'hidden',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                backgroundColor: '#fafafa',
-                                borderRadius: 1,
-                                cursor: isDragging ? 'grabbing' : 'grab',
-                                userSelect: 'none',
-                                '& svg': {
-                                    transform: `scale(${previewZoom}) translate(${panOffset.x / previewZoom}px, ${panOffset.y / previewZoom}px)`,
-                                    transformOrigin: 'center center',
-                                    transition: isDragging ? 'none' : 'transform 0.1s ease-out'
-                                }
-                            }}
-                        />
-                    </Paper>
-                </Grid>
-            </Grid>
+                    <div ref={previewRef} {...previewAreaProps}/>
+                </div>
+            </div>
 
-            <Box sx={{mt: 3, p: 2, backgroundColor: 'grey.100', borderRadius: 1}}>
-                <Typography variant="subtitle2" sx={{mb: 1}}>Mermaid 문법 참고</Typography>
-                <Typography variant="body2" color="text.secondary">
+            <div className="mt-4 p-3 bg-gray-100 rounded-md">
+                <p className="text-sm font-semibold mb-1">Mermaid 문법 참고</p>
+                <p className="text-sm text-gray-500">
                     Mermaid는 텍스트 기반으로 다이어그램을 생성하는 도구입니다.
                     Flowchart, Sequence Diagram, Class Diagram, ER Diagram, Block Diagram, State Diagram 등 다양한 다이어그램을 지원합니다.
                     자세한 문법은{' '}
-                    <a href="https://mermaid.js.org/syntax/flowchart.html" target="_blank" rel="noopener noreferrer">
+                    <a href="https://mermaid.js.org/syntax/flowchart.html" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                         Mermaid 공식 문서
                     </a>
                     를 참고하세요.
-                </Typography>
-            </Box>
-        </Box>
+                </p>
+            </div>
+        </div>
     )
 }

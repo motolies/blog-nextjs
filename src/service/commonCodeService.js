@@ -389,7 +389,7 @@ class CommonCodeService {
   }
 
   /**
-   * 계층형 트리 데이터 로드 (HierarchicalTreeView용)
+   * 계층형 트리 데이터 로드
    * 백엔드에서 구성된 트리 구조를 그대로 반환
    * Class → Code → Class → Code 재귀 구조
    */

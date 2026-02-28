@@ -1,40 +1,21 @@
-import {Alert, Box, Button, Grid, TextField} from "@mui/material"
 import {useDispatch, useSelector} from 'react-redux'
 import {loginAction, loginErrorMessage} from '../store/actions/userActions'
 import {useEffect, useState} from "react"
-import {useRouter} from 'next/router'
-import {LOAD_USER_REQUEST} from "../store/types/userTypes"
+import {Input} from '../components/ui/input'
+import {Button} from '../components/ui/button'
 
 export default function LoginPage() {
 
-    const router = useRouter()
     const dispatch = useDispatch()
     const userState = useSelector((state) => state.user)
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
 
     useEffect(() => {
-        // 로그인 완료 후 이동
-        if (userState.isAuthenticated && userState.user.username) {
-            router.push('/')
-        }
-    }, [userState])
-
-    useEffect(() => {
-        // 우선 사용자를 로드해보고
-        dispatch({
-            type: LOAD_USER_REQUEST,
-        })
-
-        if (userState.isAuthenticated && userState.user.username) {
-            // 사용자 정보가 있으면 admin으로 이동
-            router.push('/admin')
-        }
-
         return () => {
             dispatch(loginErrorMessage({msg: ''}))
         }
-    }, [])
+    }, [dispatch])
 
     const onChangeUsername = (e) => {
         setUsername(e.target.value)
@@ -42,6 +23,11 @@ export default function LoginPage() {
 
     const onChangePassword = (e) => {
         setPassword(e.target.value)
+    }
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        onClickLogin()
     }
 
     const onClickLogin = () => {
@@ -58,44 +44,29 @@ export default function LoginPage() {
     }
 
     return (
-        <Grid
-            container
-            spacing={0}
-            direction="column"
-            alignItems="center"
-            justifyContent="center"
-            style={{minHeight: '50vh'}}
-        >
-            <Grid
-                item
-                xs={3}
+        <div className="flex items-center justify-center" style={{minHeight: '50vh'}}>
+            <h1 className="visually-hidden">로그인</h1>
+            <form
+                noValidate
+                onSubmit={handleSubmit}
+                className="mt-1 p-10 w-full max-w-sm space-y-4"
             >
-                <Box
-                    noValidate
-                    sx={{
-                        mt: 1
-                        , p: 5
-                    }}
-                >
-                    <TextField
-                        margin="normal"
-                        required
-                        fullWidth
+                <div className="space-y-1">
+                    <label htmlFor="username" className="text-sm font-medium">UserName</label>
+                    <Input
                         id="username"
-                        label="UserName"
                         name="username"
-                        autoComplete="email"
+                        autoComplete="username"
                         autoFocus
                         onChange={onChangeUsername}
                     />
-                    <TextField
-                        margin="normal"
-                        required
-                        fullWidth
-                        name="password"
-                        label="Password"
-                        type="password"
+                </div>
+                <div className="space-y-1">
+                    <label htmlFor="password" className="text-sm font-medium">Password</label>
+                    <Input
                         id="password"
+                        name="password"
+                        type="password"
                         autoComplete="current-password"
                         onChange={onChangePassword}
                         onKeyDown={(e) => {
@@ -104,20 +75,21 @@ export default function LoginPage() {
                             }
                         }}
                     />
-                    <Button
-                        disabled={userState.isLoading}
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        sx={{mt: 3, mb: 2}}
-                        onClick={onClickLogin}
-                    >
-                        Login
-                    </Button>
-                    {userState.error !== '' && <Alert severity="error">{userState.error}</Alert>}
-                </Box>
-            </Grid>
-        </Grid>
+                </div>
+                <Button
+                    disabled={userState.isLoading}
+                    type="submit"
+                    className="w-full mt-3"
+                    onClick={onClickLogin}
+                >
+                    Login
+                </Button>
+                {userState.error !== '' && (
+                    <div className="bg-red-50 border border-red-200 text-red-800 rounded-md px-4 py-3 text-sm">
+                        {userState.error}
+                    </div>
+                )}
+            </form>
+        </div>
     )
 }
-

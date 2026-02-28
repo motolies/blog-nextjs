@@ -1,320 +1,187 @@
 import {useState} from 'react'
-import {
-    Box, TextField, Button, Paper, Typography, Grid, Tabs, Tab,
-    IconButton, InputAdornment, Divider
-} from '@mui/material'
-import ContentCopyIcon from '@mui/icons-material/ContentCopy'
-import RefreshIcon from '@mui/icons-material/Refresh'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import {useSnackbar} from 'notistack'
+import {Tabs, TabsList, TabsTrigger, TabsContent} from '../../components/ui/tabs'
+import {Button} from '../../components/ui/button'
+import {Input} from '../../components/ui/input'
+import {ArrowLeft, Copy, RefreshCw} from 'lucide-react'
+import {toast} from 'sonner'
 import {getTsid, TSID} from 'tsid-ts'
-import moment from 'moment'
+import {format} from 'date-fns'
 import {useRouter} from 'next/router'
 
-const TSID_EPOCH = 1577836800000 // 2020-01-01 00:00:00 UTC
-
-function TabPanel({children, value, index, ...other}) {
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`tsid-tabpanel-${index}`}
-            aria-labelledby={`tsid-tab-${index}`}
-            {...other}
-        >
-            {value === index && <Box sx={{p: 3}}>{children}</Box>}
-        </div>
-    )
-}
+const TSID_EPOCH = 1577836800000
 
 export default function TsidPage() {
     const router = useRouter()
-    const {enqueueSnackbar} = useSnackbar()
-    const [tabValue, setTabValue] = useState(0)
+    const [tabValue, setTabValue] = useState('generate')
 
-    // Generate new TSID
     const [generatedTsid, setGeneratedTsid] = useState('')
     const [generatedNumber, setGeneratedNumber] = useState('')
     const [generatedDate, setGeneratedDate] = useState('')
 
-    // TSID <-> Number conversion
     const [tsidInput, setTsidInput] = useState('')
     const [numberResult, setNumberResult] = useState('')
     const [numberInput, setNumberInput] = useState('')
     const [tsidResult, setTsidResult] = useState('')
 
-    // TSID -> DateTime
     const [tsidForDate, setTsidForDate] = useState('')
     const [dateResult, setDateResult] = useState('')
 
     const handleCopy = (text) => {
-        if (!text) {
-            enqueueSnackbar('복사할 내용이 없습니다.', {variant: 'warning'})
-            return
-        }
+        if (!text) { toast.warning('복사할 내용이 없습니다.'); return }
         navigator.clipboard.writeText(text)
-        enqueueSnackbar('클립보드에 복사되었습니다.', {variant: 'success'})
+        toast.success('클립보드에 복사되었습니다.')
     }
 
     const handleGenerate = () => {
         try {
             const newTsid = getTsid()
-            const tsidString = newTsid.toString()
-            const number = newTsid.toBigInt().toString()
-            const timestamp = newTsid.timestamp
-            const date = moment(new Date(TSID_EPOCH + timestamp)).format('YYYY-MM-DD HH:mm:ss.SSS')
-
-            setGeneratedTsid(tsidString)
-            setGeneratedNumber(number)
-            setGeneratedDate(date)
-            enqueueSnackbar('새 TSID가 생성되었습니다.', {variant: 'success'})
+            setGeneratedTsid(newTsid.toString())
+            setGeneratedNumber(newTsid.toBigInt().toString())
+            setGeneratedDate(format(new Date(TSID_EPOCH + newTsid.timestamp), 'yyyy-MM-dd HH:mm:ss.SSS'))
+            toast.success('새 TSID가 생성되었습니다.')
         } catch (e) {
-            enqueueSnackbar('TSID 생성에 실패했습니다.', {variant: 'error'})
+            toast.error('TSID 생성에 실패했습니다.')
         }
     }
 
     const handleTsidToNumber = () => {
-        if (!tsidInput.trim()) {
-            enqueueSnackbar('TSID를 입력해주세요.', {variant: 'warning'})
-            return
-        }
+        if (!tsidInput.trim()) { toast.warning('TSID를 입력해주세요.'); return }
         try {
-            const tsid = TSID.fromString(tsidInput.trim())
-            setNumberResult(tsid.toBigInt().toString())
+            setNumberResult(TSID.fromString(tsidInput.trim()).toBigInt().toString())
         } catch (e) {
-            enqueueSnackbar('유효하지 않은 TSID입니다.', {variant: 'error'})
+            toast.error('유효하지 않은 TSID입니다.')
             setNumberResult('')
         }
     }
 
     const handleNumberToTsid = () => {
-        if (!numberInput.trim()) {
-            enqueueSnackbar('숫자를 입력해주세요.', {variant: 'warning'})
-            return
-        }
+        if (!numberInput.trim()) { toast.warning('숫자를 입력해주세요.'); return }
         try {
-            const tsid = new TSID(BigInt(numberInput.trim()))
-            setTsidResult(tsid.toString())
+            setTsidResult(new TSID(BigInt(numberInput.trim())).toString())
         } catch (e) {
-            enqueueSnackbar('유효하지 않은 숫자입니다.', {variant: 'error'})
+            toast.error('유효하지 않은 숫자입니다.')
             setTsidResult('')
         }
     }
 
     const handleTsidToDate = () => {
-        if (!tsidForDate.trim()) {
-            enqueueSnackbar('TSID를 입력해주세요.', {variant: 'warning'})
-            return
-        }
+        if (!tsidForDate.trim()) { toast.warning('TSID를 입력해주세요.'); return }
         try {
             const tsid = TSID.fromString(tsidForDate.trim())
-            const timestamp = tsid.timestamp
-            const actualDate = new Date(TSID_EPOCH + timestamp)
-            setDateResult(moment(actualDate).format('YYYY-MM-DD HH:mm:ss.SSS'))
+            setDateResult(format(new Date(TSID_EPOCH + tsid.timestamp), 'yyyy-MM-dd HH:mm:ss.SSS'))
         } catch (e) {
-            enqueueSnackbar('유효하지 않은 TSID입니다.', {variant: 'error'})
+            toast.error('유효하지 않은 TSID입니다.')
             setDateResult('')
         }
     }
 
-    const CopyAdornment = ({value}) => (
-        <InputAdornment position="end">
-            <IconButton onClick={() => handleCopy(value)} edge="end" size="small">
-                <ContentCopyIcon fontSize="small"/>
-            </IconButton>
-        </InputAdornment>
+    const CopyButton = ({value}) => (
+        <button
+            onClick={() => handleCopy(value)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100"
+            title="복사"
+        >
+            <Copy className="h-4 w-4 text-gray-500"/>
+        </button>
+    )
+
+    const ReadonlyInputWithCopy = ({label, value}) => (
+        <div className="space-y-1">
+            <label className="text-sm text-gray-500">{label}</label>
+            <div className="relative">
+                <Input value={value} readOnly className="pr-8 font-mono"/>
+                <CopyButton value={value}/>
+            </div>
+        </div>
     )
 
     return (
-        <Box sx={{p: 2}}>
-            <Box sx={{display: 'flex', alignItems: 'center', mb: 3}}>
-                <IconButton onClick={() => router.push('/util')} sx={{mr: 1}}>
-                    <ArrowBackIcon/>
-                </IconButton>
-                <Typography variant="h4" sx={{fontWeight: 'bold'}}>
-                    TSID Converter
-                </Typography>
-            </Box>
+        <div className="p-4">
+            <div className="flex items-center gap-2 mb-4">
+                <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
+                    <ArrowLeft className="h-5 w-5"/>
+                </Button>
+                <h1 className="text-3xl font-bold">TSID Converter</h1>
+            </div>
 
-            <Paper elevation={2}>
-                <Tabs
-                    value={tabValue}
-                    onChange={(e, newValue) => setTabValue(newValue)}
-                    variant="fullWidth"
-                >
-                    <Tab label="TSID 생성"/>
-                    <Tab label="TSID ↔ 숫자"/>
-                    <Tab label="TSID → 날짜"/>
+            <div className="border rounded-md">
+                <Tabs value={tabValue} onValueChange={setTabValue}>
+                    <TabsList className="w-full grid grid-cols-3 rounded-none border-b">
+                        <TabsTrigger value="generate">TSID 생성</TabsTrigger>
+                        <TabsTrigger value="convert">TSID ↔ 숫자</TabsTrigger>
+                        <TabsTrigger value="date">TSID → 날짜</TabsTrigger>
+                    </TabsList>
+
+                    <div className="p-4">
+                        {/* TSID 생성 */}
+                        <TabsContent value="generate">
+                            <div className="text-center mb-4">
+                                <Button size="lg" onClick={handleGenerate}>
+                                    <RefreshCw className="h-4 w-4 mr-2"/>
+                                    새 TSID 생성
+                                </Button>
+                            </div>
+                            {generatedTsid && (
+                                <div className="space-y-3">
+                                    <ReadonlyInputWithCopy label="TSID (문자열)" value={generatedTsid}/>
+                                    <ReadonlyInputWithCopy label="숫자 (BigInt)" value={generatedNumber}/>
+                                    <ReadonlyInputWithCopy label="생성 시각" value={generatedDate}/>
+                                </div>
+                            )}
+                        </TabsContent>
+
+                        {/* TSID ↔ 숫자 변환 */}
+                        <TabsContent value="convert">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-3">
+                                    <p className="font-medium">TSID → 숫자</p>
+                                    <Input
+                                        value={tsidInput}
+                                        onChange={(e) => setTsidInput(e.target.value)}
+                                        placeholder="예: 0GXWP1VXZS35J"
+                                    />
+                                    <Button onClick={handleTsidToNumber} className="w-full">변환</Button>
+                                    {numberResult && <ReadonlyInputWithCopy label="숫자 결과" value={numberResult}/>}
+                                </div>
+                                <div className="space-y-3">
+                                    <p className="font-medium">숫자 → TSID</p>
+                                    <Input
+                                        value={numberInput}
+                                        onChange={(e) => setNumberInput(e.target.value)}
+                                        placeholder="예: 481294567894561234"
+                                    />
+                                    <Button onClick={handleNumberToTsid} className="w-full">변환</Button>
+                                    {tsidResult && <ReadonlyInputWithCopy label="TSID 결과" value={tsidResult}/>}
+                                </div>
+                            </div>
+                        </TabsContent>
+
+                        {/* TSID → 날짜 */}
+                        <TabsContent value="date">
+                            <p className="text-sm text-gray-500 mb-3">
+                                TSID에 포함된 타임스탬프를 추출하여 날짜/시간으로 변환합니다. (TSID Epoch: 2020-01-01 00:00:00 UTC)
+                            </p>
+                            <div className="space-y-3">
+                                <Input
+                                    value={tsidForDate}
+                                    onChange={(e) => setTsidForDate(e.target.value)}
+                                    placeholder="예: 0GXWP1VXZS35J"
+                                />
+                                <Button onClick={handleTsidToDate} className="w-full">날짜/시간 추출</Button>
+                                {dateResult && <ReadonlyInputWithCopy label="날짜/시간 결과" value={dateResult}/>}
+                            </div>
+                        </TabsContent>
+                    </div>
                 </Tabs>
+            </div>
 
-                {/* Tab 0: TSID 생성 */}
-                <TabPanel value={tabValue} index={0}>
-                    <Box sx={{textAlign: 'center', mb: 3}}>
-                        <Button
-                            variant="contained"
-                            size="large"
-                            startIcon={<RefreshIcon/>}
-                            onClick={handleGenerate}
-                        >
-                            새 TSID 생성
-                        </Button>
-                    </Box>
-
-                    {generatedTsid && (
-                        <Grid container spacing={2}>
-                            <Grid item xs={12}>
-                                <TextField
-                                    label="TSID (문자열)"
-                                    value={generatedTsid}
-                                    fullWidth
-                                    InputProps={{
-                                        readOnly: true,
-                                        endAdornment: <CopyAdornment value={generatedTsid}/>
-                                    }}
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    label="숫자 (BigInt)"
-                                    value={generatedNumber}
-                                    fullWidth
-                                    InputProps={{
-                                        readOnly: true,
-                                        endAdornment: <CopyAdornment value={generatedNumber}/>
-                                    }}
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    label="생성 시각"
-                                    value={generatedDate}
-                                    fullWidth
-                                    InputProps={{
-                                        readOnly: true,
-                                        endAdornment: <CopyAdornment value={generatedDate}/>
-                                    }}
-                                />
-                            </Grid>
-                        </Grid>
-                    )}
-                </TabPanel>
-
-                {/* Tab 1: TSID <-> 숫자 변환 */}
-                <TabPanel value={tabValue} index={1}>
-                    <Grid container spacing={3}>
-                        {/* TSID → 숫자 */}
-                        <Grid item xs={12} md={6}>
-                            <Typography variant="subtitle1" sx={{mb: 2, fontWeight: 'medium'}}>
-                                TSID → 숫자
-                            </Typography>
-                            <TextField
-                                label="TSID 입력"
-                                value={tsidInput}
-                                onChange={(e) => setTsidInput(e.target.value)}
-                                fullWidth
-                                sx={{mb: 2}}
-                                placeholder="예: 0GXWP1VXZS35J"
-                            />
-                            <Button
-                                variant="contained"
-                                onClick={handleTsidToNumber}
-                                fullWidth
-                                sx={{mb: 2}}
-                            >
-                                변환
-                            </Button>
-                            {numberResult && (
-                                <TextField
-                                    label="숫자 결과"
-                                    value={numberResult}
-                                    fullWidth
-                                    InputProps={{
-                                        readOnly: true,
-                                        endAdornment: <CopyAdornment value={numberResult}/>
-                                    }}
-                                />
-                            )}
-                        </Grid>
-
-                        <Grid item xs={12} md={6}>
-                            <Typography variant="subtitle1" sx={{mb: 2, fontWeight: 'medium'}}>
-                                숫자 → TSID
-                            </Typography>
-                            <TextField
-                                label="숫자 입력"
-                                value={numberInput}
-                                onChange={(e) => setNumberInput(e.target.value)}
-                                fullWidth
-                                sx={{mb: 2}}
-                                placeholder="예: 481294567894561234"
-                            />
-                            <Button
-                                variant="contained"
-                                onClick={handleNumberToTsid}
-                                fullWidth
-                                sx={{mb: 2}}
-                            >
-                                변환
-                            </Button>
-                            {tsidResult && (
-                                <TextField
-                                    label="TSID 결과"
-                                    value={tsidResult}
-                                    fullWidth
-                                    InputProps={{
-                                        readOnly: true,
-                                        endAdornment: <CopyAdornment value={tsidResult}/>
-                                    }}
-                                />
-                            )}
-                        </Grid>
-                    </Grid>
-                </TabPanel>
-
-                {/* Tab 2: TSID → 날짜 */}
-                <TabPanel value={tabValue} index={2}>
-                    <Typography variant="body2" color="text.secondary" sx={{mb: 3}}>
-                        TSID에 포함된 타임스탬프를 추출하여 날짜/시간으로 변환합니다.
-                        (TSID Epoch: 2020-01-01 00:00:00 UTC)
-                    </Typography>
-
-                    <TextField
-                        label="TSID 입력"
-                        value={tsidForDate}
-                        onChange={(e) => setTsidForDate(e.target.value)}
-                        fullWidth
-                        sx={{mb: 2}}
-                        placeholder="예: 0GXWP1VXZS35J"
-                    />
-                    <Button
-                        variant="contained"
-                        onClick={handleTsidToDate}
-                        fullWidth
-                        sx={{mb: 2}}
-                    >
-                        날짜/시간 추출
-                    </Button>
-                    {dateResult && (
-                        <TextField
-                            label="날짜/시간 결과"
-                            value={dateResult}
-                            fullWidth
-                            InputProps={{
-                                readOnly: true,
-                                endAdornment: <CopyAdornment value={dateResult}/>
-                            }}
-                        />
-                    )}
-                </TabPanel>
-            </Paper>
-
-            <Box sx={{mt: 3, p: 2, backgroundColor: 'grey.100', borderRadius: 1}}>
-                <Typography variant="subtitle2" sx={{mb: 1}}>TSID란?</Typography>
-                <Typography variant="body2" color="text.secondary">
+            <div className="mt-4 p-3 bg-gray-100 rounded-md">
+                <p className="text-sm font-semibold mb-1">TSID란?</p>
+                <p className="text-sm text-gray-500">
                     TSID (Time-Sorted Unique Identifier)는 시간순 정렬이 가능한 고유 식별자입니다.
                     13자리 문자열로 표현되며, 내부에 42비트 타임스탬프와 22비트 랜덤값을 포함합니다.
-                </Typography>
-            </Box>
-        </Box>
+                </p>
+            </div>
+        </div>
     )
 }

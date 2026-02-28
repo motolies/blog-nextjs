@@ -1,4 +1,4 @@
-const API_HOST = process.env.BLOG_URL_PROD
+import {getBackendBaseUrl} from "../lib/backendUrl"
 
 function generateSiteMap(posts) {
     return `<?xml version="1.0" encoding="UTF-8"?>
@@ -26,7 +26,7 @@ function SiteMap() {
 
 export async function getServerSideProps({res}) {
     // We make an API call to gather the URLs for our site
-    const request = await fetch(API_HOST + '/api/post/public-content');
+    const request = await fetch(getBackendBaseUrl() + '/api/post/public-content');
     const posts = await request.json();
 
     // We generate the XML sitemap with the posts data

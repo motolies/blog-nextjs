@@ -1,29 +1,29 @@
 .prevButton {
     position: fixed;
     top: 50%;
-    left: 0;
+    left: 1rem;
     transform: translateY(-50%);
-    /*background-color: #ccc;*/
-    padding: 3px;
-    z-index: 1;
+    z-index: 20;
 }
 
 .nextButton {
     position: fixed;
     top: 50%;
-    right: 0;
+    right: 1rem;
     transform: translateY(-50%);
-    /*background-color: #ccc;*/
-    padding: 3px;
-    z-index: 1;
+    z-index: 20;
 }
 
-@media ( max-width: 600px) {
-    .prevButton {
-        visibility: hidden;
-    }
+.navButton {
+    border-radius: 9999px;
+    border-color: rgba(226, 232, 240, 0.9);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+}
 
+@media (max-width: 1279px) {
+    .prevButton,
     .nextButton {
-        visibility: hidden;
+        display: none;
     }
 }

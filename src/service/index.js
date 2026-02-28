@@ -7,6 +7,8 @@ import searchEngineService from "./searchEngineService"
 import sprintService from "./sprintService"
 import favoriteService from "./favoriteService"
 import memoService from "./memoService"
+import logService from "./logService"
+import commonCodeService from "./commonCodeService"
 
 const service = {
     user: userService
@@ -18,6 +20,8 @@ const service = {
     , sprint: sprintService
     , favorite: favoriteService
     , memo: memoService
+    , log: logService
+    , commonCode: commonCodeService
 }
 
 export default service

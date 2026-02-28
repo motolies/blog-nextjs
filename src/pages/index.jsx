@@ -1,43 +1,78 @@
 import service from "../service"
 import {SearchEngineComponent} from "../components/SearchEngineComponent"
-import {Box} from "@mui/material"
-import LinkIcon from '@mui/icons-material/Link'
+import {ArrowUpRight, Link2, Search} from 'lucide-react'
+import {buildBackendAuthConfig} from "../lib/ssrRequestAuth"
 
 export default function IndexPage({engines, favorites}) {
 
     return (
         <>
-            <Box sx={{display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between'}}>
-                {engines.map((s) =>
-                    <SearchEngineComponent key={s.id} name={s.name} url={s.url}/>
-                )}
-                {/*TODO: 비어있는 박스를 계산해서 넣어주면 한 칸 당길 수 있다.*/}
-            </Box>
-            <hr/>
-            {favorites.map((c) =>
-                <Box key={c.name}>
-                    <h3>{c.name}</h3>
-                    <Box component="ul" sx={{margin: 0}}>
-                        {c.links.map((c) =>
-                            <Box component="li" key={c.name} sx={{display: 'inline-table', padding: '.5rem 1rem .5rem .5rem'}}>
-                                <a href={c.url} target="_blank" rel="noreferrer">
-                                    <Box sx={{display: 'inline-flex', alignItems: 'center'}}>
-                                        <LinkIcon/><span>{c.name}</span>
-                                    </Box>
-                                </a>
-                            </Box>
-                        )}
-                    </Box>
-                </Box>
-            )}
+            <h1 className="visually-hidden">Skyscape - 홈</h1>
+            <section>
+                <div className="public-container px-4 pb-10 pt-28 sm:px-6 lg:px-8 lg:pb-12">
+                    <div className="max-w-3xl">
+                        <span className="section-eyebrow">
+                            <Search className="h-3.5 w-3.5"/>
+                            Public Dashboard
+                        </span>
+                    </div>
+                    <div className="mt-10 w-full">
+                        <SearchEngineComponent engines={engines}/>
+                    </div>
+                </div>
+            </section>
+
+            <section className="public-container px-4 pb-14 pt-6 sm:px-6 lg:px-8">
+                <div className="mb-6 flex items-end justify-between gap-4">
+                    <div>
+                        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+                            Favorite Groups
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                    {favorites.map((group) =>
+                        <section key={group.name} className="surface-panel-strong rounded-[1.75rem] p-6">
+                            <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                                        Collection
+                                    </p>
+                                    <h3 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-slate-950">
+                                        {group.name}
+                                    </h3>
+                                </div>
+                                <span className="flex size-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+                                    <Link2 className="h-5 w-5"/>
+                                </span>
+                            </div>
+                            <ul className="mt-6 grid gap-3">
+                                {group.links.map((favorite) =>
+                                    <li key={favorite.name}>
+                                        <a
+                                            href={favorite.url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="group flex items-center justify-between rounded-2xl border border-slate-200/70 bg-white/80 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-sky-200 hover:text-sky-700"
+                                        >
+                                            <span className="truncate">{favorite.name}</span>
+                                            <ArrowUpRight className="h-4 w-4 shrink-0 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"/>
+                                        </a>
+                                    </li>
+                                )}
+                            </ul>
+                        </section>
+                    )}
+                </div>
+            </section>
         </>
     )
 }
 export async function getServerSideProps(context) {
-    const cookie = context.req?.headers?.cookie
-    const headers = cookie ? { Cookie: cookie } : undefined
-    const enginesReq = await service.search.getAll(headers ? { headers } : undefined)
-    const favoritesResponse = await service.favorite.getFavorites(headers ? { headers } : undefined)
+    const authConfig = buildBackendAuthConfig(context.req)
+    const enginesReq = await service.search.getAll(authConfig)
+    const favoritesResponse = await service.favorite.getFavorites(authConfig)
     return {
         props: {
             engines: enginesReq.data,

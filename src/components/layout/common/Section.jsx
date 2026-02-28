@@ -1,11 +1,11 @@
 import styles from './Section.module.css'
 
-export default function Section({children, title, subtitle}) {
+export default function Section({children}) {
     return (
         <>
-            <section className={styles.section}>
+            <main id="main-content" className={styles.section}>
                 {children}
-            </section>
+            </main>
             {/*Google Tag Manager (noscript)*/}
             <noscript
                 dangerouslySetInnerHTML={{

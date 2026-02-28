@@ -3,6 +3,7 @@ import service from "../../service"
 import {getAllTags} from "../../store/actions/tagActions"
 import Head from "next/head";
 import {wrapper} from "../../store";
+import {buildBackendAuthConfig} from "../../lib/ssrRequestAuth"
 
 export default function PostPage({children, post, prevNext, meta}) {
 
@@ -31,23 +32,31 @@ export const getServerSideProps = wrapper.getServerSideProps(
         await store.dispatch(getAllTags())
 
         const postId = context.params.id
-        const cookie = context.req?.headers?.cookie
-        const headers = cookie ? { Cookie: cookie } : undefined
+        const authConfig = buildBackendAuthConfig(context.req)
         // 두 요청을 동시에 실행
         const [postResult, prevNextResult] = await Promise.allSettled([
-            service.post.getPost({ postId }, headers ? { headers } : undefined),
-            service.post.getPrevNext({ postId }, headers ? { headers } : undefined)
+            service.post.getPost({ postId }, authConfig),
+            service.post.getPrevNext({ postId }, authConfig)
         ]);
 
-        // 각 요청의 결과 상태에 따라 처리
-        const post = postResult.status === 'fulfilled' ? postResult.value.data : null;
-        const prevNext = prevNextResult.status === 'fulfilled' ? prevNextResult.value.data : null;
-
-        // post가 없을 경우, 원하는 대체 로직을 추가할 수 있음 (예: 에러 페이지, 기본 데이터 등)
-        if (!post) {
-            console.error('postReq 요청 중 오류 발생:', postResult.reason);
-            // 여기서 에러를 던지거나, 기본값을 반환할 수 있음.
+        if (postResult.status === 'rejected') {
+            const status = postResult.reason?.response?.status
+            if (status === 400 || status === 403 || status === 404) {
+                return {
+                    notFound: true
+                }
+            }
+            throw postResult.reason
         }
+
+        const post = postResult.value?.data ?? null
+        if (!post) {
+            return {
+                notFound: true
+            }
+        }
+
+        const prevNext = prevNextResult.status === 'fulfilled' ? prevNextResult.value.data : null;
 
         return {
             props: {

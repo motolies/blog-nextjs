@@ -1,11 +1,9 @@
-// https://mui.com/material-ui/react-drawer/#responsive-drawer
-import {Box, Button, Grid, MenuItem, TextField} from "@mui/material"
 import CategoryAutoComplete from "../../components/CategoryAutoComplete"
-import {useSnackbar} from "notistack"
-import {useEffect, useState} from "react"
+import {toast} from 'sonner'
+import {useCallback, useEffect, useRef, useState} from "react"
 import {useDispatch, useSelector} from "react-redux"
 import {POST_LOCAL_MODIFY_BODY, POST_LOCAL_MODIFY_CATEGORY_ID, POST_LOCAL_MODIFY_PUBLIC, POST_LOCAL_MODIFY_SUBJECT} from "../../store/types/postTypes"
-import { getTsid } from 'tsid-ts'
+import {getTsid} from 'tsid-ts'
 import DynamicEditor from "../editor/DynamicEditor"
 import service from "../../service"
 import {cancelLoading, setLoading} from "../../store/actions/commonActions"
@@ -13,41 +11,52 @@ import {useRouter} from "next/router"
 import TagGroupComponent from "./TagGroupComponent"
 import {FileComponent} from "./FileComponent"
 import {fileLink} from "../../util/fileLink"
-import MultipleFileUploadComponent from "../editor/MultipleFileUploadComponent"
+import FileUploadComponent from "../editor/FileUploadComponent"
 import {FILE_LIST_BY_POST_REQUEST} from "../../store/types/fileTypes"
+import {Button} from "../ui/button"
+import {Input} from "../ui/input"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../ui/select"
 
 export default function PostModifyComponent() {
     const router = useRouter()
     const post = useSelector(state => state.post.modifyPost)
     const dispatch = useDispatch()
-    const {enqueueSnackbar, closeSnackbar} = useSnackbar()
     const [insertData, setInsertData] = useState('')
     const [triggerGetData, setTriggerGetData] = useState('')
-    const [saveAble, setSaveAble] = useState(false)
-    const publicOptions = [{value: true, label: '공개'}, {value: false, label: '비공개'}]
     const [tags, setTags] = useState([])
+    const postRef = useRef(post)
+    const isSavingRef = useRef(false)
+
+    useEffect(() => {
+        postRef.current = post
+    }, [post])
 
     useEffect(() => {
         setTags(post.tags)
     }, [post.tags])
 
-    useEffect(() => {
-        if (!saveAble)
+    const savePost = useCallback((body) => {
+        if (isSavingRef.current) {
             return
+        }
 
-        // 중복 저장 방지를 위해 즉시 false로 리셋
-        setSaveAble(false)
+        isSavingRef.current = true
+        const nextPost = {
+            ...postRef.current,
+            body,
+        }
 
         dispatch(setLoading())
-        service.post.save({post: post}).then(res => {
-            router.push(`/post/${post.id}`)
+        service.post.save({post: nextPost}).then(() => {
+            router.push(`/post/${nextPost.id}`)
         }).catch(err => {
-            enqueueSnackbar("저장에 실패하였습니다.", {variant: "error"})
-            console.log("content save error", err)
+            toast.error("저장에 실패하였습니다.")
+            console.error("content save error", err)
         }).finally(() => {
+            isSavingRef.current = false
             dispatch(cancelLoading())
         })
-    }, [post, saveAble])
+    }, [dispatch, router])
 
     const onChangeCategory = (category) => {
         if (category?.id) {
@@ -56,7 +65,7 @@ export default function PostModifyComponent() {
                 categoryId: category.id,
             })
         } else {
-            enqueueSnackbar("카테고리는 필수로 선택해야 합니다.", {variant: "error"})
+            toast.error("카테고리는 필수로 선택해야 합니다.")
         }
     }
 
@@ -67,35 +76,34 @@ export default function PostModifyComponent() {
         })
     }
 
-    const onChangeBody = (body) => {
+    const onChangeBody = useCallback((body, options = {}) => {
         dispatch({
             type: POST_LOCAL_MODIFY_BODY,
             body: body,
         })
-        setSaveAble(true)
-    }
+
+        if (options.shouldSave) {
+            savePost(body)
+        }
+    }, [dispatch, savePost])
 
     const onChangeFile = async (files) => {
-        if (files === undefined || files.length === 0)
-            return
-
+        if (files === undefined || files.length === 0) return
         if (!post.id) {
-            enqueueSnackbar("게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.", {variant: "warning"})
+            toast.warning("게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.")
             return
         }
-
         dispatch(setLoading())
         for (const file of [...files]) {
             const body = new FormData()
             body.append("file", file)
             body.append("postId", post.id)
-
             await service.file.upload({formData: body})
-                .then(res => {
-                    enqueueSnackbar("파일 업로드에 성공하였습니다.", {variant: "success"})
+                .then(() => {
+                    toast.success("파일 업로드에 성공하였습니다.")
                 })
-                .catch(err => {
-                    enqueueSnackbar("파일 업로드에 실패하였습니다.", {variant: "error"})
+                .catch(() => {
+                    toast.error("파일 업로드에 실패하였습니다.")
                 })
         }
         dispatch(cancelLoading())
@@ -105,11 +113,11 @@ export default function PostModifyComponent() {
     const onDeleteFile = (file) => {
         dispatch(setLoading())
         service.file.delete({fileId: file.id})
-            .then(res => {
-                enqueueSnackbar("파일을 삭제하였습니다.", {variant: "success"})
+            .then(() => {
+                toast.success("파일을 삭제하였습니다.")
             })
-            .catch(err => {
-                enqueueSnackbar("파일 삭제에 실패하였습니다.", {variant: "error"})
+            .catch(() => {
+                toast.error("파일 삭제에 실패하였습니다.")
             })
             .finally(() => {
                 dispatch(cancelLoading())
@@ -129,101 +137,97 @@ export default function PostModifyComponent() {
         }
     }
 
+    return (
+        <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+            {/* 에디터 영역 */}
+            <div className="admin-panel admin-panel-pad min-w-0">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">Editor</p>
+                        <h2 className="mt-1 text-lg font-semibold text-[color:var(--admin-text)]">본문 편집</h2>
+                    </div>
+                    <span className="admin-pill">
+                        집중 작성 모드
+                    </span>
+                </div>
+                <Input
+                    placeholder="Title"
+                    value={post.subject}
+                    onChange={(e) =>
+                        dispatch({
+                            type: POST_LOCAL_MODIFY_SUBJECT,
+                            subject: e.target.value,
+                        })
+                    }
+                    className="mb-4"
+                />
+                <DynamicEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData} getDataTrigger={triggerGetData}/>
+            </div>
 
-    return (<Box sx={{
-        display: 'grid',
-        gridTemplateColumns: {xs: '1fr', md: 'minmax(0, 3fr) 1fr'},
-        gap: 3,
-    }}>
-        {/* 에디터 영역 */}
-        <Box sx={{minWidth: 0}}>
-            <TextField
-                label="Title"
-                value={post.subject}
-                onChange={(e) =>
-                    dispatch({
-                        type: POST_LOCAL_MODIFY_SUBJECT,
-                        subject: e.target.value,
-                    })
-                }
-                fullWidth
-                sx={{
-                    marginBottom: "1rem"
-                }}
-            />
-            <DynamicEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData} getDataTrigger={triggerGetData}/>
-        </Box>
+            {/* 사이드바 영역 */}
+            <div className="admin-panel admin-panel-pad space-y-3 xl:max-h-[calc(100vh-15rem)] xl:overflow-y-auto">
+                <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">Settings</p>
+                    <h2 className="mt-1 text-lg font-semibold text-[color:var(--admin-text)]">게시 설정</h2>
+                </div>
+                <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={post.category.id} label={'Category'}/>
 
-        {/* 사이드바 영역 */}
-        <Box sx={{
-            position: {xs: 'static', md: 'sticky'},
-            top: {md: '4rem'},
-            mb: 5,
-            height: '80vh',
-        }}>
-            <Grid container spacing={3}>
-                <Grid item xs={12}>
-                    <CategoryAutoComplete onChangeCategory={onChangeCategory} setCategoryId={post.category.id} label={'Category'}/>
-                </Grid>
-                <Grid item xs={12}>
-                    <TextField
-                        id="outlined-select-currency"
-                        select
-                        fullWidth
-                        label="isPublic"
-                        value={post.public}
-                        onChange={(e) =>
-                            dispatch({
-                                type: POST_LOCAL_MODIFY_PUBLIC,
-                                isPublic: e.target.value,
-                            })
-                        }>
-                        {publicOptions.map((option) => (
-                            <MenuItem key={option.value} value={option.value}>
-                                {option.label}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                </Grid>
-                <Grid item xs={12}>
-                    <Button fullWidth size="large" variant="outlined"
-                            onClick={() => {
-                                enqueueSnackbar("모달창에서 검색해서 선택할 수 있도록 하자.", {variant: "warning"})
-                                setInsertData(`${getTsid().toString()}`)
-                            }}>이전 글 넣기</Button>
-                </Grid>
-                <Grid item xs={12}>
-                    <MultipleFileUploadComponent onChange={onChangeFile} sx={{mb: 1}}/>
-                    <Box sx={{
-                        overflowY: 'auto',
-                        maxHeight: '25vh',
-                    }}>
+                <Select
+                    value={String(post.public)}
+                    onValueChange={(v) =>
+                        dispatch({
+                            type: POST_LOCAL_MODIFY_PUBLIC,
+                            isPublic: v === 'true',
+                        })
+                    }
+                >
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="isPublic"/>
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="true">공개</SelectItem>
+                        <SelectItem value="false">비공개</SelectItem>
+                    </SelectContent>
+                </Select>
+
+                <Button variant="outline" className="w-full" onClick={() => {
+                    toast.warning("모달창에서 검색해서 선택할 수 있도록 하자.")
+                    setInsertData(`${getTsid().toString()}`)
+                }}>이전 글 넣기</Button>
+
+                <div>
+                    <FileUploadComponent multiple onChange={onChangeFile} className="mb-1"/>
+                    <div className="overflow-y-auto max-h-[25vh]">
                         {post.files?.filter(f => f.type.startsWith('image')).map((file) => (
                             <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
                         ))}
                         {post.files?.filter(f => !f.type.startsWith('image')).map((file) => (
                             <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
                         ))}
-                    </Box>
-                </Grid>
-                <Grid item xs={12}>
-                    <TagGroupComponent postId={post.id} tagList={tags} writePage={true} listHeight={{
-                        overflowY: 'auto',
-                        maxHeight: '15vh',
-                        mt:1,
-                    }}/>
-                </Grid>
-                <Grid item xs={12}>
-                    <Grid container spacing={3}>
-                        <Grid item xs={6}>
-                            <Button fullWidth size="large" variant="contained" onClick={() => setTriggerGetData(getTsid().toString())}>저장</Button>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Button fullWidth size="large" color="error" variant="contained">취소</Button>
-                        </Grid>
-                    </Grid>
-                </Grid>
-            </Grid>
-        </Box>
-    </Box>)
+                    </div>
+                </div>
+
+                <TagGroupComponent postId={post.id} tagList={tags} writePage={true} listHeight={{
+                    overflowY: 'auto',
+                    maxHeight: '15vh',
+                    marginTop: '0.25rem',
+                }}/>
+
+                <div className="grid grid-cols-2 gap-3">
+                    <Button
+                        size="lg"
+                        onClick={() => {
+                            if (isSavingRef.current) {
+                                return
+                            }
+                            setTriggerGetData(getTsid().toString())
+                        }}
+                    >
+                        저장
+                    </Button>
+                    <Button size="lg" variant="destructive">취소</Button>
+                </div>
+            </div>
+        </div>
+    )
 }

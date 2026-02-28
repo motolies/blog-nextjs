@@ -15,14 +15,6 @@ npm run dev
 
 ---
 
-## CKEditor5
-
-- https://ckeditor.com/ckeditor-5/builder/
-- 상기 사이트에서 빌드 샘플 받아서 적용
-
----
-
-
 ## 빌드
 
 ### 다중 아키텍처 빌드시
@@ -74,4 +66,3 @@ docker run -d --restart=unless-stopped \
 --link blogback \
 --name blogfront docker.hvy.kr/blog-front
 ```
-

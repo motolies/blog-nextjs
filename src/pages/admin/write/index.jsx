@@ -1,8 +1,8 @@
 import PostModifyComponent from "../../../components/post/PostModifyComponent"
-import {Box} from "@mui/material"
 import {useDispatch} from "react-redux"
 import {useEffect} from "react"
 import {loadContentForModify} from "../../../store/actions/postActions"
+import AdminPageFrame from "../../../components/layout/admin/AdminPageFrame"
 
 export default function NewPostPage() {
     const dispatch = useDispatch()
@@ -11,8 +11,8 @@ export default function NewPostPage() {
     }, [])
 
     return (
-        <Box sx={{m: 2}}>
+        <AdminPageFrame contentClassName="min-h-0">
             <PostModifyComponent/>
-        </Box>
+        </AdminPageFrame>
     )
 }

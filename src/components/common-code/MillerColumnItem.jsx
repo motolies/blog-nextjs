@@ -1,16 +1,7 @@
 import React from 'react'
-import {
-  Chip,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Typography
-} from '@mui/material'
-import {
-  ChevronRight as ChevronRightIcon,
-  Class as ClassIcon,
-  Code as CodeIcon
-} from '@mui/icons-material'
+import {ChevronRight, GitBranch, Code} from 'lucide-react'
+import {Badge} from '../ui/badge'
+import {cn} from '../../lib/utils'
 
 export default function MillerColumnItem({item, selected, onClick}) {
   const isClass = item.type === 'CLASS'
@@ -19,44 +10,33 @@ export default function MillerColumnItem({item, selected, onClick}) {
     : !!item.childClass
 
   return (
-    <ListItemButton
-      selected={selected}
+    <button
       onClick={() => onClick(item)}
-      sx={{
-        borderLeft: 3,
-        borderColor: selected
-          ? (isClass ? 'primary.main' : 'secondary.main')
-          : 'transparent',
-        py: 0.75,
-        '&.Mui-selected': {
-          bgcolor: isClass ? 'primary.50' : 'secondary.50'
-        }
-      }}
+      className={cn(
+        'flex w-full items-center gap-2 border-l-2 px-2 py-1.5 text-left transition-colors hover:bg-sky-600/8',
+        selected
+          ? isClass ? 'border-sky-600 bg-sky-600/10' : 'border-fuchsia-600 bg-fuchsia-600/10'
+          : 'border-transparent'
+      )}
     >
-      <ListItemIcon sx={{minWidth: 32}}>
+      <span className="shrink-0">
         {isClass
-          ? <ClassIcon fontSize="small" color="primary"/>
-          : <CodeIcon fontSize="small" color="secondary"/>
+          ? <GitBranch className="h-4 w-4 text-sky-700"/>
+          : <Code className="h-4 w-4 text-fuchsia-700"/>
         }
-      </ListItemIcon>
-      <ListItemText
-        primary={
-          <Typography variant="body2" noWrap sx={{fontWeight: selected ? 600 : 400}}>
-            {item.code}
-          </Typography>
-        }
-        secondary={
-          <Typography variant="caption" color="text.secondary" noWrap>
-            {item.name}
-          </Typography>
-        }
-      />
+      </span>
+      <span className="flex-1 min-w-0">
+        <span className={cn('block truncate text-sm text-[color:var(--admin-text)]', selected && 'font-semibold')}>
+          {item.code}
+        </span>
+        <span className="block truncate text-xs text-[color:var(--admin-text-muted)]">{item.name}</span>
+      </span>
       {!item.isActive && (
-        <Chip label="비활성" size="small" sx={{mr: 0.5, height: 20, fontSize: '0.65rem'}}/>
+        <Badge variant="secondary" className="text-xs h-5 shrink-0 px-1">비활성</Badge>
       )}
       {hasChildren && (
-        <ChevronRightIcon fontSize="small" color="action"/>
+        <ChevronRight className="h-4 w-4 shrink-0 text-[color:var(--admin-text-faint)]"/>
       )}
-    </ListItemButton>
+    </button>
   )
 }

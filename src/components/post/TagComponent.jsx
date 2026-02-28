@@ -1,8 +1,7 @@
-import {Box} from "@mui/material"
 import {useState} from "react"
 import {useSelector} from "react-redux"
-import IconButton from "@mui/material/IconButton"
-import DeleteIcon from "@mui/icons-material/Delete"
+import {Trash2} from "lucide-react"
+import {Button} from "../ui/button"
 import DeleteConfirm from "../confirm/DeleteConfirm"
 import {searchObjectInit} from "../../model/searchObject"
 import {base64Encode} from "../../util/base64Util"
@@ -13,6 +12,7 @@ export const Tag = (props) => {
     const userState = useSelector((state) => state.user)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [question, setQuestion] = useState('')
+    const isAdminVariant = props.variant === 'admin'
 
     const showDeleteConfirmDialog = (e) => {
         e.stopPropagation()
@@ -39,43 +39,42 @@ export const Tag = (props) => {
             router.push({pathname: '/search', query: {q: base64Encode(JSON.stringify(condition))}})
         }
     }
-    const getStyle = () => {
-        const style = {
-            mr: 1
-            , mb: 1
-            , px: 1
-            , background: "rgba(127, 0, 255, .2)"
-            , '&:hover': {
-                background: "rgba(127, 0, 255, .4)"
-            }
-            , borderRadius: '.5rem'
-        }
-        if (props.clickable) {
-            style.cursor = "pointer"
-        }
-        return style
-    }
 
-    const getClickFunction = () => {
-        if (props.clickable) {
-            return searchTagName
+    const onKeyDown = (e) => {
+        if (props.clickable && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault()
+            searchTagName(e)
         }
     }
 
     return (
-        <Box
-            display="flex-inline"
-            sx={getStyle()}
-            onClick={getClickFunction()}
+        <div
+            className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                isAdminVariant
+                    ? 'border border-slate-300/80 bg-white/92 text-[color:var(--admin-text)] hover:border-sky-600/18 hover:bg-sky-600/8 hover:text-sky-700'
+                    : 'border border-slate-200 bg-white/85 text-slate-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800'
+            }${props.clickable ? ' cursor-pointer' : ''}`}
+            onClick={props.clickable ? searchTagName : undefined}
+            {...(props.clickable ? {role: 'button', tabIndex: 0, onKeyDown} : {})}
         >
             {props.name}
             {!(userState.isAuthenticated && userState.user.username) ? null :
-                <IconButton aria-label="delete" onClick={showDeleteConfirmDialog}>
-                    <DeleteIcon fontSize={'small'}/>
-                </IconButton>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`ml-1 h-6 w-6 rounded-full ${
+                        isAdminVariant
+                            ? 'text-[color:var(--admin-text-faint)] hover:bg-sky-600/8 hover:text-sky-700'
+                            : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+                    }`}
+                    aria-label="delete"
+                    onClick={showDeleteConfirmDialog}
+                >
+                    <Trash2 className="h-3 w-3"/>
+                </Button>
             }
             <DeleteConfirm open={showDeleteConfirm} question={question} onConfirm={deleteTag} onCancel={deleteTagCancel}/>
-        </Box>
+        </div>
     )
 
 }

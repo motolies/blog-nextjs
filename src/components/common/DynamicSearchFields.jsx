@@ -1,18 +1,31 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react'
-import {
-  Box, TextField, Button, Stack, Paper, MenuItem,
-  Menu, IconButton, Chip
-} from '@mui/material'
+import React, {useState, useEffect, useRef} from 'react'
 import {
   Search as SearchIcon,
-  Refresh as RefreshIcon,
-  Add as AddIcon,
-  Close as CloseIcon,
-  Check as CheckIcon
-} from '@mui/icons-material'
+  RefreshCw as RefreshIcon,
+  Plus as AddIcon,
+  X as CloseIcon,
+  Check as CheckIcon,
+} from 'lucide-react'
 import dynamic from 'next/dynamic'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 const DateRangePicker = dynamic(() => import('./DateRangePicker'), {ssr: false})
+const SELECT_EMPTY_VALUE = '__SHADCN_SELECT_EMPTY__'
 
 /**
  * 필드의 고유 키를 반환
@@ -50,40 +63,49 @@ const renderField = (field, searchInputs, onInputChange, onKeyPress, spacingConf
   }
 
   if (field.type === 'select') {
+    const rawValue = searchInputs[field.name]
+    const selectValue = rawValue === undefined || rawValue === null || rawValue === ''
+      ? SELECT_EMPTY_VALUE
+      : String(rawValue)
+
     return (
-      <TextField
-        key={field.name}
-        select
-        label={field.label}
-        size="small"
-        value={searchInputs[field.name] ?? ''}
-        onChange={(e) => onInputChange(field.name, e.target.value)}
-        sx={{minWidth: spacingConfig.textFieldMinWidth}}
-      >
-        <MenuItem value="">전체</MenuItem>
-        {field.options?.map(opt => (
-          <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-        ))}
-      </TextField>
+      <div key={field.name} className="flex flex-col gap-1">
+        <Label className="text-xs text-muted-foreground">{field.label}</Label>
+        <Select
+          value={selectValue}
+          onValueChange={(val) => onInputChange(field.name, val === SELECT_EMPTY_VALUE ? '' : val)}
+        >
+          <SelectTrigger size="sm" className="min-w-[120px]">
+            <SelectValue placeholder="전체" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={SELECT_EMPTY_VALUE}>전체</SelectItem>
+            {field.options?.map(opt => (
+              <SelectItem key={String(opt.value)} value={String(opt.value)}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     )
   }
 
   return (
-    <TextField
-      key={field.name}
-      label={field.label}
-      size="small"
-      type={field.type || 'text'}
-      value={searchInputs[field.name] ?? ''}
-      onChange={(e) => onInputChange(field.name, e.target.value)}
-      onKeyPress={onKeyPress}
-      sx={{minWidth: spacingConfig.textFieldMinWidth}}
-    />
+    <div key={field.name} className="flex flex-col gap-1">
+      <Label className="text-xs text-muted-foreground">{field.label}</Label>
+      <Input
+        type={field.type || 'text'}
+        value={searchInputs[field.name] ?? ''}
+        onChange={(e) => onInputChange(field.name, e.target.value)}
+        onKeyPress={onKeyPress}
+        className="h-8 min-w-[120px]"
+        placeholder={field.label}
+      />
+    </div>
   )
 }
 
 /**
- * MRTTable용 검색 필드 컴포넌트
+ * 데이터 테이블용 검색 필드 컴포넌트
  *
  * enableDynamic=false: 기존 방식 (모든 필드 일렬 표시)
  * enableDynamic=true: pinned/dynamic 분리 + 필드 추가 메뉴
@@ -100,9 +122,7 @@ export default function DynamicSearchFields({
   enableDynamic = false,
 }) {
   const [activeFields, setActiveFields] = useState([])
-  const [menuAnchorEl, setMenuAnchorEl] = useState(null)
   const fieldRefs = useRef({})
-  const menuOpen = Boolean(menuAnchorEl)
 
   // defaultSearchParams에 값이 있는 동적 필드는 자동 활성화
   useEffect(() => {
@@ -127,27 +147,28 @@ export default function DynamicSearchFields({
   // 기존 방식 (enableDynamic=false)
   if (!enableDynamic) {
     return (
-      <Paper sx={{p: spacingConfig.filterPadding, mb: spacingConfig.filterMarginBottom}}>
-        <Stack direction="row" spacing={spacingConfig.stackSpacing} flexWrap="wrap" useFlexGap>
+      <div className="rounded-lg border bg-card p-3 mb-3">
+        <div className="flex flex-wrap items-end gap-2">
           {searchFields.map(field => renderField(field, searchInputs, onInputChange, onKeyPress, spacingConfig))}
           <Button
-            variant="contained"
-            size={spacingConfig.buttonSize}
-            startIcon={<SearchIcon/>}
+            size="sm"
             onClick={onSearch}
+            className="h-8"
           >
+            <SearchIcon />
             검색
           </Button>
           <Button
-            variant="outlined"
-            size={spacingConfig.buttonSize}
-            startIcon={<RefreshIcon/>}
+            variant="outline"
+            size="sm"
             onClick={onReset}
+            className="h-8"
           >
+            <RefreshIcon />
             초기화
           </Button>
-        </Stack>
-      </Paper>
+        </div>
+      </div>
     )
   }
 
@@ -164,7 +185,6 @@ export default function DynamicSearchFields({
         onInputChange(field.name, field.defaultValue)
       }
     }
-    setMenuAnchorEl(null)
 
     // 추가 후 해당 필드로 포커스
     setTimeout(() => {
@@ -195,91 +215,92 @@ export default function DynamicSearchFields({
   }
 
   return (
-    <Paper sx={{p: spacingConfig.filterPadding, mb: spacingConfig.filterMarginBottom}}>
+    <div className="rounded-lg border bg-card p-3 mb-3">
       {/* Row 1: Pinned 필드 + 검색/초기화 버튼 */}
-      <Stack direction="row" spacing={spacingConfig.stackSpacing} flexWrap="wrap" useFlexGap alignItems="center">
+      <div className="flex flex-wrap items-end gap-2">
         {pinnedFields.map(field => renderField(field, searchInputs, onInputChange, onKeyPress, spacingConfig))}
         <Button
-          variant="contained"
-          size={spacingConfig.buttonSize}
-          startIcon={<SearchIcon/>}
+          size="sm"
           onClick={onSearch}
+          className="h-8"
         >
+          <SearchIcon />
           검색
         </Button>
         <Button
-          variant="outlined"
-          size={spacingConfig.buttonSize}
-          startIcon={<RefreshIcon/>}
+          variant="outline"
+          size="sm"
           onClick={handleResetAll}
+          className="h-8"
         >
+          <RefreshIcon />
           초기화
         </Button>
-      </Stack>
+      </div>
 
       {/* Row 2: 검색 조건 추가 버튼 */}
       {dynamicFields.length > 0 && (
-        <Box sx={{mt: 1.5}}>
-          <Button
-            size={spacingConfig.buttonSize}
-            startIcon={<AddIcon/>}
-            onClick={(e) => setMenuAnchorEl(e.currentTarget)}
-            sx={{textTransform: 'none'}}
-          >
-            검색 조건 추가
-          </Button>
-          <Menu
-            anchorEl={menuAnchorEl}
-            open={menuOpen}
-            onClose={() => setMenuAnchorEl(null)}
-          >
-            {dynamicFields.map(field => {
-              const key = getFieldKey(field)
-              const isActive = activeFields.includes(key)
-              return (
-                <MenuItem
-                  key={key}
-                  onClick={() => handleAddField(field)}
-                >
-                  <Box sx={{display: 'flex', alignItems: 'center', gap: 1, width: '100%'}}>
-                    {isActive && <CheckIcon fontSize="small" color="primary"/>}
-                    {!isActive && <Box sx={{width: 20}}/>}
-                    {getFieldLabel(field)}
-                  </Box>
-                </MenuItem>
-              )
-            })}
-          </Menu>
-        </Box>
+        <div className="mt-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-muted-foreground hover:text-foreground"
+              >
+                <AddIcon />
+                검색 조건 추가
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {dynamicFields.map(field => {
+                const key = getFieldKey(field)
+                const isActive = activeFields.includes(key)
+                return (
+                  <DropdownMenuItem
+                    key={key}
+                    onClick={() => handleAddField(field)}
+                  >
+                    <span className="flex items-center gap-2 w-full">
+                      {isActive
+                        ? <CheckIcon className="size-4 text-primary" />
+                        : <span className="size-4" />
+                      }
+                      {getFieldLabel(field)}
+                    </span>
+                  </DropdownMenuItem>
+                )
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       )}
 
       {/* Row 3: 동적 추가된 필드들 */}
       {visibleDynamic.length > 0 && (
-        <Stack direction="row" spacing={spacingConfig.stackSpacing} flexWrap="wrap" useFlexGap sx={{mt: 1.5}}>
+        <div className="flex flex-wrap items-end gap-2 mt-3">
           {visibleDynamic.map(field => {
             const key = getFieldKey(field)
             return (
-              <Box
+              <div
                 key={key}
                 ref={el => fieldRefs.current[key] = el}
-                sx={{display: 'flex', alignItems: 'center', gap: 0.5}}
+                className="flex items-end gap-1"
               >
                 {renderField(field, searchInputs, onInputChange, onKeyPress, spacingConfig)}
-                <IconButton
-                  size="small"
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={() => handleRemoveField(field)}
-                  sx={{
-                    color: 'text.secondary',
-                    '&:hover': {color: 'error.main'}
-                  }}
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive mb-0"
                 >
-                  <CloseIcon fontSize="small"/>
-                </IconButton>
-              </Box>
+                  <CloseIcon className="size-4" />
+                </Button>
+              </div>
             )
           })}
-        </Stack>
+        </div>
       )}
-    </Paper>
+    </div>
   )
 }

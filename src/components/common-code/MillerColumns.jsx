@@ -1,5 +1,4 @@
 import React, {useMemo, useRef, useEffect} from 'react'
-import {Box} from '@mui/material'
 import MillerColumn from './MillerColumn'
 
 /**
@@ -93,18 +92,10 @@ export default function MillerColumns({treeData, navigationPath, onNavigate, onA
   }
 
   return (
-    <Box
+    <div
       ref={scrollRef}
-      sx={{
-        display: 'flex',
-        gap: 0.5,
-        height: '100%',
-        overflowX: 'auto',
-        overflowY: 'hidden',
-        p: 0.5,
-        '&::-webkit-scrollbar': {height: 6},
-        '&::-webkit-scrollbar-thumb': {bgcolor: 'grey.400', borderRadius: 3}
-      }}
+      className="flex gap-1 h-full overflow-x-auto overflow-y-hidden p-1"
+      style={{scrollbarWidth: 'thin'}}
     >
       {columns.map((col, idx) => (
         <MillerColumn
@@ -114,6 +105,6 @@ export default function MillerColumns({treeData, navigationPath, onNavigate, onA
           onAddClick={() => handleAddClick(col, idx)}
         />
       ))}
-    </Box>
+    </div>
   )
 }

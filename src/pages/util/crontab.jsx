@@ -1,18 +1,13 @@
 import {useState, useEffect, useCallback} from 'react'
-import {
-    Box, TextField, Button, Paper, Typography, Grid, Tabs, Tab,
-    IconButton, Chip, Slider,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Accordion, AccordionSummary, AccordionDetails, Divider
-} from '@mui/material'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
-import ContentCopyIcon from '@mui/icons-material/ContentCopy'
-import {useSnackbar} from 'notistack'
+import {Tabs, TabsList, TabsTrigger, TabsContent} from '../../components/ui/tabs'
+import {Button} from '../../components/ui/button'
+import {Input} from '../../components/ui/input'
+import {Accordion, AccordionItem, AccordionTrigger, AccordionContent} from '../../components/ui/accordion'
+import {ArrowLeft, Play, Copy} from 'lucide-react'
+import {toast} from 'sonner'
 import {useRouter} from 'next/router'
 import {Cron} from 'croner'
-import moment from 'moment'
+import {format, parse, getDay} from 'date-fns'
 
 const UNIX_PRESETS = [
     {label: '매분', expression: '* * * * *', description: '1분마다 실행'},
@@ -48,20 +43,6 @@ const SPECIAL_CHARS = [
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토']
 const MONTH_NAMES = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 
-function TabPanel({children, value, index, ...other}) {
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`crontab-tabpanel-${index}`}
-            aria-labelledby={`crontab-tab-${index}`}
-            {...other}
-        >
-            {value === index && <Box sx={{p: 3}}>{children}</Box>}
-        </div>
-    )
-}
-
 function generateKoreanDescription(expression, isSpring = false) {
     try {
         const parts = expression.trim().split(/\s+/)
@@ -79,7 +60,6 @@ function generateKoreanDescription(expression, isSpring = false) {
 
         const descriptions = []
 
-        // 초 분석 (Spring만)
         if (isSpring) {
             if (second === '*') {
                 descriptions.push('매초')
@@ -90,7 +70,6 @@ function generateKoreanDescription(expression, isSpring = false) {
             }
         }
 
-        // 분 분석
         if (minute === '*') {
             if (!descriptions.some(d => d.includes('초'))) {
                 descriptions.push('매분')
@@ -106,7 +85,6 @@ function generateKoreanDescription(expression, isSpring = false) {
             descriptions.push(`${minute}분에`)
         }
 
-        // 시 분석
         if (hour === '*') {
             if (!descriptions.some(d => d.includes('분마다'))) {
                 descriptions.push('매시')
@@ -132,7 +110,6 @@ function generateKoreanDescription(expression, isSpring = false) {
             }
         }
 
-        // 일 분석
         if (dayOfMonth !== '*' && dayOfMonth !== '?') {
             if (dayOfMonth === 'L') {
                 descriptions.push('마지막 날')
@@ -146,7 +123,6 @@ function generateKoreanDescription(expression, isSpring = false) {
             }
         }
 
-        // 월 분석
         if (month !== '*' && month !== '?') {
             if (month.includes(',')) {
                 const months = month.split(',').map(m => MONTH_NAMES[parseInt(m) - 1] || m).join(', ')
@@ -162,7 +138,6 @@ function generateKoreanDescription(expression, isSpring = false) {
             }
         }
 
-        // 요일 분석
         if (dayOfWeek !== '*' && dayOfWeek !== '?') {
             if (dayOfWeek.includes('#')) {
                 const [dow, nth] = dayOfWeek.split('#')
@@ -197,7 +172,6 @@ function generateKoreanDescription(expression, isSpring = false) {
             }
         }
 
-        // 기본 설명
         if (dayOfMonth === '*' && month === '*' && (dayOfWeek === '*' || dayOfWeek === '?')) {
             if (hour === '*' && minute === '*' && (!isSpring || second === '*')) {
                 return isSpring ? '매초마다 실행' : '매분마다 실행'
@@ -223,23 +197,19 @@ function generateKoreanDescription(expression, isSpring = false) {
 
 export default function CrontabPage() {
     const router = useRouter()
-    const {enqueueSnackbar} = useSnackbar()
-    const [tabValue, setTabValue] = useState(0)
+    const [tabValue, setTabValue] = useState('unix')
     const [isClient, setIsClient] = useState(false)
 
-    // Unix Crontab 상태
     const [unixExpression, setUnixExpression] = useState('0 0 * * *')
     const [unixDescription, setUnixDescription] = useState('')
     const [unixNextRuns, setUnixNextRuns] = useState([])
     const [unixError, setUnixError] = useState('')
 
-    // Spring Scheduler 상태
     const [springExpression, setSpringExpression] = useState('0 0 0 * * *')
     const [springDescription, setSpringDescription] = useState('')
     const [springNextRuns, setSpringNextRuns] = useState([])
     const [springError, setSpringError] = useState('')
 
-    // 설정
     const [runCount, setRunCount] = useState(10)
 
     useEffect(() => {
@@ -250,9 +220,7 @@ export default function CrontabPage() {
         try {
             const cron = new Cron(expression, {timezone: 'Asia/Seoul'})
             const runs = cron.nextRuns(runCount)
-            const formattedRuns = runs.map(date =>
-                moment(date).format('YYYY-MM-DD HH:mm:ss')
-            )
+            const formattedRuns = runs.map(date => format(date, 'yyyy-MM-dd HH:mm:ss'))
             return {runs: formattedRuns, error: null}
         } catch (e) {
             return {runs: [], error: e.message || '유효하지 않은 cron 표현식입니다.'}
@@ -265,14 +233,14 @@ export default function CrontabPage() {
             setUnixError(error)
             setUnixNextRuns([])
             setUnixDescription('')
-            enqueueSnackbar('유효하지 않은 표현식입니다.', {variant: 'error'})
+            toast.error('유효하지 않은 표현식입니다.')
         } else {
             setUnixError('')
             setUnixNextRuns(runs)
             setUnixDescription(generateKoreanDescription(unixExpression, false))
-            enqueueSnackbar('계산 완료', {variant: 'success'})
+            toast.success('계산 완료')
         }
-    }, [unixExpression, calculateNextRuns, enqueueSnackbar])
+    }, [unixExpression, calculateNextRuns])
 
     const handleSpringCalculate = useCallback(() => {
         const {runs, error} = calculateNextRuns(springExpression, true)
@@ -280,18 +248,18 @@ export default function CrontabPage() {
             setSpringError(error)
             setSpringNextRuns([])
             setSpringDescription('')
-            enqueueSnackbar('유효하지 않은 표현식입니다.', {variant: 'error'})
+            toast.error('유효하지 않은 표현식입니다.')
         } else {
             setSpringError('')
             setSpringNextRuns(runs)
             setSpringDescription(generateKoreanDescription(springExpression, true))
-            enqueueSnackbar('계산 완료', {variant: 'success'})
+            toast.success('계산 완료')
         }
-    }, [springExpression, calculateNextRuns, enqueueSnackbar])
+    }, [springExpression, calculateNextRuns])
 
     const handleCopy = (text) => {
         navigator.clipboard.writeText(text)
-        enqueueSnackbar('클립보드에 복사되었습니다.', {variant: 'success'})
+        toast.success('클립보드에 복사되었습니다.')
     }
 
     const handlePresetClick = (expression, isSpring) => {
@@ -302,10 +270,8 @@ export default function CrontabPage() {
         }
     }
 
-    // 초기 계산 및 runCount 변경 시 자동 재계산
     useEffect(() => {
         if (isClient) {
-            // 알림 없이 조용히 계산
             const {runs, error} = calculateNextRuns(unixExpression, false)
             if (!error) {
                 setUnixError('')
@@ -316,8 +282,7 @@ export default function CrontabPage() {
     }, [isClient, runCount, calculateNextRuns, unixExpression])
 
     useEffect(() => {
-        if (isClient && tabValue === 1) {
-            // 알림 없이 조용히 계산
+        if (isClient && tabValue === 'spring') {
             const {runs, error} = calculateNextRuns(springExpression, true)
             if (!error) {
                 setSpringError('')
@@ -328,310 +293,246 @@ export default function CrontabPage() {
     }, [isClient, tabValue, runCount, calculateNextRuns, springExpression])
 
     if (!isClient) {
-        return (
-            <Box sx={{p: 2}}>
-                <Typography>로딩 중...</Typography>
-            </Box>
-        )
+        return <div className="p-4">로딩 중...</div>
     }
 
     const renderExpressionInput = (expression, setExpression, handleCalculate, error, presets, isSpring) => (
-        <Paper elevation={1} sx={{p: 3, mb: 3}}>
-            <Typography variant="subtitle1" sx={{mb: 2, fontWeight: 'medium'}}>
-                Cron 표현식 입력
-            </Typography>
-            <Grid container spacing={2} alignItems="flex-start">
-                <Grid item xs={12} md={9}>
-                    <TextField
-                        fullWidth
-                        value={expression}
-                        onChange={(e) => setExpression(e.target.value)}
-                        placeholder={isSpring ? '초 분 시 일 월 요일' : '분 시 일 월 요일'}
-                        error={!!error}
-                        helperText={error || (isSpring ? '예: 0 0 0 * * * (매일 자정)' : '예: 0 0 * * * (매일 자정)')}
-                        onKeyPress={(e) => {
-                            if (e.key === 'Enter') handleCalculate()
-                        }}
-                        InputProps={{
-                            endAdornment: (
-                                <IconButton onClick={() => handleCopy(expression)} size="small">
-                                    <ContentCopyIcon fontSize="small"/>
-                                </IconButton>
-                            )
-                        }}
-                    />
-                </Grid>
-                <Grid item xs={12} md={3}>
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        startIcon={<PlayArrowIcon/>}
-                        onClick={handleCalculate}
-                        sx={{height: 56}}
-                    >
-                        계산
-                    </Button>
-                </Grid>
-            </Grid>
-
-            <Box sx={{mt: 2}}>
-                <Typography variant="body2" color="text.secondary" sx={{mb: 1}}>
-                    빠른 입력:
-                </Typography>
-                <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1}}>
-                    {presets.map((preset) => (
-                        <Chip
-                            key={preset.expression}
-                            label={preset.label}
-                            onClick={() => handlePresetClick(preset.expression, isSpring)}
-                            variant="outlined"
-                            size="small"
-                            title={preset.description}
-                            sx={{cursor: 'pointer'}}
+        <div className="border rounded-md p-4 mb-4">
+            <p className="font-medium mb-3">Cron 표현식 입력</p>
+            <div className="flex gap-2 items-start">
+                <div className="flex-1">
+                    <div className="relative">
+                        <Input
+                            value={expression}
+                            onChange={(e) => setExpression(e.target.value)}
+                            placeholder={isSpring ? '초 분 시 일 월 요일' : '분 시 일 월 요일'}
+                            className={`pr-8 font-mono ${error ? 'border-red-500' : ''}`}
+                            onKeyPress={(e) => { if (e.key === 'Enter') handleCalculate() }}
                         />
+                        <button
+                            onClick={() => handleCopy(expression)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100"
+                            title="복사"
+                        >
+                            <Copy className="h-4 w-4 text-gray-500"/>
+                        </button>
+                    </div>
+                    {error
+                        ? <p className="text-xs text-red-500 mt-1">{error}</p>
+                        : <p className="text-xs text-gray-500 mt-1">{isSpring ? '예: 0 0 0 * * * (매일 자정)' : '예: 0 0 * * * (매일 자정)'}</p>
+                    }
+                </div>
+                <Button onClick={handleCalculate} className="shrink-0">
+                    <Play className="h-4 w-4 mr-1"/>
+                    계산
+                </Button>
+            </div>
+            <div className="mt-3">
+                <p className="text-xs text-gray-500 mb-2">빠른 입력:</p>
+                <div className="flex flex-wrap gap-1">
+                    {presets.map((preset) => (
+                        <button
+                            key={preset.expression}
+                            onClick={() => handlePresetClick(preset.expression, isSpring)}
+                            title={preset.description}
+                            className="text-xs px-2 py-0.5 border rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                            {preset.label}
+                        </button>
                     ))}
-                </Box>
-            </Box>
-        </Paper>
+                </div>
+            </div>
+        </div>
     )
 
     const renderDescription = (description) => (
         description && (
-            <Paper elevation={1} sx={{p: 3, mb: 3, backgroundColor: 'primary.50'}}>
-                <Typography variant="subtitle2" color="text.secondary" sx={{mb: 1}}>
-                    한국어 설명
-                </Typography>
-                <Typography variant="h6">
-                    {description}
-                </Typography>
-            </Paper>
+            <div className="border rounded-md p-4 mb-4 bg-blue-50">
+                <p className="text-xs text-gray-500 mb-1">한국어 설명</p>
+                <p className="text-lg font-medium">{description}</p>
+            </div>
         )
     )
 
     const renderSettings = () => (
-        <Paper elevation={1} sx={{p: 3, mb: 3}}>
-            <Typography variant="subtitle1" sx={{mb: 2, fontWeight: 'medium'}}>
-                설정
-            </Typography>
-            <Box>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                    표시 개수: {runCount}개
-                </Typography>
-                <Slider
-                    value={runCount}
-                    onChange={(e, newValue) => setRunCount(newValue)}
+        <div className="border rounded-md p-4 mb-4">
+            <p className="font-medium mb-3">설정</p>
+            <div>
+                <p className="text-sm text-gray-500 mb-2">표시 개수: {runCount}개</p>
+                <input
+                    type="range"
                     min={1}
                     max={50}
-                    valueLabelDisplay="auto"
+                    value={runCount}
+                    onChange={(e) => setRunCount(Number(e.target.value))}
+                    className="w-full accent-blue-600"
                 />
-            </Box>
-        </Paper>
+            </div>
+        </div>
     )
 
     const renderNextRuns = (nextRuns) => (
         nextRuns.length > 0 && (
-            <Paper elevation={1} sx={{p: 3, mb: 3}}>
-                <Typography variant="subtitle1" sx={{mb: 2, fontWeight: 'medium'}}>
-                    다음 실행 시간 ({nextRuns.length}개)
-                </Typography>
-                <TableContainer>
-                    <Table size="small">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell width={50}>#</TableCell>
-                                <TableCell>실행 시간</TableCell>
-                                <TableCell width={120}>요일</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
+            <div className="border rounded-md p-4 mb-4">
+                <p className="font-medium mb-3">다음 실행 시간 ({nextRuns.length}개)</p>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead>
+                            <tr className="border-b">
+                                <th className="text-left py-2 px-3 w-12 font-medium text-gray-600">#</th>
+                                <th className="text-left py-2 px-3 font-medium text-gray-600">실행 시간</th>
+                                <th className="text-left py-2 px-3 w-24 font-medium text-gray-600">요일</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             {nextRuns.map((run, index) => {
-                                const m = moment(run, 'YYYY-MM-DD HH:mm:ss')
+                                const d = parse(run, 'yyyy-MM-dd HH:mm:ss', new Date())
                                 return (
-                                    <TableRow key={index}>
-                                        <TableCell>{index + 1}</TableCell>
-                                        <TableCell sx={{fontFamily: 'monospace'}}>
-                                            {run}
-                                        </TableCell>
-                                        <TableCell>
-                                            {DAY_NAMES[m.day()]}요일
-                                        </TableCell>
-                                    </TableRow>
+                                    <tr key={index} className="border-b last:border-0 hover:bg-gray-50">
+                                        <td className="py-2 px-3 text-gray-500">{index + 1}</td>
+                                        <td className="py-2 px-3 font-mono">{run}</td>
+                                        <td className="py-2 px-3">{DAY_NAMES[getDay(d)]}요일</td>
+                                    </tr>
                                 )
                             })}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </Paper>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         )
     )
 
     const renderGuide = (isSpring) => (
-        <Accordion defaultExpanded={false}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
-                <Typography variant="subtitle1" sx={{fontWeight: 'medium'}}>
-                    Cron 표현식 가이드
-                </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-                <Box sx={{mb: 3}}>
-                    <Typography variant="subtitle2" sx={{mb: 1}}>
-                        필드 구조
-                    </Typography>
-                    <Paper variant="outlined" sx={{p: 2, fontFamily: 'monospace', backgroundColor: 'grey.100'}}>
-                        {isSpring ? (
-                            <pre style={{margin: 0, fontSize: '0.85rem', overflowX: 'auto'}}>
-{`┌───────────── 초 (0-59)
+        <Accordion type="single" collapsible>
+            <AccordionItem value="guide">
+                <AccordionTrigger className="font-medium">Cron 표현식 가이드</AccordionTrigger>
+                <AccordionContent>
+                    <div className="mb-4">
+                        <p className="text-sm font-medium mb-2">필드 구조</p>
+                        <div className="bg-gray-100 rounded p-3 font-mono overflow-x-auto">
+                            {isSpring ? (
+                                <pre className="text-xs m-0">{`┌───────────── 초 (0-59)
 │ ┌───────────── 분 (0-59)
 │ │ ┌───────────── 시 (0-23)
 │ │ │ ┌───────────── 일 (1-31)
 │ │ │ │ ┌───────────── 월 (1-12 또는 JAN-DEC)
 │ │ │ │ │ ┌───────────── 요일 (0-6 또는 SUN-SAT)
 │ │ │ │ │ │
-* * * * * *`}
-                            </pre>
-                        ) : (
-                            <pre style={{margin: 0, fontSize: '0.85rem', overflowX: 'auto'}}>
-{`┌───────────── 분 (0-59)
+* * * * * *`}</pre>
+                            ) : (
+                                <pre className="text-xs m-0">{`┌───────────── 분 (0-59)
 │ ┌───────────── 시 (0-23)
 │ │ ┌───────────── 일 (1-31)
 │ │ │ ┌───────────── 월 (1-12 또는 JAN-DEC)
 │ │ │ │ ┌───────────── 요일 (0-6 또는 SUN-SAT, 0=일요일)
 │ │ │ │ │
-* * * * *`}
-                            </pre>
-                        )}
-                    </Paper>
-                </Box>
+* * * * *`}</pre>
+                            )}
+                        </div>
+                    </div>
 
-                <Divider sx={{my: 2}}/>
+                    <hr className="my-4"/>
 
-                <Box sx={{mb: 3}}>
-                    <Typography variant="subtitle2" sx={{mb: 1}}>
-                        특수 문자
-                    </Typography>
-                    <TableContainer>
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell width={60}>문자</TableCell>
-                                    <TableCell width={120}>의미</TableCell>
-                                    <TableCell>예시</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {SPECIAL_CHARS.map((item) => (
-                                    <TableRow key={item.char}>
-                                        <TableCell sx={{fontFamily: 'monospace', fontWeight: 'bold'}}>
-                                            {item.char}
-                                        </TableCell>
-                                        <TableCell>{item.meaning}</TableCell>
-                                        <TableCell sx={{fontFamily: 'monospace', fontSize: '0.85rem'}}>
-                                            {item.example}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </Box>
+                    <div className="mb-4">
+                        <p className="text-sm font-medium mb-2">특수 문자</p>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b">
+                                        <th className="text-left py-2 px-3 w-16 font-medium text-gray-600">문자</th>
+                                        <th className="text-left py-2 px-3 w-32 font-medium text-gray-600">의미</th>
+                                        <th className="text-left py-2 px-3 font-medium text-gray-600">예시</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {SPECIAL_CHARS.map((item) => (
+                                        <tr key={item.char} className="border-b last:border-0">
+                                            <td className="py-2 px-3 font-mono font-bold">{item.char}</td>
+                                            <td className="py-2 px-3">{item.meaning}</td>
+                                            <td className="py-2 px-3 font-mono text-xs">{item.example}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-                <Divider sx={{my: 2}}/>
+                    <hr className="my-4"/>
 
-                <Box>
-                    <Typography variant="subtitle2" sx={{mb: 1}}>
-                        자주 사용하는 예시
-                    </Typography>
-                    <TableContainer>
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>표현식</TableCell>
-                                    <TableCell>설명</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {(isSpring ? SPRING_PRESETS : UNIX_PRESETS).map((preset) => (
-                                    <TableRow
-                                        key={preset.expression}
-                                        sx={{cursor: 'pointer', '&:hover': {backgroundColor: 'action.hover'}}}
-                                        onClick={() => handlePresetClick(preset.expression, isSpring)}
-                                    >
-                                        <TableCell sx={{fontFamily: 'monospace'}}>
-                                            {preset.expression}
-                                        </TableCell>
-                                        <TableCell>{preset.description}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </Box>
-            </AccordionDetails>
+                    <div>
+                        <p className="text-sm font-medium mb-2">자주 사용하는 예시</p>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b">
+                                        <th className="text-left py-2 px-3 font-medium text-gray-600">표현식</th>
+                                        <th className="text-left py-2 px-3 font-medium text-gray-600">설명</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {(isSpring ? SPRING_PRESETS : UNIX_PRESETS).map((preset) => (
+                                        <tr
+                                            key={preset.expression}
+                                            className="border-b last:border-0 hover:bg-gray-50 cursor-pointer"
+                                            onClick={() => handlePresetClick(preset.expression, isSpring)}
+                                        >
+                                            <td className="py-2 px-3 font-mono">{preset.expression}</td>
+                                            <td className="py-2 px-3">{preset.description}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </AccordionContent>
+            </AccordionItem>
         </Accordion>
     )
 
     return (
-        <Box sx={{p: 2}}>
-            <Box sx={{display: 'flex', alignItems: 'center', mb: 3}}>
-                <IconButton onClick={() => router.push('/util')} sx={{mr: 1}}>
-                    <ArrowBackIcon/>
-                </IconButton>
-                <Typography variant="h4" sx={{fontWeight: 'bold'}}>
-                    Crontab Calculator
-                </Typography>
-            </Box>
+        <div className="p-4">
+            <div className="flex items-center gap-2 mb-4">
+                <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
+                    <ArrowLeft className="h-5 w-5"/>
+                </Button>
+                <h1 className="text-3xl font-bold">Crontab Calculator</h1>
+            </div>
 
-            <Paper elevation={2}>
-                <Tabs
-                    value={tabValue}
-                    onChange={(e, newValue) => setTabValue(newValue)}
-                    variant="fullWidth"
-                >
-                    <Tab label="Unix Crontab (5필드)"/>
-                    <Tab label="Spring Scheduler (6필드)"/>
+            <div className="border rounded-md">
+                <Tabs value={tabValue} onValueChange={setTabValue}>
+                    <TabsList className="w-full grid grid-cols-2 rounded-none border-b">
+                        <TabsTrigger value="unix">Unix Crontab (5필드)</TabsTrigger>
+                        <TabsTrigger value="spring">Spring Scheduler (6필드)</TabsTrigger>
+                    </TabsList>
+
+                    <div className="p-4">
+                        <TabsContent value="unix">
+                            {renderExpressionInput(unixExpression, setUnixExpression, handleUnixCalculate, unixError, UNIX_PRESETS, false)}
+                            {renderDescription(unixDescription)}
+                            {renderSettings()}
+                            {renderNextRuns(unixNextRuns)}
+                            {renderGuide(false)}
+                        </TabsContent>
+
+                        <TabsContent value="spring">
+                            {renderExpressionInput(springExpression, setSpringExpression, handleSpringCalculate, springError, SPRING_PRESETS, true)}
+                            {renderDescription(springDescription)}
+                            {renderSettings()}
+                            {renderNextRuns(springNextRuns)}
+                            {renderGuide(true)}
+                        </TabsContent>
+                    </div>
                 </Tabs>
+            </div>
 
-                {/* Unix Crontab 탭 */}
-                <TabPanel value={tabValue} index={0}>
-                    {renderExpressionInput(
-                        unixExpression,
-                        setUnixExpression,
-                        handleUnixCalculate,
-                        unixError,
-                        UNIX_PRESETS,
-                        false
-                    )}
-                    {renderDescription(unixDescription)}
-                    {renderSettings()}
-                    {renderNextRuns(unixNextRuns)}
-                    {renderGuide(false)}
-                </TabPanel>
-
-                {/* Spring Scheduler 탭 */}
-                <TabPanel value={tabValue} index={1}>
-                    {renderExpressionInput(
-                        springExpression,
-                        setSpringExpression,
-                        handleSpringCalculate,
-                        springError,
-                        SPRING_PRESETS,
-                        true
-                    )}
-                    {renderDescription(springDescription)}
-                    {renderSettings()}
-                    {renderNextRuns(springNextRuns)}
-                    {renderGuide(true)}
-                </TabPanel>
-            </Paper>
-
-            <Box sx={{mt: 3, p: 2, backgroundColor: 'grey.100', borderRadius: 1}}>
-                <Typography variant="subtitle2" sx={{mb: 1}}>Crontab이란?</Typography>
-                <Typography variant="body2" color="text.secondary">
+            <div className="mt-4 p-3 bg-gray-100 rounded-md">
+                <p className="text-sm font-semibold mb-1">Crontab이란?</p>
+                <p className="text-sm text-gray-500">
                     Crontab은 Unix 계열 운영체제에서 주기적인 작업을 예약하기 위한 스케줄링 시스템입니다.
                     표준 Unix crontab은 5개 필드(분, 시, 일, 월, 요일)를 사용하고,
                     Spring Framework의 @Scheduled 어노테이션은 초 단위까지 지정할 수 있는 6개 필드를 사용합니다.
-                </Typography>
-            </Box>
-        </Box>
+                </p>
+            </div>
+        </div>
     )
 }

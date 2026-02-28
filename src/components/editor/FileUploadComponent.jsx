@@ -1,16 +1,17 @@
-import Button from "@mui/material/Button"
+import {Button} from "@/components/ui/button"
 import {useRef} from "react"
 
-export default function FileUploadComponent(props) {
+export default function FileUploadComponent({multiple, onChange, className}) {
 
     const fileInput = useRef()
 
     return (
         <div>
             <Button
-                fullWidth size="large" variant="outlined"
+                className={`w-full${className ? ' ' + className : ''}`}
+                variant="outline"
+                size="lg"
                 onClick={() => fileInput.current.click()}
-                sx={props.sx}
             >
                 upload file
             </Button>
@@ -18,8 +19,9 @@ export default function FileUploadComponent(props) {
             <input
                 ref={fileInput}
                 type="file"
+                multiple={multiple}
                 style={{display: 'none'}}
-                onChange={(e) => props.onChange(e.target.files[0])}
+                onChange={(e) => onChange(multiple ? e.target.files : e.target.files[0])}
             />
         </div>
     )

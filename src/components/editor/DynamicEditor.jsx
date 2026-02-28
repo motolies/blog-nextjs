@@ -1,101 +1,60 @@
-import { useEffect, useRef, useState, useMemo } from "react"
+import { useRef, useCallback } from "react"
 import { useDispatch } from "react-redux"
 import { cancelLoading, setLoading } from "../../store/actions/commonActions"
 import service from "../../service"
-import { useSnackbar } from "notistack"
+import { toast } from 'sonner'
 import { fileLink } from "../../util/fileLink"
 import { FILE_LIST_BY_POST_REQUEST } from "../../store/types/fileTypes"
+import dynamic from 'next/dynamic'
 
-export default function DynamicEditor({postId, defaultData, onChangeData, insertData, getDataTrigger}) {
-    const prevDefaultDataRef = useRef()
-    const prevPostIdRef = useRef()
+function EditorLoadErrorFallback() {
+    return (
+        <div
+            className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+            role="alert"
+        >
+            <p className="font-semibold">에디터를 불러오지 못했습니다.</p>
+            <p className="mt-1 text-amber-100/80">페이지를 새로고침한 뒤 다시 시도해주세요.</p>
+        </div>
+    )
+}
+
+const CKEditorWrapper = dynamic(
+    () =>
+        import('./CKEditorWrapper')
+            .then((module) => module.default)
+            .catch((error) => {
+                console.error('CKEditor wrapper load failed:', error)
+                return EditorLoadErrorFallback
+            }),
+    {
+    ssr: false,
+    loading: () => <h3>Editor loading...</h3>
+    }
+)
+
+export default function DynamicEditor({ postId, defaultData, onChangeData, insertData, getDataTrigger }) {
     const postIdRef = useRef(postId)
-    const { enqueueSnackbar } = useSnackbar()
     const dispatch = useDispatch()
-    const [isLayoutReady, setIsLayoutReady] = useState(false)
-    const [editorInstance, setEditorInstance] = useState(null)
-    const [CKEditor, setCKEditor] = useState(null)
-    const [Editor, setEditor] = useState(null)
-    const [editorLoaded, setEditorLoaded] = useState(false)
 
-    useEffect(() => {
-        // 클라이언트 사이드에서만 CKEditor 로드
-        const loadEditor = async () => {
-            try {
-                // CKEditor React 컴포넌트 로드
-                const ckEditorReact = await import('@ckeditor/ckeditor5-react')
+    // postIdRef를 최신 상태로 유지
+    postIdRef.current = postId
 
-                // CKEditor 모듈들 로드
-                const ckEditorModules = await import('ckeditor5')
-                const translations = await import('ckeditor5/translations/ko.js')
-
-                // CSS 로드
-                await import('ckeditor5/ckeditor5.css')
-
-                setCKEditor(() => ckEditorReact.CKEditor)
-                setEditor(() => ckEditorModules.ClassicEditor)
-                setEditorLoaded(true)
-                setIsLayoutReady(true)
-            } catch (error) {
-                console.error('CKEditor 로딩 실패:', error)
-                enqueueSnackbar('에디터 로딩에 실패했습니다.', { variant: 'error' })
-            }
-        }
-
-        if (typeof window !== 'undefined') {
-        loadEditor()
-        }
-
-        return () => {
-            setIsLayoutReady(false)
-        }
-    }, [])
-
-    useEffect(() => {
-        if (isLayoutReady && insertData !== '' && editorInstance) {
-            insertDataOnCursor(editorInstance, insertData)
-        }
-    }, [insertData, isLayoutReady, editorInstance])
-
-    useEffect(() => {
-        if (isLayoutReady && getDataTrigger !== '' && editorInstance) {
-            onChangeData(editorInstance.getData())
-        }
-    }, [getDataTrigger, isLayoutReady, editorInstance])
-
-    useEffect(() => {
-        postIdRef.current = postId
-    }, [postId])
-
-    useEffect(() => {
-        if (editorInstance && defaultData) {
-            // postId가 변경되었거나 defaultData가 변경되었을 때 무조건 설정
-            const postIdChanged = prevPostIdRef.current !== postId
-            const dataChanged = prevDefaultDataRef.current !== defaultData
-            
-            if (postIdChanged || dataChanged) {
-                editorInstance.setData(defaultData)
-                prevDefaultDataRef.current = defaultData
-                prevPostIdRef.current = postId
-            }
-        }
-    }, [defaultData, editorInstance, postId])
-
-    const refreshFileList = () => {
+    const refreshFileList = useCallback(() => {
         dispatch({
             type: FILE_LIST_BY_POST_REQUEST,
-            postId: postId
+            postId: postIdRef.current
         })
-    }
+    }, [dispatch])
 
-    const imageUploadAdapter = (loader) => {
+    const imageUploadAdapter = useCallback((loader) => {
         return {
             upload: () => {
                 return new Promise((resolve, reject) => {
                     const body = new FormData()
                     loader.file.then(async (file) => {
                         if (!postIdRef.current) {
-                            enqueueSnackbar("게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.", { variant: "warning" })
+                            toast.warning("게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.")
                             reject(new Error("postId is null"))
                             return
                         }
@@ -107,7 +66,7 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                                 resolve({ default: res.data.resourceUri })
                             })
                             .catch(err => {
-                                enqueueSnackbar("파일 업로드에 실패하였습니다.", { variant: "error" })
+                                toast.error("파일 업로드에 실패하였습니다.")
                                 reject(err)
                             })
                             .finally(() => {
@@ -118,15 +77,13 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
                 })
             }
         }
-    }
+    }, [dispatch, refreshFileList])
 
-    const uploadServer = async (editor, file) => {
-        if (!file) {
-            return
-        }
+    const uploadServer = useCallback(async (editor, file) => {
+        if (!file) return
 
         if (!postIdRef.current) {
-            enqueueSnackbar("게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.", { variant: "warning" })
+            toast.warning("게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.")
             return
         }
 
@@ -137,343 +94,28 @@ export default function DynamicEditor({postId, defaultData, onChangeData, insert
         await service.file.upload({ formData: body })
             .then(res => {
                 const fileTag = fileLink(res.data.resourceUri, res.data.originName)
-                insertDataOnCursor(editor, fileTag)
+                const viewFragment = editor.data.processor.toView(fileTag)
+                const modelFragment = editor.data.toModel(viewFragment)
+                editor.model.insertContent(modelFragment, editor.model.document.selection)
             })
-            .catch(err => {
-                enqueueSnackbar("파일 업로드에 실패하였습니다.", { variant: "error" })
+            .catch(() => {
+                toast.error("파일 업로드에 실패하였습니다.")
             })
             .finally(() => {
                 dispatch(cancelLoading())
             })
         refreshFileList()
-    }
-
-    const insertDataOnCursor = (editor, data) => {
-        const viewFragment = editor.data.processor.toView(data)
-        const modelFragment = editor.data.toModel(viewFragment)
-        editor.model.insertContent(
-            modelFragment,
-            editor.model.document.selection
-        )
-    }
-
-    const createEditorConfig = async () => {
-        const ckEditorModules = await import('ckeditor5')
-        const translations = await import('ckeditor5/translations/ko.js')
-
-        const customImageUploadPlugin = function (editor) {
-            editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
-                return imageUploadAdapter(loader)
-            }
-        }
-
-        const fileUploadPlugin = function (editor) {
-            editor.editing.view.document.on(
-                'drop',
-                async (event, data) => {
-                    if (
-                        data.dataTransfer.files &&
-                        !data.dataTransfer.files[0].type.includes('image')
-                    ) {
-                        event.stop()
-                        data.preventDefault()
-                        await uploadServer(editor, data.dataTransfer.files[0])
-                    }
-                },
-                { priority: 'high' }
-            )
-
-            editor.editing.view.document.on(
-                'dragover',
-                (event, data) => {
-                    event.stop()
-                    data.preventDefault()
-                },
-                { priority: 'high' }
-            )
-        }
-
-        return {
-            toolbar: {
-                items: [
-                    'undo',
-                    'redo',
-                    '|',
-                    'sourceEditing',
-                    'horizontalLine',
-                    '|',
-                    'heading',
-                    '|',
-                    'fontSize',
-                    'fontFamily',
-                    'fontColor',
-                    'fontBackgroundColor',
-                    '|',
-                    'bold',
-                    'italic',
-                    'underline',
-                    'strikethrough',
-                    'subscript',
-                    'superscript',
-                    'code',
-                    'codeBlock',
-                    'removeFormat',
-                    '-',
-                    'emoji',
-                    'specialCharacters',
-                    'link',
-                    'insertImage',
-                    'mediaEmbed',
-                    'insertTable',
-                    'insertTableLayout',
-                    'highlight',
-                    'blockQuote',
-                    'htmlEmbed',
-                    '|',
-                    'bulletedList',
-                    'numberedList',
-                    'todoList',
-                    'outdent',
-                    'indent'
-                ],
-                shouldNotGroupWhenFull: true
-            },
-            plugins: [
-                ckEditorModules.Autoformat,
-                ckEditorModules.AutoImage,
-                ckEditorModules.Autosave,
-                ckEditorModules.BlockQuote,
-                ckEditorModules.Bold,
-                ckEditorModules.Code,
-                ckEditorModules.CodeBlock,
-                ckEditorModules.Emoji,
-                ckEditorModules.Essentials,
-                ckEditorModules.FontBackgroundColor,
-                ckEditorModules.FontColor,
-                ckEditorModules.FontFamily,
-                ckEditorModules.FontSize,
-                ckEditorModules.FullPage,
-                ckEditorModules.GeneralHtmlSupport,
-                ckEditorModules.Heading,
-                ckEditorModules.Highlight,
-                ckEditorModules.HorizontalLine,
-                ckEditorModules.HtmlComment,
-                ckEditorModules.HtmlEmbed,
-                ckEditorModules.ImageBlock,
-                ckEditorModules.ImageCaption,
-                ckEditorModules.ImageInline,
-                ckEditorModules.ImageInsert,
-                ckEditorModules.ImageInsertViaUrl,
-                ckEditorModules.ImageResize,
-                ckEditorModules.ImageStyle,
-                ckEditorModules.ImageTextAlternative,
-                ckEditorModules.ImageToolbar,
-                ckEditorModules.ImageUpload,
-                ckEditorModules.Indent,
-                ckEditorModules.IndentBlock,
-                ckEditorModules.Italic,
-                ckEditorModules.Link,
-                ckEditorModules.LinkImage,
-                ckEditorModules.List,
-                ckEditorModules.ListProperties,
-                ckEditorModules.MediaEmbed,
-                ckEditorModules.Mention,
-                ckEditorModules.Paragraph,
-                ckEditorModules.PasteFromOffice,
-                ckEditorModules.PlainTableOutput,
-                ckEditorModules.RemoveFormat,
-                ckEditorModules.SimpleUploadAdapter,
-                ckEditorModules.SourceEditing,
-                ckEditorModules.SpecialCharacters,
-                ckEditorModules.SpecialCharactersArrows,
-                ckEditorModules.SpecialCharactersCurrency,
-                ckEditorModules.SpecialCharactersEssentials,
-                ckEditorModules.SpecialCharactersLatin,
-                ckEditorModules.SpecialCharactersMathematical,
-                ckEditorModules.SpecialCharactersText,
-                ckEditorModules.Strikethrough,
-                ckEditorModules.Subscript,
-                ckEditorModules.Superscript,
-                ckEditorModules.Table,
-                ckEditorModules.TableCaption,
-                ckEditorModules.TableCellProperties,
-                ckEditorModules.TableColumnResize,
-                ckEditorModules.TableLayout,
-                ckEditorModules.TableProperties,
-                ckEditorModules.TableToolbar,
-                ckEditorModules.TextTransformation,
-                ckEditorModules.TodoList,
-                ckEditorModules.Underline,
-                ckEditorModules.WordCount,
-                customImageUploadPlugin,
-                fileUploadPlugin
-            ],
-            fontFamily: {
-                supportAllValues: true
-            },
-            fontSize: {
-                options: [10, 12, 14, 'default', 18, 20, 22],
-                supportAllValues: true
-            },
-            heading: {
-                options: [
-                    {
-                        model: 'paragraph',
-                        title: 'Paragraph',
-                        class: 'ck-heading_paragraph'
-                    },
-                    {
-                        model: 'heading1',
-                        view: 'h1',
-                        title: 'Heading 1',
-                        class: 'ck-heading_heading1'
-                    },
-                    {
-                        model: 'heading2',
-                        view: 'h2',
-                        title: 'Heading 2',
-                        class: 'ck-heading_heading2'
-                    },
-                    {
-                        model: 'heading3',
-                        view: 'h3',
-                        title: 'Heading 3',
-                        class: 'ck-heading_heading3'
-                    },
-                    {
-                        model: 'heading4',
-                        view: 'h4',
-                        title: 'Heading 4',
-                        class: 'ck-heading_heading4'
-                    },
-                    {
-                        model: 'heading5',
-                        view: 'h5',
-                        title: 'Heading 5',
-                        class: 'ck-heading_heading5'
-                    },
-                    {
-                        model: 'heading6',
-                        view: 'h6',
-                        title: 'Heading 6',
-                        class: 'ck-heading_heading6'
-                    }
-                ]
-            },
-            htmlSupport: {
-                allow: [
-                    {
-                        name: /^.*$/,
-                        styles: true,
-                        attributes: true,
-                        classes: true
-                    }
-                ]
-            },
-            image: {
-                toolbar: [
-                    'toggleImageCaption',
-                    'imageTextAlternative',
-                    '|',
-                    'imageStyle:inline',
-                    'imageStyle:wrapText',
-                    'imageStyle:breakText',
-                    '|',
-                    'resizeImage'
-                ]
-            },
-            initialData: defaultData || '',
-            language: 'ko',
-            licenseKey: 'GPL',
-            link: {
-                addTargetToExternalLinks: true,
-                defaultProtocol: 'https://',
-                decorators: {
-                    toggleDownloadable: {
-                        mode: 'manual',
-                        label: 'Downloadable',
-                        attributes: {
-                            download: 'file'
-                        }
-                    }
-                }
-            },
-            list: {
-                properties: {
-                    styles: true,
-                    startIndex: true,
-                    reversed: true
-                }
-            },
-            mention: {
-                feeds: [
-                    {
-                        marker: '@',
-                        feed: []
-                    }
-                ]
-            },
-            codeBlock: {
-                languages: [
-                    { language: 'plaintext', label: 'Plain text' },
-                    { language: 'javascript', label: 'JavaScript' },
-                    { language: 'typescript', label: 'TypeScript' },
-                    { language: 'python', label: 'Python' },
-                    { language: 'java', label: 'Java' },
-                    { language: 'css', label: 'CSS' },
-                    { language: 'html', label: 'HTML' },
-                    { language: 'sql', label: 'SQL' },
-                    { language: 'shell', label: 'Shell' },
-                    { language: 'json', label: 'JSON' },
-                    { language: 'xml', label: 'XML' },
-                    { language: 'yaml', label: 'YAML' }
-                ]
-            },
-            placeholder: '내용을 입력하세요...',
-            table: {
-                contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties']
-            },
-            translations: [translations.default]
-        }
-    }
-
-    const [editorConfig, setEditorConfig] = useState(null)
-
-    useEffect(() => {
-        if (isLayoutReady) {
-            createEditorConfig().then(config => {
-                setEditorConfig(config)
-            })
-        }
-    }, [isLayoutReady, defaultData])
-
-    // 서버 사이드에서는 로딩 메시지만 렌더링
-    if (typeof window === 'undefined') {
-        return <h3>Editor loading...</h3>
-    }
+    }, [dispatch, refreshFileList])
 
     return (
-        <div className="editor-container">
-            {CKEditor && Editor && isLayoutReady && editorConfig ? (
-                <CKEditor
-                    onReady={async (editor) => {
-                        console.log('CKEditor5 성공적으로 로드됨')
-                        setEditorInstance(editor)
-                        if (defaultData) {
-                            editor.setData(defaultData)
-                            prevDefaultDataRef.current = defaultData
-                            prevPostIdRef.current = postId
-                        }
-                    }}
-                    onAfterDestroy={() => {
-                        setEditorInstance(null)
-                    }}
-                    editor={Editor}
-                    config={editorConfig}
-                />
-            ) : (
-            <h3>Editor loading...</h3>
-            )}
-        </div>
-        )
+        <CKEditorWrapper
+            postId={postId}
+            defaultData={defaultData}
+            onChangeData={onChangeData}
+            insertData={insertData}
+            getDataTrigger={getDataTrigger}
+            imageUploadAdapter={imageUploadAdapter}
+            uploadServer={uploadServer}
+        />
+    )
 }

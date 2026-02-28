@@ -1,28 +1,31 @@
 import axios from 'axios'
+import {getBackendBaseUrl} from '../lib/backendUrl'
+
+const CLIENT_TIMEZONE_HEADER = 'X-Client-Timezone'
+const CLIENT_UTC_OFFSET_HEADER = 'X-Client-Utc-Offset-Minutes'
 
 const axiosClient = axios.create({
-    baseURL:
-        process.env.NODE_ENV === 'development'
-            ? process.env.BLOG_URL_DEV
-            : process.env.BLOG_URL_PROD,
     withCredentials: true,
 })
 
 axiosClient.defaults.headers.post['Content-Type'] = 'application/json'
 
-// 요청 인터셉터 (디버깅용)
-axiosClient.interceptors.request.use(
-    (config) => {
-        if (typeof window === 'undefined') {
-            console.log('[SSR Axios] Request URL:', config.url)
-            console.log('[SSR Axios] Request Headers:', JSON.stringify(config.headers, null, 2))
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+axiosClient.interceptors.request.use((config) => {
+    config.baseURL = typeof window === 'undefined'
+        ? getBackendBaseUrl()
+        : ''
+
+    if (typeof window !== 'undefined') {
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+        const offsetMinutes = -new Date().getTimezoneOffset()
+
+        config.headers = config.headers ?? {}
+        config.headers[CLIENT_TIMEZONE_HEADER] = timeZone
+        config.headers[CLIENT_UTC_OFFSET_HEADER] = String(offsetMinutes)
     }
-);
+
+    return config
+})
 
 // 응답 인터셉터
 axiosClient.interceptors.response.use(

@@ -1,6 +1,5 @@
-import {Box} from "@mui/material"
-import IconButton from "@mui/material/IconButton"
-import DeleteIcon from "@mui/icons-material/Delete"
+import {Button} from "@/components/ui/button"
+import {Trash2} from "lucide-react"
 
 export const ConditionComponent = ({id, name, onDelete}) => {
 
@@ -10,22 +9,19 @@ export const ConditionComponent = ({id, name, onDelete}) => {
     }
 
     return (
-        <Box
-            display="flex-inline"
-            sx={{
-                m: 1
-                , p: 1
-                , background: "rgba(57, 138, 185, 0.1)"
-                , '&:hover': {
-                    background: "rgba(57, 138, 185, 0.4)"
-                }
-                // , cursor: "pointer"
-            }}
+        <div
+            className="inline-flex items-center gap-1 rounded-full border border-sky-100 bg-sky-50/80 px-3 py-1 text-sm font-medium text-sky-900 transition hover:border-sky-200 hover:bg-sky-100/80"
         >
             {name}
-            <IconButton aria-label="delete" onClick={deleteCondition}>
-                <DeleteIcon/>
-            </IconButton>
-        </Box>
+            <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label="delete"
+                className="rounded-full text-sky-700 hover:bg-sky-200/70 hover:text-sky-900"
+                onClick={deleteCondition}
+            >
+                <Trash2 size={14}/>
+            </Button>
+        </div>
     )
 }

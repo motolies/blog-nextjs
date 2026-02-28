@@ -1,17 +1,16 @@
-import React, {useState, useEffect, useMemo, useCallback, useRef} from 'react'
-import {Box, Tabs, Tab, IconButton} from '@mui/material'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
-import {useSnackbar} from 'notistack'
-import MRTTable from '../../components/common/MRTTable'
+import React, {useState, useEffect, useMemo, useCallback} from 'react'
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '../../components/ui/tabs'
+import {toast} from 'sonner'
+import {Plus, Trash2} from 'lucide-react'
+import ShadcnDataTable from '../../components/common/ShadcnDataTable'
+import {Button} from '../../components/ui/button'
 import MemoDialog from '../../components/memo/MemoDialog'
 import CategoryManagementPanel from '../../components/memo/CategoryManagementPanel'
 import DeleteConfirm from '../../components/confirm/DeleteConfirm'
 import service from '../../service'
+import AdminPageFrame from '../../components/layout/admin/AdminPageFrame'
 
 export default function MemoPage() {
-  const {enqueueSnackbar} = useSnackbar()
-  const [tabIndex, setTabIndex] = useState(0)
   const [memoDialogOpen, setMemoDialogOpen] = useState(false)
   const [editingMemoId, setEditingMemoId] = useState(null)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
@@ -42,25 +41,28 @@ export default function MemoPage() {
       accessorKey: 'category',
       header: '카테고리',
       size: 120,
-      Cell: ({cell}) => cell.getValue()?.name || '-'
+      mobileLabel: '카테고리',
+      cell: ({value}) => value?.name || '-',
     },
     {
       accessorKey: 'content',
       header: '내용',
       grow: true,
-      Cell: ({cell, row}) => {
-        const text = cell.getValue() || ''
+      mobilePrimary: true,
+      mobileLabel: '메모',
+      cell: ({value, row}) => {
+        const text = value || ''
         const display = text.length > 100 ? text.substring(0, 100) + '...' : text
         return (
-          <Box
+          <div
+            className="cursor-pointer hover:text-sky-700"
             onClick={(e) => {
               e.stopPropagation()
-              handleEdit(row.original)
+              handleEdit(row)
             }}
-            sx={{cursor: 'pointer', '&:hover': {color: 'primary.main'}}}
           >
             {display}
-          </Box>
+          </div>
         )
       }
     },
@@ -68,8 +70,9 @@ export default function MemoPage() {
       accessorKey: 'created',
       header: '작성일',
       size: 160,
-      Cell: ({cell}) => {
-        const val = cell.getValue()
+      mobileLabel: '작성일',
+      cell: ({value}) => {
+        const val = value
         if (!val?.at) return '-'
         const d = new Date(val.at)
         const pad = (n) => String(n).padStart(2, '0')
@@ -103,10 +106,10 @@ export default function MemoPage() {
     setDeleteConfirmOpen(false)
     try {
       await service.memo.delete(deleteTarget.id)
-      enqueueSnackbar('메모가 삭제되었습니다.', {variant: 'success'})
+      toast.success('메모가 삭제되었습니다.')
       setRefreshKey(prev => prev + 1)
     } catch (error) {
-      enqueueSnackbar('메모 삭제에 실패했습니다.', {variant: 'error'})
+      toast.error('메모 삭제에 실패했습니다.')
     }
   }
 
@@ -115,39 +118,57 @@ export default function MemoPage() {
   }
 
   return (
-    <Box sx={{width: '85vw', mx: 'auto'}}>
-      <Tabs value={tabIndex} onChange={(e, v) => setTabIndex(v)} sx={{mb: 2}}>
-        <Tab label="메모 목록"/>
-        <Tab label="카테고리 관리"/>
-      </Tabs>
-
-      {tabIndex === 0 && (
-        <MRTTable
-          key={refreshKey}
-          columns={columns}
-          fetchData={fetchMemos}
-          searchFields={searchFields}
-          defaultPageSize={10}
-          enableDynamicSearch={true}
-          enableRowActions={true}
-          positionActionsColumn="last"
-          displayColumnDefOptions={{
-            'mrt-row-actions': {size: 80, minSize: 80, grow: false},
-          }}
-          renderRowActions={({row}) => (
-            <Box sx={{display: 'flex', gap: 0.5}}>
-
-              {!row.original.deleted && (
-                <IconButton size="small" onClick={() => handleDeleteClick(row.original)} title="삭제" color="error">
-                  <DeleteIcon fontSize="small"/>
-                </IconButton>
-              )}
-            </Box>
-          )}
-        />
+    <AdminPageFrame
+      actions={(
+        <Button onClick={() => setMemoDialogOpen(true)} className="gap-2">
+          <Plus className="h-4 w-4"/>
+          메모 추가
+        </Button>
       )}
-
-      {tabIndex === 1 && <CategoryManagementPanel/>}
+    >
+      <Tabs defaultValue="memos" className="mb-2">
+        <TabsList className="w-full justify-start gap-2 overflow-x-auto rounded-2xl border border-[color:var(--admin-border)] bg-white/70 p-1.5 shadow-sm">
+          <TabsTrigger
+            value="memos"
+            className="flex-none rounded-xl px-4 py-2 text-[color:var(--admin-text-secondary)] hover:bg-sky-600/8 hover:text-sky-700 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_10px_24px_rgba(14,116,228,0.22)]"
+          >
+            메모 목록
+          </TabsTrigger>
+          <TabsTrigger
+            value="categories"
+            className="flex-none rounded-xl px-4 py-2 text-[color:var(--admin-text-secondary)] hover:bg-sky-600/8 hover:text-sky-700 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_10px_24px_rgba(14,116,228,0.22)]"
+          >
+            카테고리 관리
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="memos">
+          <div className="admin-panel admin-table-shell">
+            <ShadcnDataTable
+              columns={columns}
+              fetchData={fetchMemos}
+              searchFields={searchFields}
+              defaultPageSize={10}
+              enableDynamicSearch={true}
+              enableRowActions={true}
+              positionActionsColumn="last"
+              renderRowActions={({row}) => (
+                <div className="flex gap-1">
+                  {!row.original.deleted && (
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(row.original)} title="삭제" className="h-7 w-7 text-red-500 hover:text-red-600">
+                      <Trash2 className="h-4 w-4"/>
+                    </Button>
+                  )}
+                </div>
+              )}
+            />
+          </div>
+        </TabsContent>
+        <TabsContent value="categories">
+          <div className="admin-panel admin-panel-pad">
+            <CategoryManagementPanel/>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <MemoDialog
         open={memoDialogOpen}
@@ -165,6 +186,6 @@ export default function MemoPage() {
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteConfirmOpen(false)}
       />
-    </Box>
+    </AdminPageFrame>
   )
 }

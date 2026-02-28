@@ -1,8 +1,11 @@
 import React from 'react'
-import Dialog from "@mui/material/Dialog"
-import DialogTitle from "@mui/material/DialogTitle"
-import PreviewIcon from '@mui/icons-material/Preview'
-import {Box} from "@mui/material"
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
+import {Eye} from 'lucide-react'
 
 export default function PreviewDialog({open, imageSrc, onClose}) {
     const close = (e) => {
@@ -10,38 +13,28 @@ export default function PreviewDialog({open, imageSrc, onClose}) {
         onClose()
     }
     return (
-        <div>
-            <Dialog
-                PaperProps={{sx: {maxWidth: "100%", maxHeight: "100%"}}}
-                open={open}
-                onClose={(e) => {
-                    close(e)
-                }}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
+        <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
+            <DialogContent
+                className="max-w-full max-h-full"
+                onClick={(e) => e.stopPropagation()}
             >
-                <DialogTitle id="alert-dialog-title">
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                    }}
-                         onClick={(e) => {
-                             close(e)
-                         }}
+                <DialogHeader>
+                    <DialogTitle
+                        className="flex items-center flex-wrap gap-1 cursor-pointer"
+                        onClick={close}
                     >
-                        <PreviewIcon sx={{verticalAlign: 'middle', mr: 1}} color={'error'}/>
+                        <Eye className="text-destructive" size={20}/>
                         Preview Image
-                    </div>
-                </DialogTitle>
-                <Box sx={{m: 3, textAlign: 'center'}}
-                     onClick={(e) => {
-                         close(e)
-                     }}>
-                    <img src={window.location.origin + imageSrc} style={{maxWidth: '90%'}}/>
-                </Box>
-            </Dialog>
-        </div>
+                    </DialogTitle>
+                </DialogHeader>
+                <div
+                    className="m-3 text-center"
+                    onClick={close}
+                >
+                    <img src={window.location.origin + imageSrc} alt="미리보기 이미지" style={{maxWidth: '90%'}}/>
+                </div>
+            </DialogContent>
+        </Dialog>
     )
 }
 

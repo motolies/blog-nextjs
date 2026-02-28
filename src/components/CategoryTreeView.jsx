@@ -1,183 +1,101 @@
-import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
-import { TreeItem } from '@mui/x-tree-view/TreeItem';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import FolderIcon from '@mui/icons-material/Folder'
-import FolderOpenIcon from '@mui/icons-material/FolderOpen'
-import CategoryIcon from '@mui/icons-material/Category'
-import { useDispatch, useSelector } from "react-redux"
-import { useEffect, useState } from "react"
-import { getCategoryTreeAction } from "../store/actions/categoryActions"
-import { Box, Chip, Typography, styled } from '@mui/material'
+import {useDispatch, useSelector} from 'react-redux'
+import {useEffect, useState} from 'react'
+import {getCategoryTreeAction} from '../store/actions/categoryActions'
+import {Collapsible, CollapsibleContent, CollapsibleTrigger} from './ui/collapsible'
+import {Badge} from './ui/badge'
+import {Folder, FolderOpen, FolderTree, ChevronRight, ChevronDown} from 'lucide-react'
+import {cn} from '../lib/utils'
 
-// Styled components for better UI
-const StyledTreeView = styled(SimpleTreeView)(({ theme }) => ({
-    backgroundColor: theme.palette.background.paper,
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-    padding: '16px',
-    '& .MuiTreeItem-root': {
-        marginBottom: '4px',
-    },
-    '& .MuiTreeItem-content': {
-        borderRadius: '6px',
-        padding: '8px 12px',
-        transition: 'all 0.3s ease',
-        '&:hover': {
-            backgroundColor: theme.palette.action.hover,
-            transform: 'translateX(4px)',
-        },
-        '&.Mui-selected': {
-            backgroundColor: theme.palette.primary.light,
-            '&:hover': {
-                backgroundColor: theme.palette.primary.light,
-            },
-        },
-    },
-    '& .MuiTreeItem-label': {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
-        fontSize: '14px',
-        fontWeight: 500,
-    },
-    '& .MuiTreeItem-group': {
-        marginLeft: '20px',
-        borderLeft: `2px solid ${theme.palette.divider}`,
-        paddingLeft: '12px',
-    },
-}))
+function CategoryTreeItem({node, onChangeCategory, expandedIds, onToggle}) {
+  const hasChildren = Array.isArray(node.children) && node.children.length > 0
+  const isExpanded = expandedIds.includes(node.id)
 
-const CategoryLabel = styled(Box)(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    '& .category-info': {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-    },
-    '& .category-icon': {
-        fontSize: '18px',
-        color: theme.palette.primary.main,
-    },
-    '& .category-name': {
-        fontSize: '14px',
-        fontWeight: 500,
-        color: theme.palette.text.primary,
-    },
-}))
+  const Icon = hasChildren
+    ? (isExpanded ? FolderOpen : Folder)
+    : FolderTree
 
-const PostCountChip = styled(Chip)(({ theme }) => ({
-    height: '20px',
-    fontSize: '11px',
-    fontWeight: 'bold',
-    backgroundColor: theme.palette.primary.light,
-    color: theme.palette.primary.contrastText,
-    '& .MuiChip-label': {
-        paddingLeft: '6px',
-        paddingRight: '6px',
-    },
-}))
+  return (
+    <Collapsible open={isExpanded} onOpenChange={() => hasChildren && onToggle(node.id)}>
+      <CollapsibleTrigger asChild>
+        <button
+          className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left transition-all hover:translate-x-1 hover:bg-sky-600/8"
+          onClick={() => onChangeCategory(node)}
+        >
+          {hasChildren
+            ? (isExpanded
+                ? <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground"/>
+                : <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground"/>
+              )
+            : <span className="w-3.5 shrink-0"/>
+          }
+          <Icon className="h-4 w-4 text-primary shrink-0"/>
+          <span className="flex-1 truncate text-sm font-medium text-[color:var(--admin-text)]">{node.name}</span>
+          {node.postCount > 0 && (
+            <Badge className="text-xs h-5 px-1.5 shrink-0">{node.postCount}</Badge>
+          )}
+        </button>
+      </CollapsibleTrigger>
+      {hasChildren && (
+        <CollapsibleContent>
+          <div className="ml-5 border-l-2 border-border/80 pl-3">
+            {node.children.map(child => (
+              <CategoryTreeItem
+                key={child.id}
+                node={child}
+                onChangeCategory={onChangeCategory}
+                expandedIds={expandedIds}
+                onToggle={onToggle}
+              />
+            ))}
+          </div>
+        </CollapsibleContent>
+      )}
+    </Collapsible>
+  )
+}
 
 export default function CategoryTreeView({onChangeCategory}) {
-    const dispatch = useDispatch()
-    const [expanded, setExpanded] = useState([])
-    const categoryState = useSelector((state) => state.category.categoryTree)
+  const dispatch = useDispatch()
+  const [expandedIds, setExpandedIds] = useState([])
+  const categoryState = useSelector((state) => state.category.categoryTree)
 
-    useEffect(() => {
-        dispatch(getCategoryTreeAction())
-    }, [])
+  useEffect(() => {
+    dispatch(getCategoryTreeAction())
+  }, [])
 
-    useEffect(() => {
-        // expand : 모든 ID를 가져와야 한다
-        setExpanded(allCategoryIds(categoryState))
-    }, [categoryState])
-
-    const allCategoryIds = (rootObject) => {
-        let ids = []
-        ids.push(rootObject.id)
-        if (rootObject.children) {
-            rootObject.children.forEach(child => {
-                ids = ids.concat(allCategoryIds(child))
-            })
-        }
-        return ids
+  useEffect(() => {
+    if (categoryState) {
+      setExpandedIds(allCategoryIds(categoryState))
     }
+  }, [categoryState])
 
-
-    const renderTree = (nodes, isExpanded = false) => {
-        const hasChildren = Array.isArray(nodes.children) && nodes.children.length > 0;
-        const CategoryIconComponent = hasChildren
-            ? (isExpanded ? FolderOpenIcon : FolderIcon)
-            : CategoryIcon;
-
-        return (
-            <TreeItem
-                key={nodes.id}
-                itemId={nodes.id ? nodes.id : "defaultNodeId"}
-                label={
-                    <CategoryLabel>
-                        <Box className="category-info">
-                            <CategoryIconComponent className="category-icon" />
-                            <Typography className="category-name">
-                                {nodes.name}
-                            </Typography>
-                        </Box>
-                        {nodes.postCount > 0 && (
-                            <PostCountChip
-                                label={nodes.postCount}
-                                size="small"
-                                variant="filled"
-                            />
-                        )}
-                    </CategoryLabel>
-                }
-                category={nodes}
-                onClick={() => {
-                    onChangeCategory(nodes)
-                }}
-            >
-                {hasChildren
-                    ? nodes.children.map((node) => renderTree(node, expanded.includes(node.id)))
-                    : null}
-            </TreeItem>
-        )
+  const allCategoryIds = (rootObject) => {
+    let ids = []
+    ids.push(rootObject.id)
+    if (rootObject.children) {
+      rootObject.children.forEach(child => {
+        ids = ids.concat(allCategoryIds(child))
+      })
     }
+    return ids
+  }
 
-    return (
-        <StyledTreeView
-            aria-label="category tree"
-            slots={{ collapseIcon: ExpandMoreIcon, expandIcon: ChevronRightIcon }}
-            expandedItems={expanded}
-            onExpandedItemsChange={(event, nodeIds) => {
-                setExpanded(nodeIds);
-            }}
-            multiSelect={false}
-            sx={{
-                flexGrow: 1,
-                minWidth: 400,
-                maxHeight: 'calc(100vh - 160px)',
-                overflowY: 'auto',
-                '&::-webkit-scrollbar': {
-                    width: '8px',
-                },
-                '&::-webkit-scrollbar-track': {
-                    background: '#f1f1f1',
-                    borderRadius: '4px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                    background: '#c1c1c1',
-                    borderRadius: '4px',
-                    '&:hover': {
-                        background: '#a8a8a8',
-                    },
-                },
-            }}
-        >
-            {categoryState && renderTree(categoryState)}
-        </StyledTreeView>
+  const handleToggle = (id) => {
+    setExpandedIds(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     )
+  }
+
+  if (!categoryState) return null
+
+  return (
+    <div className="h-full min-h-[24rem] overflow-y-auto rounded-[1.1rem] border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)] p-4">
+      <CategoryTreeItem
+        node={categoryState}
+        onChangeCategory={onChangeCategory}
+        expandedIds={expandedIds}
+        onToggle={handleToggle}
+      />
+    </div>
+  )
 }

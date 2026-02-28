@@ -1,12 +1,13 @@
 import React, {useCallback, useMemo, useState} from 'react'
-import moment from 'moment'
-import {Box, Chip, Typography} from '@mui/material'
-import MRTTable from '../../components/common/MRTTable'
+import {format} from 'date-fns'
+import ShadcnDataTable from '../../components/common/ShadcnDataTable'
+import {Badge} from '../../components/ui/badge'
 import DetailDialog from '../../components/common/DetailDialog'
-import logService from '../../service/logService'
+import service from '../../service'
 import {formatUtcToLocal} from '../../util/dateTimeUtil'
+import AdminPageFrame from '../../components/layout/admin/AdminPageFrame'
 
-const today = moment().format('YYYY-MM-DD')
+const today = format(new Date(), 'yyyy-MM-dd')
 
 export default function SystemLog() {
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -20,7 +21,7 @@ export default function SystemLog() {
     setDialogOpen(true)
   }, [])
 
-  const truncateText = useCallback((text, maxLength = 50) => {
+  const truncateText = useCallback((text, maxLength = 30) => {
     if (!text) {
       return '-'
     }
@@ -32,71 +33,74 @@ export default function SystemLog() {
 
   // fetchData 메모이제이션: Dialog 상태 변경 시 재검색 방지
   const fetchSystemLogs = useCallback((searchRequest) =>
-    logService.searchSystemLogs({searchRequest}),
+    service.log.searchSystemLogs({searchRequest}),
     []
   )
 
-  // MRT 컬럼 정의 (메모이제이션)
+  // 테이블 컬럼 정의
   const columns = useMemo(() => [
     {
       accessorKey: 'id',
       header: 'ID',
-      size: 150,
+      size: 130,
+      mobileHidden: true,
     },
     {
       accessorKey: 'traceId',
       header: 'Trace ID',
-      size: 300,
+      size: 260,
+      mobileHidden: true,
     },
     {
       accessorKey: 'requestUri',
       header: 'Request URI',
-      size: 400,
+      size: 300,
+      mobilePrimary: true,
+      mobileLabel: 'Request',
     },
     {
       accessorKey: 'methodName',
       header: 'Method',
-      size: 300,
+      size: 200,
+      mobileLabel: 'Method',
     },
     {
       accessorKey: 'httpMethodType',
       header: 'HTTP Method',
       size: 120,
-      Cell: ({cell}) => (
-          <Chip
-              label={cell.getValue()}
-              size="small"
-              color={
-                cell.getValue() === 'GET' ? 'primary' :
-                    cell.getValue() === 'POST' ? 'success' :
-                        cell.getValue() === 'PUT' ? 'warning' :
-                            cell.getValue() === 'DELETE' ? 'error' : 'default'
-              }
-          />
-      ),
+      mobileLabel: 'HTTP',
+      cell: ({value}) => {
+        const method = value
+        const variant = method === 'GET' ? 'info' :
+          method === 'POST' ? 'success' :
+          method === 'PUT' ? 'warning' :
+          method === 'DELETE' ? 'error' : 'secondary'
+        return <Badge variant={variant}>{method}</Badge>
+      },
     },
     {
       accessorKey: 'status',
       header: 'Status',
-      size: 100,
-      Cell: ({cell}) => (
-          <Chip
-              label={cell.getValue()}
-              size="small"
-              color={cell.getValue() === 'SUCC' ? 'success' : 'error'}
-          />
+      size: 80,
+      mobileLabel: 'Status',
+      cell: ({value}) => (
+        <Badge variant={value === 'SUCC' ? 'success' : 'error'}>
+          {value}
+        </Badge>
       ),
     },
     {
       accessorKey: 'paramData',
       header: 'Param Data',
       grow: true,
-      Cell: ({cell}) => (
+      size: 300,
+      mobileLabel: 'Params',
+      cell: ({value}) => (
           <div
-              style={{cursor: 'pointer', color: '#1976d2'}}
-              onClick={() => handleDetailClick('Param Data', cell.getValue())}
+              className="cursor-pointer text-sky-700 hover:text-sky-800"
+              onClick={() => handleDetailClick('Param Data', value)}
           >
-            {truncateText(cell.getValue(), 150)}
+            {truncateText(value)}
           </div>
       ),
     },
@@ -104,12 +108,13 @@ export default function SystemLog() {
       accessorKey: 'responseBody',
       header: 'Response Body',
       size: 300,
-      Cell: ({cell}) => (
+      mobileLabel: 'Response',
+      cell: ({value}) => (
           <div
-              style={{cursor: 'pointer', color: '#1976d2'}}
-              onClick={() => handleDetailClick('Response Body', cell.getValue())}
+              className="cursor-pointer text-sky-700 hover:text-sky-800"
+              onClick={() => handleDetailClick('Response Body', value)}
           >
-            {truncateText(cell.getValue())}
+            {truncateText(value)}
           </div>
       ),
     },
@@ -117,31 +122,35 @@ export default function SystemLog() {
       accessorKey: 'stackTrace',
       header: 'Stack Trace',
       size: 300,
-      Cell: ({cell}) => (
+      mobileLabel: 'Stack',
+      cell: ({value}) => (
           <div
-              style={{cursor: 'pointer', color: '#1976d2'}}
-              onClick={() => handleDetailClick('Stack Trace', cell.getValue())}
+              className="cursor-pointer text-sky-700 hover:text-sky-800"
+              onClick={() => handleDetailClick('Stack Trace', value)}
           >
-            {truncateText(cell.getValue())}
+            {truncateText(value)}
           </div>
       ),
     },
     {
       accessorKey: 'processTime',
       header: 'Process Time (ms)',
-      size: 150,
-      muiTableBodyCellProps: {align: 'right'},
+      size: 160,
+      mobileLabel: 'Time',
+      cellAlign: 'right',
     },
     {
       accessorKey: 'remoteAddr',
       header: 'Remote IP',
-      size: 150,
+      size: 120,
+      mobileLabel: 'IP',
     },
     {
       accessorKey: 'createdAt',
       header: 'Created At',
       size: 200,
-      Cell: ({cell}) => formatUtcToLocal(cell.getValue()),
+      mobileLabel: 'Created',
+      cell: ({value}) => formatUtcToLocal(value),
     },
   ], [handleDetailClick, truncateText])
 
@@ -161,26 +170,23 @@ export default function SystemLog() {
   ]
 
   return (
-      <Box sx={{p: 3}}>
-        <Typography variant="h4" sx={{mb: 3}}>
-          시스템 로그
-        </Typography>
-        <Box sx={{width: '85vw', mx: 'auto'}}>
-          <MRTTable
-              columns={columns}
-              fetchData={fetchSystemLogs}
-              searchFields={searchFields}
-              defaultSearchParams={{createdAtFrom: today, createdAtTo: today}}
-              defaultPageSize={25}
-              enableDynamicSearch={true}
-          />
-        </Box>
-        <DetailDialog
-            open={dialogOpen}
-            onClose={() => setDialogOpen(false)}
-            title={dialogTitle}
-            content={dialogContent}
+    <AdminPageFrame>
+      <div className="admin-panel admin-table-shell">
+        <ShadcnDataTable
+          columns={columns}
+          fetchData={fetchSystemLogs}
+          searchFields={searchFields}
+          defaultSearchParams={{createdAtFrom: today, createdAtTo: today}}
+          defaultPageSize={25}
+          enableDynamicSearch={true}
         />
-      </Box>
+      </div>
+      <DetailDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title={dialogTitle}
+        content={dialogContent}
+      />
+    </AdminPageFrame>
   )
 }

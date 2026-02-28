@@ -1,4 +1,5 @@
 import {
+    LOAD_USER_REQUEST_ERROR,
     LOAD_USER_REQUEST_SUCCESS,
     SERVER_LOAD_USER_REQUEST_SUCCESS,
     USER_LOGIN_REQUEST,
@@ -35,7 +36,16 @@ export default function userReducers(stats = {
                 ...stats,
                 isLoading: false,
                 isAuthenticated: true,
-                user: action.payload
+                user: action.payload,
+                error: ''
+            }
+        case LOAD_USER_REQUEST_ERROR:
+            return {
+                ...stats,
+                isLoading: false,
+                isAuthenticated: false,
+                user: {},
+                error: ''
             }
         case USER_LOGIN_REQUEST_ERROR:
             return {
@@ -54,7 +64,8 @@ export default function userReducers(stats = {
                 ...stats,
                 isLoading: false,
                 isAuthenticated: false,
-                user: {}
+                user: {},
+                error: ''
             }
         case USER_LOGOUT_REQUEST_ERROR:
             return {

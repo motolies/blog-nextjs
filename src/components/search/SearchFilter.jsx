@@ -1,14 +1,16 @@
-import {Box, Grid, MenuItem, Paper, TextField} from "@mui/material"
 import {useEffect, useState} from "react"
-import {useSnackbar} from "notistack"
+import {toast} from 'sonner'
 import {ConditionComponent} from "../ConditionComponent"
-import { getTsid } from 'tsid-ts'
+import {getTsid} from 'tsid-ts'
 import SearchCategory from "./SearchCategory"
 import SearchTag from "./SearchTag"
-import Button from "@mui/material/Button"
 import {searchObjectInit} from "../../model/searchObject"
 import {base64Encode} from "../../util/base64Util"
 import {useRouter} from "next/router"
+import {Button} from "../ui/button"
+import {Input} from "../ui/input"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../ui/select"
+import {Search} from "lucide-react"
 
 const searchTypes = [
     {name: "제목", value: "TITLE"},
@@ -20,8 +22,11 @@ const searchLogic = [
     {name: "OR", value: "OR"}
 ]
 
-export default function SearchFilter({onSearch, defaultLogic, defaultKeyword, defaultSearchType, defaultCategories, defaultTags}) {
-    const {enqueueSnackbar, closeSnackbar} = useSnackbar()
+const controlClassName = "h-11 w-full rounded-[1.15rem] border-slate-200 bg-white/95 px-4 text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.68)]"
+const fieldLabelClassName = "text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400"
+const sectionClassName = "rounded-[1.35rem] border border-slate-200/80 bg-white/72 p-3.5"
+
+export default function SearchFilter({onSearch, defaultLogic, defaultKeyword, defaultSearchType, defaultCategories, defaultTags, pageSize = searchObjectInit.pageSize}) {
     const router = useRouter()
 
     const [logic, setLogic] = useState('')
@@ -30,82 +35,49 @@ export default function SearchFilter({onSearch, defaultLogic, defaultKeyword, de
     const [categories, setCategories] = useState([])
     const [tags, setTags] = useState([])
 
-    // init useState
     useEffect(() => {
-        if (defaultLogic !== undefined) {
-            setLogic(defaultLogic)
-        }
-        if (defaultKeyword !== undefined) {
-            setKeywords(defaultKeyword)
-        }
-        if (defaultSearchType !== undefined) {
-            setSearchType(defaultSearchType)
-        }
-        if (defaultCategories !== undefined) {
-            // id와 name으로 나누어져 있는데 여기서 초기화 시키면 되려나?
-            setCategories(defaultCategories)
-        }
-        if (defaultTags !== undefined) {
-            setTags(defaultTags)
-        }
+        if (defaultLogic !== undefined) setLogic(defaultLogic)
+        if (defaultKeyword !== undefined) setKeywords(defaultKeyword)
+        if (defaultSearchType !== undefined) setSearchType(defaultSearchType)
+        if (defaultCategories !== undefined) setCategories(defaultCategories)
+        if (defaultTags !== undefined) setTags(defaultTags)
     }, [defaultLogic, defaultKeyword, defaultSearchType, defaultCategories, defaultTags])
 
-    // local input variable
     const [keyword, setKeyword] = useState('')
 
-
-    // keyword
     const onDeleteKeyword = (deleteKeywordId) => {
-        const newKeywords = keywords.filter(keyword => keyword.id !== deleteKeywordId)
-        setKeywords(newKeywords)
+        setKeywords(keywords.filter(k => k.id !== deleteKeywordId))
     }
     const addKeyword = () => {
         if (keyword.length < 2) {
-            enqueueSnackbar('검색어는 2글자 이상이어야 합니다.', {variant: 'error'})
+            toast.error('검색어는 2글자 이상이어야 합니다.')
             setKeyword('')
             return
         }
-        const newKeyword = {id: getTsid().toString(), name: keyword.trim()}
-        setKeywords([...keywords, newKeyword])
+        setKeywords([...keywords, {id: getTsid().toString(), name: keyword.trim()}])
         setKeyword('')
     }
-    const onChangeKeyword = (e) => {
-        setKeyword(e.target.value)
-    }
 
-    // searchType
-    const onChangeSearchType = (e) => {
-        setSearchType(e.target.value)
-    }
-
-    // searchLogic
-    const onChangeLogic = (e) => {
-        setLogic(e.target.value)
-    }
-
-    // categories
     const onChangeAddCategory = (category) => {
         setCategories([...categories, {id: category.id, name: category.name}])
     }
     const onChangeDeleteCategory = (deleteCategoryId) => {
-        const newCategories = categories.filter(cat => cat.id !== deleteCategoryId)
-        setCategories(newCategories)
+        setCategories(categories.filter(cat => cat.id !== deleteCategoryId))
     }
 
-    // tags
     const onChangeAddTag = (tag) => {
         setTags([...tags, tag])
     }
     const onChangeDeleteTag = (deleteTagId) => {
-        const newTags = tags.filter(tag => tag.id !== deleteTagId)
-        setTags(newTags)
+        setTags(tags.filter(tag => tag.id !== deleteTagId))
     }
 
     const onSearching = () => {
-
         const condition = {
             ...searchObjectInit,
             ...{
+                page: 0,
+                pageSize,
                 searchType: searchType,
                 searchCondition: {
                     keywords: [...keywords],
@@ -118,88 +90,95 @@ export default function SearchFilter({onSearch, defaultLogic, defaultKeyword, de
         router.push({pathname: '/search', query: {q: base64Encode(JSON.stringify(condition))}})
     }
 
-
     return (
+        <div className="surface-panel-strong rounded-[1.75rem] p-5">
+            <div className="mb-5">
+                <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                        Filter Stack
+                    </p>
+                </div>
+            </div>
 
-        <Paper variant="outlined"
-               sx={{
-                   m: 1
-                   , px: 3
-                   , pb: 2
-               }}>
-            <Grid container
-                  direction="row"
-                  justify="center"
-                  alignItems="center"
-                  spacing={2}
-                  style={{marginTop: '10px'}}
-            >
-                <Grid item sx={{m: 0, p: 0}} xs={12}>
-                    <TextField
-                        select
-                        label="검색 범위"
-                        value={searchType}
-                        onChange={onChangeSearchType}
-                        fullWidth
-                    >
-                        {searchTypes.map(option => (
-                            <MenuItem key={option.value} value={option.value}>
-                                {option.name}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                </Grid>
-                <Grid item sx={{m: 0, p: 0}} xs={5}>
-                    <TextField
-                        select
-                        label="AND | OR"
-                        value={logic}
-                        onChange={onChangeLogic}
-                        fullWidth
-                    >
-                        {searchLogic.map(option => (
-                            <MenuItem key={option.value} value={option.value}>
-                                {option.name}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                </Grid>
-                <Grid item sx={{m: 0, p: 0}} xs={7}>
-                    <TextField
-                        label="검색어"
-                        value={keyword}
-                        onChange={onChangeKeyword}
-                        fullWidth
-                        type={'search'}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                addKeyword()
-                            }
-                        }}
-                    />
-                </Grid>
-                <Grid item sx={{m: 0, p: 0}} xs={12}>
-                    <Box display="flex"
-                         sx={{
-                             mr: 1
-                             , width: '100%'
-                             , flexWrap: 'wrap'
-                         }}>
-                        {keywords.map((keyword, idx) =>
-                            <ConditionComponent key={keyword.id} id={keyword.id} name={keyword.name} onDelete={onDeleteKeyword}/>
+            <div className="grid gap-4">
+                <div className={sectionClassName}>
+                    <p className={fieldLabelClassName}>Search Scope</p>
+                    <div className="mt-2">
+                        <Select value={searchType} onValueChange={setSearchType}>
+                            <SelectTrigger className={controlClassName}>
+                                <SelectValue placeholder="검색 범위"/>
+                            </SelectTrigger>
+                            <SelectContent>
+                                {searchTypes.map(option => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                        {option.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
+                <div className={sectionClassName}>
+                    <div className="grid gap-3">
+                        <div>
+                            <p className={fieldLabelClassName}>Keyword Logic</p>
+                            <div className="mt-2">
+                                <Select value={logic} onValueChange={setLogic}>
+                                    <SelectTrigger className={controlClassName}>
+                                        <SelectValue placeholder="AND | OR"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {searchLogic.map(option => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                                {option.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className={fieldLabelClassName}>Keyword Input</p>
+                            <div className="mt-2">
+                                <Input
+                                    placeholder="검색어를 추가하세요"
+                                    value={keyword}
+                                    onChange={(e) => setKeyword(e.target.value)}
+                                    type="search"
+                                    className={controlClassName}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') addKeyword()
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {keywords.length > 0 ? (
+                    <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50/70 p-3.5">
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                            Keywords
+                        </p>
+                        <div className="flex min-h-11 flex-wrap gap-2">
+                        {keywords.map((kw) =>
+                            <ConditionComponent key={kw.id} id={kw.id} name={kw.name} onDelete={onDeleteKeyword}/>
                         )}
-                    </Box>
-                </Grid>
-                <Grid item sx={{m: 0, p: 0}} xs={12}>
-                    <SearchCategory defaultCategory={categories} onChangeAddCategory={onChangeAddCategory} onChangeDeleteCategory={onChangeDeleteCategory}/>
-                </Grid>
-                <Grid item sx={{m: 0, p: 0}} xs={12}>
-                    <SearchTag defaultTag={tags} onChangeAddTag={onChangeAddTag} onChangeDeleteTag={onChangeDeleteTag}/>
-                </Grid>
-                <Grid item sx={{m: 0, p: 0}} xs={12}>
-                    <Button variant="contained" fullWidth onClick={onSearching}>Search</Button>
-                </Grid>
-            </Grid>
-        </Paper>
+                        </div>
+                    </div>
+                ) : null}
+
+                <SearchCategory defaultCategory={categories} onChangeAddCategory={onChangeAddCategory} onChangeDeleteCategory={onChangeDeleteCategory}/>
+
+                <SearchTag defaultTag={tags} onChangeAddTag={onChangeAddTag} onChangeDeleteTag={onChangeDeleteTag}/>
+
+                <Button className="h-11 w-full rounded-[1.15rem] bg-sky-600 text-white shadow-[0_18px_36px_rgba(14,116,228,0.2)] hover:bg-sky-700" onClick={onSearching}>
+                    <Search className="h-4 w-4"/>
+                    Search
+                </Button>
+            </div>
+        </div>
     )
 }

@@ -1,34 +1,26 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react'
+import {Plus, Home, ChevronRight, Save, RefreshCw, ChevronsUpDown, Check} from 'lucide-react'
+import {toast} from 'sonner'
+import {Button} from '../ui/button'
+import {Skeleton} from '../ui/skeleton'
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '../ui/dialog'
 import {
-  Autocomplete,
-  Box,
-  Breadcrumbs,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
-  Link,
-  Paper,
-  TextField,
-  Toolbar,
-  Typography
-} from '@mui/material'
-import {
-  Add as AddIcon,
-  ClearAll as ClearAllIcon,
-  Home as HomeIcon,
-  NavigateNext as NavigateNextIcon,
-  Save as SaveIcon
-} from '@mui/icons-material'
-import {useSnackbar} from 'notistack'
-import commonCodeService from '../../service/commonCodeService'
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator
+} from '../ui/breadcrumb'
+import {Popover, PopoverContent, PopoverTrigger} from '../ui/popover'
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from '../ui/command'
+import {cn} from '../../lib/utils'
+import {COMBOBOX_POPOVER_CONTENT_CLASSNAME} from '../../lib/combobox'
+import service from '../../service'
 import MillerColumns from './MillerColumns'
 import NodeDetailPanel from './NodeDetailPanel'
 import ClassForm from './ClassForm'
 import CodeForm from './CodeForm'
+import AdminPageFrame from '../layout/admin/AdminPageFrame'
 
 const INITIAL_FORM_DATA = {
   classCode: '',
@@ -54,14 +46,15 @@ const INITIAL_FORM_DATA = {
 }
 
 export default function CommonCodePage() {
-  const {enqueueSnackbar} = useSnackbar()
-
   // 데이터 상태
   const [treeData, setTreeData] = useState([])
   const [loading, setLoading] = useState(false)
 
   // 네비게이션 상태: [{ type, code, node }]
   const [navigationPath, setNavigationPath] = useState([])
+
+  // 검색 Combobox 상태
+  const [searchOpen, setSearchOpen] = useState(false)
 
   // 다이얼로그 상태
   const [openDialog, setOpenDialog] = useState(false)
@@ -110,10 +103,10 @@ export default function CommonCodePage() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true)
-      const hierarchicalData = await commonCodeService.loadHierarchicalTree()
+      const hierarchicalData = await service.commonCode.loadHierarchicalTree()
       setTreeData(hierarchicalData || [])
     } catch (error) {
-      enqueueSnackbar(`데이터 로드 실패: ${error.message}`, {variant: 'error'})
+      toast.error(`데이터 로드 실패: ${error.message}`)
       setTreeData([])
     } finally {
       setLoading(false)
@@ -144,12 +137,13 @@ export default function CommonCodePage() {
   }, [])
 
   // 검색에서 노드 선택
-  const handleSearchSelect = useCallback((event, node) => {
+  const handleSearchSelect = useCallback((node) => {
     if (!node) return
     // _searchPath를 기반으로 navigationPath 재구성
     const path = node._searchPath.map(p => ({type: p.type, code: p.code, node: p}))
     path.push({type: node.type, code: node.code, node})
     setNavigationPath(path)
+    setSearchOpen(false)
   }, [])
 
   // 클래스 추가
@@ -224,11 +218,11 @@ export default function CommonCodePage() {
     try {
       setLoading(true)
       if (isClass) {
-        await commonCodeService.deleteClass(node.code)
+        await service.commonCode.deleteClass(node.code)
       } else {
-        await commonCodeService.deleteCode(node.classCode, node.code)
+        await service.commonCode.deleteCode(node.classCode, node.code)
       }
-      enqueueSnackbar(`${isClass ? '클래스' : '코드'}가 성공적으로 삭제되었습니다.`, {variant: 'success'})
+      toast.success(`${isClass ? '클래스' : '코드'}가 성공적으로 삭제되었습니다.`)
 
       // 삭제된 노드가 경로에 있으면 경로 조정
       setNavigationPath(prev => {
@@ -237,7 +231,7 @@ export default function CommonCodePage() {
       })
       await loadData()
     } catch (error) {
-      enqueueSnackbar(`삭제 실패: ${error.response?.data?.message || error.message}`, {variant: 'error'})
+      toast.error(`삭제 실패: ${error.response?.data?.message || error.message}`)
     } finally {
       setLoading(false)
     }
@@ -249,7 +243,7 @@ export default function CommonCodePage() {
       setLoading(true)
 
       if (dialogMode === 'addClass') {
-        await commonCodeService.createClass({
+        await service.commonCode.createClass({
           code: formData.classCode,
           name: formData.className,
           description: formData.description,
@@ -260,9 +254,9 @@ export default function CommonCodePage() {
           attribute5Name: formData.attribute5Name || null,
           isActive: formData.isActive
         })
-        enqueueSnackbar('클래스가 성공적으로 생성되었습니다.', {variant: 'success'})
+        toast.success('클래스가 성공적으로 생성되었습니다.')
       } else if (dialogMode === 'addCode') {
-        await commonCodeService.createCode({
+        await service.commonCode.createCode({
           classCode: formData.codeClassCode,
           code: formData.code,
           name: formData.codeName,
@@ -276,9 +270,9 @@ export default function CommonCodePage() {
           sort: formData.sort,
           isActive: formData.isActive
         })
-        enqueueSnackbar('코드가 성공적으로 생성되었습니다.', {variant: 'success'})
+        toast.success('코드가 성공적으로 생성되었습니다.')
       } else if (dialogMode === 'addChildClass') {
-        await commonCodeService.createClass({
+        await service.commonCode.createClass({
           code: formData.classCode,
           name: formData.className,
           description: formData.description,
@@ -289,7 +283,7 @@ export default function CommonCodePage() {
           attribute5Name: formData.attribute5Name || null,
           isActive: formData.isActive
         })
-        await commonCodeService.updateCode(
+        await service.commonCode.updateCode(
           formData.parentCodeNode.classCode,
           formData.parentCodeNode.code,
           {
@@ -297,9 +291,9 @@ export default function CommonCodePage() {
             childClassCode: formData.classCode
           }
         )
-        enqueueSnackbar('하위 클래스가 성공적으로 생성되었습니다.', {variant: 'success'})
+        toast.success('하위 클래스가 성공적으로 생성되었습니다.')
       } else if (dialogMode === 'editClass') {
-        await commonCodeService.updateClass(originalCode, {
+        await service.commonCode.updateClass(originalCode, {
           code: formData.classCode,
           name: formData.className,
           description: formData.description,
@@ -310,9 +304,9 @@ export default function CommonCodePage() {
           attribute5Name: formData.attribute5Name || null,
           isActive: formData.isActive
         })
-        enqueueSnackbar('클래스가 성공적으로 수정되었습니다.', {variant: 'success'})
+        toast.success('클래스가 성공적으로 수정되었습니다.')
       } else if (dialogMode === 'editCode') {
-        await commonCodeService.updateCode(formData.codeClassCode, originalCode, {
+        await service.commonCode.updateCode(formData.codeClassCode, originalCode, {
           code: formData.code,
           name: formData.codeName,
           description: formData.description,
@@ -325,13 +319,13 @@ export default function CommonCodePage() {
           sort: formData.sort,
           isActive: formData.isActive
         })
-        enqueueSnackbar('코드가 성공적으로 수정되었습니다.', {variant: 'success'})
+        toast.success('코드가 성공적으로 수정되었습니다.')
       }
 
       setOpenDialog(false)
       await loadData()
     } catch (error) {
-      enqueueSnackbar(`저장 실패: ${error.response?.data?.message || error.message}`, {variant: 'error'})
+      toast.error(`저장 실패: ${error.response?.data?.message || error.message}`)
     } finally {
       setLoading(false)
     }
@@ -344,16 +338,10 @@ export default function CommonCodePage() {
     }
     try {
       setLoading(true)
-      const result = await commonCodeService.evictAllCaches()
-      enqueueSnackbar(
-        `${result.message} (${result.evictedCacheCount}개 캐시 삭제됨)`,
-        {variant: 'success'}
-      )
+      const result = await service.commonCode.evictAllCaches()
+      toast.success(`${result.message} (${result.evictedCacheCount}개 캐시 삭제됨)`)
     } catch (error) {
-      enqueueSnackbar(
-        `캐시 삭제 실패: ${error.response?.data?.message || error.message}`,
-        {variant: 'error'}
-      )
+      toast.error(`캐시 삭제 실패: ${error.response?.data?.message || error.message}`)
     } finally {
       setLoading(false)
     }
@@ -370,83 +358,138 @@ export default function CommonCodePage() {
     editCode: '코드 편집'
   }[dialogMode] || ''
 
+  const classNodes = allNodes.filter(n => n.type === 'CLASS')
+  const codeNodes = allNodes.filter(n => n.type === 'CODE')
+
   return (
-    <Box sx={{m: 2}}>
+    <AdminPageFrame>
       {/* 상단 툴바 */}
-      <Paper sx={{p: 2, mb: 2}}>
-        <Toolbar sx={{pl: 0, pr: 0, gap: 2}}>
-          <Typography variant="h4" component="h1" sx={{flexShrink: 0}}>
-            공통코드 관리
-          </Typography>
-          <Autocomplete
-            size="small"
-            options={allNodes}
-            getOptionLabel={(option) => `${option.code} - ${option.name}`}
-            groupBy={(option) => option.type === 'CLASS' ? '클래스' : '코드'}
-            onChange={handleSearchSelect}
-            renderInput={(params) => (
-              <TextField {...params} placeholder="검색..." />
-            )}
-            sx={{minWidth: 250, flex: 1}}
-            noOptionsText="결과 없음"
-          />
-          <Button
-            variant="contained"
-            startIcon={<AddIcon/>}
-            onClick={handleAddClass}
-            disabled={loading}
-          >
-            클래스 추가
-          </Button>
-          <Button
-            variant="outlined"
-            color="warning"
-            startIcon={<ClearAllIcon/>}
-            onClick={handleClearAllCache}
-            disabled={loading}
-          >
-            전체 캐시 삭제
-          </Button>
-        </Toolbar>
-      </Paper>
+      <div className="admin-panel admin-panel-pad mb-2 flex flex-wrap items-center gap-3">
+        <div className="mr-auto">
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">Lookup</p>
+          <h2 className="mt-1 text-xl font-semibold text-[color:var(--admin-text)]">코드 탐색 및 관리</h2>
+        </div>
+
+        {/* 검색 Combobox */}
+        <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={searchOpen}
+              className="flex-1 min-w-[200px] max-w-xs justify-between font-normal text-[color:var(--admin-text-secondary)]"
+            >
+              검색...
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className={COMBOBOX_POPOVER_CONTENT_CLASSNAME}>
+            <Command filter={(value, search) => {
+              if (value.toLowerCase().includes(search.toLowerCase())) return 1
+              return 0
+            }}>
+              <CommandInput placeholder="코드나 이름으로 검색..."/>
+              <CommandList>
+                <CommandEmpty>결과 없음</CommandEmpty>
+                {classNodes.length > 0 && (
+                  <CommandGroup heading="클래스">
+                    {classNodes.map(node => (
+                      <CommandItem
+                        key={`CLASS-${node.code}`}
+                        value={`${node.code} ${node.name}`}
+                        onSelect={() => handleSearchSelect(node)}
+                      >
+                        {node.code} - {node.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+                {codeNodes.length > 0 && (
+                  <CommandGroup heading="코드">
+                    {codeNodes.map(node => (
+                      <CommandItem
+                        key={`CODE-${node.code}-${node.classCode}`}
+                        value={`${node.code} ${node.name}`}
+                        onSelect={() => handleSearchSelect(node)}
+                      >
+                        {node.code} - {node.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
+        <Button onClick={handleAddClass} disabled={loading}>
+          <Plus className="h-4 w-4 mr-1"/>클래스 추가
+        </Button>
+        <Button
+          variant="outline"
+          className="border-amber-500/25 text-amber-700 hover:bg-amber-500/10 hover:text-amber-800"
+          onClick={handleClearAllCache}
+          disabled={loading}
+        >
+          <RefreshCw className="h-4 w-4 mr-1"/>전체 캐시 삭제
+        </Button>
+      </div>
 
       {/* Breadcrumb */}
-      <Paper sx={{px: 2, py: 1, mb: 1}}>
-        <Breadcrumbs separator={<NavigateNextIcon fontSize="small"/>}>
-          <Link
-            component="button"
-            underline="hover"
-            color={navigationPath.length === 0 ? 'text.primary' : 'inherit'}
-            onClick={() => handleBreadcrumbClick(-1)}
-            sx={{display: 'flex', alignItems: 'center', gap: 0.5}}
-          >
-            <HomeIcon fontSize="small"/>
-            전체
-          </Link>
-          {navigationPath.map((entry, idx) => (
-            <Link
-              key={`${entry.type}-${entry.code}`}
-              component="button"
-              underline="hover"
-              color={idx === navigationPath.length - 1 ? 'text.primary' : 'inherit'}
-              fontWeight={idx === navigationPath.length - 1 ? 600 : 400}
-              onClick={() => handleBreadcrumbClick(idx)}
-            >
-              {entry.code}
-            </Link>
-          ))}
-        </Breadcrumbs>
-      </Paper>
+      <div className="admin-panel-soft px-3 py-2 mb-2">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <button
+                  onClick={() => handleBreadcrumbClick(-1)}
+                  className="flex items-center gap-1 text-sm hover:underline"
+                >
+                  <Home className="h-3.5 w-3.5"/>전체
+                </button>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            {navigationPath.map((entry, idx) => (
+              <React.Fragment key={`${entry.type}-${entry.code}`}>
+                <BreadcrumbSeparator>
+                  <ChevronRight className="h-3.5 w-3.5"/>
+                </BreadcrumbSeparator>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <button
+                      onClick={() => handleBreadcrumbClick(idx)}
+                      className={cn(
+                        'text-sm hover:underline',
+                        idx === navigationPath.length - 1
+                          ? 'font-semibold text-[color:var(--admin-text)]'
+                          : 'text-[color:var(--admin-text-muted)]'
+                      )}
+                    >
+                      {entry.code}
+                    </button>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </React.Fragment>
+            ))}
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
 
       {/* 메인 콘텐츠 */}
       {loading && treeData.length === 0 ? (
-        <Box sx={{display: 'flex', justifyContent: 'center', py: 8}}>
-          <CircularProgress/>
-        </Box>
+        <div className="flex flex-col gap-2 py-4">
+          <Skeleton className="h-8 w-full"/>
+          <Skeleton className="h-8 w-full"/>
+          <Skeleton className="h-8 w-3/4"/>
+        </div>
       ) : (
-        <Grid container spacing={1} sx={{height: 'calc(85vh - 180px)'}}>
+        <div
+          className="admin-split-layout admin-fill"
+          data-size="wide"
+          style={{minHeight: 'calc(100vh - 18rem)'}}
+        >
           {/* 왼쪽: Miller Columns */}
-          <Grid item xs={12} md={8} sx={{height: '100%'}}>
+          <div className="admin-panel admin-fill min-w-0 overflow-hidden">
             <MillerColumns
               treeData={treeData}
               navigationPath={navigationPath}
@@ -454,10 +497,10 @@ export default function CommonCodePage() {
               onAddClass={handleAddClass}
               onAddCode={handleAddCode}
             />
-          </Grid>
+          </div>
 
           {/* 오른쪽: 상세 패널 */}
-          <Grid item xs={12} md={4} sx={{height: '100%'}}>
+          <div className="admin-panel admin-fill overflow-hidden">
             <NodeDetailPanel
               selectedNode={selectedNode}
               parentClassNode={parentClassNode}
@@ -466,19 +509,16 @@ export default function CommonCodePage() {
               onAddCode={handleAddCode}
               onAddChildClass={handleAddChildClass}
             />
-          </Grid>
-        </Grid>
+          </div>
+        </div>
       )}
 
       {/* 추가/편집 다이얼로그 */}
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>{dialogTitle}</DialogTitle>
-        <DialogContent>
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{dialogTitle}</DialogTitle>
+          </DialogHeader>
           {isClassForm ? (
             <ClassForm
               formData={formData}
@@ -495,21 +535,20 @@ export default function CommonCodePage() {
               parentClassNode={parentClassNode}
             />
           )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenDialog(false)} disabled={loading}>
+              취소
+            </Button>
+            <Button onClick={handleSave} disabled={loading}>
+              {loading
+                ? <RefreshCw className="h-4 w-4 mr-1 animate-spin"/>
+                : <Save className="h-4 w-4 mr-1"/>
+              }
+              {loading ? '저장 중...' : '저장'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} disabled={loading}>
-            취소
-          </Button>
-          <Button
-            onClick={handleSave}
-            variant="contained"
-            disabled={loading}
-            startIcon={loading ? <CircularProgress size={16}/> : <SaveIcon/>}
-          >
-            {loading ? '저장 중...' : '저장'}
-          </Button>
-        </DialogActions>
       </Dialog>
-    </Box>
+    </AdminPageFrame>
   )
 }

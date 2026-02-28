@@ -1,14 +1,13 @@
 import {useState, useEffect} from 'react'
-import {
-    Box, TextField, Button, Paper, Typography, Grid, Tabs, Tab,
-    IconButton, InputAdornment, Chip, Divider
-} from '@mui/material'
-import ContentCopyIcon from '@mui/icons-material/ContentCopy'
-import SwapVertIcon from '@mui/icons-material/SwapVert'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import {useSnackbar} from 'notistack'
+import {Tabs, TabsList, TabsTrigger, TabsContent} from '../../components/ui/tabs'
+import {Button} from '../../components/ui/button'
+import {Textarea} from '../../components/ui/textarea'
+import {Input} from '../../components/ui/input'
+import {Badge} from '../../components/ui/badge'
+import {ArrowUpDown, ArrowLeft, Copy} from 'lucide-react'
+import {toast} from 'sonner'
 import {useRouter} from 'next/router'
-import moment from 'moment'
+import {format} from 'date-fns'
 
 const ENCODING_TYPES = [
     {id: 'base64', label: 'Base64', bidirectional: true},
@@ -21,43 +20,24 @@ const ENCODING_TYPES = [
     {id: 'json', label: 'JSON', bidirectional: true}
 ]
 
-function TabPanel({children, value, index, ...other}) {
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`encode-tabpanel-${index}`}
-            aria-labelledby={`encode-tab-${index}`}
-            {...other}
-        >
-            {value === index && <Box sx={{p: 3}}>{children}</Box>}
-        </div>
-    )
-}
-
 export default function EncodePage() {
     const router = useRouter()
-    const {enqueueSnackbar} = useSnackbar()
-    const [tabValue, setTabValue] = useState(0)
+    const [tabValue, setTabValue] = useState('base64')
     const [isClient, setIsClient] = useState(false)
 
-    // 공통 상태
     const [input, setInput] = useState('')
     const [output, setOutput] = useState('')
 
-    // JWT 전용 상태
     const [jwtHeader, setJwtHeader] = useState('')
     const [jwtPayload, setJwtPayload] = useState('')
     const [jwtExpiry, setJwtExpiry] = useState(null)
 
-    // crypto-js 참조
     const [CryptoJS, setCryptoJS] = useState(null)
 
     useEffect(() => {
         setIsClient(true)
     }, [])
 
-    // crypto-js 로드
     useEffect(() => {
         if (!isClient) return
         import('crypto-js').then(module => {
@@ -65,7 +45,6 @@ export default function EncodePage() {
         })
     }, [isClient])
 
-    // 탭 변경 시 입력/출력 초기화
     useEffect(() => {
         setInput('')
         setOutput('')
@@ -76,11 +55,11 @@ export default function EncodePage() {
 
     const handleCopy = (text) => {
         if (!text) {
-            enqueueSnackbar('복사할 내용이 없습니다.', {variant: 'warning'})
+            toast.warning('복사할 내용이 없습니다.')
             return
         }
         navigator.clipboard.writeText(text)
-        enqueueSnackbar('클립보드에 복사되었습니다.', {variant: 'success'})
+        toast.success('클립보드에 복사되었습니다.')
     }
 
     const handleSwap = () => {
@@ -89,144 +68,103 @@ export default function EncodePage() {
         setOutput(temp)
     }
 
-    // Base64
     const encodeBase64 = () => {
         try {
-            const encoded = btoa(unescape(encodeURIComponent(input)))
-            setOutput(encoded)
-            enqueueSnackbar('Base64 인코딩 완료', {variant: 'success'})
+            setOutput(btoa(unescape(encodeURIComponent(input))))
+            toast.success('Base64 인코딩 완료')
         } catch (e) {
-            enqueueSnackbar('인코딩 실패: ' + e.message, {variant: 'error'})
+            toast.error('인코딩 실패: ' + e.message)
         }
     }
 
     const decodeBase64 = () => {
         try {
-            const decoded = decodeURIComponent(escape(atob(input)))
-            setOutput(decoded)
-            enqueueSnackbar('Base64 디코딩 완료', {variant: 'success'})
+            setOutput(decodeURIComponent(escape(atob(input))))
+            toast.success('Base64 디코딩 완료')
         } catch (e) {
-            enqueueSnackbar('디코딩 실패: 유효하지 않은 Base64 문자열', {variant: 'error'})
+            toast.error('디코딩 실패: 유효하지 않은 Base64 문자열')
         }
     }
 
-    // URL Encoding
     const encodeUrl = () => {
         try {
-            const encoded = encodeURIComponent(input)
-            setOutput(encoded)
-            enqueueSnackbar('URL 인코딩 완료', {variant: 'success'})
+            setOutput(encodeURIComponent(input))
+            toast.success('URL 인코딩 완료')
         } catch (e) {
-            enqueueSnackbar('인코딩 실패: ' + e.message, {variant: 'error'})
+            toast.error('인코딩 실패: ' + e.message)
         }
     }
 
     const decodeUrl = () => {
         try {
-            const decoded = decodeURIComponent(input)
-            setOutput(decoded)
-            enqueueSnackbar('URL 디코딩 완료', {variant: 'success'})
+            setOutput(decodeURIComponent(input))
+            toast.success('URL 디코딩 완료')
         } catch (e) {
-            enqueueSnackbar('디코딩 실패: 유효하지 않은 URL 인코딩', {variant: 'error'})
+            toast.error('디코딩 실패: 유효하지 않은 URL 인코딩')
         }
     }
 
-    // HTML Entity
     const encodeHtml = () => {
         try {
-            const encoded = input
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;')
-            setOutput(encoded)
-            enqueueSnackbar('HTML 인코딩 완료', {variant: 'success'})
+            setOutput(input.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'))
+            toast.success('HTML 인코딩 완료')
         } catch (e) {
-            enqueueSnackbar('인코딩 실패: ' + e.message, {variant: 'error'})
+            toast.error('인코딩 실패: ' + e.message)
         }
     }
 
     const decodeHtml = () => {
         try {
-            const decoded = input
-                .replace(/&amp;/g, '&')
-                .replace(/&lt;/g, '<')
-                .replace(/&gt;/g, '>')
-                .replace(/&quot;/g, '"')
-                .replace(/&#039;/g, "'")
-                .replace(/&#39;/g, "'")
-            setOutput(decoded)
-            enqueueSnackbar('HTML 디코딩 완료', {variant: 'success'})
+            setOutput(input.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&#39;/g, "'"))
+            toast.success('HTML 디코딩 완료')
         } catch (e) {
-            enqueueSnackbar('디코딩 실패: ' + e.message, {variant: 'error'})
+            toast.error('디코딩 실패: ' + e.message)
         }
     }
 
-    // Unicode Hex
     const encodeUnicode = () => {
         try {
-            const encoded = Array.from(input)
-                .map(char => '\\u' + char.charCodeAt(0).toString(16).padStart(4, '0'))
-                .join('')
-            setOutput(encoded)
-            enqueueSnackbar('Unicode 인코딩 완료', {variant: 'success'})
+            setOutput(Array.from(input).map(char => '\\u' + char.charCodeAt(0).toString(16).padStart(4, '0')).join(''))
+            toast.success('Unicode 인코딩 완료')
         } catch (e) {
-            enqueueSnackbar('인코딩 실패: ' + e.message, {variant: 'error'})
+            toast.error('인코딩 실패: ' + e.message)
         }
     }
 
     const decodeUnicode = () => {
         try {
-            const decoded = input.replace(/\\u([0-9a-fA-F]{4})/g, (match, hex) =>
-                String.fromCharCode(parseInt(hex, 16))
-            )
-            setOutput(decoded)
-            enqueueSnackbar('Unicode 디코딩 완료', {variant: 'success'})
+            setOutput(input.replace(/\\u([0-9a-fA-F]{4})/g, (match, hex) => String.fromCharCode(parseInt(hex, 16))))
+            toast.success('Unicode 디코딩 완료')
         } catch (e) {
-            enqueueSnackbar('디코딩 실패: 유효하지 않은 Unicode 문자열', {variant: 'error'})
+            toast.error('디코딩 실패: 유효하지 않은 Unicode 문자열')
         }
     }
 
-    // MD5
     const hashMd5 = () => {
-        if (!CryptoJS) {
-            enqueueSnackbar('암호화 라이브러리 로딩 중...', {variant: 'info'})
-            return
-        }
+        if (!CryptoJS) { toast.info('암호화 라이브러리 로딩 중...'); return }
         try {
-            const hash = CryptoJS.MD5(input).toString()
-            setOutput(hash)
-            enqueueSnackbar('MD5 해시 생성 완료', {variant: 'success'})
+            setOutput(CryptoJS.MD5(input).toString())
+            toast.success('MD5 해시 생성 완료')
         } catch (e) {
-            enqueueSnackbar('해시 생성 실패: ' + e.message, {variant: 'error'})
+            toast.error('해시 생성 실패: ' + e.message)
         }
     }
 
-    // SHA-256
     const hashSha256 = () => {
-        if (!CryptoJS) {
-            enqueueSnackbar('암호화 라이브러리 로딩 중...', {variant: 'info'})
-            return
-        }
+        if (!CryptoJS) { toast.info('암호화 라이브러리 로딩 중...'); return }
         try {
-            const hash = CryptoJS.SHA256(input).toString()
-            setOutput(hash)
-            enqueueSnackbar('SHA-256 해시 생성 완료', {variant: 'success'})
+            setOutput(CryptoJS.SHA256(input).toString())
+            toast.success('SHA-256 해시 생성 완료')
         } catch (e) {
-            enqueueSnackbar('해시 생성 실패: ' + e.message, {variant: 'error'})
+            toast.error('해시 생성 실패: ' + e.message)
         }
     }
 
-    // JWT 디코딩
     const decodeJwt = () => {
         try {
             const parts = input.split('.')
-            if (parts.length !== 3) {
-                throw new Error('유효하지 않은 JWT 형식입니다. (header.payload.signature)')
-            }
+            if (parts.length !== 3) throw new Error('유효하지 않은 JWT 형식입니다. (header.payload.signature)')
 
-            // Base64 URL 디코딩
             const base64UrlDecode = (str) => {
                 const base64 = str.replace(/-/g, '+').replace(/_/g, '/')
                 const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=')
@@ -239,476 +177,272 @@ export default function EncodePage() {
             setJwtHeader(JSON.stringify(header, null, 2))
             setJwtPayload(JSON.stringify(payload, null, 2))
 
-            // 만료 시간 확인
             if (payload.exp) {
                 const expDate = new Date(payload.exp * 1000)
-                const now = new Date()
-                setJwtExpiry({
-                    date: moment(expDate).format('YYYY-MM-DD HH:mm:ss'),
-                    expired: expDate < now
-                })
+                setJwtExpiry({date: format(expDate, 'yyyy-MM-dd HH:mm:ss'), expired: expDate < new Date()})
             } else {
                 setJwtExpiry(null)
             }
 
             setOutput(JSON.stringify({header, payload}, null, 2))
-            enqueueSnackbar('JWT 디코딩 완료', {variant: 'success'})
+            toast.success('JWT 디코딩 완료')
         } catch (e) {
             setJwtHeader('')
             setJwtPayload('')
             setJwtExpiry(null)
             setOutput('')
-            enqueueSnackbar('JWT 디코딩 실패: ' + e.message, {variant: 'error'})
+            toast.error('JWT 디코딩 실패: ' + e.message)
         }
     }
 
-    // JSON 포맷팅
     const formatJson = () => {
         try {
-            const parsed = JSON.parse(input)
-            const formatted = JSON.stringify(parsed, null, 2)
-            setOutput(formatted)
-            enqueueSnackbar('JSON 포맷팅 완료', {variant: 'success'})
+            setOutput(JSON.stringify(JSON.parse(input), null, 2))
+            toast.success('JSON 포맷팅 완료')
         } catch (e) {
-            enqueueSnackbar('JSON 파싱 실패: ' + e.message, {variant: 'error'})
+            toast.error('JSON 파싱 실패: ' + e.message)
         }
     }
 
     const minifyJson = () => {
         try {
-            const parsed = JSON.parse(input)
-            const minified = JSON.stringify(parsed)
-            setOutput(minified)
-            enqueueSnackbar('JSON 압축 완료', {variant: 'success'})
+            setOutput(JSON.stringify(JSON.parse(input)))
+            toast.success('JSON 압축 완료')
         } catch (e) {
-            enqueueSnackbar('JSON 파싱 실패: ' + e.message, {variant: 'error'})
+            toast.error('JSON 파싱 실패: ' + e.message)
         }
     }
 
-    const CopyAdornment = ({value}) => (
-        <InputAdornment position="end">
-            <IconButton onClick={() => handleCopy(value)} edge="end" size="small">
-                <ContentCopyIcon fontSize="small"/>
-            </IconButton>
-        </InputAdornment>
+    const CopyButton = ({value}) => (
+        <button
+            onClick={() => handleCopy(value)}
+            className="absolute right-2 top-2 p-1 rounded hover:bg-gray-100"
+            title="복사"
+        >
+            <Copy className="h-4 w-4 text-gray-500"/>
+        </button>
     )
 
-    const currentType = ENCODING_TYPES[tabValue]
+    const BidirectionalPanel = ({encodeFn, decodeFn, inputPlaceholder, outputLabel, isMonospace = false}) => (
+        <div className="space-y-3">
+            <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={inputPlaceholder}
+                rows={4}
+                className="font-mono text-sm"
+            />
+            <div className="flex gap-2 justify-center items-center">
+                <Button onClick={encodeFn}>Encode</Button>
+                <Button onClick={decodeFn}>Decode</Button>
+                <Button variant="ghost" size="icon" onClick={handleSwap} title="입력/출력 스왑">
+                    <ArrowUpDown className="h-4 w-4"/>
+                </Button>
+            </div>
+            <div className="relative">
+                <Textarea
+                    value={output}
+                    readOnly
+                    rows={4}
+                    className={`pr-8 ${isMonospace ? 'font-mono text-sm' : ''}`}
+                    placeholder={outputLabel}
+                />
+                <CopyButton value={output}/>
+            </div>
+        </div>
+    )
 
     if (!isClient) {
-        return (
-            <Box sx={{p: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh'}}>
-                <Typography>로딩 중...</Typography>
-            </Box>
-        )
+        return <div className="p-4 flex justify-center items-center min-h-[50vh]">로딩 중...</div>
     }
 
     return (
-        <Box sx={{p: 2}}>
-            <Box sx={{display: 'flex', alignItems: 'center', mb: 3}}>
-                <IconButton onClick={() => router.push('/util')} sx={{mr: 1}}>
-                    <ArrowBackIcon/>
-                </IconButton>
-                <Typography variant="h4" sx={{fontWeight: 'bold'}}>
-                    Encoder / Decoder
-                </Typography>
-            </Box>
+        <div className="p-4">
+            <div className="flex items-center gap-2 mb-4">
+                <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
+                    <ArrowLeft className="h-5 w-5"/>
+                </Button>
+                <h1 className="text-3xl font-bold">Encoder / Decoder</h1>
+            </div>
 
-            <Paper elevation={2}>
-                <Tabs
-                    value={tabValue}
-                    onChange={(e, newValue) => setTabValue(newValue)}
-                    variant="scrollable"
-                    scrollButtons="auto"
-                >
-                    {ENCODING_TYPES.map((type, index) => (
-                        <Tab key={type.id} label={type.label}/>
-                    ))}
-                </Tabs>
+            <div className="border rounded-md">
+                <Tabs value={tabValue} onValueChange={setTabValue}>
+                    <TabsList className="w-full flex flex-wrap h-auto border-b rounded-none justify-start px-2 py-1 gap-1">
+                        {ENCODING_TYPES.map((type) => (
+                            <TabsTrigger key={type.id} value={type.id}>{type.label}</TabsTrigger>
+                        ))}
+                    </TabsList>
 
-                {/* Base64 */}
-                <TabPanel value={tabValue} index={0}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="입력"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                fullWidth
-                                multiline
-                                rows={4}
-                                placeholder="인코딩/디코딩할 텍스트를 입력하세요"
+                    <div className="p-4">
+                        {/* Base64 */}
+                        <TabsContent value="base64">
+                            <BidirectionalPanel
+                                encodeFn={encodeBase64}
+                                decodeFn={decodeBase64}
+                                inputPlaceholder="인코딩/디코딩할 텍스트를 입력하세요"
+                                outputLabel="출력"
                             />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Box sx={{display: 'flex', gap: 1, justifyContent: 'center', alignItems: 'center'}}>
-                                <Button variant="contained" onClick={encodeBase64}>
-                                    Encode
-                                </Button>
-                                <Button variant="contained" onClick={decodeBase64}>
-                                    Decode
-                                </Button>
-                                <IconButton onClick={handleSwap} title="입력/출력 스왑">
-                                    <SwapVertIcon/>
-                                </IconButton>
-                            </Box>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="출력"
-                                value={output}
-                                fullWidth
-                                multiline
-                                rows={4}
-                                InputProps={{
-                                    readOnly: true,
-                                    endAdornment: <CopyAdornment value={output}/>
-                                }}
-                            />
-                        </Grid>
-                    </Grid>
-                </TabPanel>
+                        </TabsContent>
 
-                {/* URL Encoding */}
-                <TabPanel value={tabValue} index={1}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="입력"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                fullWidth
-                                multiline
-                                rows={4}
-                                placeholder="URL 인코딩/디코딩할 텍스트를 입력하세요"
+                        {/* URL */}
+                        <TabsContent value="url">
+                            <BidirectionalPanel
+                                encodeFn={encodeUrl}
+                                decodeFn={decodeUrl}
+                                inputPlaceholder="URL 인코딩/디코딩할 텍스트를 입력하세요"
+                                outputLabel="출력"
                             />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Box sx={{display: 'flex', gap: 1, justifyContent: 'center', alignItems: 'center'}}>
-                                <Button variant="contained" onClick={encodeUrl}>
-                                    Encode
-                                </Button>
-                                <Button variant="contained" onClick={decodeUrl}>
-                                    Decode
-                                </Button>
-                                <IconButton onClick={handleSwap} title="입력/출력 스왑">
-                                    <SwapVertIcon/>
-                                </IconButton>
-                            </Box>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="출력"
-                                value={output}
-                                fullWidth
-                                multiline
-                                rows={4}
-                                InputProps={{
-                                    readOnly: true,
-                                    endAdornment: <CopyAdornment value={output}/>
-                                }}
-                            />
-                        </Grid>
-                    </Grid>
-                </TabPanel>
+                        </TabsContent>
 
-                {/* HTML Entity */}
-                <TabPanel value={tabValue} index={2}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="입력"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                fullWidth
-                                multiline
-                                rows={4}
-                                placeholder="HTML 인코딩/디코딩할 텍스트를 입력하세요"
+                        {/* HTML */}
+                        <TabsContent value="html">
+                            <BidirectionalPanel
+                                encodeFn={encodeHtml}
+                                decodeFn={decodeHtml}
+                                inputPlaceholder="HTML 인코딩/디코딩할 텍스트를 입력하세요"
+                                outputLabel="출력"
                             />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Box sx={{display: 'flex', gap: 1, justifyContent: 'center', alignItems: 'center'}}>
-                                <Button variant="contained" onClick={encodeHtml}>
-                                    Encode
-                                </Button>
-                                <Button variant="contained" onClick={decodeHtml}>
-                                    Decode
-                                </Button>
-                                <IconButton onClick={handleSwap} title="입력/출력 스왑">
-                                    <SwapVertIcon/>
-                                </IconButton>
-                            </Box>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="출력"
-                                value={output}
-                                fullWidth
-                                multiline
-                                rows={4}
-                                InputProps={{
-                                    readOnly: true,
-                                    endAdornment: <CopyAdornment value={output}/>
-                                }}
-                            />
-                        </Grid>
-                    </Grid>
-                </TabPanel>
+                        </TabsContent>
 
-                {/* Unicode Hex */}
-                <TabPanel value={tabValue} index={3}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="입력"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                fullWidth
-                                multiline
-                                rows={4}
-                                placeholder="Unicode 인코딩: 일반 텍스트, 디코딩: \u0048\u0065\u006c\u006c\u006f"
+                        {/* Unicode */}
+                        <TabsContent value="unicode">
+                            <BidirectionalPanel
+                                encodeFn={encodeUnicode}
+                                decodeFn={decodeUnicode}
+                                inputPlaceholder="Unicode 인코딩: 일반 텍스트, 디코딩: \u0048\u0065\u006c\u006c\u006f"
+                                outputLabel="출력"
                             />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Box sx={{display: 'flex', gap: 1, justifyContent: 'center', alignItems: 'center'}}>
-                                <Button variant="contained" onClick={encodeUnicode}>
-                                    Encode
-                                </Button>
-                                <Button variant="contained" onClick={decodeUnicode}>
-                                    Decode
-                                </Button>
-                                <IconButton onClick={handleSwap} title="입력/출력 스왑">
-                                    <SwapVertIcon/>
-                                </IconButton>
-                            </Box>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="출력"
-                                value={output}
-                                fullWidth
-                                multiline
-                                rows={4}
-                                InputProps={{
-                                    readOnly: true,
-                                    endAdornment: <CopyAdornment value={output}/>
-                                }}
-                            />
-                        </Grid>
-                    </Grid>
-                </TabPanel>
+                        </TabsContent>
 
-                {/* MD5 */}
-                <TabPanel value={tabValue} index={4}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="입력"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                fullWidth
-                                multiline
-                                rows={4}
-                                placeholder="해시할 텍스트를 입력하세요"
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Box sx={{display: 'flex', gap: 1, justifyContent: 'center'}}>
-                                <Button variant="contained" onClick={hashMd5}>
-                                    MD5 해시 생성
-                                </Button>
-                            </Box>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="MD5 해시 (32자)"
-                                value={output}
-                                fullWidth
-                                InputProps={{
-                                    readOnly: true,
-                                    endAdornment: <CopyAdornment value={output}/>,
-                                    sx: {fontFamily: 'D2Coding, monospace'}
-                                }}
-                            />
-                        </Grid>
-                    </Grid>
-                </TabPanel>
-
-                {/* SHA-256 */}
-                <TabPanel value={tabValue} index={5}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="입력"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                fullWidth
-                                multiline
-                                rows={4}
-                                placeholder="해시할 텍스트를 입력하세요"
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Box sx={{display: 'flex', gap: 1, justifyContent: 'center'}}>
-                                <Button variant="contained" onClick={hashSha256}>
-                                    SHA-256 해시 생성
-                                </Button>
-                            </Box>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="SHA-256 해시 (64자)"
-                                value={output}
-                                fullWidth
-                                InputProps={{
-                                    readOnly: true,
-                                    endAdornment: <CopyAdornment value={output}/>,
-                                    sx: {fontFamily: 'D2Coding, monospace'}
-                                }}
-                            />
-                        </Grid>
-                    </Grid>
-                </TabPanel>
-
-                {/* JWT */}
-                <TabPanel value={tabValue} index={6}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="JWT 토큰"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                fullWidth
-                                multiline
-                                rows={3}
-                                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-                                InputProps={{
-                                    sx: {fontFamily: 'D2Coding, monospace', fontSize: 12}
-                                }}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Box sx={{display: 'flex', gap: 1, justifyContent: 'center'}}>
-                                <Button variant="contained" onClick={decodeJwt}>
-                                    JWT 디코딩
-                                </Button>
-                            </Box>
-                        </Grid>
-                        {jwtHeader && (
-                            <>
-                                <Grid item xs={12} md={6}>
-                                    <TextField
-                                        label="Header"
-                                        value={jwtHeader}
-                                        fullWidth
-                                        multiline
-                                        minRows={4}
-                                        maxRows={12}
-                                        InputProps={{
-                                            readOnly: true,
-                                            endAdornment: <CopyAdornment value={jwtHeader}/>,
-                                            sx: {fontFamily: 'D2Coding, monospace', fontSize: 12}
-                                        }}
+                        {/* MD5 */}
+                        <TabsContent value="md5">
+                            <div className="space-y-3">
+                                <Textarea
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    placeholder="해시할 텍스트를 입력하세요"
+                                    rows={4}
+                                />
+                                <div className="flex justify-center">
+                                    <Button onClick={hashMd5}>MD5 해시 생성</Button>
+                                </div>
+                                <div className="relative">
+                                    <Input
+                                        value={output}
+                                        readOnly
+                                        placeholder="MD5 해시 (32자)"
+                                        className="pr-8 font-mono"
                                     />
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <TextField
-                                        label="Payload"
-                                        value={jwtPayload}
-                                        fullWidth
-                                        multiline
-                                        minRows={4}
-                                        maxRows={20}
-                                        InputProps={{
-                                            readOnly: true,
-                                            endAdornment: <CopyAdornment value={jwtPayload}/>,
-                                            sx: {fontFamily: 'D2Coding, monospace', fontSize: 12}
-                                        }}
+                                    <CopyButton value={output}/>
+                                </div>
+                            </div>
+                        </TabsContent>
+
+                        {/* SHA-256 */}
+                        <TabsContent value="sha256">
+                            <div className="space-y-3">
+                                <Textarea
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    placeholder="해시할 텍스트를 입력하세요"
+                                    rows={4}
+                                />
+                                <div className="flex justify-center">
+                                    <Button onClick={hashSha256}>SHA-256 해시 생성</Button>
+                                </div>
+                                <div className="relative">
+                                    <Input
+                                        value={output}
+                                        readOnly
+                                        placeholder="SHA-256 해시 (64자)"
+                                        className="pr-8 font-mono"
                                     />
-                                </Grid>
-                                {jwtExpiry && (
-                                    <Grid item xs={12}>
-                                        <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
-                                            <Typography variant="body2">만료 시간:</Typography>
-                                            <Typography variant="body2" sx={{fontFamily: 'D2Coding, monospace'}}>
-                                                {jwtExpiry.date}
-                                            </Typography>
-                                            <Chip
-                                                label={jwtExpiry.expired ? '만료됨' : '유효'}
-                                                color={jwtExpiry.expired ? 'error' : 'success'}
-                                                size="small"
-                                            />
-                                        </Box>
-                                    </Grid>
+                                    <CopyButton value={output}/>
+                                </div>
+                            </div>
+                        </TabsContent>
+
+                        {/* JWT */}
+                        <TabsContent value="jwt">
+                            <div className="space-y-3">
+                                <Textarea
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    rows={3}
+                                    placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                                    className="font-mono text-xs"
+                                />
+                                <div className="flex justify-center">
+                                    <Button onClick={decodeJwt}>JWT 디코딩</Button>
+                                </div>
+                                {jwtHeader && (
+                                    <>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div className="relative">
+                                                <label className="text-xs text-gray-500 mb-1 block">Header</label>
+                                                <Textarea value={jwtHeader} readOnly rows={5} className="pr-8 font-mono text-xs"/>
+                                                <CopyButton value={jwtHeader}/>
+                                            </div>
+                                            <div className="relative">
+                                                <label className="text-xs text-gray-500 mb-1 block">Payload</label>
+                                                <Textarea value={jwtPayload} readOnly rows={5} className="pr-8 font-mono text-xs"/>
+                                                <CopyButton value={jwtPayload}/>
+                                            </div>
+                                        </div>
+                                        {jwtExpiry && (
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm">만료 시간:</span>
+                                                <span className="text-sm font-mono">{jwtExpiry.date}</span>
+                                                <Badge variant={jwtExpiry.expired ? 'destructive' : 'default'}>
+                                                    {jwtExpiry.expired ? '만료됨' : '유효'}
+                                                </Badge>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
-                            </>
-                        )}
-                    </Grid>
-                </TabPanel>
+                            </div>
+                        </TabsContent>
 
-                {/* JSON */}
-                <TabPanel value={tabValue} index={7}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="JSON 입력"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                fullWidth
-                                multiline
-                                rows={6}
-                                placeholder='{"name":"John","age":30}'
-                                InputProps={{
-                                    sx: {fontFamily: 'D2Coding, monospace', fontSize: 12}
-                                }}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <Box sx={{display: 'flex', gap: 1, justifyContent: 'center', alignItems: 'center'}}>
-                                <Button variant="contained" onClick={formatJson}>
-                                    포맷팅 (Beautify)
-                                </Button>
-                                <Button variant="contained" onClick={minifyJson}>
-                                    압축 (Minify)
-                                </Button>
-                                <IconButton onClick={handleSwap} title="입력/출력 스왑">
-                                    <SwapVertIcon/>
-                                </IconButton>
-                            </Box>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="출력"
-                                value={output}
-                                fullWidth
-                                multiline
-                                rows={6}
-                                InputProps={{
-                                    readOnly: true,
-                                    endAdornment: <CopyAdornment value={output}/>,
-                                    sx: {fontFamily: 'D2Coding, monospace', fontSize: 12}
-                                }}
-                            />
-                        </Grid>
-                    </Grid>
-                </TabPanel>
-            </Paper>
+                        {/* JSON */}
+                        <TabsContent value="json">
+                            <div className="space-y-3">
+                                <Textarea
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    rows={6}
+                                    placeholder={'{"name":"John","age":30}'}
+                                    className="font-mono text-xs"
+                                />
+                                <div className="flex gap-2 justify-center items-center">
+                                    <Button onClick={formatJson}>포맷팅 (Beautify)</Button>
+                                    <Button onClick={minifyJson}>압축 (Minify)</Button>
+                                    <Button variant="ghost" size="icon" onClick={handleSwap} title="입력/출력 스왑">
+                                        <ArrowUpDown className="h-4 w-4"/>
+                                    </Button>
+                                </div>
+                                <div className="relative">
+                                    <Textarea value={output} readOnly rows={6} className="pr-8 font-mono text-xs"/>
+                                    <CopyButton value={output}/>
+                                </div>
+                            </div>
+                        </TabsContent>
+                    </div>
+                </Tabs>
+            </div>
 
-            <Box sx={{mt: 3, p: 2, backgroundColor: 'grey.100', borderRadius: 1}}>
-                <Typography variant="subtitle2" sx={{mb: 1}}>인코딩 타입 안내</Typography>
-                <Typography variant="body2" color="text.secondary" component="div">
-                    <ul style={{margin: 0, paddingLeft: 20}}>
-                        <li><strong>Base64</strong>: 바이너리 데이터를 ASCII 문자로 변환</li>
-                        <li><strong>URL</strong>: URL에서 사용할 수 없는 문자를 % 인코딩</li>
-                        <li><strong>HTML</strong>: HTML 특수문자를 엔티티로 변환</li>
-                        <li><strong>Unicode</strong>: 문자를 \uXXXX 형식으로 변환</li>
-                        <li><strong>MD5</strong>: 128비트 해시 (단방향)</li>
-                        <li><strong>SHA-256</strong>: 256비트 해시 (단방향)</li>
-                        <li><strong>JWT</strong>: JSON Web Token 디코딩 (서명 검증 없음)</li>
-                        <li><strong>JSON</strong>: JSON 문자열 포맷팅/압축</li>
-                    </ul>
-                </Typography>
-            </Box>
-        </Box>
+            <div className="mt-4 p-3 bg-gray-100 rounded-md">
+                <p className="text-sm font-semibold mb-1">인코딩 타입 안내</p>
+                <ul className="text-sm text-gray-500 list-disc ml-5 space-y-0.5">
+                    <li><strong>Base64</strong>: 바이너리 데이터를 ASCII 문자로 변환</li>
+                    <li><strong>URL</strong>: URL에서 사용할 수 없는 문자를 % 인코딩</li>
+                    <li><strong>HTML</strong>: HTML 특수문자를 엔티티로 변환</li>
+                    <li><strong>Unicode</strong>: 문자를 \uXXXX 형식으로 변환</li>
+                    <li><strong>MD5</strong>: 128비트 해시 (단방향)</li>
+                    <li><strong>SHA-256</strong>: 256비트 해시 (단방향)</li>
+                    <li><strong>JWT</strong>: JSON Web Token 디코딩 (서명 검증 없음)</li>
+                    <li><strong>JSON</strong>: JSON 문자열 포맷팅/압축</li>
+                </ul>
+            </div>
+        </div>
     )
 }

@@ -5,7 +5,6 @@ import {
     LOAD_USER_REQUEST,
     LOAD_USER_REQUEST_ERROR,
     LOAD_USER_REQUEST_SUCCESS,
-    SERVER_LOAD_USER_REQUEST_SUCCESS,
     USER_LOGIN_ERROR_MESSAGE,
     USER_LOGIN_ERROR_MESSAGE_SUCCESS,
     USER_LOGIN_REQUEST,
@@ -63,16 +62,8 @@ function* loadUser() {
             payload: auth.data
         })
     } catch (err) {
-        // 사용자 로드를 실패하면 아무런 메시지를 주지 않는다.
-        yield put({type: LOAD_USER_REQUEST_ERROR, payload: 'Login failed'})
+        yield put({type: LOAD_USER_REQUEST_ERROR})
     }
-}
-
-function* serverLoadUser({user}) {
-    yield put({
-        type: LOAD_USER_REQUEST_SUCCESS,
-        payload: user
-    })
 }
 
 function* userRequest() {
@@ -80,7 +71,6 @@ function* userRequest() {
     yield takeLatest(USER_LOGIN_REQUEST, login)
     yield takeLatest(USER_LOGIN_ERROR_MESSAGE, loginErrorMessage)
     yield takeLatest(LOAD_USER_REQUEST, loadUser)
-    yield takeLatest(SERVER_LOAD_USER_REQUEST_SUCCESS, serverLoadUser)
 }
 
 export default function* userSaga() {

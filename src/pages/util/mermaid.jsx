@@ -1,7 +1,7 @@
 import {useState, useEffect, useRef, useCallback} from 'react'
 import {
     Box, TextField, Button, Paper, Typography, Grid,
-    Select, MenuItem, FormControl, InputLabel, ButtonGroup,
+    Select, MenuItem, FormControl, InputLabel, ButtonGroup, Chip,
     IconButton, Tabs, Tab, Divider
 } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download'
@@ -16,23 +16,47 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import {useSnackbar} from 'notistack'
 import {useRouter} from 'next/router'
 
-const DEFAULT_CODE = `flowchart TD
+const SAMPLE_CODES = {
+    flowchart: [
+        {
+            name: '기본 플로우차트',
+            code: `flowchart TD
     A[시작] --> B{조건 확인}
     B -->|Yes| C[처리 실행]
     B -->|No| D[대체 처리]
     C --> E[결과 저장]
     D --> E
     E --> F[완료]`
-
-const SAMPLE_CODES = {
-    flowchart: `flowchart TD
-    A[시작] --> B{조건 확인}
-    B -->|Yes| C[처리 실행]
-    B -->|No| D[대체 처리]
-    C --> E[결과 저장]
-    D --> E
-    E --> F[완료]`,
-    sequence: `sequenceDiagram
+        },
+        {
+            name: '의사결정 트리',
+            code: `flowchart TD
+    A[요청 수신] --> B{인증 확인}
+    B -->|실패| C[401 반환]
+    B -->|성공| D{권한 확인}
+    D -->|없음| E[403 반환]
+    D -->|있음| F{데이터 유효성}
+    F -->|실패| G[400 반환]
+    F -->|통과| H[처리 실행]
+    H --> I[200 반환]`
+        },
+        {
+            name: '에러 처리 흐름',
+            code: `flowchart LR
+    A[API 호출] --> B{응답 확인}
+    B -->|성공| C[데이터 처리]
+    B -->|실패| D{재시도 가능?}
+    D -->|Yes, 3회 미만| E[대기 후 재시도]
+    E --> A
+    D -->|No| F[에러 로그]
+    F --> G[사용자 알림]
+    C --> H[완료]`
+        }
+    ],
+    sequence: [
+        {
+            name: '옵저버 패턴',
+            code: `sequenceDiagram
     participant Subject as Subject<br/>(OrderService)
     participant Observer1 as Observer 1<br/>(EmailService)
     participant Observer2 as Observer 2<br/>(PointService)
@@ -53,8 +77,50 @@ const SAMPLE_CODES = {
 
     Observer1-->>Subject: 이메일 발송 완료
     Observer2-->>Subject: 포인트 적립 완료
-    Observer3-->>Subject: 재고 감소 완료`,
-    classDiagram: `classDiagram
+    Observer3-->>Subject: 재고 감소 완료`
+        },
+        {
+            name: 'API 인증 흐름',
+            code: `sequenceDiagram
+    participant C as 클라이언트
+    participant G as API 게이트웨이
+    participant Auth as 인증 서버
+    participant S as 서비스
+
+    C->>G: 요청 (JWT 토큰 포함)
+    G->>Auth: 토큰 검증 요청
+    Auth-->>G: 검증 결과
+    alt 토큰 유효
+        G->>S: 요청 전달
+        S-->>G: 응답 데이터
+        G-->>C: 200 OK
+    else 토큰 만료
+        G-->>C: 401 Unauthorized
+        C->>Auth: 토큰 갱신 요청
+        Auth-->>C: 새 Access Token
+    end`
+        },
+        {
+            name: '주문 처리',
+            code: `sequenceDiagram
+    participant U as 사용자
+    participant O as 주문 서비스
+    participant P as 결제 서비스
+    participant I as 재고 서비스
+
+    U->>O: 주문 생성 요청
+    O->>I: 재고 확인
+    I-->>O: 재고 충분
+    O->>P: 결제 요청
+    P-->>O: 결제 완료
+    O->>I: 재고 차감
+    O-->>U: 주문 완료`
+        }
+    ],
+    classDiagram: [
+        {
+            name: '옵저버 패턴',
+            code: `classDiagram
     class Subject {
         <<interface>>
         +registerObserver(Observer): void
@@ -94,8 +160,79 @@ const SAMPLE_CODES = {
     ConcreteSubject --> Observer : "1..*"
 
     note for Subject "상태 변경을 알리는 주제"
-    note for Observer "상태 변경에 반응하는 관찰자"`,
-    erDiagram: `erDiagram
+    note for Observer "상태 변경에 반응하는 관찰자"`
+        },
+        {
+            name: '전략 패턴',
+            code: `classDiagram
+    class Context {
+        -strategy: Strategy
+        +setStrategy(Strategy): void
+        +executeStrategy(): void
+    }
+
+    class Strategy {
+        <<interface>>
+        +execute(): void
+    }
+
+    class ConcreteStrategyA {
+        +execute(): void
+    }
+
+    class ConcreteStrategyB {
+        +execute(): void
+    }
+
+    Context --> Strategy
+    Strategy <|.. ConcreteStrategyA
+    Strategy <|.. ConcreteStrategyB
+
+    note for Context "전략을 사용하는 컨텍스트"
+    note for Strategy "알고리즘 인터페이스"`
+        },
+        {
+            name: '팩토리 패턴',
+            code: `classDiagram
+    class Creator {
+        <<abstract>>
+        +createProduct(): Product
+        +operation(): void
+    }
+
+    class ConcreteCreatorA {
+        +createProduct(): Product
+    }
+
+    class ConcreteCreatorB {
+        +createProduct(): Product
+    }
+
+    class Product {
+        <<interface>>
+        +use(): void
+    }
+
+    class ConcreteProductA {
+        +use(): void
+    }
+
+    class ConcreteProductB {
+        +use(): void
+    }
+
+    Creator <|-- ConcreteCreatorA
+    Creator <|-- ConcreteCreatorB
+    ConcreteCreatorA ..> ConcreteProductA : creates
+    ConcreteCreatorB ..> ConcreteProductB : creates
+    Product <|.. ConcreteProductA
+    Product <|.. ConcreteProductB`
+        }
+    ],
+    erDiagram: [
+        {
+            name: '주문 시스템',
+            code: `erDiagram
     USER ||--o{ ORDER : places
     ORDER ||--|{ LINE_ITEM : contains
     PRODUCT ||--o{ LINE_ITEM : "ordered in"
@@ -109,13 +246,174 @@ const SAMPLE_CODES = {
         int id PK
         int user_id FK
         date created_at
+    }
+    PRODUCT {
+        int id PK
+        string name
+        decimal price
+    }
+    LINE_ITEM {
+        int id PK
+        int order_id FK
+        int product_id FK
+        int quantity
     }`
+        },
+        {
+            name: '블로그 시스템',
+            code: `erDiagram
+    USER ||--o{ POST : writes
+    POST ||--o{ COMMENT : has
+    POST }o--o{ TAG : tagged
+
+    USER {
+        int id PK
+        string username
+        string email
+    }
+    POST {
+        int id PK
+        int user_id FK
+        string title
+        text content
+        datetime created_at
+    }
+    COMMENT {
+        int id PK
+        int post_id FK
+        int user_id FK
+        text body
+    }
+    TAG {
+        int id PK
+        string name
+    }`
+        },
+        {
+            name: '학생 관리',
+            code: `erDiagram
+    STUDENT ||--o{ ENROLLMENT : enrolls
+    COURSE ||--o{ ENROLLMENT : includes
+    TEACHER ||--o{ COURSE : teaches
+
+    STUDENT {
+        int id PK
+        string name
+        string email
+        date birth_date
+    }
+    COURSE {
+        int id PK
+        int teacher_id FK
+        string title
+        int credits
+    }
+    TEACHER {
+        int id PK
+        string name
+        string department
+    }
+    ENROLLMENT {
+        int student_id FK
+        int course_id FK
+        string grade
+    }`
+        }
+    ],
+    blockDiagram: [
+        {
+            name: '화면 UI 레이아웃',
+            code: `block-beta
+    columns 4
+
+    H["헤더 (64px)"]:4
+
+    N["사이드 메뉴 (1/4)"]:1
+    C["메인 콘텐츠 영역 (3/4)"]:3
+
+    F["푸터 (48px)"]:4
+
+    style H fill:#333,color:#fff
+    style N fill:#e1f5fe,stroke:#01579b
+    style C fill:#fff,stroke:#333
+    style F fill:#f4f4f4`
+        },
+        {
+            name: '시스템 아키텍처',
+            code: `block-beta
+    columns 3
+    title["시스템 아키텍처"]:3
+    space
+    block:infra:2
+        web["웹 서버"]
+        app["앱 서버"]
+    end
+    db[("데이터베이스")]
+    web --> app
+    app --> db`
+        },
+        {
+            name: 'CI/CD 파이프라인',
+            code: `block-beta
+    columns 5
+    A["1. Push"]:1
+    B["2. Build"]:1
+    C["3. Test"]:1
+    D["4. Staging"]:1
+    E["5. Production"]:1`
+        }
+    ],
+    stateDiagram: [
+        {
+            name: '요청 처리',
+            code: `stateDiagram-v2
+    [*] --> 대기중
+    대기중 --> 처리중 : 요청 접수
+    처리중 --> 검토중 : 처리 완료
+    검토중 --> 승인됨 : 승인
+    검토중 --> 반려됨 : 반려
+    반려됨 --> 처리중 : 재처리 요청
+    승인됨 --> [*]
+
+    state 처리중 {
+        [*] --> 데이터검증
+        데이터검증 --> 비즈니스로직
+        비즈니스로직 --> 결과생성
+        결과생성 --> [*]
+    }`
+        },
+        {
+            name: '주문 상태',
+            code: `stateDiagram-v2
+    [*] --> 주문접수
+    주문접수 --> 결제대기 : 주문 확인
+    결제대기 --> 결제완료 : 결제 성공
+    결제대기 --> 주문취소 : 결제 실패
+    결제완료 --> 배송준비 : 상품 준비
+    배송준비 --> 배송중 : 배송 시작
+    배송중 --> 배송완료 : 배송 완료
+    배송완료 --> [*]
+    주문취소 --> [*]`
+        },
+        {
+            name: '인증 상태',
+            code: `stateDiagram-v2
+    [*] --> 비로그인
+    비로그인 --> 로그인중 : 로그인 시도
+    로그인중 --> 로그인 : 인증 성공
+    로그인중 --> 비로그인 : 인증 실패
+    로그인 --> 비로그인 : 로그아웃
+    로그인 --> 토큰갱신중 : 토큰 만료
+    토큰갱신중 --> 로그인 : 갱신 성공
+    토큰갱신중 --> 비로그인 : 갱신 실패`
+        }
+    ]
 }
 
 export default function MermaidPage() {
     const router = useRouter()
     const {enqueueSnackbar} = useSnackbar()
-    const [code, setCode] = useState(DEFAULT_CODE)
+    const [code, setCode] = useState(SAMPLE_CODES.flowchart[0].code)
     const [scaleMode, setScaleMode] = useState('ratio') // 'ratio' or 'custom'
     const [scale, setScale] = useState(2)
     const [customWidth, setCustomWidth] = useState(1920)
@@ -123,6 +421,7 @@ export default function MermaidPage() {
     const [error, setError] = useState(null)
     const [isClient, setIsClient] = useState(false)
     const [selectedSample, setSelectedSample] = useState('flowchart')
+    const [selectedSampleIndex, setSelectedSampleIndex] = useState(0)
 
     // 미리보기 줌/팬 상태
     const [previewZoom, setPreviewZoom] = useState(1)
@@ -279,9 +578,15 @@ export default function MermaidPage() {
         enqueueSnackbar('SVG 다운로드 완료', {variant: 'success'})
     }
 
-    const handleSampleChange = (sample) => {
-        setSelectedSample(sample)
-        setCode(SAMPLE_CODES[sample])
+    const handleSampleChange = (type) => {
+        setSelectedSample(type)
+        setSelectedSampleIndex(0)
+        setCode(SAMPLE_CODES[type][0].code)
+    }
+
+    const handleSampleIndexChange = (index) => {
+        setSelectedSampleIndex(index)
+        setCode(SAMPLE_CODES[selectedSample][index].code)
     }
 
     // 줌/패닝 이벤트 핸들러
@@ -591,32 +896,41 @@ export default function MermaidPage() {
             {/* 샘플 선택 */}
             <Paper elevation={1} sx={{p: 2, mb: 2}}>
                 <Typography variant="subtitle2" sx={{mb: 1}}>샘플 다이어그램</Typography>
-                <ButtonGroup size="small" variant="outlined">
-                    <Button
-                        variant={selectedSample === 'flowchart' ? 'contained' : 'outlined'}
-                        onClick={() => handleSampleChange('flowchart')}
+                <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5}}>
+                    {[
+                        {key: 'flowchart', label: 'Flowchart'},
+                        {key: 'sequence', label: 'Sequence'},
+                        {key: 'classDiagram', label: 'Class'},
+                        {key: 'erDiagram', label: 'ER Diagram'},
+                        {key: 'blockDiagram', label: 'Block'},
+                        {key: 'stateDiagram', label: 'State'},
+                    ].map(({key, label}) => (
+                        <Chip
+                            key={key}
+                            label={label}
+                            onClick={() => handleSampleChange(key)}
+                            color={selectedSample === key ? 'primary' : 'default'}
+                            variant={selectedSample === key ? 'filled' : 'outlined'}
+                            sx={{
+                                fontWeight: selectedSample === key ? 600 : 400,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                            }}
+                        />
+                    ))}
+                </Box>
+                <FormControl size="small" sx={{minWidth: 220}}>
+                    <InputLabel>샘플</InputLabel>
+                    <Select
+                        value={selectedSampleIndex}
+                        label="샘플"
+                        onChange={(e) => handleSampleIndexChange(e.target.value)}
                     >
-                        Flowchart
-                    </Button>
-                    <Button
-                        variant={selectedSample === 'sequence' ? 'contained' : 'outlined'}
-                        onClick={() => handleSampleChange('sequence')}
-                    >
-                        Sequence
-                    </Button>
-                    <Button
-                        variant={selectedSample === 'classDiagram' ? 'contained' : 'outlined'}
-                        onClick={() => handleSampleChange('classDiagram')}
-                    >
-                        Class
-                    </Button>
-                    <Button
-                        variant={selectedSample === 'erDiagram' ? 'contained' : 'outlined'}
-                        onClick={() => handleSampleChange('erDiagram')}
-                    >
-                        ER Diagram
-                    </Button>
-                </ButtonGroup>
+                        {SAMPLE_CODES[selectedSample].map((sample, index) => (
+                            <MenuItem key={index} value={index}>{sample.name}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
             </Paper>
 
             <Grid container spacing={2}>
@@ -706,7 +1020,7 @@ export default function MermaidPage() {
                 <Typography variant="subtitle2" sx={{mb: 1}}>Mermaid 문법 참고</Typography>
                 <Typography variant="body2" color="text.secondary">
                     Mermaid는 텍스트 기반으로 다이어그램을 생성하는 도구입니다.
-                    Flowchart, Sequence Diagram, Class Diagram, ER Diagram 등 다양한 다이어그램을 지원합니다.
+                    Flowchart, Sequence Diagram, Class Diagram, ER Diagram, Block Diagram, State Diagram 등 다양한 다이어그램을 지원합니다.
                     자세한 문법은{' '}
                     <a href="https://mermaid.js.org/syntax/flowchart.html" target="_blank" rel="noopener noreferrer">
                         Mermaid 공식 문서

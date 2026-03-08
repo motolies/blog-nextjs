@@ -43,26 +43,36 @@ docker push --all-tags docker.hvy.kr/blog-front
 
 ## 실행
 
+`output: 'standalone'` 빌드는 컨테이너 런타임의 `BLOG_URL_PROD`를 읽습니다.
+또한 `blogfront`와 `blogback`은 같은 사용자 정의 Docker 네트워크에 연결되어 있어야 `http://blogback:8080`이 해석됩니다.
 
 ```shell
 # 삭제
 docker rm -f blogfront
 
 
+# 네트워크(최초 1회)
+docker network create prod_back_network
+
+
 # 실행(테스트용)
 docker run -d --restart=unless-stopped \
 --pull always \
+-e BLOG_URL_PROD=http://blogback:8080 \
+--network prod_back_network \
 -p 3000:3000 \
---link blogback \
 --name blogfront docker.hvy.kr/blog-front
 
 # 실행(테스트용 - windows)
-docker run -d --restart=unless-stopped --pull always -p 3000:3000 --name blogfront docker.hvy.kr/blog-front
+docker run -d --restart=unless-stopped --pull always -e BLOG_URL_PROD=http://host.docker.internal:9090 -p 3000:3000 --name blogfront docker.hvy.kr/blog-front
 
 # 실행(프로덕션)
 docker run -d --restart=unless-stopped \
 --pull always \
+-e BLOG_URL_PROD=http://blogback:8080 \
+--network prod_back_network \
 -p 3000:3000 \
---link blogback \
 --name blogfront docker.hvy.kr/blog-front
 ```
+
+`blogback` 컨테이너도 동일하게 `prod_back_network`에 붙어 있어야 합니다.

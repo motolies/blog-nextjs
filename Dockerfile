@@ -14,6 +14,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY package*.json ./
 COPY next.config.js ./
+COPY tsconfig.json next-env.d.ts postcss.config.mjs ./
 COPY src ./src
 COPY public ./public
 #RUN yarn build

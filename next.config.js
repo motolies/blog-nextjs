@@ -1,5 +1,5 @@
-// process.env.BLOG_URL_DEV ||= 'http://localhost:9090'
-process.env.BLOG_URL_DEV ||= 'https://api.hvy.kr'
+process.env.BLOG_URL_DEV ||= 'http://localhost:9090'
+// process.env.BLOG_URL_DEV ||= 'https://api.hvy.kr'
 process.env.BLOG_URL_PROD ||= 'http://blogback:8080'
 process.env.META_URL ||= 'https://hvy.kr'
 process.env.JIRA_BROWSE_URL ||= 'https://deleokorea.atlassian.net/browse'

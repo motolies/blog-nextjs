@@ -10,8 +10,8 @@ const relatedLinks = [
     icon: FolderTree,
   },
   {
-    href: '/admin/common-code',
-    label: '공통코드 관리',
+    href: '/admin/master-code',
+    label: '마스터코드 관리',
     description: '태그 확장에 필요한 공통 값 체계를 점검합니다.',
     icon: PanelsTopLeft,
   },

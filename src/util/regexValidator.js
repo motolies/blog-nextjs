@@ -151,50 +151,60 @@ export const detectLanguageFeatures = (pattern) => {
  */
 export const analyzeCompatibility = (pattern, targetLanguage) => {
   if (!pattern) {
-    return { isJsCompatible: true, warnings: [], detectedFeatures: [] }
+    return {
+      isJsCompatible: true,
+      canRunInBrowser: true,
+      canConvert: false,
+      convertedPattern: '',
+      warnings: [],
+      detectedFeatures: []
+    }
   }
 
   const detectedFeatures = detectLanguageFeatures(pattern)
   const warnings = []
-  let isJsCompatible = true
-  let canConvert = true
+  let canRunInBrowser = true
+  let canConvert = false
   let convertedPattern = pattern
 
   // JavaScript 비호환 기능 검사
   const jsUnsupported = LANGUAGE_FEATURES.javascript.unsupported
 
   Object.entries(detectedFeatures).forEach(([featureKey, featureData]) => {
-    if (jsUnsupported.includes(featureKey)) {
-      if (featureKey === 'pythonNamedGroups') {
-        // Python named groups는 JavaScript로 변환 가능
-        warnings.push({
-          type: 'conversion',
-          feature: featureData.name,
-          message: `${featureData.name}은 JavaScript 형식 (?<name>...)으로 변환됩니다.`,
-          severity: 'info'
-        })
-        convertedPattern = convertPythonToJsPattern(pattern)
-      } else if (featureKey === 'inlineModifiers') {
-        // 인라인 수정자는 플래그로 대체 가능한 경우도 있음
-        warnings.push({
-          type: 'unsupported',
-          feature: featureData.name,
-          message: `${featureData.name}은 JavaScript에서 지원되지 않습니다. 플래그로 대체하세요.`,
-          severity: 'warning'
-        })
-        isJsCompatible = false
-        canConvert = false
-      } else {
-        warnings.push({
-          type: 'unsupported',
-          feature: featureData.name,
-          message: `${featureData.name}은 JavaScript에서 지원되지 않습니다. (${featureData.supportedIn.join(', ')}에서만 지원)`,
-          severity: 'error'
-        })
-        isJsCompatible = false
-        canConvert = false
-      }
+    if (featureKey === 'pythonNamedGroups') {
+      warnings.push({
+        type: 'conversion',
+        feature: featureData.name,
+        message: `${featureData.name}은 JavaScript 형식 (?<name>...)으로 변환되어 브라우저에서 실행됩니다.`,
+        severity: 'info'
+      })
+      convertedPattern = convertPythonToJsPattern(pattern)
+      canConvert = true
+      return
     }
+
+    if (!jsUnsupported.includes(featureKey)) {
+      return
+    }
+
+    if (featureKey === 'inlineModifiers') {
+      warnings.push({
+        type: 'unsupported',
+        feature: featureData.name,
+        message: `${featureData.name}은 JavaScript에서 직접 실행되지 않습니다. 플래그로 대체하세요.`,
+        severity: 'warning'
+      })
+      canRunInBrowser = false
+      return
+    }
+
+    warnings.push({
+      type: 'unsupported',
+      feature: featureData.name,
+      message: `${featureData.name}은 JavaScript에서 지원되지 않습니다. (${featureData.supportedIn.join(', ')}에서만 지원)`,
+      severity: 'error'
+    })
+    canRunInBrowser = false
   })
 
   // 대상 언어에서 지원되지 않는 기능 검사
@@ -214,7 +224,8 @@ export const analyzeCompatibility = (pattern, targetLanguage) => {
   }
 
   return {
-    isJsCompatible,
+    isJsCompatible: canRunInBrowser && !canConvert,
+    canRunInBrowser,
     canConvert,
     convertedPattern,
     warnings,

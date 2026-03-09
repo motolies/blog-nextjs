@@ -2,6 +2,6 @@
     position: relative;
     z-index: 1;
     width: 100%;
-    min-height: calc(100vh - 4rem);
+    min-height: calc(100vh - 4.5rem);
     padding: 0 0 5rem;
 }

@@ -8,6 +8,30 @@ import {ArrowUpDown, ArrowLeft, Copy} from 'lucide-react'
 import {toast} from 'sonner'
 import {useRouter} from 'next/router'
 import {format} from 'date-fns'
+import {copyTextToClipboard} from '../../util/browserUtils'
+import {
+    decodeBase64Utf8,
+    decodeJwtToken,
+    decodeUnicodeEscapes,
+    encodeBase64Utf8,
+    encodeUnicodeEscapes,
+    formatJsonText,
+    minifyJsonText
+} from '../../util/encodeUtils'
+
+function CopyButton({value, onCopy}) {
+    return (
+        <button
+            onClick={() => void onCopy(value)}
+            className="absolute right-2 top-2 p-1 rounded hover:bg-gray-100"
+            title="복사"
+        >
+            <Copy className="h-4 w-4 text-gray-500"/>
+        </button>
+    )
+}
+
+const TEXTAREA_MIN_HEIGHT_CLASS = 'min-h-[15rem] resize-y'
 
 const ENCODING_TYPES = [
     {id: 'base64', label: 'Base64', bidirectional: true},
@@ -53,13 +77,18 @@ export default function EncodePage() {
         setJwtExpiry(null)
     }, [tabValue])
 
-    const handleCopy = (text) => {
+    const handleCopy = async (text) => {
         if (!text) {
             toast.warning('복사할 내용이 없습니다.')
             return
         }
-        navigator.clipboard.writeText(text)
-        toast.success('클립보드에 복사되었습니다.')
+
+        try {
+            await copyTextToClipboard(text)
+            toast.success('클립보드에 복사되었습니다.')
+        } catch (e) {
+            toast.error(e.message || '클립보드 복사에 실패했습니다.')
+        }
     }
 
     const handleSwap = () => {
@@ -70,18 +99,20 @@ export default function EncodePage() {
 
     const encodeBase64 = () => {
         try {
-            setOutput(btoa(unescape(encodeURIComponent(input))))
+            setOutput(encodeBase64Utf8(input))
             toast.success('Base64 인코딩 완료')
         } catch (e) {
+            setOutput('')
             toast.error('인코딩 실패: ' + e.message)
         }
     }
 
     const decodeBase64 = () => {
         try {
-            setOutput(decodeURIComponent(escape(atob(input))))
+            setOutput(decodeBase64Utf8(input))
             toast.success('Base64 디코딩 완료')
         } catch (e) {
+            setOutput('')
             toast.error('디코딩 실패: 유효하지 않은 Base64 문자열')
         }
     }
@@ -91,6 +122,7 @@ export default function EncodePage() {
             setOutput(encodeURIComponent(input))
             toast.success('URL 인코딩 완료')
         } catch (e) {
+            setOutput('')
             toast.error('인코딩 실패: ' + e.message)
         }
     }
@@ -100,6 +132,7 @@ export default function EncodePage() {
             setOutput(decodeURIComponent(input))
             toast.success('URL 디코딩 완료')
         } catch (e) {
+            setOutput('')
             toast.error('디코딩 실패: 유효하지 않은 URL 인코딩')
         }
     }
@@ -109,6 +142,7 @@ export default function EncodePage() {
             setOutput(input.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'))
             toast.success('HTML 인코딩 완료')
         } catch (e) {
+            setOutput('')
             toast.error('인코딩 실패: ' + e.message)
         }
     }
@@ -118,24 +152,27 @@ export default function EncodePage() {
             setOutput(input.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&#39;/g, "'"))
             toast.success('HTML 디코딩 완료')
         } catch (e) {
+            setOutput('')
             toast.error('디코딩 실패: ' + e.message)
         }
     }
 
     const encodeUnicode = () => {
         try {
-            setOutput(Array.from(input).map(char => '\\u' + char.charCodeAt(0).toString(16).padStart(4, '0')).join(''))
+            setOutput(encodeUnicodeEscapes(input))
             toast.success('Unicode 인코딩 완료')
         } catch (e) {
+            setOutput('')
             toast.error('인코딩 실패: ' + e.message)
         }
     }
 
     const decodeUnicode = () => {
         try {
-            setOutput(input.replace(/\\u([0-9a-fA-F]{4})/g, (match, hex) => String.fromCharCode(parseInt(hex, 16))))
+            setOutput(decodeUnicodeEscapes(input))
             toast.success('Unicode 디코딩 완료')
         } catch (e) {
+            setOutput('')
             toast.error('디코딩 실패: 유효하지 않은 Unicode 문자열')
         }
     }
@@ -146,6 +183,7 @@ export default function EncodePage() {
             setOutput(CryptoJS.MD5(input).toString())
             toast.success('MD5 해시 생성 완료')
         } catch (e) {
+            setOutput('')
             toast.error('해시 생성 실패: ' + e.message)
         }
     }
@@ -156,23 +194,14 @@ export default function EncodePage() {
             setOutput(CryptoJS.SHA256(input).toString())
             toast.success('SHA-256 해시 생성 완료')
         } catch (e) {
+            setOutput('')
             toast.error('해시 생성 실패: ' + e.message)
         }
     }
 
     const decodeJwt = () => {
         try {
-            const parts = input.split('.')
-            if (parts.length !== 3) throw new Error('유효하지 않은 JWT 형식입니다. (header.payload.signature)')
-
-            const base64UrlDecode = (str) => {
-                const base64 = str.replace(/-/g, '+').replace(/_/g, '/')
-                const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=')
-                return decodeURIComponent(escape(atob(padded)))
-            }
-
-            const header = JSON.parse(base64UrlDecode(parts[0]))
-            const payload = JSON.parse(base64UrlDecode(parts[1]))
+            const {header, payload} = decodeJwtToken(input)
 
             setJwtHeader(JSON.stringify(header, null, 2))
             setJwtPayload(JSON.stringify(payload, null, 2))
@@ -197,40 +226,32 @@ export default function EncodePage() {
 
     const formatJson = () => {
         try {
-            setOutput(JSON.stringify(JSON.parse(input), null, 2))
+            setOutput(formatJsonText(input))
             toast.success('JSON 포맷팅 완료')
         } catch (e) {
+            setOutput('')
             toast.error('JSON 파싱 실패: ' + e.message)
         }
     }
 
     const minifyJson = () => {
         try {
-            setOutput(JSON.stringify(JSON.parse(input)))
+            setOutput(minifyJsonText(input))
             toast.success('JSON 압축 완료')
         } catch (e) {
+            setOutput('')
             toast.error('JSON 파싱 실패: ' + e.message)
         }
     }
 
-    const CopyButton = ({value}) => (
-        <button
-            onClick={() => handleCopy(value)}
-            className="absolute right-2 top-2 p-1 rounded hover:bg-gray-100"
-            title="복사"
-        >
-            <Copy className="h-4 w-4 text-gray-500"/>
-        </button>
-    )
-
-    const BidirectionalPanel = ({encodeFn, decodeFn, inputPlaceholder, outputLabel, isMonospace = false}) => (
+    const renderBidirectionalPanel = ({encodeFn, decodeFn, inputPlaceholder, outputLabel, isMonospace = false}) => (
         <div className="space-y-3">
             <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={inputPlaceholder}
-                rows={4}
-                className="font-mono text-sm"
+                rows={10}
+                className={`${TEXTAREA_MIN_HEIGHT_CLASS} font-mono text-sm`}
             />
             <div className="flex gap-2 justify-center items-center">
                 <Button onClick={encodeFn}>Encode</Button>
@@ -243,11 +264,11 @@ export default function EncodePage() {
                 <Textarea
                     value={output}
                     readOnly
-                    rows={4}
-                    className={`pr-8 ${isMonospace ? 'font-mono text-sm' : ''}`}
+                    rows={10}
+                    className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 ${isMonospace ? 'font-mono text-sm' : ''}`}
                     placeholder={outputLabel}
                 />
-                <CopyButton value={output}/>
+                <CopyButton value={output} onCopy={handleCopy}/>
             </div>
         </div>
     )
@@ -276,42 +297,42 @@ export default function EncodePage() {
                     <div className="p-4">
                         {/* Base64 */}
                         <TabsContent value="base64">
-                            <BidirectionalPanel
-                                encodeFn={encodeBase64}
-                                decodeFn={decodeBase64}
-                                inputPlaceholder="인코딩/디코딩할 텍스트를 입력하세요"
-                                outputLabel="출력"
-                            />
+                            {renderBidirectionalPanel({
+                                encodeFn: encodeBase64,
+                                decodeFn: decodeBase64,
+                                inputPlaceholder: '인코딩/디코딩할 텍스트를 입력하세요',
+                                outputLabel: '출력'
+                            })}
                         </TabsContent>
 
                         {/* URL */}
                         <TabsContent value="url">
-                            <BidirectionalPanel
-                                encodeFn={encodeUrl}
-                                decodeFn={decodeUrl}
-                                inputPlaceholder="URL 인코딩/디코딩할 텍스트를 입력하세요"
-                                outputLabel="출력"
-                            />
+                            {renderBidirectionalPanel({
+                                encodeFn: encodeUrl,
+                                decodeFn: decodeUrl,
+                                inputPlaceholder: 'URL 인코딩/디코딩할 텍스트를 입력하세요',
+                                outputLabel: '출력'
+                            })}
                         </TabsContent>
 
                         {/* HTML */}
                         <TabsContent value="html">
-                            <BidirectionalPanel
-                                encodeFn={encodeHtml}
-                                decodeFn={decodeHtml}
-                                inputPlaceholder="HTML 인코딩/디코딩할 텍스트를 입력하세요"
-                                outputLabel="출력"
-                            />
+                            {renderBidirectionalPanel({
+                                encodeFn: encodeHtml,
+                                decodeFn: decodeHtml,
+                                inputPlaceholder: 'HTML 인코딩/디코딩할 텍스트를 입력하세요',
+                                outputLabel: '출력'
+                            })}
                         </TabsContent>
 
                         {/* Unicode */}
                         <TabsContent value="unicode">
-                            <BidirectionalPanel
-                                encodeFn={encodeUnicode}
-                                decodeFn={decodeUnicode}
-                                inputPlaceholder="Unicode 인코딩: 일반 텍스트, 디코딩: \u0048\u0065\u006c\u006c\u006f"
-                                outputLabel="출력"
-                            />
+                            {renderBidirectionalPanel({
+                                encodeFn: encodeUnicode,
+                                decodeFn: decodeUnicode,
+                                inputPlaceholder: 'Unicode 인코딩: 일반 텍스트, 디코딩: \\u0048\\u0065\\u006c\\u006c\\u006f',
+                                outputLabel: '출력'
+                            })}
                         </TabsContent>
 
                         {/* MD5 */}
@@ -321,7 +342,8 @@ export default function EncodePage() {
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     placeholder="해시할 텍스트를 입력하세요"
-                                    rows={4}
+                                    rows={10}
+                                    className={TEXTAREA_MIN_HEIGHT_CLASS}
                                 />
                                 <div className="flex justify-center">
                                     <Button onClick={hashMd5}>MD5 해시 생성</Button>
@@ -333,7 +355,7 @@ export default function EncodePage() {
                                         placeholder="MD5 해시 (32자)"
                                         className="pr-8 font-mono"
                                     />
-                                    <CopyButton value={output}/>
+                                    <CopyButton value={output} onCopy={handleCopy}/>
                                 </div>
                             </div>
                         </TabsContent>
@@ -345,7 +367,8 @@ export default function EncodePage() {
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     placeholder="해시할 텍스트를 입력하세요"
-                                    rows={4}
+                                    rows={10}
+                                    className={TEXTAREA_MIN_HEIGHT_CLASS}
                                 />
                                 <div className="flex justify-center">
                                     <Button onClick={hashSha256}>SHA-256 해시 생성</Button>
@@ -357,7 +380,7 @@ export default function EncodePage() {
                                         placeholder="SHA-256 해시 (64자)"
                                         className="pr-8 font-mono"
                                     />
-                                    <CopyButton value={output}/>
+                                    <CopyButton value={output} onCopy={handleCopy}/>
                                 </div>
                             </div>
                         </TabsContent>
@@ -368,9 +391,9 @@ export default function EncodePage() {
                                 <Textarea
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
-                                    rows={3}
+                                    rows={10}
                                     placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                                    className="font-mono text-xs"
+                                    className={`${TEXTAREA_MIN_HEIGHT_CLASS} font-mono text-xs`}
                                 />
                                 <div className="flex justify-center">
                                     <Button onClick={decodeJwt}>JWT 디코딩</Button>
@@ -380,13 +403,13 @@ export default function EncodePage() {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             <div className="relative">
                                                 <label className="text-xs text-gray-500 mb-1 block">Header</label>
-                                                <Textarea value={jwtHeader} readOnly rows={5} className="pr-8 font-mono text-xs"/>
-                                                <CopyButton value={jwtHeader}/>
+                                                <Textarea value={jwtHeader} readOnly rows={10} className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 font-mono text-xs`}/>
+                                                <CopyButton value={jwtHeader} onCopy={handleCopy}/>
                                             </div>
                                             <div className="relative">
                                                 <label className="text-xs text-gray-500 mb-1 block">Payload</label>
-                                                <Textarea value={jwtPayload} readOnly rows={5} className="pr-8 font-mono text-xs"/>
-                                                <CopyButton value={jwtPayload}/>
+                                                <Textarea value={jwtPayload} readOnly rows={10} className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 font-mono text-xs`}/>
+                                                <CopyButton value={jwtPayload} onCopy={handleCopy}/>
                                             </div>
                                         </div>
                                         {jwtExpiry && (
@@ -409,9 +432,9 @@ export default function EncodePage() {
                                 <Textarea
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
-                                    rows={6}
+                                    rows={10}
                                     placeholder={'{"name":"John","age":30}'}
-                                    className="font-mono text-xs"
+                                    className={`${TEXTAREA_MIN_HEIGHT_CLASS} font-mono text-xs`}
                                 />
                                 <div className="flex gap-2 justify-center items-center">
                                     <Button onClick={formatJson}>포맷팅 (Beautify)</Button>
@@ -421,8 +444,8 @@ export default function EncodePage() {
                                     </Button>
                                 </div>
                                 <div className="relative">
-                                    <Textarea value={output} readOnly rows={6} className="pr-8 font-mono text-xs"/>
-                                    <CopyButton value={output}/>
+                                    <Textarea value={output} readOnly rows={10} className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 font-mono text-xs`}/>
+                                    <CopyButton value={output} onCopy={handleCopy}/>
                                 </div>
                             </div>
                         </TabsContent>

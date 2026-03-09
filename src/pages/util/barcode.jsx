@@ -7,6 +7,7 @@ import {Select, SelectTrigger, SelectValue, SelectContent, SelectItem} from '../
 import {Download, ArrowLeft} from 'lucide-react'
 import {toast} from 'sonner'
 import {useRouter} from 'next/router'
+import {downloadBlob, downloadDataUrl} from '../../util/browserUtils'
 
 const BARCODE_FORMATS = [
     {value: 'CODE128', label: 'CODE128', description: '모든 ASCII 문자 지원', example: 'ABC-12345'},
@@ -47,7 +48,13 @@ export default function BarcodePage() {
     }, [])
 
     const renderBarcode = useCallback(async () => {
-        if (!isClient || !barcodeSvgRef.current || !barcodeText.trim()) return
+        if (!isClient || !barcodeSvgRef.current) return
+
+        if (!barcodeText.trim()) {
+            barcodeSvgRef.current.innerHTML = ''
+            return
+        }
+
         try {
             const JsBarcode = (await import('jsbarcode')).default
             JsBarcode(barcodeSvgRef.current, barcodeText, {
@@ -68,7 +75,15 @@ export default function BarcodePage() {
     }, [isClient, barcodeText, barcodeFormat, barcodeWidth, barcodeHeight, displayValue])
 
     const renderQrCode = useCallback(async () => {
-        if (!isClient || !qrCanvasRef.current || !qrText.trim()) return
+        if (!isClient || !qrCanvasRef.current) return
+
+        const context = qrCanvasRef.current.getContext('2d')
+        context?.clearRect(0, 0, qrCanvasRef.current.width, qrCanvasRef.current.height)
+
+        if (!qrText.trim()) {
+            return
+        }
+
         try {
             const QRCode = (await import('qrcode')).default
             await QRCode.toCanvas(qrCanvasRef.current, qrText, {
@@ -109,10 +124,7 @@ export default function BarcodePage() {
             const svgElement = barcodeSvgRef.current
             if (!svgElement) { toast.warning('바코드를 먼저 생성해주세요.'); return }
             const dataUrl = await toPng(svgElement, {backgroundColor: 'white', pixelRatio: 2})
-            const link = document.createElement('a')
-            link.download = `barcode-${barcodeFormat}-${Date.now()}.png`
-            link.href = dataUrl
-            link.click()
+            downloadDataUrl(dataUrl, `barcode-${barcodeFormat}-${Date.now()}.png`)
             toast.success('PNG 다운로드 완료')
         } catch (e) {
             toast.error('다운로드 실패: ' + e.message)
@@ -123,25 +135,24 @@ export default function BarcodePage() {
         const svgElement = barcodeSvgRef.current
         if (!svgElement) { toast.warning('바코드를 먼저 생성해주세요.'); return }
         const svgData = new XMLSerializer().serializeToString(svgElement)
-        const blob = new Blob([svgData], {type: 'image/svg+xml'})
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.download = `barcode-${barcodeFormat}-${Date.now()}.svg`
-        link.href = url
-        link.click()
-        URL.revokeObjectURL(url)
-        toast.success('SVG 다운로드 완료')
+        try {
+            downloadBlob(new Blob([svgData], {type: 'image/svg+xml'}), `barcode-${barcodeFormat}-${Date.now()}.svg`)
+            toast.success('SVG 다운로드 완료')
+        } catch (e) {
+            toast.error('다운로드 실패: ' + e.message)
+        }
     }
 
     const downloadQrPng = () => {
         const canvas = qrCanvasRef.current
         if (!canvas) { toast.warning('QR 코드를 먼저 생성해주세요.'); return }
         const dataUrl = canvas.toDataURL('image/png')
-        const link = document.createElement('a')
-        link.download = `qrcode-${Date.now()}.png`
-        link.href = dataUrl
-        link.click()
-        toast.success('PNG 다운로드 완료')
+        try {
+            downloadDataUrl(dataUrl, `qrcode-${Date.now()}.png`)
+            toast.success('PNG 다운로드 완료')
+        } catch (e) {
+            toast.error('다운로드 실패: ' + e.message)
+        }
     }
 
     const downloadQrSvg = async () => {
@@ -152,13 +163,7 @@ export default function BarcodePage() {
                 errorCorrectionLevel: qrErrorLevel,
                 color: {dark: '#000000', light: '#ffffff'}
             })
-            const blob = new Blob([svgString], {type: 'image/svg+xml'})
-            const url = URL.createObjectURL(blob)
-            const link = document.createElement('a')
-            link.download = `qrcode-${Date.now()}.svg`
-            link.href = url
-            link.click()
-            URL.revokeObjectURL(url)
+            downloadBlob(new Blob([svgString], {type: 'image/svg+xml'}), `qrcode-${Date.now()}.svg`)
             toast.success('SVG 다운로드 완료')
         } catch (e) {
             toast.error('다운로드 실패: ' + e.message)

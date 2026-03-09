@@ -1,10 +1,12 @@
 import {useState, useEffect, useRef, useCallback} from 'react'
+import {createPortal} from 'react-dom'
 import {Button} from '../../components/ui/button'
 import {Input} from '../../components/ui/input'
 import {Select, SelectTrigger, SelectValue, SelectContent, SelectItem} from '../../components/ui/select'
 import {Download, ArrowLeft, ZoomIn, ZoomOut, Crosshair, Maximize, Minimize, Eye, EyeOff} from 'lucide-react'
 import {toast} from 'sonner'
 import {useRouter} from 'next/router'
+import {downloadBlob, downloadDataUrl} from '../../util/browserUtils'
 
 const SAMPLE_CODES = {
     flowchart: [
@@ -418,6 +420,7 @@ export default function MermaidPage() {
     const [customHeight, setCustomHeight] = useState(1080)
     const [error, setError] = useState(null)
     const [isClient, setIsClient] = useState(false)
+    const [isMermaidReady, setIsMermaidReady] = useState(false)
     const [selectedSample, setSelectedSample] = useState('flowchart')
     const [selectedSampleIndex, setSelectedSampleIndex] = useState(0)
 
@@ -429,7 +432,21 @@ export default function MermaidPage() {
     const [isEditorVisible, setIsEditorVisible] = useState(true)
 
     const previewRef = useRef(null)
+    const fullscreenPreviewRef = useRef(null)
     const mermaidRef = useRef(null)
+    const renderRequestIdRef = useRef(0)
+
+    const applyPreviewTransform = useCallback((container) => {
+        const svg = container?.querySelector('svg')
+
+        if (!svg) {
+            return
+        }
+
+        svg.style.transform = `scale(${previewZoom}) translate(${panOffset.x / previewZoom}px, ${panOffset.y / previewZoom}px)`
+        svg.style.transformOrigin = 'center center'
+        svg.style.transition = isDragging ? 'none' : 'transform 0.1s ease-out'
+    }, [isDragging, panOffset.x, panOffset.y, previewZoom])
 
     useEffect(() => { setIsClient(true) }, [])
 
@@ -440,7 +457,7 @@ export default function MermaidPage() {
                 const mermaid = (await import('mermaid')).default
                 mermaidRef.current = mermaid
                 mermaid.initialize({startOnLoad: false, theme: 'default', securityLevel: 'loose', fontFamily: 'D2Coding, monospace'})
-                renderDiagram()
+                setIsMermaidReady(true)
             } catch (e) {
                 setError('Mermaid 초기화에 실패했습니다.')
             }
@@ -448,58 +465,71 @@ export default function MermaidPage() {
         initMermaid()
     }, [isClient])
 
-    useEffect(() => {
-        if (!mermaidRef.current) return
-        const timer = setTimeout(() => renderDiagram(), 300)
-        return () => clearTimeout(timer)
-    }, [code])
+    const renderDiagram = useCallback(async (container) => {
+        if (!mermaidRef.current || !container) return
 
-    useEffect(() => {
-        if (!mermaidRef.current) return
-        const timer = setTimeout(() => renderDiagram(), 50)
-        return () => clearTimeout(timer)
-    }, [isFullscreen])
-
-    // SVG transform 적용
-    useEffect(() => {
-        const svg = previewRef.current?.querySelector('svg')
-        if (svg) {
-            svg.style.transform = `scale(${previewZoom}) translate(${panOffset.x / previewZoom}px, ${panOffset.y / previewZoom}px)`
-            svg.style.transformOrigin = 'center center'
-            svg.style.transition = isDragging ? 'none' : 'transform 0.1s ease-out'
-        }
-    }, [previewZoom, panOffset, isDragging])
-
-    const renderDiagram = useCallback(async () => {
-        if (!mermaidRef.current || !previewRef.current) return
+        const requestId = ++renderRequestIdRef.current
         const trimmedCode = code.trim()
+
         if (!trimmedCode) {
-            previewRef.current.innerHTML = ''
-            setError(null)
+            if (container.isConnected) {
+                container.innerHTML = ''
+            }
+            if (requestId === renderRequestIdRef.current) {
+                setError(null)
+            }
             return
         }
+
         try {
             await mermaidRef.current.parse(trimmedCode)
-            previewRef.current.innerHTML = ''
             const id = `mermaid-${Date.now()}`
             const {svg} = await mermaidRef.current.render(id, trimmedCode)
-            previewRef.current.innerHTML = svg
+
+            if (requestId !== renderRequestIdRef.current || !container.isConnected) {
+                return
+            }
+
+            container.innerHTML = svg
+            applyPreviewTransform(container)
             setError(null)
         } catch (e) {
+            if (requestId !== renderRequestIdRef.current || !container.isConnected) {
+                return
+            }
+
             let errorMsg = e.message || 'Mermaid 문법 오류'
             errorMsg = errorMsg.replace(/💣/g, '').replace(/Syntax error in text\s*/gi, '')
             if (errorMsg.includes('No diagram type detected')) {
                 errorMsg = '다이어그램 타입을 인식할 수 없습니다. flowchart, sequenceDiagram 등으로 시작해주세요.'
             }
             setError(errorMsg.trim() || '문법 오류')
-            previewRef.current.innerHTML = ''
+            container.innerHTML = ''
         }
-    }, [code])
+    }, [applyPreviewTransform, code])
+
+    useEffect(() => {
+        if (!mermaidRef.current || !isMermaidReady) return
+
+        const target = isFullscreen ? fullscreenPreviewRef.current : previewRef.current
+        if (!target) return
+
+        const timer = setTimeout(() => {
+            void renderDiagram(target)
+        }, isFullscreen ? 80 : 300)
+
+        return () => clearTimeout(timer)
+    }, [code, isFullscreen, isMermaidReady, renderDiagram])
+
+    useEffect(() => {
+        const target = isFullscreen ? fullscreenPreviewRef.current : previewRef.current
+        applyPreviewTransform(target)
+    }, [applyPreviewTransform, isFullscreen])
 
     const downloadPng = async () => {
         try {
             const {toPng} = await import('html-to-image')
-            const svgElement = previewRef.current?.querySelector('svg')
+            const svgElement = (isFullscreen ? fullscreenPreviewRef.current : previewRef.current)?.querySelector('svg')
             if (!svgElement) { toast.warning('다이어그램을 먼저 생성해주세요.'); return }
             let options = {backgroundColor: 'white'}
             if (scaleMode === 'ratio') {
@@ -511,10 +541,7 @@ export default function MermaidPage() {
                 options.pixelRatio = Math.min(scaleX, scaleY)
             }
             const dataUrl = await toPng(svgElement, options)
-            const link = document.createElement('a')
-            link.download = `mermaid-diagram-${Date.now()}.png`
-            link.href = dataUrl
-            link.click()
+            downloadDataUrl(dataUrl, `mermaid-diagram-${Date.now()}.png`)
             toast.success('PNG 다운로드 완료')
         } catch (e) {
             toast.error('다운로드 실패: ' + e.message)
@@ -522,17 +549,15 @@ export default function MermaidPage() {
     }
 
     const downloadSvg = () => {
-        const svgElement = previewRef.current?.querySelector('svg')
+        const svgElement = (isFullscreen ? fullscreenPreviewRef.current : previewRef.current)?.querySelector('svg')
         if (!svgElement) { toast.warning('다이어그램을 먼저 생성해주세요.'); return }
         const svgData = new XMLSerializer().serializeToString(svgElement)
-        const blob = new Blob([svgData], {type: 'image/svg+xml'})
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.download = `mermaid-diagram-${Date.now()}.svg`
-        link.href = url
-        link.click()
-        URL.revokeObjectURL(url)
-        toast.success('SVG 다운로드 완료')
+        try {
+            downloadBlob(new Blob([svgData], {type: 'image/svg+xml'}), `mermaid-diagram-${Date.now()}.svg`)
+            toast.success('SVG 다운로드 완료')
+        } catch (e) {
+            toast.error('다운로드 실패: ' + e.message)
+        }
     }
 
     const handleSampleChange = (type) => {
@@ -646,151 +671,156 @@ export default function MermaidPage() {
         </div>
     )
 
-    const previewAreaProps = {
+    const previewInteractionProps = {
         onWheel: handleWheel,
         onMouseDown: handleMouseDown,
         onMouseMove: handleMouseMove,
         onMouseUp: handleMouseUp,
-        onMouseLeave: handleMouseUp,
-        className: `flex-1 overflow-hidden flex justify-center items-center bg-gray-50 rounded border ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`
+        onMouseLeave: handleMouseUp
     }
-
-    // 전체화면 모드
-    if (isFullscreen) {
-        return (
-            <div className="fixed inset-0 z-[1200] bg-white flex flex-col">
-                {/* 상단 툴바 */}
-                <div className="p-2 border-b flex justify-between items-center flex-wrap gap-2 bg-white shadow-sm">
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
-                            <Minimize className="h-5 w-5"/>
-                        </Button>
-                        <span className="font-semibold">미리보기</span>
-                        <span className="text-xs text-gray-400">(ESC로 닫기)</span>
-                    </div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <ZoomControls/>
-                        <div className="h-4 border-l"/>
-                        <DownloadControls/>
-                    </div>
-                </div>
-
-                {error && (
-                    <div className="mx-4 mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">{error}</div>
-                )}
-
-                {/* 전체화면 미리보기 */}
-                <div ref={previewRef} {...previewAreaProps} style={{flexGrow: 1, borderRadius: 0, border: 'none'}}/>
-
-                {/* 플로팅 코드 에디터 */}
-                <div
-                    className={`fixed bottom-5 right-5 z-[1300] shadow-2xl rounded-lg overflow-hidden border bg-white transition-all duration-300 ${isEditorVisible ? 'w-[420px]' : 'w-auto'}`}
-                    style={{maxHeight: isEditorVisible ? '45vh' : 'auto'}}
-                >
-                    <div className="flex items-center px-3 py-2 border-b bg-gray-50">
-                        <span className="text-sm font-bold flex-1">코드</span>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsEditorVisible(!isEditorVisible)}>
-                            {isEditorVisible ? <EyeOff className="h-3.5 w-3.5"/> : <Eye className="h-3.5 w-3.5"/>}
-                        </Button>
-                    </div>
-                    {isEditorVisible && (
-                        <textarea
-                            value={code}
-                            onChange={(e) => setCode(e.target.value)}
-                            className="w-full font-mono text-xs p-3 resize-none border-none outline-none"
-                            style={{height: 'calc(45vh - 40px)'}}
-                        />
-                    )}
-                </div>
-            </div>
-        )
-    }
+    const previewAreaClassName = `flex-1 overflow-hidden flex justify-center items-center bg-gray-50 border ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`
 
     // 일반 모드
     return (
-        <div className="p-4">
-            <div className="flex items-center gap-2 mb-4">
-                <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
-                    <ArrowLeft className="h-5 w-5"/>
-                </Button>
-                <h1 className="text-3xl font-bold">Mermaid Editor</h1>
-            </div>
-
-            {/* 샘플 선택 */}
-            <div className="border rounded-md p-3 mb-3">
-                <p className="text-sm font-medium mb-2">샘플 다이어그램</p>
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                    {SAMPLE_TYPES.map(({key, label}) => (
-                        <button
-                            key={key}
-                            onClick={() => handleSampleChange(key)}
-                            className={`text-sm px-3 py-1 rounded-full border transition-all ${selectedSample === key ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'hover:bg-gray-100'}`}
-                        >
-                            {label}
-                        </button>
-                    ))}
+        <>
+            <div className="p-4">
+                <div className="flex items-center gap-2 mb-4">
+                    <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
+                        <ArrowLeft className="h-5 w-5"/>
+                    </Button>
+                    <h1 className="text-3xl font-bold">Mermaid Editor</h1>
                 </div>
-                <Select value={String(selectedSampleIndex)} onValueChange={handleSampleIndexChange}>
-                    <SelectTrigger className="w-56">
-                        <SelectValue/>
-                    </SelectTrigger>
-                    <SelectContent>
-                        {SAMPLE_CODES[selectedSample].map((sample, index) => (
-                            <SelectItem key={index} value={String(index)}>{sample.name}</SelectItem>
+
+                {/* 샘플 선택 */}
+                <div className="border rounded-md p-3 mb-3">
+                    <p className="text-sm font-medium mb-2">샘플 다이어그램</p>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                        {SAMPLE_TYPES.map(({key, label}) => (
+                            <button
+                                key={key}
+                                onClick={() => handleSampleChange(key)}
+                                className={`text-sm px-3 py-1 rounded-full border transition-all ${selectedSample === key ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'hover:bg-gray-100'}`}
+                            >
+                                {label}
+                            </button>
                         ))}
-                    </SelectContent>
-                </Select>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3" style={{height: '65vh'}}>
-                {/* 에디터 영역 */}
-                <div className="border rounded-md p-3 flex flex-col">
-                    <p className="font-semibold mb-2">코드</p>
-                    <textarea
-                        value={code}
-                        onChange={(e) => setCode(e.target.value)}
-                        className="flex-1 w-full font-mono text-sm resize-none border rounded p-2 outline-none focus:ring-1 focus:ring-blue-400"
-                    />
+                    </div>
+                    <Select value={String(selectedSampleIndex)} onValueChange={handleSampleIndexChange}>
+                        <SelectTrigger className="w-56">
+                            <SelectValue/>
+                        </SelectTrigger>
+                        <SelectContent>
+                            {SAMPLE_CODES[selectedSample].map((sample, index) => (
+                                <SelectItem key={index} value={String(index)}>{sample.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
 
-                {/* 프리뷰 영역 */}
-                <div className="border rounded-md p-3 flex flex-col">
-                    {/* 헤더 */}
-                    <div className="flex justify-between items-center mb-2">
-                        <p className="font-semibold">미리보기</p>
-                        <div className="flex items-center gap-1">
-                            <ZoomControls/>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleFullscreen} title="전체화면">
-                                <Maximize className="h-3.5 w-3.5"/>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3" style={{height: '65vh'}}>
+                    {/* 에디터 영역 */}
+                    <div className="border rounded-md p-3 flex flex-col">
+                        <p className="font-semibold mb-2">코드</p>
+                        <textarea
+                            value={code}
+                            onChange={(e) => setCode(e.target.value)}
+                            className="flex-1 w-full font-mono text-sm resize-none border rounded p-2 outline-none focus:ring-1 focus:ring-blue-400"
+                        />
+                    </div>
+
+                    {/* 프리뷰 영역 */}
+                    <div className="border rounded-md p-3 flex flex-col">
+                        {/* 헤더 */}
+                        <div className="flex justify-between items-center mb-2">
+                            <p className="font-semibold">미리보기</p>
+                            <div className="flex items-center gap-1">
+                                <ZoomControls/>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleFullscreen} title="전체화면">
+                                    <Maximize className="h-3.5 w-3.5"/>
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* 다운로드 컨트롤 */}
+                        <div className="flex justify-end mb-2">
+                            <DownloadControls/>
+                        </div>
+
+                        {error && (
+                            <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">{error}</div>
+                        )}
+
+                        <div
+                            ref={previewRef}
+                            {...previewInteractionProps}
+                            className={`${previewAreaClassName} rounded`}
+                        />
+                    </div>
+                </div>
+
+                <div className="mt-4 p-3 bg-gray-100 rounded-md">
+                    <p className="text-sm font-semibold mb-1">Mermaid 문법 참고</p>
+                    <p className="text-sm text-gray-500">
+                        Mermaid는 텍스트 기반으로 다이어그램을 생성하는 도구입니다.
+                        Flowchart, Sequence Diagram, Class Diagram, ER Diagram, Block Diagram, State Diagram 등 다양한 다이어그램을 지원합니다.
+                        자세한 문법은{' '}
+                        <a href="https://mermaid.js.org/syntax/flowchart.html" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                            Mermaid 공식 문서
+                        </a>
+                        를 참고하세요.
+                    </p>
+                </div>
+            </div>
+
+            {isFullscreen && isClient && createPortal(
+                <div className="fixed inset-0 z-[1200] bg-white flex flex-col">
+                    <div className="p-2 border-b flex justify-between items-center flex-wrap gap-2 bg-white shadow-sm">
+                        <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
+                                <Minimize className="h-5 w-5"/>
                             </Button>
+                            <span className="font-semibold">미리보기</span>
+                            <span className="text-xs text-gray-400">(ESC로 닫기)</span>
+                        </div>
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <ZoomControls/>
+                            <div className="h-4 border-l"/>
+                            <DownloadControls/>
                         </div>
                     </div>
 
-                    {/* 다운로드 컨트롤 */}
-                    <div className="flex justify-end mb-2">
-                        <DownloadControls/>
-                    </div>
-
                     {error && (
-                        <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">{error}</div>
+                        <div className="mx-4 mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">{error}</div>
                     )}
 
-                    <div ref={previewRef} {...previewAreaProps}/>
-                </div>
-            </div>
+                    <div
+                        ref={fullscreenPreviewRef}
+                        {...previewInteractionProps}
+                        className={`${previewAreaClassName} border-0 rounded-none`}
+                    />
 
-            <div className="mt-4 p-3 bg-gray-100 rounded-md">
-                <p className="text-sm font-semibold mb-1">Mermaid 문법 참고</p>
-                <p className="text-sm text-gray-500">
-                    Mermaid는 텍스트 기반으로 다이어그램을 생성하는 도구입니다.
-                    Flowchart, Sequence Diagram, Class Diagram, ER Diagram, Block Diagram, State Diagram 등 다양한 다이어그램을 지원합니다.
-                    자세한 문법은{' '}
-                    <a href="https://mermaid.js.org/syntax/flowchart.html" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                        Mermaid 공식 문서
-                    </a>
-                    를 참고하세요.
-                </p>
-            </div>
-        </div>
+                    <div
+                        className={`fixed bottom-5 right-5 z-[1300] shadow-2xl rounded-lg overflow-hidden border bg-white transition-all duration-300 ${isEditorVisible ? 'w-[420px]' : 'w-auto'}`}
+                        style={{maxHeight: isEditorVisible ? '45vh' : 'auto'}}
+                    >
+                        <div className="flex items-center px-3 py-2 border-b bg-gray-50">
+                            <span className="text-sm font-bold flex-1">코드</span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsEditorVisible(!isEditorVisible)}>
+                                {isEditorVisible ? <EyeOff className="h-3.5 w-3.5"/> : <Eye className="h-3.5 w-3.5"/>}
+                            </Button>
+                        </div>
+                        {isEditorVisible && (
+                            <textarea
+                                value={code}
+                                onChange={(e) => setCode(e.target.value)}
+                                className="w-full font-mono text-xs p-3 resize-none border-none outline-none"
+                                style={{height: 'calc(45vh - 40px)'}}
+                            />
+                        )}
+                    </div>
+                </div>,
+                document.body
+            )}
+        </>
     )
 }

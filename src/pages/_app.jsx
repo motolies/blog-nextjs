@@ -3,6 +3,7 @@ import '../styles/d2coding-subset.css'
 import '../styles/rainbow.css'
 import '../styles/ckeditor.css'
 import CommonLayout from '../components/layout/common/CommonLayout'
+import UtilityLayout from '../components/layout/common/UtilityLayout'
 import AdminLayout from '../components/layout/admin/AdminLayout'
 import {wrapper} from '../store'
 import {Toaster} from 'sonner'
@@ -24,6 +25,7 @@ function Skyscape({Component, pageProps}) {
   const {isAuthenticated} = useSelector((state) => state.user)
   const hasBootstrappedProfileRef = useRef(false)
   const isAdminRoute = router.pathname.startsWith('/admin')
+  const isUtilRoute = router.pathname.startsWith('/util')
   const isLoginRoute = router.pathname === '/login'
   const shouldCheckClientAuth = isAdminRoute || isLoginRoute
 
@@ -81,7 +83,13 @@ function Skyscape({Component, pageProps}) {
               <Component {...pageProps} />
             </AdminLayout>
             : <CommonLayout>
-              <Component {...pageProps} />
+              {isUtilRoute ? (
+                  <UtilityLayout>
+                    <Component {...pageProps} />
+                  </UtilityLayout>
+              ) : (
+                  <Component {...pageProps} />
+              )}
             </CommonLayout>}
       </>
   )

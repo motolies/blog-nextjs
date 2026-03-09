@@ -7,6 +7,7 @@ import {toast} from 'sonner'
 import {getTsid, TSID} from 'tsid-ts'
 import {format} from 'date-fns'
 import {useRouter} from 'next/router'
+import {copyTextToClipboard} from '../../util/browserUtils'
 
 const TSID_EPOCH = 1577836800000
 
@@ -26,10 +27,14 @@ export default function TsidPage() {
     const [tsidForDate, setTsidForDate] = useState('')
     const [dateResult, setDateResult] = useState('')
 
-    const handleCopy = (text) => {
+    const handleCopy = async (text) => {
         if (!text) { toast.warning('복사할 내용이 없습니다.'); return }
-        navigator.clipboard.writeText(text)
-        toast.success('클립보드에 복사되었습니다.')
+        try {
+            await copyTextToClipboard(text)
+            toast.success('클립보드에 복사되었습니다.')
+        } catch (e) {
+            toast.error(e.message || '클립보드 복사에 실패했습니다.')
+        }
     }
 
     const handleGenerate = () => {
@@ -77,7 +82,7 @@ export default function TsidPage() {
 
     const CopyButton = ({value}) => (
         <button
-            onClick={() => handleCopy(value)}
+            onClick={() => void handleCopy(value)}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100"
             title="복사"
         >

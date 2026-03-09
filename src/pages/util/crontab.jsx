@@ -3,11 +3,12 @@ import {Tabs, TabsList, TabsTrigger, TabsContent} from '../../components/ui/tabs
 import {Button} from '../../components/ui/button'
 import {Input} from '../../components/ui/input'
 import {Accordion, AccordionItem, AccordionTrigger, AccordionContent} from '../../components/ui/accordion'
-import {ArrowLeft, Play, Copy} from 'lucide-react'
+import {ArrowLeft, Play, Copy, BookOpenText, Sparkles} from 'lucide-react'
 import {toast} from 'sonner'
 import {useRouter} from 'next/router'
-import {Cron} from 'croner'
-import {format, parse, getDay} from 'date-fns'
+import {parse, getDay} from 'date-fns'
+import {copyTextToClipboard} from '../../util/browserUtils'
+import {calculateNextRuns, DAY_NAMES, generateKoreanDescription} from '../../util/crontabUtils'
 
 const UNIX_PRESETS = [
     {label: '매분', expression: '* * * * *', description: '1분마다 실행'},
@@ -40,161 +41,6 @@ const SPECIAL_CHARS = [
     {char: '#', meaning: 'n번째 요일', example: '0 0 * * 5#3 = 매월 셋째 금요일'}
 ]
 
-const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토']
-const MONTH_NAMES = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
-
-function generateKoreanDescription(expression, isSpring = false) {
-    try {
-        const parts = expression.trim().split(/\s+/)
-
-        let second, minute, hour, dayOfMonth, month, dayOfWeek
-
-        if (isSpring && parts.length === 6) {
-            [second, minute, hour, dayOfMonth, month, dayOfWeek] = parts
-        } else if (!isSpring && parts.length === 5) {
-            [minute, hour, dayOfMonth, month, dayOfWeek] = parts
-            second = '0'
-        } else {
-            return '유효하지 않은 표현식입니다.'
-        }
-
-        const descriptions = []
-
-        if (isSpring) {
-            if (second === '*') {
-                descriptions.push('매초')
-            } else if (second.startsWith('*/')) {
-                descriptions.push(`${second.slice(2)}초마다`)
-            } else if (second !== '0') {
-                descriptions.push(`${second}초에`)
-            }
-        }
-
-        if (minute === '*') {
-            if (!descriptions.some(d => d.includes('초'))) {
-                descriptions.push('매분')
-            }
-        } else if (minute.startsWith('*/')) {
-            descriptions.push(`${minute.slice(2)}분마다`)
-        } else if (minute.includes(',')) {
-            descriptions.push(`${minute.split(',').join(', ')}분에`)
-        } else if (minute.includes('-')) {
-            const [start, end] = minute.split('-')
-            descriptions.push(`${start}분부터 ${end}분까지 매분`)
-        } else if (minute !== '0' || hour === '*') {
-            descriptions.push(`${minute}분에`)
-        }
-
-        if (hour === '*') {
-            if (!descriptions.some(d => d.includes('분마다'))) {
-                descriptions.push('매시')
-            }
-        } else if (hour.startsWith('*/')) {
-            descriptions.push(`${hour.slice(2)}시간마다`)
-        } else if (hour.includes(',')) {
-            const hours = hour.split(',').map(h => `${h}시`).join(', ')
-            descriptions.push(hours)
-        } else if (hour.includes('-')) {
-            const [start, end] = hour.split('-')
-            descriptions.push(`${start}시부터 ${end}시까지`)
-        } else {
-            const h = parseInt(hour)
-            if (h === 0) {
-                descriptions.push('자정')
-            } else if (h === 12) {
-                descriptions.push('정오')
-            } else if (h < 12) {
-                descriptions.push(`오전 ${h}시`)
-            } else {
-                descriptions.push(`오후 ${h - 12}시`)
-            }
-        }
-
-        if (dayOfMonth !== '*' && dayOfMonth !== '?') {
-            if (dayOfMonth === 'L') {
-                descriptions.push('마지막 날')
-            } else if (dayOfMonth.includes(',')) {
-                descriptions.push(`${dayOfMonth.split(',').join(', ')}일`)
-            } else if (dayOfMonth.includes('-')) {
-                const [start, end] = dayOfMonth.split('-')
-                descriptions.push(`${start}일부터 ${end}일까지`)
-            } else {
-                descriptions.push(`${dayOfMonth}일`)
-            }
-        }
-
-        if (month !== '*' && month !== '?') {
-            if (month.includes(',')) {
-                const months = month.split(',').map(m => MONTH_NAMES[parseInt(m) - 1] || m).join(', ')
-                descriptions.push(months)
-            } else if (month.includes('-')) {
-                const [start, end] = month.split('-')
-                descriptions.push(`${MONTH_NAMES[parseInt(start) - 1]}부터 ${MONTH_NAMES[parseInt(end) - 1]}까지`)
-            } else {
-                const m = parseInt(month)
-                if (m >= 1 && m <= 12) {
-                    descriptions.push(MONTH_NAMES[m - 1])
-                }
-            }
-        }
-
-        if (dayOfWeek !== '*' && dayOfWeek !== '?') {
-            if (dayOfWeek.includes('#')) {
-                const [dow, nth] = dayOfWeek.split('#')
-                const dayName = DAY_NAMES[parseInt(dow)] || dow
-                const ordinal = ['첫째', '둘째', '셋째', '넷째', '다섯째'][parseInt(nth) - 1] || `${nth}번째`
-                descriptions.push(`${ordinal} ${dayName}요일`)
-            } else if (dayOfWeek.includes('L')) {
-                const dow = dayOfWeek.replace('L', '')
-                const dayName = DAY_NAMES[parseInt(dow)] || dow
-                descriptions.push(`마지막 ${dayName}요일`)
-            } else if (dayOfWeek === '1-5' || dayOfWeek === 'MON-FRI') {
-                descriptions.push('평일')
-            } else if (dayOfWeek === '0,6' || dayOfWeek === '6,0' || dayOfWeek === 'SAT,SUN' || dayOfWeek === 'SUN,SAT') {
-                descriptions.push('주말')
-            } else if (dayOfWeek.includes(',')) {
-                const days = dayOfWeek.split(',').map(d => {
-                    const idx = parseInt(d)
-                    return DAY_NAMES[idx] || d
-                }).join(', ')
-                descriptions.push(`${days}요일`)
-            } else if (dayOfWeek.includes('-')) {
-                const [start, end] = dayOfWeek.split('-')
-                const startDay = DAY_NAMES[parseInt(start)] || start
-                const endDay = DAY_NAMES[parseInt(end)] || end
-                descriptions.push(`${startDay}요일부터 ${endDay}요일까지`)
-            } else {
-                const idx = parseInt(dayOfWeek)
-                if (idx >= 0 && idx <= 7) {
-                    const dayName = DAY_NAMES[idx === 7 ? 0 : idx]
-                    descriptions.push(`${dayName}요일`)
-                }
-            }
-        }
-
-        if (dayOfMonth === '*' && month === '*' && (dayOfWeek === '*' || dayOfWeek === '?')) {
-            if (hour === '*' && minute === '*' && (!isSpring || second === '*')) {
-                return isSpring ? '매초마다 실행' : '매분마다 실행'
-            } else if (hour === '*') {
-                // 매시
-            } else {
-                descriptions.unshift('매일')
-            }
-        } else if (dayOfWeek !== '*' && dayOfWeek !== '?' && dayOfMonth === '*') {
-            descriptions.unshift('매주')
-        } else if (dayOfMonth !== '*' && month === '*') {
-            descriptions.unshift('매월')
-        } else if (month !== '*') {
-            descriptions.unshift('매년')
-        }
-
-        const result = descriptions.join(' ') + ' 실행'
-        return result.replace(/\s+/g, ' ').trim()
-    } catch (e) {
-        return '표현식을 분석할 수 없습니다.'
-    }
-}
-
 export default function CrontabPage() {
     const router = useRouter()
     const [tabValue, setTabValue] = useState('unix')
@@ -216,19 +62,8 @@ export default function CrontabPage() {
         setIsClient(true)
     }, [])
 
-    const calculateNextRuns = useCallback((expression, isSpring = false) => {
-        try {
-            const cron = new Cron(expression, {timezone: 'Asia/Seoul'})
-            const runs = cron.nextRuns(runCount)
-            const formattedRuns = runs.map(date => format(date, 'yyyy-MM-dd HH:mm:ss'))
-            return {runs: formattedRuns, error: null}
-        } catch (e) {
-            return {runs: [], error: e.message || '유효하지 않은 cron 표현식입니다.'}
-        }
-    }, [runCount])
-
     const handleUnixCalculate = useCallback(() => {
-        const {runs, error} = calculateNextRuns(unixExpression, false)
+        const {runs, error} = calculateNextRuns(unixExpression, runCount)
         if (error) {
             setUnixError(error)
             setUnixNextRuns([])
@@ -240,10 +75,10 @@ export default function CrontabPage() {
             setUnixDescription(generateKoreanDescription(unixExpression, false))
             toast.success('계산 완료')
         }
-    }, [unixExpression, calculateNextRuns])
+    }, [unixExpression, runCount])
 
     const handleSpringCalculate = useCallback(() => {
-        const {runs, error} = calculateNextRuns(springExpression, true)
+        const {runs, error} = calculateNextRuns(springExpression, runCount)
         if (error) {
             setSpringError(error)
             setSpringNextRuns([])
@@ -255,12 +90,16 @@ export default function CrontabPage() {
             setSpringDescription(generateKoreanDescription(springExpression, true))
             toast.success('계산 완료')
         }
-    }, [springExpression, calculateNextRuns])
+    }, [springExpression, runCount])
 
-    const handleCopy = (text) => {
-        navigator.clipboard.writeText(text)
-        toast.success('클립보드에 복사되었습니다.')
-    }
+    const handleCopy = useCallback(async (text) => {
+        try {
+            await copyTextToClipboard(text)
+            toast.success('클립보드에 복사되었습니다.')
+        } catch (e) {
+            toast.error(e.message || '클립보드 복사에 실패했습니다.')
+        }
+    }, [])
 
     const handlePresetClick = (expression, isSpring) => {
         if (isSpring) {
@@ -272,25 +111,25 @@ export default function CrontabPage() {
 
     useEffect(() => {
         if (isClient) {
-            const {runs, error} = calculateNextRuns(unixExpression, false)
+            const {runs, error} = calculateNextRuns(unixExpression, runCount)
             if (!error) {
                 setUnixError('')
                 setUnixNextRuns(runs)
                 setUnixDescription(generateKoreanDescription(unixExpression, false))
             }
         }
-    }, [isClient, runCount, calculateNextRuns, unixExpression])
+    }, [isClient, runCount, unixExpression])
 
     useEffect(() => {
         if (isClient && tabValue === 'spring') {
-            const {runs, error} = calculateNextRuns(springExpression, true)
+            const {runs, error} = calculateNextRuns(springExpression, runCount)
             if (!error) {
                 setSpringError('')
                 setSpringNextRuns(runs)
                 setSpringDescription(generateKoreanDescription(springExpression, true))
             }
         }
-    }, [isClient, tabValue, runCount, calculateNextRuns, springExpression])
+    }, [isClient, tabValue, runCount, springExpression])
 
     if (!isClient) {
         return <div className="p-4">로딩 중...</div>
@@ -307,10 +146,10 @@ export default function CrontabPage() {
                             onChange={(e) => setExpression(e.target.value)}
                             placeholder={isSpring ? '초 분 시 일 월 요일' : '분 시 일 월 요일'}
                             className={`pr-8 font-mono ${error ? 'border-red-500' : ''}`}
-                            onKeyPress={(e) => { if (e.key === 'Enter') handleCalculate() }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleCalculate() }}
                         />
                         <button
-                            onClick={() => handleCopy(expression)}
+                            onClick={() => void handleCopy(expression)}
                             className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100"
                             title="복사"
                         >
@@ -404,14 +243,33 @@ export default function CrontabPage() {
 
     const renderGuide = (isSpring) => (
         <Accordion type="single" collapsible>
-            <AccordionItem value="guide">
-                <AccordionTrigger className="font-medium">Cron 표현식 가이드</AccordionTrigger>
+            <AccordionItem value="guide" className="mb-4 overflow-hidden rounded-[1.25rem] border border-sky-200/80 bg-[linear-gradient(135deg,rgba(239,246,255,0.92),rgba(248,250,252,0.94))] shadow-[0_14px_34px_rgba(14,116,228,0.08)]">
+                <AccordionTrigger className="px-4 py-4 font-medium no-underline hover:no-underline">
+                    <div className="flex min-w-0 items-start gap-3">
+                        <span className="mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-[0_12px_30px_rgba(14,116,228,0.22)]">
+                            <BookOpenText className="h-5 w-5"/>
+                        </span>
+                        <span className="min-w-0">
+                            <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-600">
+                                <Sparkles className="h-3.5 w-3.5"/>
+                                눌러서 펼치기
+                            </span>
+                            <span className="mt-1 block text-base font-semibold tracking-[-0.02em] text-slate-900">
+                                Cron 표현식 가이드
+                            </span>
+                            <span className="mt-1 block text-sm leading-6 text-slate-600">
+                                필드 구조, 특수 문자, 자주 쓰는 예시를 한 번에 확인할 수 있습니다.
+                            </span>
+                        </span>
+                    </div>
+                </AccordionTrigger>
                 <AccordionContent>
-                    <div className="mb-4">
-                        <p className="text-sm font-medium mb-2">필드 구조</p>
-                        <div className="bg-gray-100 rounded p-3 font-mono overflow-x-auto">
-                            {isSpring ? (
-                                <pre className="text-xs m-0">{`┌───────────── 초 (0-59)
+                    <div className="border-t border-sky-100/90 bg-white/70 px-4 pt-4">
+                        <div className="mb-4">
+                            <p className="text-sm font-medium mb-2">필드 구조</p>
+                            <div className="bg-gray-100 rounded p-3 font-mono overflow-x-auto">
+                                {isSpring ? (
+                                    <pre className="text-xs m-0">{`┌───────────── 초 (0-59)
 │ ┌───────────── 분 (0-59)
 │ │ ┌───────────── 시 (0-23)
 │ │ │ ┌───────────── 일 (1-31)
@@ -419,69 +277,70 @@ export default function CrontabPage() {
 │ │ │ │ │ ┌───────────── 요일 (0-6 또는 SUN-SAT)
 │ │ │ │ │ │
 * * * * * *`}</pre>
-                            ) : (
-                                <pre className="text-xs m-0">{`┌───────────── 분 (0-59)
+                                ) : (
+                                    <pre className="text-xs m-0">{`┌───────────── 분 (0-59)
 │ ┌───────────── 시 (0-23)
 │ │ ┌───────────── 일 (1-31)
 │ │ │ ┌───────────── 월 (1-12 또는 JAN-DEC)
 │ │ │ │ ┌───────────── 요일 (0-6 또는 SUN-SAT, 0=일요일)
 │ │ │ │ │
 * * * * *`}</pre>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    </div>
 
-                    <hr className="my-4"/>
+                        <hr className="my-4"/>
 
-                    <div className="mb-4">
-                        <p className="text-sm font-medium mb-2">특수 문자</p>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="border-b">
-                                        <th className="text-left py-2 px-3 w-16 font-medium text-gray-600">문자</th>
-                                        <th className="text-left py-2 px-3 w-32 font-medium text-gray-600">의미</th>
-                                        <th className="text-left py-2 px-3 font-medium text-gray-600">예시</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {SPECIAL_CHARS.map((item) => (
-                                        <tr key={item.char} className="border-b last:border-0">
-                                            <td className="py-2 px-3 font-mono font-bold">{item.char}</td>
-                                            <td className="py-2 px-3">{item.meaning}</td>
-                                            <td className="py-2 px-3 font-mono text-xs">{item.example}</td>
+                        <div className="mb-4">
+                            <p className="text-sm font-medium mb-2">특수 문자</p>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b">
+                                            <th className="text-left py-2 px-3 w-16 font-medium text-gray-600">문자</th>
+                                            <th className="text-left py-2 px-3 w-32 font-medium text-gray-600">의미</th>
+                                            <th className="text-left py-2 px-3 font-medium text-gray-600">예시</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {SPECIAL_CHARS.map((item) => (
+                                            <tr key={item.char} className="border-b last:border-0">
+                                                <td className="py-2 px-3 font-mono font-bold">{item.char}</td>
+                                                <td className="py-2 px-3">{item.meaning}</td>
+                                                <td className="py-2 px-3 font-mono text-xs">{item.example}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
 
-                    <hr className="my-4"/>
+                        <hr className="my-4"/>
 
-                    <div>
-                        <p className="text-sm font-medium mb-2">자주 사용하는 예시</p>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="border-b">
-                                        <th className="text-left py-2 px-3 font-medium text-gray-600">표현식</th>
-                                        <th className="text-left py-2 px-3 font-medium text-gray-600">설명</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {(isSpring ? SPRING_PRESETS : UNIX_PRESETS).map((preset) => (
-                                        <tr
-                                            key={preset.expression}
-                                            className="border-b last:border-0 hover:bg-gray-50 cursor-pointer"
-                                            onClick={() => handlePresetClick(preset.expression, isSpring)}
-                                        >
-                                            <td className="py-2 px-3 font-mono">{preset.expression}</td>
-                                            <td className="py-2 px-3">{preset.description}</td>
+                        <div>
+                            <p className="text-sm font-medium mb-2">자주 사용하는 예시</p>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b">
+                                            <th className="text-left py-2 px-3 font-medium text-gray-600">표현식</th>
+                                            <th className="text-left py-2 px-3 font-medium text-gray-600">설명</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {(isSpring ? SPRING_PRESETS : UNIX_PRESETS).map((preset) => (
+                                            <tr
+                                                key={preset.expression}
+                                                className="border-b last:border-0 hover:bg-gray-50 cursor-pointer"
+                                                onClick={() => handlePresetClick(preset.expression, isSpring)}
+                                            >
+                                                <td className="py-2 px-3 font-mono">{preset.expression}</td>
+                                                <td className="py-2 px-3">{preset.description}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </AccordionContent>

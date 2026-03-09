@@ -48,23 +48,34 @@ const utilities = [
 
 export default function UtilIndexPage() {
     return (
-        <div className="p-4">
-            <h1 className="text-3xl font-bold mb-2">유틸리티</h1>
-            <p className="text-gray-500 mb-6">개발에 유용한 도구 모음입니다.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="p-5 sm:p-7">
+            <div className="max-w-3xl">
+                <span className="section-eyebrow">
+                    <Braces className="h-3.5 w-3.5"/>
+                    Developer Utilities
+                </span>
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {utilities.map((util) => {
                     const Icon = util.icon
                     return (
                         <Link
                             key={util.id}
                             href={util.path}
-                            className="border rounded-lg p-4 hover:-translate-y-1 hover:shadow-lg transition-all duration-200 block"
+                            className="group block rounded-[1.6rem] border border-slate-200/80 bg-white/82 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:border-sky-200 hover:shadow-[0_24px_50px_rgba(15,23,42,0.1)]"
                         >
-                            <div className="flex items-center gap-3 mb-3">
-                                <Icon className="h-10 w-10 text-blue-600 shrink-0"/>
-                                <h2 className="text-lg font-medium">{util.title}</h2>
+                            <div className="flex items-start gap-4">
+                                <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0d7ff2,#7dd3fc)] text-white shadow-[0_12px_30px_rgba(13,127,242,0.24)]">
+                                    <Icon className="h-5 w-5"/>
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                    <h2 className="text-lg font-semibold tracking-[-0.02em] text-slate-950 transition group-hover:text-sky-700">
+                                        {util.title}
+                                    </h2>
+                                    <p className="mt-2 text-sm leading-6 text-slate-600">{util.description}</p>
+                                </div>
                             </div>
-                            <p className="text-sm text-gray-500">{util.description}</p>
                         </Link>
                     )
                 })}

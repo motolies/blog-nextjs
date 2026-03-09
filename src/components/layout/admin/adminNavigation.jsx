@@ -42,8 +42,8 @@ export const adminNavigationSections = [
         icon: Tags,
       },
       {
-        href: '/admin/common-code',
-        label: '공통코드',
+        href: '/admin/master-code',
+        label: '마스터코드',
         icon: PanelsTopLeft,
       },
       {
@@ -101,10 +101,10 @@ export const adminRouteMeta = {
     title: '태그 관리',
     description: '태그 운영 영역을 같은 관리 톤으로 정리한 작업 공간입니다.',
   },
-  '/admin/common-code': {
+  '/admin/master-code': {
     eyebrow: 'Structure',
-    title: '공통코드 관리',
-    description: '계층형 공통코드를 탐색하고 편집할 수 있는 운영 화면입니다.',
+    title: '마스터코드 관리',
+    description: '계층형 마스터코드를 트리 구조로 탐색하고 편집할 수 있는 운영 화면입니다.',
   },
   '/admin/memo': {
     eyebrow: 'Notes',
@@ -176,8 +176,8 @@ export const adminQuickLinks = [
     icon: Workflow,
   },
   {
-    href: '/admin/common-code',
-    label: '공통코드 운영',
+    href: '/admin/master-code',
+    label: '마스터코드 운영',
     description: '계층 코드와 캐시 상태 점검',
     icon: BookOpenText,
   },

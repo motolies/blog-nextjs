@@ -1,19 +1,14 @@
-import axiosClient from './axiosClient'
-
-const FAVORITE_API_BASE = '/api/common-code'
+import masterCodeService from './masterCodeService'
 
 class FavoriteService {
   /**
    * 즐겨찾기 목록 조회 (계층 구조)
-   * FAVORITE_ROOT의 트리 구조를 가져와 UI에 맞게 변환
+   * MasterCode의 FAVORITE 서브트리를 가져와 UI에 맞게 변환
    */
   async getFavorites(config) {
     try {
-      const response = await axiosClient.get(
-        `${FAVORITE_API_BASE}/class/FAVORITE_ROOT/tree`,
-        config
-      )
-      return this.transformToUIFormat(response.data)
+      const treeData = await masterCodeService.getSubTree('FAVORITE', config)
+      return this.transformToUIFormat(treeData)
     } catch (error) {
       console.error('즐겨찾기 목록 조회 실패:', error)
       throw error
@@ -23,44 +18,41 @@ class FavoriteService {
   /**
    * API 응답을 UI 형식으로 변환
    *
-   * API 응답 형식:
-   * {
-   *   className: "FAVORITE_ROOT",
-   *   codes: [
-   *     {
-   *       code: "ROOT",
-   *       name: "즐겨찾기",
-   *       children: [
-   *         {
-   *           code: "COMMUNITY",
-   *           name: "Community",
-   *           children: [
-   *             { code: "CLIEN", name: "clien", attributes: { url: "http://..." } }
-   *           ]
-   *         }
-   *       ]
-   *     }
-   *   ]
-   * }
+   * MasterCode API 응답 형식 (GET /api/v1/codes/tree/FAVORITE):
+   * [
+   *   {
+   *     code: "FAVORITE",
+   *     name: "즐겨찾기",
+   *     children: [
+   *       {
+   *         code: "COMMUNITY",
+   *         name: "Community",
+   *         children: [
+   *           { code: "CLIEN", name: "clien", attributes: { url: "http://..." } }
+   *         ]
+   *       }
+   *     ]
+   *   }
+   * ]
    *
    * UI 형식:
    * [
    *   { name: "Community", links: [{ name: "clien", url: "http://..." }] }
    * ]
    */
-  transformToUIFormat(apiResponse) {
-    if (!apiResponse || !apiResponse.codes || apiResponse.codes.length === 0) {
+  transformToUIFormat(treeData) {
+    if (!Array.isArray(treeData) || treeData.length === 0) {
       return []
     }
 
-    // ROOT 코드의 children이 카테고리들
-    const rootCode = apiResponse.codes[0]
-    if (!rootCode.children || rootCode.children.length === 0) {
+    // 루트 노드(FAVORITE)의 children이 카테고리들
+    const root = treeData[0]
+    if (!root.children || root.children.length === 0) {
       return []
     }
 
     // 카테고리별로 변환
-    return rootCode.children.map(category => ({
+    return root.children.map(category => ({
       name: category.name,
       links: this.extractLinks(category.children || [])
     }))

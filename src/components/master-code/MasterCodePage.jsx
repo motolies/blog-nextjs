@@ -135,8 +135,11 @@ export default function MasterCodePage() {
   // 삭제
   const handleDelete = useCallback(async (node) => {
     const hasChildren = Array.isArray(node.children) && node.children.length > 0
-    const childWarning = hasChildren ? '\n\n하위 노드가 함께 삭제됩니다.' : ''
-    if (!confirm(`"${node.name}" (${node.code})을(를) 삭제하시겠습니까?${childWarning}`)) return
+    if (hasChildren) {
+      toast.error('하위 노드가 존재하여 삭제할 수 없습니다. 하위 노드를 먼저 삭제해주세요.')
+      return
+    }
+    if (!confirm(`"${node.name}" (${node.code})을(를) 삭제하시겠습니까?`)) return
 
     try {
       setLoading(true)
@@ -258,6 +261,7 @@ export default function MasterCodePage() {
 
   return (
     <AdminPageFrame
+      className="admin-page-frame--fixed"
       actions={
         <>
           <Button onClick={handleAddRoot} disabled={loading}>
@@ -306,7 +310,6 @@ export default function MasterCodePage() {
         <div
           className="admin-split-layout admin-fill"
           data-size="wide"
-          style={{minHeight: 'calc(100vh - 18rem)'}}
         >
           {/* 좌측: 트리 뷰 */}
           <div className="admin-panel admin-fill min-w-0 overflow-hidden">

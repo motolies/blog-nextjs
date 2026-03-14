@@ -19,10 +19,11 @@ const masterCodeService = {
   /**
    * 루트 코드별 서브트리 조회
    * @param {string} rootCode - 루트 코드
+   * @param {Object} [config] - axios 요청 설정 (SSR 인증 등)
    */
-  async getSubTree(rootCode) {
+  async getSubTree(rootCode, config) {
     try {
-      const response = await axiosClient.get(`${MASTER_CODE_API_BASE}/tree/${rootCode}`)
+      const response = await axiosClient.get(`${MASTER_CODE_API_BASE}/tree/${rootCode}`, config)
       return response.data
     } catch (error) {
       console.error(`서브트리 조회 실패 [${rootCode}]:`, error)

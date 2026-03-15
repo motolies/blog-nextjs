@@ -33,7 +33,7 @@ export default function IndexPage({engines, favorites}) {
 
                 <div className="grid gap-6 lg:grid-cols-2">
                     {favorites.map((group) =>
-                        <section key={group.name} className="surface-panel-strong rounded-[1.75rem] p-6">
+                        <section key={group.name} className="surface-panel-strong overflow-hidden rounded-[1.75rem] p-6">
                             <div className="flex items-start justify-between gap-4">
                                 <div>
                                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">

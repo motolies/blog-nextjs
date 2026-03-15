@@ -162,6 +162,7 @@ export interface ShadcnDataTableProps<TData extends RowData> {
   enableRowActions?: boolean
   renderRowActions?: (props: { row: Row<TData> }) => ReactNode
   positionActionsColumn?: 'first' | 'last'
+  actionsColumnSize?: number
   enableDynamicSearch?: boolean
   mobileCardView?: boolean
 }
@@ -193,6 +194,7 @@ export default function ShadcnDataTable<TData extends RowData>({
   enableRowActions = false,
   renderRowActions,
   positionActionsColumn = 'last',
+  actionsColumnSize = 80,
   enableDynamicSearch = false,
   mobileCardView = true,
 }: ShadcnDataTableProps<TData>) {
@@ -343,9 +345,9 @@ export default function ShadcnDataTable<TData extends RowData>({
       const actionsColumn: ColumnDef<TData> = {
         id: '__actions__',
         header: '',
-        size: 80,
-        minSize: 80,
-        maxSize: 80,
+        size: actionsColumnSize,
+        minSize: actionsColumnSize,
+        maxSize: actionsColumnSize,
         enableSorting: false,
         enableResizing: false,
         enableHiding: false,

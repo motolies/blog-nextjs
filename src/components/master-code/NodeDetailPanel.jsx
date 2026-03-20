@@ -17,6 +17,7 @@ import {Separator} from '../ui/separator'
  */
 export default function NodeDetailPanel({
   selectedNode,
+  rootAttributeSchema,
   onEdit,
   onDelete,
   onAddChild,
@@ -29,17 +30,23 @@ export default function NodeDetailPanel({
     )
   }
 
-  const isRoot = selectedNode.depth === 0 || selectedNode.parentId == null
+  const isRoot = selectedNode.depth === 0
 
   const renderTable = (rows) => (
     <table className="w-full text-sm">
       <tbody>
-        {rows.filter(Boolean).map(([label, value], i) => (
-          <tr key={i} className="border-b border-[color:var(--admin-border)] last:border-0">
-            <td className="w-28 py-1.5 pr-3 align-top font-semibold text-[color:var(--admin-text-faint)]">{label}</td>
-            <td className="py-1.5 text-[color:var(--admin-text)]">{value}</td>
-          </tr>
-        ))}
+        {rows.filter(Boolean).map(([label, value], i) =>
+          label === '__separator' ? (
+            <tr key={i}>
+              <td colSpan={2} className="pt-5 pb-1 text-sm font-semibold text-[color:var(--admin-text-faint)]">{value}</td>
+            </tr>
+          ) : (
+            <tr key={i} className="border-b border-[color:var(--admin-border)] last:border-0">
+              <td className="w-28 py-1.5 pr-3 align-top font-semibold text-[color:var(--admin-text-faint)]">{label}</td>
+              <td className="py-1.5 text-[color:var(--admin-text)]">{value}</td>
+            </tr>
+          )
+        )}
       </tbody>
     </table>
   )
@@ -69,11 +76,14 @@ export default function NodeDetailPanel({
       ])
     : []
 
-  // 자식 노드: attributes 값 표시
+  // 자식 노드: attributes 값 표시 (rootAttributeSchema의 label 활용)
   const attrRows = !isRoot && selectedNode.attributes && typeof selectedNode.attributes === 'object'
     ? Object.entries(selectedNode.attributes)
         .filter(([, v]) => v != null && v !== '')
-        .map(([key, value]) => [key, String(value)])
+        .map(([key, value]) => {
+          const schemaDef = rootAttributeSchema?.find(s => s.key === key)
+          return [schemaDef?.label || key, String(value)]
+        })
     : []
 
   // 자식 수 (있는 경우)
@@ -81,11 +91,16 @@ export default function NodeDetailPanel({
     ? [['하위 노드', `${selectedNode.children.length}개`]]
     : []
 
+  // 속성값이 있으면 구분용 빈 행 추가
+  const attrSection = attrRows.length > 0
+    ? [['__separator', '속성값'], ...attrRows]
+    : []
+
   const allRows = [
     ...baseRows,
     ...childCountRow,
     ...schemaRows,
-    ...attrRows,
+    ...attrSection,
   ]
 
   return (

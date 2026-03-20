@@ -114,7 +114,7 @@ export default function MasterCodePage() {
 
   // 편집
   const handleEdit = useCallback((node) => {
-    const isRoot = node.depth === 0 || node.parentId == null
+    const isRoot = node.depth === 0
     setDialogMode('edit')
     setDialogParentNode(null)
     setFormData({
@@ -327,6 +327,7 @@ export default function MasterCodePage() {
           <div className="admin-panel admin-fill overflow-hidden">
             <NodeDetailPanel
               selectedNode={selectedNode}
+              rootAttributeSchema={rootAttributeSchema}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onAddChild={handleAddChild}

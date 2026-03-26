@@ -290,7 +290,7 @@ function TreeNode({
       {/* 체크박스 */}
       {checkable && (
         <span
-          className="shrink-0"
+          className="shrink-0 cursor-pointer"
           onClick={(e) => {
             e.stopPropagation()
             onCheckToggle(node)

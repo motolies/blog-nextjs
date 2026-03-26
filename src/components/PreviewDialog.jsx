@@ -28,7 +28,7 @@ export default function PreviewDialog({open, imageSrc, onClose}) {
                     </DialogTitle>
                 </DialogHeader>
                 <div
-                    className="m-3 text-center"
+                    className="m-3 text-center cursor-pointer"
                     onClick={close}
                 >
                     <img src={window.location.origin + imageSrc} alt="미리보기 이미지" style={{maxWidth: '90%'}}/>

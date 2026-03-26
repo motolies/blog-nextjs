@@ -1,3 +1,5 @@
+/* ── 에디터 레이아웃 ── */
+
 .editor-container {
     min-width: 0;
 }
@@ -23,4 +25,101 @@
         min-height: 70vh !important;
         /*max-height: 70vh !important;*/
     }
+}
+
+/*
+ * ── CKEditor .ck-content 기본 스타일 오버라이드 ──
+ *
+ * ckeditor5/ckeditor5.css의 .ck-content 규칙을 덮어써서
+ * content-typography.css의 공유 스타일과 일치시킨다.
+ *
+ * 이 파일은 _app.jsx에서 ckeditor5.css 이후에 로드되므로,
+ * 동일 specificity에서 cascade 순서로 우선한다.
+ *
+ * CKEditor 버전: 47.x
+ */
+
+/* Base: CKEditor 기본 font-family/size/color/line-height 오버라이드 */
+.ck-content {
+    color: rgba(15, 23, 42, 0.86);
+    font-size: 1.02rem;
+    line-height: 1.9;
+}
+
+/* Headings: CKEditor는 heading에 별도 스타일을 지정하지 않으므로
+   content-typography.css의 :where() 규칙이 적용됨. 추가 오버라이드 불필요. */
+
+/* Blockquote: CKEditor 기본 border 5px #ccc, italic → 커스텀 파란색 border, normal */
+.ck-content blockquote {
+    margin-inline: 0;
+    padding: 1.25rem 1.4rem;
+    border-left: 4px solid rgba(59, 130, 246, 0.75);
+    border-radius: 0 1rem 1rem 0;
+    background: rgba(59, 130, 246, 0.08);
+    font-style: normal;
+    overflow: visible;
+}
+
+/* Inline code: CKEditor 기본 hsla background, 2px radius → 커스텀 스타일 */
+.ck-content :not(pre) > code {
+    display: inline-block;
+    padding: 0.15rem 0.45rem;
+    border-radius: 0.5rem;
+    background: rgba(15, 23, 42, 0.06);
+    color: rgb(15 23 42);
+    font-size: 0.92em;
+}
+
+/* Code block: CKEditor 기본 회색 배경/border → 다크 테마 */
+.ck-content pre {
+    background-color: #0f1722;
+    color: #e2e8f0;
+    padding: 1.15rem 1.25rem;
+    border-radius: 1rem;
+    overflow-x: auto;
+    border: none;
+    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.1);
+}
+
+.ck-content pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    display: inline;
+    border-radius: 0;
+}
+
+/* Table: CKEditor 기본 double border → 커스텀 solid border */
+.ck-content table.table:not(.layout-table),
+.ck-content figure.table:not(.layout-table) > table {
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-collapse: collapse;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.ck-content table.table:not(.layout-table) > thead > tr > th,
+.ck-content figure.table:not(.layout-table) > table > thead > tr > th,
+.ck-content table.table:not(.layout-table) > tbody > tr > th,
+.ck-content figure.table:not(.layout-table) > table > tbody > tr > th {
+    background: rgba(226, 232, 240, 0.52);
+    font-weight: 700;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.ck-content table.table:not(.layout-table) > thead > tr > td,
+.ck-content figure.table:not(.layout-table) > table > thead > tr > td,
+.ck-content table.table:not(.layout-table) > tbody > tr > td,
+.ck-content figure.table:not(.layout-table) > table > tbody > tr > td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+/* HR: CKEditor 기본 회색 두꺼운 bar → 가벼운 구분선 */
+.ck-content hr {
+    height: 1px;
+    background: rgba(148, 163, 184, 0.3);
+    border: 0;
+    margin: 2rem 0;
 }

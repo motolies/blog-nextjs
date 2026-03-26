@@ -1,0 +1,157 @@
+/*
+ * content-typography.css
+ *
+ * 에디터 독립적 콘텐츠 타이포그래피 스타일.
+ * 포스트 표시(.content)와 에디터 편집 영역(.ck-content) 모두에 적용.
+ *
+ * :where()를 사용하여 specificity를 0으로 유지하므로,
+ * 에디터 고유 스타일이나 페이지 고유 스타일로 쉽게 오버라이드 가능.
+ *
+ * 에디터 교체 시: .ck-content를 새 에디터의 콘텐츠 클래스로 변경하면 됨.
+ */
+
+/* ── Base ── */
+
+:where(.content, .ck-content) {
+  color: rgba(15, 23, 42, 0.86);
+  font-size: 1.02rem;
+  line-height: 1.9;
+}
+
+:where(.content, .ck-content) > *:first-child {
+  margin-top: 0;
+}
+
+:where(.content, .ck-content) > *:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Headings ── */
+
+:where(.content, .ck-content) h1,
+:where(.content, .ck-content) h2,
+:where(.content, .ck-content) h3,
+:where(.content, .ck-content) h4 {
+  color: hsl(var(--foreground));
+  font-family: var(--font-display);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+:where(.content, .ck-content) h1 {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+}
+
+:where(.content, .ck-content) h2 {
+  font-size: clamp(1.6rem, 3vw, 2.35rem);
+}
+
+:where(.content, .ck-content) h3 {
+  font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+}
+
+/* ── Block elements ── */
+
+:where(.content, .ck-content) p,
+:where(.content, .ck-content) ul,
+:where(.content, .ck-content) ol,
+:where(.content, .ck-content) blockquote,
+:where(.content, .ck-content) table,
+:where(.content, .ck-content) figure {
+  margin: 1.1rem 0;
+}
+
+/* ── Links ── */
+
+:where(.content, .ck-content) a {
+  color: rgb(14 116 228);
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+/* ── Lists ── */
+
+:where(.content, .ck-content) ul,
+:where(.content, .ck-content) ol {
+  padding-left: 1.4rem;
+}
+
+:where(.content, .ck-content) li + li {
+  margin-top: 0.45rem;
+}
+
+/* ── Blockquote ── */
+
+:where(.content, .ck-content) blockquote {
+  margin-inline: 0;
+  padding: 1.25rem 1.4rem;
+  border-left: 4px solid rgba(59, 130, 246, 0.75);
+  border-radius: 0 1rem 1rem 0;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+/* ── Images ── */
+
+:where(.content, .ck-content) img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.5rem auto;
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-soft);
+}
+
+/* ── Tables ── */
+
+:where(.content, .ck-content) table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+}
+
+:where(.content, .ck-content) th,
+:where(.content, .ck-content) td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  text-align: left;
+}
+
+:where(.content, .ck-content) th {
+  background: rgba(226, 232, 240, 0.52);
+  font-weight: 700;
+}
+
+/* ── Inline code ── */
+
+:where(.content, .ck-content) :not(pre) > code {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.5rem;
+  background: rgba(15, 23, 42, 0.06);
+  color: rgb(15 23 42);
+  font-size: 0.92em;
+}
+
+/* ── Code blocks ── */
+
+:where(.content, .ck-content) pre,
+:where(.content, .ck-content) div[style*="background-color: rgb(30, 30, 30)"],
+:where(.content, .ck-content) div[style*="background-color: rgb(43, 43, 43)"],
+:where(.content, .ck-content) div[style*="background-color: rgb(40, 44, 52)"] {
+  background-color: #0f1722;
+  color: #e2e8f0;
+  padding: 1.15rem 1.25rem;
+  border-radius: 1rem;
+  overflow-x: auto;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.1);
+}
+
+:where(.content, .ck-content) pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}

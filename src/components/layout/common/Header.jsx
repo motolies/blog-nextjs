@@ -64,14 +64,14 @@ export default function Header() {
 
                     <div className="flex flex-1 items-center justify-end gap-2">
                         <div className="relative w-full max-w-lg">
-                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/>
+                            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 sm:left-3"/>
                             <input
                                 type="search"
                                 placeholder="Search posts"
                                 value={searchText}
                                 onChange={onChangeText}
                                 onKeyDown={onSearchTextKeyDown}
-                                className="h-10 w-full rounded-full border border-slate-200/80 bg-white/80 pl-8 pr-4 text-sm text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] backdrop-blur transition focus:border-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-100 sm:h-11 sm:pl-9 sm:text-sm"
+                                className="h-10 w-full rounded-full border border-slate-200/80 bg-white/80 pl-7 pr-3 text-sm text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] backdrop-blur transition focus:border-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-100 sm:h-11 sm:pl-9 sm:pr-4 sm:text-sm"
                             />
                         </div>
 

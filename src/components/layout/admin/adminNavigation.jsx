@@ -1,12 +1,14 @@
 import {
   Activity,
   BookOpenText,
+  Flame,
   FolderTree,
   LayoutDashboard,
   NotebookPen,
   PanelsTopLeft,
   PencilLine,
   ScrollText,
+  Search,
   Tags,
   Workflow,
 } from 'lucide-react'
@@ -50,6 +52,21 @@ export const adminNavigationSections = [
         href: '/admin/memo',
         label: '메모',
         icon: NotebookPen,
+      },
+    ],
+  },
+  {
+    title: 'Hot Deal',
+    items: [
+      {
+        href: '/admin/hot-deal-sites',
+        label: '핫딜 사이트',
+        icon: Flame,
+      },
+      {
+        href: '/admin/hot-deal-items',
+        label: '핫딜 검색',
+        icon: Search,
       },
     ],
   },
@@ -110,6 +127,16 @@ export const adminRouteMeta = {
     eyebrow: 'Notes',
     title: '메모 관리',
     description: '메모 목록과 카테고리 관리를 한 작업 공간에서 처리합니다.',
+  },
+  '/admin/hot-deal-sites': {
+    eyebrow: 'Hot Deal',
+    title: '핫딜 사이트 관리',
+    description: '핫딜 수집 사이트의 활성 상태와 알림 임계값을 관리합니다.',
+  },
+  '/admin/hot-deal-items': {
+    eyebrow: 'Hot Deal',
+    title: '핫딜 아이템 검색',
+    description: '수집된 핫딜 아이템을 사이트, 제목, 날짜 등으로 검색하고 조회합니다.',
   },
   '/admin/system-log': {
     eyebrow: 'Observability',

@@ -93,9 +93,9 @@ export default function HotDealItemsPage() {
         {
             accessorKey: 'scrapedAt',
             header: '스크래핑일시',
-            size: 180,
+            size: 200,
             mobileHidden: true,
-            cell: ({value}) => formatUtcToLocal(value),
+            cell: ({value}) => formatUtcToLocal(value, 'yyyy-MM-dd HH:mm:ss'),
         },
     ], [])
 

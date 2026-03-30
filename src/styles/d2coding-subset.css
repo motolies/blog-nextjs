@@ -1,7 +1,7 @@
 @font-face {
     font-family: 'D2Coding';
     font-style: normal;
-    font-weight: 2000;
+    font-weight: 700;
     font-display: swap;
     src: local('D2Coding Bold'),
     url('../../public/fonts/d2coding-bold-subset.woff2') format('woff2'),
@@ -18,8 +18,4 @@
     url('../../public/fonts/d2coding-subset.woff2') format('woff2'),
     url('../../public/fonts/d2coding-subset.woff') format('woff'),
     url('../../public/fonts/d2coding-subset.ttf') format('truetype');
-}
-
-body {
-    font-family: 'D2Coding', monospace;
 }

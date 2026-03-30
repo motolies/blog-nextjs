@@ -39,9 +39,9 @@
     --shadow-soft: 0 22px 70px rgba(15, 23, 42, 0.08);
     --shadow-card: 0 18px 50px rgba(15, 23, 42, 0.08);
     --public-max-width: 120rem;
-    --font-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
-    --font-body: "Pretendard Variable", "SUIT Variable", "Segoe UI", sans-serif;
-    --font-code: "D2Coding", "Courier New", monospace;
+    --font-display: "D2Coding", monospace;
+    --font-body: "D2Coding", monospace;
+    --font-code: "D2Coding", monospace;
   }
 
   .dark {
@@ -159,6 +159,7 @@
   --radius-2xl: calc(var(--radius) + 12px);
   --radius-3xl: calc(var(--radius) + 20px);
   --radius-4xl: calc(var(--radius) + 28px);
+  --font-mono: "D2Coding", monospace;
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -239,7 +240,7 @@ a.file-link {
 
 .section-title {
   font-family: var(--font-display);
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
 }
 
 .public-page {

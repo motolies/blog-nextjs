@@ -430,6 +430,7 @@ export default function MermaidPage() {
     const [dragStart, setDragStart] = useState({x: 0, y: 0})
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [isEditorVisible, setIsEditorVisible] = useState(true)
+    const [activeTab, setActiveTab] = useState('editor')
 
     const previewRef = useRef(null)
     const fullscreenPreviewRef = useRef(null)
@@ -654,9 +655,9 @@ export default function MermaidPage() {
                 </Select>
             ) : (
                 <div className="flex items-center gap-1">
-                    <Input type="number" value={customWidth} onChange={(e) => setCustomWidth(Number(e.target.value))} className="h-8 w-20 text-xs" min={100} max={8000}/>
+                    <Input type="number" value={customWidth} onChange={(e) => setCustomWidth(Number(e.target.value))} className="h-8 w-16 sm:w-20 text-xs" min={100} max={8000}/>
                     <span className="text-xs">×</span>
-                    <Input type="number" value={customHeight} onChange={(e) => setCustomHeight(Number(e.target.value))} className="h-8 w-20 text-xs" min={100} max={8000}/>
+                    <Input type="number" value={customHeight} onChange={(e) => setCustomHeight(Number(e.target.value))} className="h-8 w-16 sm:w-20 text-xs" min={100} max={8000}/>
                 </div>
             )}
 
@@ -683,30 +684,30 @@ export default function MermaidPage() {
     // 일반 모드
     return (
         <>
-            <div className="p-4">
+            <div className="p-2 sm:p-4">
                 <div className="flex items-center gap-2 mb-4">
                     <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
                         <ArrowLeft className="h-5 w-5"/>
                     </Button>
-                    <h1 className="text-3xl font-bold">Mermaid Editor</h1>
+                    <h1 className="text-xl sm:text-3xl font-bold">Mermaid Editor</h1>
                 </div>
 
                 {/* 샘플 선택 */}
                 <div className="border rounded-md p-3 mb-3">
                     <p className="text-sm font-medium mb-2">샘플 다이어그램</p>
-                    <div className="flex flex-wrap gap-1.5 mb-2">
+                    <div className="flex gap-1.5 mb-2 overflow-x-auto">
                         {SAMPLE_TYPES.map(({key, label}) => (
                             <button
                                 key={key}
                                 onClick={() => handleSampleChange(key)}
-                                className={`text-sm px-3 py-1 rounded-full border transition-all ${selectedSample === key ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'hover:bg-gray-100'}`}
+                                className={`text-sm px-3 py-1 rounded-full border transition-all flex-shrink-0 whitespace-nowrap ${selectedSample === key ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'hover:bg-gray-100'}`}
                             >
                                 {label}
                             </button>
                         ))}
                     </div>
                     <Select value={String(selectedSampleIndex)} onValueChange={handleSampleIndexChange}>
-                        <SelectTrigger className="w-56">
+                        <SelectTrigger className="w-full sm:w-56">
                             <SelectValue/>
                         </SelectTrigger>
                         <SelectContent>
@@ -717,10 +718,37 @@ export default function MermaidPage() {
                     </Select>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3" style={{height: '65vh'}}>
+                {/* 모바일 탭 전환 */}
+                <div className="flex md:hidden border-b mb-3" role="tablist" aria-label="에디터 뷰 전환">
+                    <button
+                        role="tab"
+                        aria-selected={activeTab === 'editor'}
+                        aria-controls="panel-editor"
+                        id="tab-editor"
+                        onClick={() => setActiveTab('editor')}
+                        className={`flex-1 py-2.5 text-sm font-medium text-center border-b-2 transition-colors duration-200 ${activeTab === 'editor' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                    >
+                        코드
+                    </button>
+                    <button
+                        role="tab"
+                        aria-selected={activeTab === 'preview'}
+                        aria-controls="panel-preview"
+                        id="tab-preview"
+                        onClick={() => setActiveTab('preview')}
+                        className={`flex-1 py-2.5 text-sm font-medium text-center border-b-2 transition-colors duration-200 ${activeTab === 'preview' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                    >
+                        미리보기
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-[calc(100dvh-26rem)] min-h-[300px] md:h-[65vh]">
                     {/* 에디터 영역 */}
-                    <div className="border rounded-md p-3 flex flex-col">
-                        <p className="font-semibold mb-2">코드</p>
+                    <div
+                        role="tabpanel" id="panel-editor" aria-labelledby="tab-editor"
+                        className={`border rounded-md p-3 flex-col min-h-0 overflow-hidden ${activeTab !== 'editor' ? 'hidden md:flex' : 'flex'}`}
+                    >
+                        <p className="font-semibold mb-2 hidden md:block">코드</p>
                         <textarea
                             value={code}
                             onChange={(e) => setCode(e.target.value)}
@@ -729,10 +757,13 @@ export default function MermaidPage() {
                     </div>
 
                     {/* 프리뷰 영역 */}
-                    <div className="border rounded-md p-3 flex flex-col">
+                    <div
+                        role="tabpanel" id="panel-preview" aria-labelledby="tab-preview"
+                        className={`border rounded-md p-3 flex-col min-h-0 overflow-hidden ${activeTab !== 'preview' ? 'hidden md:flex' : 'flex'}`}
+                    >
                         {/* 헤더 */}
-                        <div className="flex justify-between items-center mb-2">
-                            <p className="font-semibold">미리보기</p>
+                        <div className="flex justify-between items-center mb-2 flex-wrap gap-1">
+                            <p className="font-semibold hidden md:block">미리보기</p>
                             <div className="flex items-center gap-1">
                                 <ZoomControls/>
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleFullscreen} title="전체화면">
@@ -774,17 +805,22 @@ export default function MermaidPage() {
 
             {isFullscreen && isClient && createPortal(
                 <div className="fixed inset-0 z-[1200] bg-white flex flex-col">
-                    <div className="p-2 border-b flex justify-between items-center flex-wrap gap-2 bg-white shadow-sm">
-                        <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
-                                <Minimize className="h-5 w-5"/>
-                            </Button>
-                            <span className="font-semibold">미리보기</span>
-                            <span className="text-xs text-gray-400">(ESC로 닫기)</span>
+                    <div className="p-2 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white shadow-sm">
+                        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                            <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
+                                    <Minimize className="h-5 w-5"/>
+                                </Button>
+                                <span className="font-semibold">미리보기</span>
+                                <span className="text-xs text-gray-400 hidden sm:inline">(ESC로 닫기)</span>
+                            </div>
+                            <div className="sm:hidden"><ZoomControls/></div>
                         </div>
-                        <div className="flex items-center gap-3 flex-wrap">
-                            <ZoomControls/>
-                            <div className="h-4 border-l"/>
+                        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+                            <div className="hidden sm:flex items-center gap-3">
+                                <ZoomControls/>
+                                <div className="h-4 border-l"/>
+                            </div>
                             <DownloadControls/>
                         </div>
                     </div>
@@ -800,7 +836,7 @@ export default function MermaidPage() {
                     />
 
                     <div
-                        className={`fixed bottom-5 right-5 z-[1300] shadow-2xl rounded-lg overflow-hidden border bg-white transition-all duration-300 ${isEditorVisible ? 'w-[420px]' : 'w-auto'}`}
+                        className={`fixed z-[1300] shadow-2xl overflow-hidden border bg-white transition-all duration-300 bottom-0 inset-x-0 rounded-t-xl sm:bottom-5 sm:right-5 sm:left-auto sm:inset-x-auto sm:rounded-lg ${isEditorVisible ? 'sm:w-[420px]' : 'w-auto sm:w-auto'}`}
                         style={{maxHeight: isEditorVisible ? '45vh' : 'auto'}}
                     >
                         <div className="flex items-center px-3 py-2 border-b bg-gray-50">

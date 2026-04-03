@@ -349,22 +349,28 @@ export default function CrontabPage() {
     )
 
     return (
-        <div className="p-4">
+        <div className="p-2 sm:p-4">
             <div className="flex items-center gap-2 mb-4">
                 <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
                     <ArrowLeft className="h-5 w-5"/>
                 </Button>
-                <h1 className="text-3xl font-bold">Crontab Calculator</h1>
+                <h1 className="text-xl sm:text-3xl font-bold">Crontab Calculator</h1>
             </div>
 
             <div className="border rounded-md">
                 <Tabs value={tabValue} onValueChange={setTabValue}>
                     <TabsList className="w-full grid grid-cols-2 rounded-none border-b">
-                        <TabsTrigger value="unix">Unix Crontab (5필드)</TabsTrigger>
-                        <TabsTrigger value="spring">Spring Scheduler (6필드)</TabsTrigger>
+                        <TabsTrigger value="unix">
+                            <span className="sm:hidden">Unix (5필드)</span>
+                            <span className="hidden sm:inline">Unix Crontab (5필드)</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="spring">
+                            <span className="sm:hidden">Spring (6필드)</span>
+                            <span className="hidden sm:inline">Spring Scheduler (6필드)</span>
+                        </TabsTrigger>
                     </TabsList>
 
-                    <div className="p-4">
+                    <div className="p-2 sm:p-4">
                         <TabsContent value="unix">
                             {renderExpressionInput(unixExpression, setUnixExpression, handleUnixCalculate, unixError, UNIX_PRESETS, false)}
                             {renderDescription(unixDescription)}

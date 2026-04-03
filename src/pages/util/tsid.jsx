@@ -101,12 +101,12 @@ export default function TsidPage() {
     )
 
     return (
-        <div className="p-4">
+        <div className="p-2 sm:p-4">
             <div className="flex items-center gap-2 mb-4">
                 <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
                     <ArrowLeft className="h-5 w-5"/>
                 </Button>
-                <h1 className="text-3xl font-bold">TSID Converter</h1>
+                <h1 className="text-xl sm:text-3xl font-bold">TSID Converter</h1>
             </div>
 
             <div className="border rounded-md">
@@ -117,7 +117,7 @@ export default function TsidPage() {
                         <TabsTrigger value="date">TSID → 날짜</TabsTrigger>
                     </TabsList>
 
-                    <div className="p-4">
+                    <div className="p-2 sm:p-4">
                         {/* TSID 생성 */}
                         <TabsContent value="generate">
                             <div className="text-center mb-4">

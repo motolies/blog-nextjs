@@ -360,36 +360,22 @@ body[data-admin-ui="admin"]::before {
   min-width: 0;
 }
 
-.admin-page-eyebrow,
-.admin-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 0.8rem;
-  border-radius: 9999px;
-  border: 1px solid rgba(21, 112, 239, 0.18);
-  background: rgba(21, 112, 239, 0.08);
-  color: #0f5dd6;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
 .admin-page-title {
-  margin: 0.8rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
   color: var(--admin-text);
   font-size: clamp(1.8rem, 2vw, 2.45rem);
   font-weight: 800;
   letter-spacing: -0.045em;
 }
 
-.admin-page-description {
-  margin: 0.5rem 0 0;
-  max-width: 52rem;
-  color: var(--admin-text-muted);
-  font-size: 0.95rem;
-  line-height: 1.65;
+.admin-page-title-icon {
+  width: 1.4em;
+  height: 1.4em;
+  color: #1570ef;
+  flex-shrink: 0;
 }
 
 .admin-page-actions {

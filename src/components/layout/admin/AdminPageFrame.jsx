@@ -4,8 +4,6 @@ import {cn} from '../../../lib/utils'
 
 export default function AdminPageFrame({
   title,
-  description,
-  eyebrow,
   actions,
   className,
   contentClassName,
@@ -13,14 +11,16 @@ export default function AdminPageFrame({
 }) {
   const router = useRouter()
   const meta = getAdminRouteMeta(router.pathname)
+  const Icon = meta.icon
 
   return (
     <section className={cn('admin-page-frame', className)}>
       <div className="admin-page-header">
         <div className="admin-page-copy">
-          <span className="admin-page-eyebrow">{eyebrow || meta.eyebrow}</span>
-          <h1 className="admin-page-title">{title || meta.title}</h1>
-          <p className="admin-page-description">{description || meta.description}</p>
+          <h1 className="admin-page-title">
+            {Icon && <Icon className="admin-page-title-icon" />}
+            {title || meta.title}
+          </h1>
         </div>
         {actions ? (
           <div className="admin-page-actions">

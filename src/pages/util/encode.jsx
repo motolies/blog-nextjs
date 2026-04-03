@@ -278,12 +278,12 @@ export default function EncodePage() {
     }
 
     return (
-        <div className="p-4">
+        <div className="p-2 sm:p-4">
             <div className="flex items-center gap-2 mb-4">
                 <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
                     <ArrowLeft className="h-5 w-5"/>
                 </Button>
-                <h1 className="text-3xl font-bold">Encoder / Decoder</h1>
+                <h1 className="text-xl sm:text-3xl font-bold">Encoder / Decoder</h1>
             </div>
 
             <div className="border rounded-md">
@@ -294,7 +294,7 @@ export default function EncodePage() {
                         ))}
                     </TabsList>
 
-                    <div className="p-4">
+                    <div className="p-2 sm:p-4">
                         {/* Base64 */}
                         <TabsContent value="base64">
                             {renderBidirectionalPanel({

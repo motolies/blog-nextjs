@@ -177,12 +177,12 @@ export default function BarcodePage() {
     const currentFormat = BARCODE_FORMATS.find(f => f.value === barcodeFormat)
 
     return (
-        <div className="p-4">
+        <div className="p-2 sm:p-4">
             <div className="flex items-center gap-2 mb-4">
                 <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
                     <ArrowLeft className="h-5 w-5"/>
                 </Button>
-                <h1 className="text-3xl font-bold">Barcode Generator</h1>
+                <h1 className="text-xl sm:text-3xl font-bold">Barcode Generator</h1>
             </div>
 
             <div className="border rounded-md">
@@ -194,7 +194,7 @@ export default function BarcodePage() {
 
                     {/* 1D Barcode */}
                     <TabsContent value="barcode">
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-2 sm:p-4">
                             {/* 설정 영역 */}
                             <div className="md:col-span-2 space-y-4">
                                 <div>
@@ -276,7 +276,7 @@ export default function BarcodePage() {
 
                     {/* QR Code */}
                     <TabsContent value="qr">
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-2 sm:p-4">
                             {/* 설정 영역 */}
                             <div className="md:col-span-2 space-y-4">
                                 <div>

@@ -113,18 +113,18 @@ export default function RegexTester() {
     const currentLang = languages.find(l => l.id === tabValue) || languages[0]
 
     return (
-        <div className="p-4">
-            <div className="flex items-center gap-2 mb-4">
+        <div className="p-2 sm:p-4">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
                 <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
                     <ArrowLeft className="h-5 w-5"/>
                 </Button>
-                <h1 className="text-3xl font-bold">정규식 테스터</h1>
+                <h1 className="text-xl sm:text-3xl font-bold">정규식 테스터</h1>
                 <div className="ml-auto flex gap-2">
-                    <Button onClick={handleTest} disabled={!pattern}>
-                        <Play className="mr-1.5 h-4 w-4"/> 테스트
+                    <Button size="sm" onClick={handleTest} disabled={!pattern}>
+                        <Play className="mr-1 h-4 w-4"/> 테스트
                     </Button>
-                    <Button variant="outline" onClick={handleClear}>
-                        <X className="mr-1.5 h-4 w-4"/> 초기화
+                    <Button size="sm" variant="outline" onClick={handleClear}>
+                        <X className="mr-1 h-4 w-4"/> 초기화
                     </Button>
                 </div>
             </div>
@@ -161,7 +161,7 @@ export default function RegexTester() {
 
                                 <div className="border rounded-md p-4">
                                     <p className="font-medium mb-2">실행 옵션 (Flags)</p>
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         {[
                                             {key: 'g', label: 'g (global)'},
                                             {key: 'i', label: 'i (ignore case)'},

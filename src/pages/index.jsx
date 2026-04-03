@@ -10,13 +10,7 @@ export default function IndexPage({engines, favorites}) {
             <h1 className="visually-hidden">Skyscape - 홈</h1>
             <section>
                 <div className="public-container px-4 pb-10 pt-28 sm:px-6 lg:px-8 lg:pb-12">
-                    <div className="max-w-3xl">
-                        <span className="section-eyebrow">
-                            <Search className="h-3.5 w-3.5"/>
-                            Public Dashboard
-                        </span>
-                    </div>
-                    <div className="mt-10 w-full">
+                    <div className="w-full">
                         <SearchEngineComponent engines={engines}/>
                     </div>
                 </div>

@@ -8,6 +8,8 @@ import DataTableCore, {
   buildDataTableColumns,
   type DataTableColumn,
   type DataTableDensity,
+  type DataTableEditableConfig,
+  type EditingCell,
 } from './DataTableCore'
 import DataTableToolbar from './DataTableToolbar'
 import {
@@ -47,7 +49,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 
-export type { DataTableColumn } from './DataTableCore'
+export type { DataTableColumn, DataTableEditableConfig } from './DataTableCore'
 
 const HIDDEN_PAGE_SIZE = 100000
 const DESKTOP_PAGINATION_MEDIA_QUERY = '(min-width: 640px)'
@@ -193,6 +195,8 @@ export interface ShadcnDataTableProps<TData extends RowData> {
   }) => ReactNode
   getRowId?: (row: TData, index: number) => string
   isRowModified?: (row: TData) => boolean
+  // Inline editing
+  onCellEdit?: (params: { rowId: string; columnId: string; value: unknown; row: TData }) => void
 }
 
 interface TableColumnMeta {
@@ -203,6 +207,7 @@ interface TableColumnMeta {
   mobilePrimary?: boolean
   mobileHidden?: boolean
   mobileLabel?: string
+  editable?: DataTableEditableConfig | false
 }
 
 export default function ShadcnDataTable<TData extends RowData>({
@@ -235,6 +240,7 @@ export default function ShadcnDataTable<TData extends RowData>({
   renderToolbar,
   getRowId,
   isRowModified,
+  onCellEdit,
 }: ShadcnDataTableProps<TData>) {
   const densityConfig = DATA_TABLE_DENSITY_CONFIG[density]
   const showMobileCards = mobileCardView
@@ -246,6 +252,7 @@ export default function ShadcnDataTable<TData extends RowData>({
   const [manualWidths, setManualWidths] = useState<ColumnSizingState>({})
   const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [editingCell, setEditingCell] = useState<EditingCell | null>(null)
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: hidePagination ? HIDDEN_PAGE_SIZE : defaultPageSize,
@@ -510,6 +517,20 @@ export default function ShadcnDataTable<TData extends RowData>({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowSelection])
 
+  // 페이지 전환 시 편집 모드 해제
+  useEffect(() => {
+    setEditingCell(null)
+  }, [pagination.pageIndex])
+
+  const handleCellValueChange = useCallback((params: {
+    rowId: string
+    columnId: string
+    value: unknown
+    row: TData
+  }) => {
+    onCellEdit?.(params)
+  }, [onCellEdit])
+
   const rows = table.getRowModel().rows
   const currentPage = pagination.pageIndex + 1
   const totalPages = paginationMode === 'client'
@@ -710,6 +731,9 @@ export default function ShadcnDataTable<TData extends RowData>({
         enableColumnReorder={enableColumnReorder}
         columnOrder={columnOrder}
         onColumnOrderChange={setColumnOrder}
+        editingCell={editingCell}
+        onEditingCellChange={onCellEdit ? setEditingCell : undefined}
+        onCellValueChange={onCellEdit ? handleCellValueChange : undefined}
       />
 
       {!hidePagination && (

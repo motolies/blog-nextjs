@@ -33,6 +33,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import EditableCell from './EditableCell'
 
 export const DEFAULT_COLUMN_WIDTH = 160
 export const MIN_COLUMN_WIDTH = 60
@@ -99,6 +100,20 @@ export interface DataTableFooterProps {
   summaryRow?: Record<string, unknown> | null
 }
 
+export interface DataTableEditableConfig {
+  type: 'text' | 'number' | 'select'
+  options?: { value: string; label: string }[]
+  placeholder?: string
+  min?: number
+  max?: number
+  step?: number
+}
+
+export interface EditingCell {
+  rowId: string
+  columnId: string
+}
+
 export interface DataTableColumn<TData = unknown> {
   accessorKey?: string
   id?: string
@@ -120,6 +135,7 @@ export interface DataTableColumn<TData = unknown> {
   mobilePrimary?: boolean
   mobileHidden?: boolean
   mobileLabel?: string
+  editable?: DataTableEditableConfig | boolean
 }
 
 export interface DataTableRowParams<TData> {
@@ -135,6 +151,7 @@ interface TableColumnMeta {
   mobilePrimary?: boolean
   mobileHidden?: boolean
   mobileLabel?: string
+  editable?: DataTableEditableConfig | false
 }
 
 interface DesktopTableLayout {
@@ -155,6 +172,9 @@ export interface DataTableCoreProps<TData extends RowData> {
   enableColumnReorder?: boolean
   columnOrder?: ColumnOrderState
   onColumnOrderChange?: (order: ColumnOrderState) => void
+  editingCell?: EditingCell | null
+  onEditingCellChange?: (cell: EditingCell | null) => void
+  onCellValueChange?: (params: { rowId: string; columnId: string; value: unknown; row: TData }) => void
 }
 
 const NON_REORDERABLE_COLUMNS = new Set(['__select__', '__actions__'])
@@ -203,6 +223,13 @@ export function buildDataTableColumns<TData extends RowData>(
     const footerAlign = column.footerAlign || cellAlign
     const footerValue = accessorKey ? summaryRow?.[accessorKey] : undefined
 
+    const editableConfig: DataTableEditableConfig | false =
+      column.editable === true
+        ? { type: 'text' }
+        : column.editable && typeof column.editable === 'object'
+          ? column.editable
+          : false
+
     const sharedColumn = {
       id,
       header: resolveHeader(column.header),
@@ -219,6 +246,7 @@ export function buildDataTableColumns<TData extends RowData>(
         mobilePrimary: column.mobilePrimary,
         mobileHidden: column.mobileHidden,
         mobileLabel: column.mobileLabel || getDataTableColumnLabel(column),
+        editable: editableConfig,
       } satisfies TableColumnMeta,
       cell: ({ row }) => {
         const value = getValueByAccessorKey(row.original, accessorKey)
@@ -335,6 +363,9 @@ export default function DataTableCore<TData extends RowData>({
   enableColumnReorder = true,
   columnOrder = [],
   onColumnOrderChange,
+  editingCell = null,
+  onEditingCellChange,
+  onCellValueChange,
 }: DataTableCoreProps<TData>) {
   const densityConfig = DATA_TABLE_DENSITY_CONFIG[density]
   const tableContainerRef = useRef<HTMLDivElement | null>(null)
@@ -424,6 +455,36 @@ export default function DataTableCore<TData extends RowData>({
     if (column.getIsSorted() === 'desc') return <ArrowDown className="ml-1 h-3 w-3 shrink-0" />
     return <ArrowUpDown className="ml-1 h-3 w-3 shrink-0 opacity-40" />
   }
+
+  // Editable cell content renderer
+  const renderCellContent = useCallback((
+    cell: ReturnType<Row<TData>['getVisibleCells']>[number],
+    row: Row<TData>,
+  ) => {
+    const meta = cell.column.columnDef.meta as TableColumnMeta | undefined
+    const editableConfig = meta?.editable
+
+    if (!editableConfig || !onEditingCellChange || !onCellValueChange) {
+      return flexRender(cell.column.columnDef.cell, cell.getContext())
+    }
+
+    const isEditing = editingCell?.rowId === row.id && editingCell?.columnId === cell.column.id
+
+    return (
+      <EditableCell
+        value={getValueByAccessorKey(row.original, cell.column.id)}
+        config={editableConfig}
+        isEditing={isEditing}
+        onStartEdit={() => onEditingCellChange({ rowId: row.id, columnId: cell.column.id })}
+        onCommit={(newValue) => {
+          onCellValueChange({ rowId: row.id, columnId: cell.column.id, value: newValue, row: row.original })
+          onEditingCellChange(null)
+        }}
+        onCancel={() => onEditingCellChange(null)}
+        readContent={flexRender(cell.column.columnDef.cell, cell.getContext())}
+      />
+    )
+  }, [editingCell, onEditingCellChange, onCellValueChange])
 
   // DnD: sensors and handler
   const sensors = useSensors(
@@ -542,14 +603,17 @@ export default function DataTableCore<TData extends RowData>({
     cell,
     cellWidth,
     cellClassName,
+    row,
   }: {
     cell: ReturnType<Row<TData>['getVisibleCells']>[number]
     cellWidth: number
     cellClassName: string
+    row: Row<TData>
   }) => {
+    const isEditingThisCell = editingCell?.rowId === row.id && editingCell?.columnId === cell.column.id
     const { isDragging, setNodeRef, transform } = useSortable({
       id: cell.column.id,
-      disabled: !enableColumnReorder || NON_REORDERABLE_COLUMNS.has(cell.column.id),
+      disabled: !enableColumnReorder || NON_REORDERABLE_COLUMNS.has(cell.column.id) || isEditingThisCell,
     })
 
     const style: CSSProperties = {
@@ -568,10 +632,10 @@ export default function DataTableCore<TData extends RowData>({
         className={cellClassName}
         style={style}
       >
-        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        {renderCellContent(cell, row)}
       </td>
     )
-  }, [enableColumnReorder])
+  }, [enableColumnReorder, editingCell, renderCellContent])
 
   const tableContent = (
     <div
@@ -720,6 +784,7 @@ export default function DataTableCore<TData extends RowData>({
                               align === 'center' && 'text-center',
                               align === 'right' && 'text-right',
                             )}
+                            row={row}
                           />
                         )
                       })}
@@ -745,7 +810,7 @@ export default function DataTableCore<TData extends RowData>({
                             minWidth: cellWidth,
                           }}
                         >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {renderCellContent(cell, row)}
                         </td>
                       )
                     })

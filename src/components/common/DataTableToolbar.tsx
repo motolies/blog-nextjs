@@ -67,8 +67,8 @@ export default function DataTableToolbar<TData extends RowData>({
     return null
   }
 
-  const sizeClass = density === 'compact' ? 'h-7 text-xs' : 'h-8 text-sm'
-  const iconSize = density === 'compact' ? 'h-3 w-3' : 'h-3.5 w-3.5'
+  const sizeClass = 'h-7 text-xs'
+  const iconSize = 'h-3 w-3'
 
   return (
     <div className="mb-1 flex items-center justify-between gap-2">

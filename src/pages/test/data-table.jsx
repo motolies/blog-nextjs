@@ -40,6 +40,7 @@ export default function DataTableTestPage() {
       grow: true,
       mobilePrimary: true,
       mobileLabel: '이름',
+      editable: true,
     },
     {
       accessorKey: 'email',
@@ -47,6 +48,7 @@ export default function DataTableTestPage() {
       size: 200,
       grow: true,
       mobileLabel: '이메일',
+      editable: true,
     },
     {
       accessorKey: 'role',
@@ -58,6 +60,14 @@ export default function DataTableTestPage() {
           {value}
         </Badge>
       ),
+      editable: {
+        type: 'select',
+        options: [
+          { value: '관리자', label: '관리자' },
+          { value: '편집자', label: '편집자' },
+          { value: '뷰어', label: '뷰어' },
+        ],
+      },
     },
     {
       accessorKey: 'status',
@@ -69,6 +79,13 @@ export default function DataTableTestPage() {
           {value === 'active' ? '활성' : '비활성'}
         </span>
       ),
+      editable: {
+        type: 'select',
+        options: [
+          { value: 'active', label: '활성' },
+          { value: 'inactive', label: '비활성' },
+        ],
+      },
     },
     {
       accessorKey: 'score',
@@ -78,6 +95,7 @@ export default function DataTableTestPage() {
       cellAlign: 'right',
       mobileLabel: '점수',
       sortable: true,
+      editable: { type: 'number', min: 0, max: 100 },
     },
   ], [])
 
@@ -103,6 +121,13 @@ export default function DataTableTestPage() {
   const handleSelectionChange = useCallback((selectedRows) => {
     // selection 변경 시 로그 출력 (디버깅용)
     console.log('선택된 행:', selectedRows)
+  }, [])
+
+  const handleCellEdit = useCallback(({ rowId, columnId, value }) => {
+    setData((prev) => prev.map((row) =>
+      String(row.id) === rowId ? { ...row, [columnId]: value } : row,
+    ))
+    setModifiedIds((prev) => new Set(prev).add(Number(rowId)))
   }, [])
 
   const handleDeleteSelected = useCallback((selectedRows, clearSelection) => {
@@ -146,6 +171,7 @@ export default function DataTableTestPage() {
             <li>5. <strong>선택 삭제</strong> — 선택된 행을 삭제하는 버튼 동작</li>
             <li>6. <strong>행 추가</strong> — 툴바 "추가" 버튼으로 새 행 생성 (노란 배경 표시)</li>
             <li>7. <strong>전체 저장</strong> — 툴바 "저장" 버튼 클릭 시 토스트 메시지 확인</li>
+            <li>8. <strong>인라인 편집</strong> — 셀 더블클릭으로 편집 (이름/이메일=텍스트, 역할/상태=셀렉트, 점수=숫자)</li>
           </ul>
         </div>
 
@@ -165,7 +191,7 @@ export default function DataTableTestPage() {
               <Button
                 variant="destructive"
                 size="sm"
-                className="h-8 gap-1 text-sm"
+                className="h-7 gap-1 text-xs"
                 onClick={() => handleDeleteSelected(selectedRows, clearSelection)}
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -176,7 +202,9 @@ export default function DataTableTestPage() {
             enableToolbar
             onAddRow={handleAddRow}
             onSaveAll={handleSaveAll}
-            // 4. 유틸리티
+            // 4. 인라인 편집
+            onCellEdit={handleCellEdit}
+            // 5. 유틸리티
             getRowId={getRowId}
             isRowModified={isRowModified}
             getRowClassName={getRowClassName}

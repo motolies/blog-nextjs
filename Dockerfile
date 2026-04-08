@@ -1,4 +1,4 @@
-FROM node:22-alpine AS deps
+FROM node:24-alpine AS deps
 RUN apk update && apk upgrade && \
     apk add --no-cache libc6-compat python3 cmake g++ && \
     rm -rf /var/cache/apk/*
@@ -9,7 +9,7 @@ COPY package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
     npm ci
 
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY package*.json ./
@@ -20,7 +20,7 @@ COPY public ./public
 #RUN yarn build
 RUN npm run build
 
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 # [핵심] 기본값: 외부 설정이 없으면 힙 메모리 256MB로 제한 (보수적 설정)

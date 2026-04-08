@@ -1,12 +1,31 @@
-import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { type CSSProperties, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   flexRender,
   type Column,
   type ColumnDef,
+  type ColumnOrderState,
   type Row,
   type RowData,
   type Table,
 } from '@tanstack/react-table'
+import {
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  type DragEndEvent,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import { restrictToHorizontalAxis } from '@dnd-kit/modifiers'
+import {
+  arrayMove,
+  horizontalListSortingStrategy,
+  SortableContext,
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import {
   ArrowDown,
   ArrowUp,
@@ -133,7 +152,12 @@ export interface DataTableCoreProps<TData extends RowData> {
   getRowClassName?: (params: DataTableRowParams<TData>) => string
   className?: string
   noDataText?: string
+  enableColumnReorder?: boolean
+  columnOrder?: ColumnOrderState
+  onColumnOrderChange?: (order: ColumnOrderState) => void
 }
+
+const NON_REORDERABLE_COLUMNS = new Set(['__select__', '__actions__'])
 
 function getValueByAccessorKey(record: unknown, accessorKey?: string): unknown {
   if (!accessorKey) return undefined
@@ -308,6 +332,9 @@ export default function DataTableCore<TData extends RowData>({
   getRowClassName,
   className,
   noDataText = '데이터가 없습니다',
+  enableColumnReorder = true,
+  columnOrder = [],
+  onColumnOrderChange,
 }: DataTableCoreProps<TData>) {
   const densityConfig = DATA_TABLE_DENSITY_CONFIG[density]
   const tableContainerRef = useRef<HTMLDivElement | null>(null)
@@ -398,7 +425,155 @@ export default function DataTableCore<TData extends RowData>({
     return <ArrowUpDown className="ml-1 h-3 w-3 shrink-0 opacity-40" />
   }
 
-  return (
+  // DnD: sensors and handler
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: { distance: 5 },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 150, tolerance: 5 },
+    }),
+    useSensor(KeyboardSensor, {}),
+  )
+
+  const reorderableColumnIds = useMemo(() => {
+    return columnOrder.filter((id) => !NON_REORDERABLE_COLUMNS.has(id))
+  }, [columnOrder])
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event
+    if (!active || !over || active.id === over.id || !onColumnOrderChange) return
+
+    const oldIndex = columnOrder.indexOf(active.id as string)
+    const newIndex = columnOrder.indexOf(over.id as string)
+    if (oldIndex === -1 || newIndex === -1) return
+
+    onColumnOrderChange(arrayMove(columnOrder, oldIndex, newIndex))
+  }, [columnOrder, onColumnOrderChange])
+
+  // DraggableHeader: inner component with access to closure
+  const DraggableHeader = useCallback(({
+    header,
+    headerWidth,
+  }: {
+    header: ReturnType<Table<TData>['getHeaderGroups']>[number]['headers'][number]
+    headerWidth: number
+  }) => {
+    const isReorderable = enableColumnReorder && !NON_REORDERABLE_COLUMNS.has(header.column.id)
+    const { attributes, isDragging, listeners, setNodeRef, transform } = useSortable({
+      id: header.column.id,
+      disabled: !isReorderable,
+    })
+    const meta = header.column.columnDef.meta as TableColumnMeta | undefined
+    const align = meta?.headerAlign || 'left'
+
+    const style: CSSProperties = {
+      width: headerWidth,
+      minWidth: headerWidth,
+      opacity: isDragging ? 0.8 : 1,
+      position: 'relative',
+      transform: CSS.Translate.toString(transform),
+      transition: 'width transform',
+      whiteSpace: 'nowrap',
+      zIndex: isDragging ? 1 : 0,
+    }
+
+    return (
+      <th
+        ref={setNodeRef}
+        colSpan={header.colSpan}
+        className={cn(
+          'select-none border-b border-[color:var(--admin-border)] font-bold text-[color:var(--admin-text-secondary)]',
+          densityConfig.headPadding,
+          densityConfig.headerFontSize,
+          align === 'left' && 'text-left',
+          align === 'center' && 'text-center',
+          align === 'right' && 'text-right',
+          header.column.getCanSort() && 'cursor-pointer',
+          isReorderable && !isDragging && 'cursor-grab',
+          isDragging && 'cursor-grabbing',
+        )}
+        style={style}
+        onClick={(event) => {
+          if (justResizedRef.current) return
+          header.column.getToggleSortingHandler()?.(event)
+        }}
+      >
+        <div
+          className={cn(
+            'flex items-center',
+            align === 'center' && 'justify-center',
+            align === 'right' && 'justify-end',
+          )}
+          {...(isReorderable ? { ...attributes, ...listeners } : {})}
+        >
+          {header.isPlaceholder
+            ? null
+            : flexRender(header.column.columnDef.header, header.getContext())}
+          <SortIcon column={header.column} />
+        </div>
+
+        {header.column.getCanResize() && (
+          <div
+            onMouseDown={(event) => {
+              event.stopPropagation()
+              handleResizeStart(header, event)
+            }}
+            onTouchStart={(event) => {
+              event.stopPropagation()
+              handleResizeStart(header, event)
+            }}
+            onClick={(event) => event.stopPropagation()}
+            onPointerDown={(event) => event.stopPropagation()}
+            className={cn(
+              'absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none',
+              'bg-slate-300 hover:bg-sky-500/70',
+              header.column.getIsResizing() && 'bg-sky-500',
+            )}
+          />
+        )}
+      </th>
+    )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [densityConfig, enableColumnReorder, handleResizeStart])
+
+  // DragAlongCell: inner component for body cells during column reorder
+  const DragAlongCell = useCallback(({
+    cell,
+    cellWidth,
+    cellClassName,
+  }: {
+    cell: ReturnType<Row<TData>['getVisibleCells']>[number]
+    cellWidth: number
+    cellClassName: string
+  }) => {
+    const { isDragging, setNodeRef, transform } = useSortable({
+      id: cell.column.id,
+      disabled: !enableColumnReorder || NON_REORDERABLE_COLUMNS.has(cell.column.id),
+    })
+
+    const style: CSSProperties = {
+      width: cellWidth,
+      minWidth: cellWidth,
+      opacity: isDragging ? 0.8 : 1,
+      position: 'relative',
+      transform: CSS.Translate.toString(transform),
+      transition: 'width transform',
+      zIndex: isDragging ? 1 : 0,
+    }
+
+    return (
+      <td
+        ref={setNodeRef}
+        className={cellClassName}
+        style={style}
+      >
+        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+      </td>
+    )
+  }, [enableColumnReorder])
+
+  const tableContent = (
     <div
       ref={tableContainerRef}
       className={cn(
@@ -427,59 +602,74 @@ export default function DataTableCore<TData extends RowData>({
         <thead className="sticky top-0 z-[1] bg-white/95 backdrop-blur-xl">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                const meta = header.column.columnDef.meta as TableColumnMeta | undefined
-                const align = meta?.headerAlign || 'left'
-                const headerWidth = getHeaderWidth(header, desktopTableLayout.widths)
+              {enableColumnReorder ? (
+                <SortableContext items={reorderableColumnIds} strategy={horizontalListSortingStrategy}>
+                  {headerGroup.headers.map((header) => {
+                    const headerWidth = getHeaderWidth(header, desktopTableLayout.widths)
+                    return (
+                      <DraggableHeader
+                        key={header.id}
+                        header={header}
+                        headerWidth={headerWidth}
+                      />
+                    )
+                  })}
+                </SortableContext>
+              ) : (
+                headerGroup.headers.map((header) => {
+                  const meta = header.column.columnDef.meta as TableColumnMeta | undefined
+                  const align = meta?.headerAlign || 'left'
+                  const headerWidth = getHeaderWidth(header, desktopTableLayout.widths)
 
-                return (
-                  <th
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    className={cn(
-                      'relative select-none whitespace-nowrap border-b border-[color:var(--admin-border)] font-bold text-[color:var(--admin-text-secondary)]',
-                      densityConfig.headPadding,
-                      densityConfig.headerFontSize,
-                      align === 'left' && 'text-left',
-                      align === 'center' && 'text-center',
-                      align === 'right' && 'text-right',
-                      header.column.getCanSort() && 'cursor-pointer',
-                    )}
-                    style={{
-                      width: headerWidth,
-                      minWidth: headerWidth,
-                    }}
-                    onClick={(event) => {
-                      if (justResizedRef.current) return
-                      header.column.getToggleSortingHandler()?.(event)
-                    }}
-                  >
-                    <div className={cn(
-                      'flex items-center',
-                      align === 'center' && 'justify-center',
-                      align === 'right' && 'justify-end',
-                    )}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                      <SortIcon column={header.column} />
-
-                      {header.column.getCanResize() && (
-                        <div
-                          onMouseDown={(event) => handleResizeStart(header, event)}
-                          onTouchStart={(event) => handleResizeStart(header, event)}
-                          onClick={(event) => event.stopPropagation()}
-                          className={cn(
-                            'absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none',
-                            'bg-slate-300 hover:bg-sky-500/70',
-                            header.column.getIsResizing() && 'bg-sky-500',
-                          )}
-                        />
+                  return (
+                    <th
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      className={cn(
+                        'relative select-none whitespace-nowrap border-b border-[color:var(--admin-border)] font-bold text-[color:var(--admin-text-secondary)]',
+                        densityConfig.headPadding,
+                        densityConfig.headerFontSize,
+                        align === 'left' && 'text-left',
+                        align === 'center' && 'text-center',
+                        align === 'right' && 'text-right',
+                        header.column.getCanSort() && 'cursor-pointer',
                       )}
-                    </div>
-                  </th>
-                )
-              })}
+                      style={{
+                        width: headerWidth,
+                        minWidth: headerWidth,
+                      }}
+                      onClick={(event) => {
+                        if (justResizedRef.current) return
+                        header.column.getToggleSortingHandler()?.(event)
+                      }}
+                    >
+                      <div className={cn(
+                        'flex items-center',
+                        align === 'center' && 'justify-center',
+                        align === 'right' && 'justify-end',
+                      )}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
+                        <SortIcon column={header.column} />
+
+                        {header.column.getCanResize() && (
+                          <div
+                            onMouseDown={(event) => handleResizeStart(header, event)}
+                            onTouchStart={(event) => handleResizeStart(header, event)}
+                            onClick={(event) => event.stopPropagation()}
+                            className={cn(
+                              'absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none',
+                              'bg-slate-300 hover:bg-sky-500/70',
+                              header.column.getIsResizing() && 'bg-sky-500',
+                            )}
+                          />
+                        )}
+                      </div>
+                    </th>
+                  )
+                })
+              )}
             </tr>
           ))}
         </thead>
@@ -511,30 +701,55 @@ export default function DataTableCore<TData extends RowData>({
                     rowClassName,
                   )}
                 >
-                  {row.getVisibleCells().map((cell) => {
-                    const meta = cell.column.columnDef.meta as TableColumnMeta | undefined
-                    const align = meta?.cellAlign || 'left'
-                    const cellWidth = desktopTableLayout.widths[cell.column.id] ?? cell.column.getSize()
+                  {enableColumnReorder ? (
+                    <SortableContext items={reorderableColumnIds} strategy={horizontalListSortingStrategy}>
+                      {row.getVisibleCells().map((cell) => {
+                        const meta = cell.column.columnDef.meta as TableColumnMeta | undefined
+                        const align = meta?.cellAlign || 'left'
+                        const cellWidth = desktopTableLayout.widths[cell.column.id] ?? cell.column.getSize()
 
-                    return (
-                      <td
-                        key={cell.id}
-                        className={cn(
-                          'align-middle text-[color:var(--admin-text)]',
-                          densityConfig.cellPadding,
-                          densityConfig.fontSize,
-                          align === 'center' && 'text-center',
-                          align === 'right' && 'text-right',
-                        )}
-                        style={{
-                          width: cellWidth,
-                          minWidth: cellWidth,
-                        }}
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    )
-                  })}
+                        return (
+                          <DragAlongCell
+                            key={cell.id}
+                            cell={cell}
+                            cellWidth={cellWidth}
+                            cellClassName={cn(
+                              'align-middle text-[color:var(--admin-text)]',
+                              densityConfig.cellPadding,
+                              densityConfig.fontSize,
+                              align === 'center' && 'text-center',
+                              align === 'right' && 'text-right',
+                            )}
+                          />
+                        )
+                      })}
+                    </SortableContext>
+                  ) : (
+                    row.getVisibleCells().map((cell) => {
+                      const meta = cell.column.columnDef.meta as TableColumnMeta | undefined
+                      const align = meta?.cellAlign || 'left'
+                      const cellWidth = desktopTableLayout.widths[cell.column.id] ?? cell.column.getSize()
+
+                      return (
+                        <td
+                          key={cell.id}
+                          className={cn(
+                            'align-middle text-[color:var(--admin-text)]',
+                            densityConfig.cellPadding,
+                            densityConfig.fontSize,
+                            align === 'center' && 'text-center',
+                            align === 'right' && 'text-right',
+                          )}
+                          style={{
+                            width: cellWidth,
+                            minWidth: cellWidth,
+                          }}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      )
+                    })
+                  )}
                 </tr>
               )
             })
@@ -578,4 +793,19 @@ export default function DataTableCore<TData extends RowData>({
       </table>
     </div>
   )
+
+  if (enableColumnReorder) {
+    return (
+      <DndContext
+        collisionDetection={closestCenter}
+        modifiers={[restrictToHorizontalAxis]}
+        onDragEnd={handleDragEnd}
+        sensors={sensors}
+      >
+        {tableContent}
+      </DndContext>
+    )
+  }
+
+  return tableContent
 }

@@ -9,6 +9,7 @@ import DataTableCore, {
   type DataTableColumn,
   type DataTableDensity,
 } from './DataTableCore'
+import DataTableToolbar from './DataTableToolbar'
 import {
   flexRender,
   getCoreRowModel,
@@ -16,11 +17,14 @@ import {
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
+  type ColumnOrderState,
   type ColumnSizingState,
   type PaginationState,
   type Row,
   type RowData,
+  type RowSelectionState,
   type SortingState,
+  type Table,
   type VisibilityState,
 } from '@tanstack/react-table'
 import {
@@ -32,6 +36,7 @@ import {
   Settings2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -165,6 +170,29 @@ export interface ShadcnDataTableProps<TData extends RowData> {
   actionsColumnSize?: number
   enableDynamicSearch?: boolean
   mobileCardView?: boolean
+  // Column reordering
+  enableColumnReorder?: boolean
+  // Row selection
+  enableRowSelection?: boolean
+  onRowSelectionChange?: (selectedRows: TData[]) => void
+  renderSelectionToolbar?: (props: {
+    selectedRows: TData[]
+    selectedCount: number
+    clearSelection: () => void
+    table: Table<TData>
+  }) => ReactNode
+  // Toolbar
+  enableToolbar?: boolean
+  onAddRow?: () => void
+  onSaveAll?: (data: TData[]) => void | Promise<void>
+  renderToolbar?: (props: {
+    table: Table<TData>
+    data: TData[]
+    addRow: (() => void) | undefined
+    saveAll: (() => void) | undefined
+  }) => ReactNode
+  getRowId?: (row: TData, index: number) => string
+  isRowModified?: (row: TData) => boolean
 }
 
 interface TableColumnMeta {
@@ -197,6 +225,16 @@ export default function ShadcnDataTable<TData extends RowData>({
   actionsColumnSize = 80,
   enableDynamicSearch = false,
   mobileCardView = true,
+  enableColumnReorder = true,
+  enableRowSelection = false,
+  onRowSelectionChange,
+  renderSelectionToolbar,
+  enableToolbar = false,
+  onAddRow,
+  onSaveAll,
+  renderToolbar,
+  getRowId,
+  isRowModified,
 }: ShadcnDataTableProps<TData>) {
   const densityConfig = DATA_TABLE_DENSITY_CONFIG[density]
   const showMobileCards = mobileCardView
@@ -206,6 +244,8 @@ export default function ShadcnDataTable<TData extends RowData>({
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [manualWidths, setManualWidths] = useState<ColumnSizingState>({})
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: hidePagination ? HIDDEN_PAGE_SIZE : defaultPageSize,
@@ -339,7 +379,43 @@ export default function ShadcnDataTable<TData extends RowData>({
   }, [hidePagination])
 
   const columns = useMemo(() => {
-    const adapted = buildDataTableColumns<TData>(columnsProp, summaryRow)
+    let adapted = buildDataTableColumns<TData>(columnsProp, summaryRow)
+
+    if (enableRowSelection) {
+      const selectColumn: ColumnDef<TData> = {
+        id: '__select__',
+        size: 40,
+        minSize: 40,
+        maxSize: 40,
+        enableSorting: false,
+        enableResizing: false,
+        enableHiding: false,
+        header: ({ table: t }) => (
+          <Checkbox
+            checked={t.getIsAllPageRowsSelected() ? true : t.getIsSomePageRowsSelected() ? 'indeterminate' : false}
+            onCheckedChange={(value) => t.toggleAllPageRowsSelected(!!value)}
+            aria-label="전체 선택"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            onClick={(e) => e.stopPropagation()}
+            aria-label="행 선택"
+          />
+        ),
+        meta: {
+          headerAlign: 'center',
+          cellAlign: 'center',
+          footerAlign: 'center',
+          grow: false,
+          mobileHidden: true,
+          mobileLabel: '선택',
+        } satisfies TableColumnMeta,
+      }
+      adapted = [selectColumn, ...adapted]
+    }
 
     if (enableRowActions && renderRowActions) {
       const actionsColumn: ColumnDef<TData> = {
@@ -372,7 +448,7 @@ export default function ShadcnDataTable<TData extends RowData>({
     }
 
     return adapted
-  }, [columnsProp, enableRowActions, positionActionsColumn, renderRowActions, summaryRow])
+  }, [columnsProp, enableRowActions, enableRowSelection, positionActionsColumn, renderRowActions, summaryRow])
 
   const tableData = paginationMode === 'client' ? clientSideData : data
   const totalRows = paginationMode === 'server' ? rowCount : clientSideData.length
@@ -386,6 +462,8 @@ export default function ShadcnDataTable<TData extends RowData>({
       pagination,
       columnVisibility,
       columnSizing: manualWidths,
+      ...(enableColumnReorder ? { columnOrder } : {}),
+      ...(enableRowSelection ? { rowSelection } : {}),
     },
     manualPagination: paginationMode === 'server',
     manualSorting: paginationMode === 'server',
@@ -404,7 +482,33 @@ export default function ShadcnDataTable<TData extends RowData>({
       minSize: MIN_COLUMN_WIDTH,
       maxSize: MAX_COLUMN_WIDTH,
     },
+    ...(enableColumnReorder ? { onColumnOrderChange: setColumnOrder } : {}),
+    ...(enableRowSelection ? {
+      enableRowSelection: true,
+      onRowSelectionChange: setRowSelection,
+    } : {}),
+    ...(getRowId ? { getRowId } : {}),
   })
+
+  // columnOrder 초기화
+  useEffect(() => {
+    if (!enableColumnReorder) return
+    const ids = columns.map((col) => col.id ?? '').filter(Boolean)
+    setColumnOrder((prev) => {
+      if (prev.length > 0 && prev.length === ids.length && prev.every((id, i) => ids.includes(id))) {
+        return prev
+      }
+      return ids
+    })
+  }, [columns, enableColumnReorder])
+
+  // rowSelection 변경 시 외부 콜백 호출
+  useEffect(() => {
+    if (!enableRowSelection || !onRowSelectionChange) return
+    const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original)
+    onRowSelectionChange(selectedRows)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rowSelection])
 
   const rows = table.getRowModel().rows
   const currentPage = pagination.pageIndex + 1
@@ -459,6 +563,22 @@ export default function ShadcnDataTable<TData extends RowData>({
         />
       )}
 
+      {(enableToolbar || (enableRowSelection && Object.keys(rowSelection).length > 0)) && (
+        <DataTableToolbar
+          enableRowSelection={enableRowSelection}
+          selectedRows={table.getSelectedRowModel().rows.map((r) => r.original)}
+          selectedCount={Object.keys(rowSelection).length}
+          clearSelection={() => setRowSelection({})}
+          renderSelectionToolbar={renderSelectionToolbar}
+          onAddRow={onAddRow}
+          onSaveAll={onSaveAll}
+          data={tableData}
+          renderToolbar={renderToolbar}
+          table={table}
+          density={density}
+        />
+      )}
+
       <div className="mb-1 flex justify-end">
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
@@ -472,7 +592,7 @@ export default function ShadcnDataTable<TData extends RowData>({
             <DropdownMenuSeparator />
             {table
               .getAllLeafColumns()
-              .filter((column) => column.getCanHide() && column.id !== '__actions__')
+              .filter((column) => column.getCanHide() && column.id !== '__actions__' && column.id !== '__select__')
               .map((column) => {
                 const headerLabel = typeof column.columnDef.header === 'string'
                   ? column.columnDef.header.trim()
@@ -587,6 +707,9 @@ export default function ShadcnDataTable<TData extends RowData>({
         onRowClick={onRowClick}
         getRowClassName={getRowClassName}
         className={showMobileCards ? 'hidden md:block' : undefined}
+        enableColumnReorder={enableColumnReorder}
+        columnOrder={columnOrder}
+        onColumnOrderChange={setColumnOrder}
       />
 
       {!hidePagination && (

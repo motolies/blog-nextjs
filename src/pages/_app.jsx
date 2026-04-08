@@ -25,9 +25,11 @@ function Skyscape({Component, pageProps}) {
   const {isAuthenticated} = useSelector((state) => state.user)
   const hasBootstrappedProfileRef = useRef(false)
   const isAdminRoute = router.pathname.startsWith('/admin')
+  const isTestRoute = router.pathname.startsWith('/test')
+  const isAdminLikeRoute = isAdminRoute || isTestRoute
   const isUtilRoute = router.pathname.startsWith('/util')
   const isLoginRoute = router.pathname === '/login'
-  const shouldCheckClientAuth = isAdminRoute || isLoginRoute
+  const shouldCheckClientAuth = isAdminLikeRoute || isLoginRoute
 
   useEffect(() => {
     if (typeof window === 'undefined' || hasBootstrappedProfileRef.current) {
@@ -43,7 +45,7 @@ function Skyscape({Component, pageProps}) {
       return
     }
 
-    if (isAdminRoute) {
+    if (isAdminLikeRoute) {
       if (isAuthenticated === false) {
         router.replace('/login')
       }
@@ -53,7 +55,7 @@ function Skyscape({Component, pageProps}) {
     if (isLoginRoute && isAuthenticated === true) {
       router.replace('/admin')
     }
-  }, [isAdminRoute, isAuthenticated, isLoginRoute, router, shouldCheckClientAuth])
+  }, [isAdminLikeRoute, isAuthenticated, isLoginRoute, router, shouldCheckClientAuth])
 
   useEffect(() => {
     if (typeof document === 'undefined') {
@@ -62,7 +64,7 @@ function Skyscape({Component, pageProps}) {
 
     const {body, documentElement} = document
 
-    if (isAdminRoute) {
+    if (isAdminLikeRoute) {
       body.dataset.adminUi = 'admin'
       body.classList.add('admin-route')
       documentElement.dataset.adminUi = 'admin'
@@ -72,13 +74,13 @@ function Skyscape({Component, pageProps}) {
     delete body.dataset.adminUi
     body.classList.remove('admin-route')
     delete documentElement.dataset.adminUi
-  }, [isAdminRoute])
+  }, [isAdminLikeRoute])
 
   return (
       <>
         <Toaster richColors duration={2000} position="top-right" />
         {isLoading && <Loading/>}
-        {isAdminRoute ?
+        {isAdminLikeRoute ?
             <AdminLayout>
               <Component {...pageProps} />
             </AdminLayout>

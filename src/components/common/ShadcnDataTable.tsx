@@ -572,7 +572,7 @@ export default function ShadcnDataTable<TData extends RowData>({
     <div className="flex h-full w-full flex-col">
       {searchFields.length > 0 && (
         <DynamicSearchFields
-          searchFields={searchFields}
+          searchFields={searchFields as any[]}
           searchInputs={searchInputs}
           defaultSearchParams={defaultSearchParams}
           onInputChange={handleSearchInputChange}

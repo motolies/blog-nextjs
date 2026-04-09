@@ -91,7 +91,7 @@ export const DATA_TABLE_DENSITY_CONFIG = {
 } as const
 
 export interface DataTableCellProps<TData> {
-  value: unknown
+  value: any
   row: TData
 }
 

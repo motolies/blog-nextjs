@@ -1,0 +1,22 @@
+import styles from './Section.module.css'
+
+interface SectionProps {
+    children: React.ReactNode
+}
+
+export default function Section({children}: SectionProps) {
+    return (
+        <>
+            <main id="main-content" className={styles.section}>
+                {children}
+            </main>
+            {/*Google Tag Manager (noscript)*/}
+            <noscript
+                dangerouslySetInnerHTML={{
+                    __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TC3HJL9" height="0" width="0" style="display:none;visibility:hidden" />`,
+                }}
+            />
+            {/*End Google Tag Manager (noscript)*/}
+        </>
+    );
+}

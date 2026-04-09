@@ -1,0 +1,3 @@
+export const TAG_ALL_REQUEST = 'TAG_ALL_REQUEST' as const
+export const TAG_ALL_REQUEST_SUCCESS = 'TAG_ALL_REQUEST_SUCCESS' as const
+export const TAG_ALL_REQUEST_ERROR = 'TAG_ALL_REQUEST_ERROR' as const

@@ -1,12 +1,12 @@
 import {useState} from "react"
-import {useSelector} from "react-redux"
+import {useAuthStore} from "../../store/useAuthStore"
+import {useShallow} from 'zustand/react/shallow'
 import {Trash2} from "lucide-react"
 import {Button} from "../ui/button"
 import DeleteConfirm from "../confirm/DeleteConfirm"
 import {searchObjectInit} from "../../model/searchObject"
 import {base64Encode} from "../../util/base64Util"
 import {useRouter} from "next/router"
-import type {RootState} from "@/types/store"
 
 interface TagProps {
     id: string
@@ -18,7 +18,7 @@ interface TagProps {
 
 export const Tag = (props: TagProps) => {
     const router = useRouter()
-    const userState = useSelector((state: RootState) => state.user)
+    const userState = useAuthStore(useShallow(s => ({isAuthenticated: s.isAuthenticated, user: s.user})))
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false)
     const [question, setQuestion] = useState<string>('')
     const isAdminVariant = props.variant === 'admin'

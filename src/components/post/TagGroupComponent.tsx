@@ -1,7 +1,8 @@
-import {useEffect, useState} from "react"
-import {useDispatch, useSelector} from "react-redux"
+import {useEffect, useMemo, useState} from "react"
+import {useAuthStore} from "../../store/useAuthStore"
+import {useShallow} from 'zustand/react/shallow'
 import {Tag} from "./TagComponent"
-import {getAllTags} from "../../store/actions/tagActions"
+import {useTags} from "../../hooks/useTags"
 import {toast} from 'sonner'
 import service from "../../service"
 import {Popover, PopoverContent, PopoverTrigger} from "../ui/popover"
@@ -12,7 +13,6 @@ import {
     COMBOBOX_POPOVER_CONTENT_CLASSNAME,
     isSameEntityId,
 } from "../../lib/combobox"
-import type {RootState} from "@/types/store"
 import type {Tag as TagType} from "@/types/tag"
 import type React from "react"
 
@@ -25,30 +25,22 @@ interface TagGroupComponentProps {
 }
 
 export default function TagGroupComponent({postId, tagList, clickable, listHeight, writePage = false}: TagGroupComponentProps) {
-    const dispatch = useDispatch()
-
-    const userState = useSelector((state: RootState) => state.user)
-    const tagState = useSelector((state: RootState) => state.tag.tags)
-    const [reduxTags, setReduxTags] = useState<TagType[]>([])
+    const userState = useAuthStore(useShallow(s => ({isAuthenticated: s.isAuthenticated, user: s.user})))
+    const {data: allTags} = useTags()
     const [postTags, setPostTags] = useState<TagType[]>(Array.isArray(tagList) ? tagList : [])
     const [newTag, setNewTag] = useState<string>('')
     const [isAddTag, setIsAddTag] = useState<boolean>(true)
     const [open, setOpen] = useState<boolean>(false)
 
     useEffect(() => {
-        dispatch(getAllTags())
-    }, [dispatch])
-
-    useEffect(() => {
         if (tagList === undefined) return
+        setPostTags(Array.isArray(tagList) ? tagList : [])
+    }, [tagList])
 
-        const nextPostTags = Array.isArray(tagList) ? tagList : []
-        setPostTags(nextPostTags)
-        const filteredArray = tagState.filter((tag) =>
-            !nextPostTags.some((postTag) => isSameEntityId(postTag.id, tag.id))
-        )
-        setReduxTags(filteredArray)
-    }, [tagList, tagState])
+    const availableTags = useMemo(() => {
+        const postTagIds = new Set(postTags.map(t => t.id))
+        return (allTags ?? []).filter(tag => !postTagIds.has(tag.id))
+    }, [allTags, postTags])
 
     const onSelectTag = (tag: TagType) => {
         const currentPostTags = postTags ?? []
@@ -69,14 +61,7 @@ export default function TagGroupComponent({postId, tagList, clickable, listHeigh
             .then((res: { status: number; data: TagType }) => {
                 if (res.status >= 200 && res.status < 300) {
                     const createdTag = res.data
-                    const currentPostTags = postTags ?? []
-                    const nextPostTags = currentPostTags.some((tag) => isSameEntityId(tag.id, createdTag.id))
-                        ? currentPostTags
-                        : [...currentPostTags, createdTag]
-                    const nextReduxTags = reduxTags.filter((tag) => !isSameEntityId(tag.id, createdTag.id))
-
-                    setPostTags(nextPostTags)
-                    setReduxTags(nextReduxTags)
+                    setPostTags(prev => prev.some(t => isSameEntityId(t.id, createdTag.id)) ? prev : [...prev, createdTag])
                     toast.success(`태그가 추가되었습니다.`)
                 }
             })
@@ -95,23 +80,11 @@ export default function TagGroupComponent({postId, tagList, clickable, listHeigh
     }
 
     const deletePostTag = ({tagId}: {tagId: string}) => {
-        const currentPostTags = postTags ?? []
-        const oldTags = currentPostTags.filter((tag) => isSameEntityId(tag.id, tagId))
         service.post.deleteTag({postId: postId, tagId: tagId})
             .then((res: { status: number }) => {
                 if (res.status >= 200 && res.status < 300) {
-                    const nextPostTags = currentPostTags.filter((tag) => !isSameEntityId(tag.id, tagId))
-                    const nextReduxTags = [...reduxTags]
-
-                    oldTags.forEach((oldTag) => {
-                        if (!nextReduxTags.some((reduxTag) => isSameEntityId(reduxTag.id, oldTag.id))) {
-                            nextReduxTags.push(oldTag)
-                        }
-                    })
-
-                    setPostTags(nextPostTags)
+                    setPostTags(prev => prev.filter(tag => !isSameEntityId(tag.id, tagId)))
                     toast.success("태그 삭제에 성공하였습니다.")
-                    setReduxTags(nextReduxTags)
                 }
             }).catch(() => {
             toast.error("태그 삭제에 실패하였습니다.")
@@ -156,7 +129,7 @@ export default function TagGroupComponent({postId, tagList, clickable, listHeigh
                             <CommandList>
                                 <CommandEmpty>일치하는 태그가 없습니다.</CommandEmpty>
                                 <CommandGroup>
-                                    {reduxTags.map((tag) => (
+                                    {availableTags.map((tag) => (
                                         <CommandItem
                                             key={tag.id}
                                             value={tag.name}
@@ -165,7 +138,7 @@ export default function TagGroupComponent({postId, tagList, clickable, listHeigh
                                             {tag.name}
                                         </CommandItem>
                                     ))}
-                                    {newTag.trim().length > 1 && !reduxTags.some(t =>
+                                    {newTag.trim().length > 1 && !availableTags.some(t =>
                                         t.name.toLowerCase() === newTag.trim().toLowerCase()
                                     ) && (
                                         <CommandItem

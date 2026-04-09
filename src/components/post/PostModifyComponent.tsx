@@ -1,30 +1,30 @@
 import CategoryAutoComplete from "../../components/CategoryAutoComplete"
 import {toast} from 'sonner'
 import {useCallback, useEffect, useRef, useState} from "react"
-import {useDispatch, useSelector} from "react-redux"
-import {POST_LOCAL_MODIFY_BODY, POST_LOCAL_MODIFY_CATEGORY_ID, POST_LOCAL_MODIFY_PUBLIC, POST_LOCAL_MODIFY_SUBJECT} from "../../store/types/postTypes"
+import {usePostFormStore} from "../../store/usePostFormStore"
+import {useLoadingStore} from "../../store/useLoadingStore"
 import {getTsid} from 'tsid-ts'
 import DynamicEditor from "../editor/DynamicEditor"
 import service from "../../service"
-import {cancelLoading, setLoading} from "../../store/actions/commonActions"
 import {useRouter} from "next/router"
 import TagGroupComponent from "./TagGroupComponent"
 import {FileComponent} from "./FileComponent"
 import {fileLink} from "../../util/fileLink"
 import FileUploadComponent from "../editor/FileUploadComponent"
-import {FILE_LIST_BY_POST_REQUEST} from "../../store/types/fileTypes"
+import {useFiles, useInvalidateFiles} from "../../hooks/useFiles"
 import {Button} from "../ui/button"
 import {Input} from "../ui/input"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../ui/select"
-import type {RootState} from "@/types/store"
 import type {Tag} from "@/types/tag"
 import type {Post} from "@/types/post"
 import type {Category} from "@/types/category"
 
 export default function PostModifyComponent() {
     const router = useRouter()
-    const post = useSelector((state: RootState) => state.post.modifyPost)
-    const dispatch = useDispatch()
+    const {post, setSubject, setCategoryId, setBody, setPublic: setPostPublic} = usePostFormStore()
+    const {setLoading, cancelLoading} = useLoadingStore()
+    const {data: files} = useFiles(post.id)
+    const invalidateFiles = useInvalidateFiles()
     const [insertData, setInsertData] = useState<string>('')
     const [triggerGetData, setTriggerGetData] = useState<string>('')
     const [tags, setTags] = useState<Tag[]>([])
@@ -50,7 +50,7 @@ export default function PostModifyComponent() {
             body,
         }
 
-        dispatch(setLoading())
+        setLoading()
         service.post.save({post: nextPost}).then(() => {
             router.push(`/post/${nextPost.id}`)
         }).catch((err: unknown) => {
@@ -58,38 +58,29 @@ export default function PostModifyComponent() {
             console.error("content save error", err)
         }).finally(() => {
             isSavingRef.current = false
-            dispatch(cancelLoading())
+            cancelLoading()
         })
-    }, [dispatch, router])
+    }, [setLoading, cancelLoading, router])
 
     const onChangeCategory = (category: Category | null) => {
         if (category?.id) {
-            dispatch({
-                type: POST_LOCAL_MODIFY_CATEGORY_ID,
-                categoryId: category.id,
-            })
+            setCategoryId(category.id)
         } else {
             toast.error("카테고리는 필수로 선택해야 합니다.")
         }
     }
 
     const refreshFileList = () => {
-        dispatch({
-            type: FILE_LIST_BY_POST_REQUEST,
-            postId: post.id,
-        })
+        invalidateFiles(post.id)
     }
 
     const onChangeBody = useCallback((body: string, options: {shouldSave?: boolean} = {}) => {
-        dispatch({
-            type: POST_LOCAL_MODIFY_BODY,
-            body: body,
-        })
+        setBody(body)
 
         if (options.shouldSave) {
             savePost(body)
         }
-    }, [dispatch, savePost])
+    }, [setBody, savePost])
 
     const onChangeFile = async (files: FileList | undefined) => {
         if (files === undefined || files.length === 0) return
@@ -97,7 +88,7 @@ export default function PostModifyComponent() {
             toast.warning("게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.")
             return
         }
-        dispatch(setLoading())
+        setLoading()
         for (const file of Array.from(files)) {
             const body = new FormData()
             body.append("file", file)
@@ -110,12 +101,12 @@ export default function PostModifyComponent() {
                     toast.error("파일 업로드에 실패하였습니다.")
                 })
         }
-        dispatch(cancelLoading())
+        cancelLoading()
         refreshFileList()
     }
 
     const onDeleteFile = (file: {id: string}) => {
-        dispatch(setLoading())
+        setLoading()
         service.file.delete({fileId: file.id})
             .then(() => {
                 toast.success("파일을 삭제하였습니다.")
@@ -124,7 +115,7 @@ export default function PostModifyComponent() {
                 toast.error("파일 삭제에 실패하였습니다.")
             })
             .finally(() => {
-                dispatch(cancelLoading())
+                cancelLoading()
                 refreshFileList()
             })
     }
@@ -158,10 +149,7 @@ export default function PostModifyComponent() {
                     placeholder="Title"
                     value={post.subject}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        dispatch({
-                            type: POST_LOCAL_MODIFY_SUBJECT,
-                            subject: e.target.value,
-                        })
+                        setSubject(e.target.value)
                     }
                     className="mb-4"
                 />
@@ -179,10 +167,7 @@ export default function PostModifyComponent() {
                 <Select
                     value={String(post.public)}
                     onValueChange={(v: string) =>
-                        dispatch({
-                            type: POST_LOCAL_MODIFY_PUBLIC,
-                            isPublic: v === 'true',
-                        })
+                        setPostPublic(v === 'true')
                     }
                 >
                     <SelectTrigger className="w-full">
@@ -202,10 +187,10 @@ export default function PostModifyComponent() {
                 <div>
                     <FileUploadComponent multiple onChange={onChangeFile} className="mb-1"/>
                     <div className="overflow-y-auto max-h-[25vh]">
-                        {post.files?.filter((f: any) => f.type?.startsWith('image')).map((file: any) => (
+                        {(files ?? post.files)?.filter((f: any) => f.type?.startsWith('image')).map((file: any) => (
                             <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
                         ))}
-                        {post.files?.filter((f: any) => !f.type?.startsWith('image')).map((file: any) => (
+                        {(files ?? post.files)?.filter((f: any) => !f.type?.startsWith('image')).map((file: any) => (
                             <FileComponent key={file.id} file={file} onDeleteFile={onDeleteFile} onInsertFile={onInsertFile}/>
                         ))}
                     </div>

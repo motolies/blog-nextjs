@@ -1,9 +1,6 @@
-import {useSelector} from "react-redux"
-import {useState, useEffect} from "react"
 import {format} from 'date-fns'
 import Link from "next/link"
 import {ArrowRight, Clock3, FolderOpen} from "lucide-react"
-import type {RootState} from '@/types/store'
 
 interface SearchResultPost {
     id: string
@@ -12,19 +9,12 @@ interface SearchResultPost {
     createDate: string | number
 }
 
-export default function SearchResult() {
+interface SearchResultProps {
+    posts?: SearchResultPost[]
+}
 
-    const postState = useSelector((state: RootState) => (state.post.searchedPost as Record<string, unknown>).list as SearchResultPost[] | undefined)
-
-    const [searchedPost, setSearchedPost] = useState<SearchResultPost[]>([])
-
-    useEffect(() => {
-        if (postState !== undefined) {
-            setSearchedPost(postState)
-        } else {
-            setSearchedPost([])
-        }
-    }, [postState])
+export default function SearchResult({posts}: SearchResultProps) {
+    const searchedPost = posts ?? []
 
     const timestampFormat = (timestamp: string | number): string => {
         return format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss')

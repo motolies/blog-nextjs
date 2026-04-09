@@ -1,10 +1,8 @@
-import {useDispatch, useSelector} from 'react-redux'
 import {useCallback, useEffect, useState} from 'react'
-import {getCategoryTreeAction} from '../store/actions/categoryActions'
+import {useCategoryTree} from '../hooks/useCategories'
 import {Folder, FolderOpen, FolderTree} from 'lucide-react'
 import {Badge} from './ui/badge'
 import TreeView, {getExpandedIdsToDepth} from './ui/tree-view'
-import type {RootState} from '@/types/store'
 
 interface TreeNode {
   id: string
@@ -22,17 +20,12 @@ interface CategoryTreeViewProps {
 }
 
 function CategoryTreeView({onChangeCategory, selectedNodeId, searchQuery, collapsible = true}: CategoryTreeViewProps) {
-  const dispatch = useDispatch()
+  const {data: categoryState} = useCategoryTree()
   const [expandedIds, setExpandedIds] = useState<(string | number)[]>([])
-  const categoryState = useSelector((state: RootState) => state.category.categoryTree) as unknown as TreeNode | null
-
-  useEffect(() => {
-    dispatch(getCategoryTreeAction())
-  }, [])
 
   useEffect(() => {
     if (categoryState) {
-      setExpandedIds(getExpandedIdsToDepth([categoryState], Infinity))
+      setExpandedIds(getExpandedIdsToDepth([categoryState as unknown as TreeNode], Infinity))
     }
   }, [categoryState])
 
@@ -66,7 +59,7 @@ function CategoryTreeView({onChangeCategory, selectedNodeId, searchQuery, collap
 
   return (
     <TreeView
-      data={[categoryState]}
+      data={[categoryState as unknown as TreeNode]}
       expandedIds={expandedIds}
       onToggle={handleToggle}
       onNodeClick={onChangeCategory}

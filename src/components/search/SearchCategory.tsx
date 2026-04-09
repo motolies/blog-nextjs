@@ -1,15 +1,13 @@
-import {useDispatch, useSelector} from "react-redux"
 import {useEffect, useState} from "react"
+import {useCategoryFlat} from "../../hooks/useCategories"
 import {ConditionComponent} from "../ConditionComponent"
 import {toast} from 'sonner'
-import {getCategoryFlatAction} from "../../store/actions/categoryActions"
 import {Popover, PopoverContent, PopoverTrigger} from "../ui/popover"
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "../ui/command"
 import {Button} from "../ui/button"
 import {ChevronsUpDown, Check} from "lucide-react"
 import {cn} from "../../lib/utils"
 import {COMBOBOX_POPOVER_CONTENT_CLASSNAME, isSameEntityId} from "../../lib/combobox"
-import type {RootState} from '@/types/store'
 import type {Category} from '@/types/category'
 
 interface CategoryItem {
@@ -25,20 +23,11 @@ interface SearchCategoryProps {
 }
 
 export default function SearchCategory({onChangeAddCategory, onChangeDeleteCategory, defaultCategory}: SearchCategoryProps) {
-    const dispatch = useDispatch()
-    const categoryState = useSelector((state: RootState) => state.category.categoryFlat)
+    const {data: categoryData} = useCategoryFlat()
+    const categories = (categoryData ?? []) as CategoryItem[]
 
-    const [categories, setCategories] = useState<CategoryItem[]>([])
     const [selectCategories, setSelectCategories] = useState<CategoryItem[]>([])
     const [open, setOpen] = useState<boolean>(false)
-
-    useEffect(() => {
-        dispatch(getCategoryFlatAction())
-    }, [dispatch])
-
-    useEffect(() => {
-        setCategories(categoryState as CategoryItem[])
-    }, [categoryState])
 
     useEffect(() => {
         if (defaultCategory !== undefined) {

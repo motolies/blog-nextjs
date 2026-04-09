@@ -13,7 +13,8 @@ import {Button} from "../ui/button"
 import DeleteConfirm from "../confirm/DeleteConfirm"
 import {useRouter} from "next/router"
 import {toast} from 'sonner'
-import {useSelector} from "react-redux"
+import {useAuthStore} from "../../store/useAuthStore"
+import {useShallow} from 'zustand/react/shallow'
 import PublicConfirm from "../confirm/PublicConfirm"
 import TagGroupComponent from "./TagGroupComponent"
 import Link from "next/link"
@@ -24,7 +25,6 @@ import {usePostNavigationShortcut} from "../../util/usePostNavigationShortcut"
 import styles from './PostComponent.module.css'
 import {format} from 'date-fns'
 import service from "../../service"
-import type {RootState} from "@/types/store"
 import type {Tag} from "@/types/tag"
 
 interface PostData {
@@ -53,7 +53,7 @@ interface PostComponentProps {
 
 export default function PostComponent({post, prevNext}: PostComponentProps) {
     const router = useRouter()
-    const userState = useSelector((state: RootState) => state.user)
+    const userState = useAuthStore(useShallow(s => ({isAuthenticated: s.isAuthenticated, user: s.user})))
 
     const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false)
     const [showPublicConfirm, setShowPublicConfirm] = useState<boolean>(false)

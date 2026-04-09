@@ -1,14 +1,13 @@
 import PostModifyComponent from "../../../components/post/PostModifyComponent"
-import {useDispatch} from "react-redux"
 import {useEffect} from "react"
-import {loadContentForModify} from "../../../store/actions/postActions"
+import {usePostFormStore} from "../../../store/usePostFormStore"
 import AdminPageFrame from "../../../components/layout/admin/AdminPageFrame"
 
 export default function NewPostPage() {
-    const dispatch = useDispatch()
+    const loadForModify = usePostFormStore(s => s.loadForModify)
     useEffect(() => {
-        dispatch(loadContentForModify({}))
-    }, [])
+        loadForModify()
+    }, [loadForModify])
 
     return (
         <AdminPageFrame contentClassName="min-h-0">

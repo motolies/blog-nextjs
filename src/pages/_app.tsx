@@ -5,26 +5,21 @@ import '../styles/ckeditor.css'
 import CommonLayout from '../components/layout/common/CommonLayout'
 import UtilityLayout from '../components/layout/common/UtilityLayout'
 import AdminLayout from '../components/layout/admin/AdminLayout'
-import {wrapper} from '../store'
 import {Toaster} from 'sonner'
 import {useRouter} from "next/router"
 import Loading from "../components/Loading"
-import {useDispatch, useSelector} from "react-redux"
-import {
-  LOAD_USER_REQUEST,
-  SERVER_LOAD_USER_REQUEST_SUCCESS
-} from "../store/types/userTypes"
-import service from "../service"
-import {useEffect, useRef} from "react"
-import {buildBackendAuthConfig} from "../lib/ssrRequestAuth"
+import {useAuthStore} from "../store/useAuthStore"
+import {useLoadingStore} from "../store/useLoadingStore"
+import {useEffect, useRef, useState} from "react"
+import {QueryClientProvider, HydrationBoundary} from '@tanstack/react-query'
+import {makeQueryClient} from '../lib/queryClient'
 import type {AppProps} from 'next/app'
-import type {RootState} from '@/types/store'
 
 function Skyscape({Component, pageProps}: AppProps) {
+  const [queryClient] = useState(() => makeQueryClient())
   const router = useRouter()
-  const dispatch = useDispatch()
-  const {isLoading} = useSelector((state: RootState) => state.common)
-  const {isAuthenticated} = useSelector((state: RootState) => state.user)
+  const {isAuthenticated, loadProfile} = useAuthStore()
+  const {isLoading} = useLoadingStore()
   const hasBootstrappedProfileRef = useRef(false)
   const isAdminRoute = router.pathname.startsWith('/admin')
   const isTestRoute = router.pathname.startsWith('/test')
@@ -39,8 +34,8 @@ function Skyscape({Component, pageProps}: AppProps) {
     }
 
     hasBootstrappedProfileRef.current = true
-    dispatch({type: LOAD_USER_REQUEST})
-  }, [dispatch])
+    loadProfile()
+  }, [loadProfile])
 
   useEffect(() => {
     if (!shouldCheckClientAuth || isAuthenticated === null) {
@@ -79,54 +74,26 @@ function Skyscape({Component, pageProps}: AppProps) {
   }, [isAdminLikeRoute])
 
   return (
-      <>
-        <Toaster richColors duration={2000} position="top-right" />
-        {isLoading && <Loading/>}
-        {isAdminLikeRoute ?
-            <AdminLayout>
-              <Component {...pageProps} />
-            </AdminLayout>
-            : <CommonLayout>
-              {isUtilRoute ? (
-                  <UtilityLayout>
+      <QueryClientProvider client={queryClient}>
+        <HydrationBoundary state={pageProps.dehydratedState}>
+          <Toaster richColors duration={2000} position="top-right" />
+          {isLoading && <Loading/>}
+          {isAdminLikeRoute ?
+              <AdminLayout>
+                <Component {...pageProps} />
+              </AdminLayout>
+              : <CommonLayout>
+                {isUtilRoute ? (
+                    <UtilityLayout>
+                      <Component {...pageProps} />
+                    </UtilityLayout>
+                ) : (
                     <Component {...pageProps} />
-                  </UtilityLayout>
-              ) : (
-                  <Component {...pageProps} />
-              )}
-            </CommonLayout>}
-      </>
+                )}
+              </CommonLayout>}
+        </HydrationBoundary>
+      </QueryClientProvider>
   )
 }
 
-Skyscape.getInitialProps = wrapper.getInitialAppProps(
-    store => async ({Component, ctx}) => {
-      const req = ctx.req
-      const authConfig = buildBackendAuthConfig(req)
-
-      if (authConfig) {
-        try {
-          const res = await service.user.profile(authConfig)
-          store.dispatch({
-            type: SERVER_LOAD_USER_REQUEST_SUCCESS,
-            payload: res.data,
-          })
-        } catch (err: any) {
-          // 인증 실패시 로그만 기록하고 계속 진행
-          console.error('서버사이드 인증 실패:', err?.response?.status || err.message)
-        }
-      }
-
-      return {
-        pageProps: {
-          // 페이지 레벨 getInitialProps 호출
-          ...(Component.getInitialProps
-              ? await Component.getInitialProps({...ctx, store})
-              : {}),
-          pathname: ctx.pathname,
-        },
-      }
-    }
-)
-
-export default wrapper.withRedux(Skyscape)
+export default Skyscape

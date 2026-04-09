@@ -1,6 +1,5 @@
-import {useDispatch, useSelector} from "react-redux"
 import {useEffect, useState} from "react"
-import {getCategoryFlatAction} from "../store/actions/categoryActions"
+import {useCategoryFlat} from "../hooks/useCategories"
 import {Popover, PopoverContent, PopoverTrigger} from "./ui/popover"
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "./ui/command"
 import {Button} from "./ui/button"
@@ -11,7 +10,6 @@ import {
     isSameEntityId,
     isUnsetComboboxValue,
 } from "../lib/combobox"
-import type {RootState} from "@/types/store"
 import type {Category} from "@/types/category"
 
 interface FlatCategory extends Category {
@@ -25,16 +23,10 @@ interface CategoryAutoCompleteProps {
 }
 
 export default function CategoryAutoComplete({onChangeCategory, setCategoryId, label}: CategoryAutoCompleteProps) {
-    const categoryState = useSelector((state: RootState) => state.category.categoryFlat) as FlatCategory[]
-    const dispatch = useDispatch()
+    const {data: categoryData} = useCategoryFlat()
+    const categoryState = (categoryData ?? []) as FlatCategory[]
     const [selectedCategory, setSelectedCategory] = useState<FlatCategory | null>(null)
     const [open, setOpen] = useState<boolean>(false)
-
-    useEffect(() => {
-        if (categoryState.length === 0) {
-            dispatch(getCategoryFlatAction())
-        }
-    }, [categoryState.length, dispatch])
 
     useEffect(() => {
         if (isUnsetComboboxValue(setCategoryId)) {

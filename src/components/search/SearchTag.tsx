@@ -1,6 +1,5 @@
-import {useDispatch, useSelector} from "react-redux"
 import {useEffect, useState} from "react"
-import {getAllTags} from "../../store/actions/tagActions"
+import {useTags} from "../../hooks/useTags"
 import {ConditionComponent} from "../ConditionComponent"
 import {toast} from 'sonner'
 import {Popover, PopoverContent, PopoverTrigger} from "../ui/popover"
@@ -9,7 +8,6 @@ import {Button} from "../ui/button"
 import {ChevronsUpDown, Check} from "lucide-react"
 import {cn} from "../../lib/utils"
 import {COMBOBOX_POPOVER_CONTENT_CLASSNAME, isSameEntityId} from "../../lib/combobox"
-import type {RootState} from '@/types/store'
 import type {Tag} from '@/types/tag'
 
 interface SearchTagProps {
@@ -19,20 +17,11 @@ interface SearchTagProps {
 }
 
 export default function SearchTag({onChangeAddTag, onChangeDeleteTag, defaultTag}: SearchTagProps) {
-    const dispatch = useDispatch()
-    const tagState = useSelector((state: RootState) => state.tag.tags)
+    const {data: tagData} = useTags()
+    const tags = tagData ?? []
 
-    const [tags, setTags] = useState<Tag[]>([])
     const [selectTags, setSelectTags] = useState<Tag[]>([])
     const [open, setOpen] = useState<boolean>(false)
-
-    useEffect(() => {
-        dispatch(getAllTags())
-    }, [dispatch])
-
-    useEffect(() => {
-        setTags(tagState)
-    }, [tagState])
 
     useEffect(() => {
         if (defaultTag !== undefined) {

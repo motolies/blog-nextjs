@@ -1,10 +1,9 @@
 import { useRef, useCallback } from "react"
-import { useDispatch } from "react-redux"
-import { cancelLoading, setLoading } from "../../store/actions/commonActions"
+import { useLoadingStore } from "../../store/useLoadingStore"
+import { useInvalidateFiles } from "../../hooks/useFiles"
 import service from "../../service"
 import { toast } from 'sonner'
 import { fileLink } from "../../util/fileLink"
-import { FILE_LIST_BY_POST_REQUEST } from "../../store/types/fileTypes"
 import dynamic from 'next/dynamic'
 
 function EditorLoadErrorFallback() {
@@ -43,17 +42,15 @@ interface DynamicEditorProps {
 
 export default function DynamicEditor({ postId, defaultData, onChangeData, insertData, getDataTrigger }: DynamicEditorProps) {
     const postIdRef = useRef<string | null>(postId)
-    const dispatch = useDispatch()
+    const {setLoading, cancelLoading} = useLoadingStore()
+    const invalidateFiles = useInvalidateFiles()
 
     // postIdRef를 최신 상태로 유지
     postIdRef.current = postId
 
     const refreshFileList = useCallback(() => {
-        dispatch({
-            type: FILE_LIST_BY_POST_REQUEST,
-            postId: postIdRef.current
-        })
-    }, [dispatch])
+        invalidateFiles(postIdRef.current)
+    }, [invalidateFiles])
 
     const imageUploadAdapter = useCallback((loader: any) => {
         return {
@@ -68,7 +65,7 @@ export default function DynamicEditor({ postId, defaultData, onChangeData, inser
                         }
                         body.append("file", file)
                         body.append("postId", postIdRef.current)
-                        dispatch(setLoading())
+                        setLoading()
                         await service.file.upload({ formData: body })
                             .then((res: {data: {resourceUri: string}}) => {
                                 resolve({ default: res.data.resourceUri })
@@ -78,14 +75,14 @@ export default function DynamicEditor({ postId, defaultData, onChangeData, inser
                                 reject(err)
                             })
                             .finally(() => {
-                                dispatch(cancelLoading())
+                                cancelLoading()
                             })
                         refreshFileList()
                     })
                 })
             }
         }
-    }, [dispatch, refreshFileList])
+    }, [setLoading, cancelLoading, refreshFileList])
 
     const uploadServer = useCallback(async (editor: any, file: File) => {
         if (!file) return
@@ -98,7 +95,7 @@ export default function DynamicEditor({ postId, defaultData, onChangeData, inser
         const body = new FormData()
         body.append("file", file)
         body.append("postId", postIdRef.current)
-        dispatch(setLoading())
+        setLoading()
         await service.file.upload({ formData: body })
             .then((res: {data: {resourceUri: string; originName: string}}) => {
                 const fileTag = fileLink(res.data.resourceUri, res.data.originName)
@@ -110,10 +107,10 @@ export default function DynamicEditor({ postId, defaultData, onChangeData, inser
                 toast.error("파일 업로드에 실패하였습니다.")
             })
             .finally(() => {
-                dispatch(cancelLoading())
+                cancelLoading()
             })
         refreshFileList()
-    }, [dispatch, refreshFileList])
+    }, [setLoading, cancelLoading, refreshFileList])
 
     return (
         <CKEditorWrapper

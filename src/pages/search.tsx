@@ -1,7 +1,6 @@
 import {useRouter} from "next/router"
-import {useEffect, useState} from "react"
-import {useDispatch, useSelector} from "react-redux"
-import {searchMultiple} from "../store/actions/postActions"
+import {useMemo} from "react"
+import {usePostSearch} from "../hooks/usePostSearch"
 import SearchResult from "../components/search/SearchResult"
 import {base64Decode, base64Encode} from "../util/base64Util"
 import SearchFilter from "../components/search/SearchFilter"
@@ -9,67 +8,46 @@ import {searchObjectInit} from "../model/searchObject"
 import {getTsid} from 'tsid-ts'
 import {Button} from '../components/ui/button'
 import {ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight} from 'lucide-react'
-import type {RootState} from '@/types/store'
 
 const SEARCH_PAGE_SIZE = 10
 
 export default function SearchPage() {
-  const dispatch = useDispatch()
   const router = useRouter()
 
-  const searchedPostState = useSelector((state: RootState) => state.post.searchedPost)
-
-  const [searchAllParam, setSearchAllParam] = useState<any>(searchObjectInit)
-  const [categories, setCategories] = useState(searchObjectInit.categories)
-  const [tags, setTags] = useState(searchObjectInit.tags)
-  const [keywords, setKeywords] = useState(searchObjectInit.searchCondition.keywords)
-  const [logic, setLogic] = useState(searchObjectInit.searchCondition.logic)
-  const [searchType, setSearchType] = useState(searchObjectInit.searchType)
-  const [page, setPage] = useState(searchObjectInit.page)
-
-  useEffect(() => {
+  const queryParam = useMemo(() => {
     if (router.query?.q) {
       const decodeString = base64Decode(router.query.q as string)
       const newObj = JSON.parse(decodeString)
       newObj.searchCondition.keywords = newObj.searchCondition.keywords.filter((k: any) => k.name.trim().length > 0)
       newObj.pageSize = SEARCH_PAGE_SIZE
-
-      const newSearchAllParam = {...searchObjectInit, ...newObj}
-      setSearchAllParam(newSearchAllParam)
-
-      dispatch(searchMultiple({searchAllParam: newSearchAllParam}))
-    } else if (router.query?.query) {
+      return {...searchObjectInit, ...newObj}
+    }
+    if (router.query?.query) {
       const newObj = {
         searchCondition: {
-          keywords: [{
-            id: getTsid().toString(),
-            name: router.query?.query
-          }],
+          keywords: [{id: getTsid().toString(), name: router.query?.query}],
           logic: "AND"
         },
         pageSize: SEARCH_PAGE_SIZE
       }
-      const newSearchAllParam = {...searchObjectInit, ...newObj}
-      setSearchAllParam(newSearchAllParam)
-
-      dispatch(searchMultiple({searchAllParam: newSearchAllParam}))
+      return {...searchObjectInit, ...newObj}
     }
-
+    return null
   }, [router.query?.q, router.query?.query])
 
-  useEffect(() => {
-    setCategories(searchAllParam.categories)
-    setTags(searchAllParam.tags)
-    setKeywords(searchAllParam.searchCondition.keywords)
-    setLogic(searchAllParam.searchCondition.logic)
-    setSearchType(searchAllParam.searchType)
-    setPage(searchAllParam.page)
-  }, [searchAllParam])
+  const {data: searchedPostState} = usePostSearch(queryParam)
+
+  const categories = queryParam?.categories ?? searchObjectInit.categories
+  const tags = queryParam?.tags ?? searchObjectInit.tags
+  const keywords = queryParam?.searchCondition?.keywords ?? searchObjectInit.searchCondition.keywords
+  const logic = queryParam?.searchCondition?.logic ?? searchObjectInit.searchCondition.logic
+  const searchType = queryParam?.searchType ?? searchObjectInit.searchType
+  const page = queryParam?.page ?? searchObjectInit.page
 
   const goPage = (newPage: number) => {
     const targetPage = newPage - 1  // 1-based UI, 0-based backend
     if (page !== targetPage) {
-      const newSearchAllParam = {...searchAllParam, ...{page: targetPage}}
+      const newSearchAllParam = {...(queryParam ?? searchObjectInit), page: targetPage}
       router.push({
         pathname: '/search',
         query: {q: base64Encode(JSON.stringify(newSearchAllParam))}
@@ -77,9 +55,9 @@ export default function SearchPage() {
     }
   }
 
-  const totalPage = (searchedPostState as any).totalPage || 0
+  const totalPage = searchedPostState?.totalPage || 0
   const currentPage = page + 1  // 1-based for display
-  const resultCount = (searchedPostState as any).list?.length || 0
+  const resultCount = searchedPostState?.list?.length || 0
   const keywordSummary = keywords.map((keyword: any) => keyword.name).join(', ')
 
   return (
@@ -112,7 +90,7 @@ export default function SearchPage() {
                 pageSize={SEARCH_PAGE_SIZE}/>
           </div>
           <div className="space-y-6">
-            <SearchResult/>
+            <SearchResult posts={searchedPostState?.list}/>
           </div>
         </div>
 

@@ -1,23 +1,18 @@
-import {useDispatch, useSelector} from 'react-redux'
-import {loginAction, loginErrorMessage} from '../store/actions/userActions'
+import {useAuthStore} from '../store/useAuthStore'
 import {useEffect, useState} from "react"
 import {Input} from '../components/ui/input'
 import {Button} from '../components/ui/button'
-import type {RootState} from '@/types/store'
 import type {ChangeEvent, FormEvent, KeyboardEvent} from 'react'
 
 export default function LoginPage() {
 
-    const dispatch = useDispatch()
-    const userState = useSelector((state: RootState) => state.user)
+    const {isLoading, error, login, setError, clearError} = useAuthStore()
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
 
     useEffect(() => {
-        return () => {
-            dispatch(loginErrorMessage({msg: ''}))
-        }
-    }, [dispatch])
+        return () => { clearError() }
+    }, [clearError])
 
     const onChangeUsername = (e: ChangeEvent<HTMLInputElement>) => {
         setUsername(e.target.value)
@@ -35,14 +30,11 @@ export default function LoginPage() {
     const onClickLogin = () => {
 
         if (username.length === 0 || password.length === 0) {
-            dispatch(loginErrorMessage({msg: 'Username and password are required'}))
+            setError('Username and password are required')
             return
         }
 
-        dispatch(loginAction({
-            username: username
-            , password: password
-        }))
+        login(username, password)
     }
 
     return (
@@ -79,16 +71,16 @@ export default function LoginPage() {
                     />
                 </div>
                 <Button
-                    disabled={userState.isLoading}
+                    disabled={isLoading}
                     type="submit"
                     className="w-full mt-3"
                     onClick={onClickLogin}
                 >
                     Login
                 </Button>
-                {userState.error !== '' && (
+                {error !== '' && (
                     <div className="bg-red-50 border border-red-200 text-red-800 rounded-md px-4 py-3 text-sm">
-                        {userState.error}
+                        {error}
                     </div>
                 )}
             </form>

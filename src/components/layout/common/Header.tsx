@@ -1,6 +1,7 @@
 import Link from "next/link"
 import {useRouter} from "next/router"
-import {useSelector} from 'react-redux'
+import {useAuthStore} from '../../../store/useAuthStore'
+import {useShallow} from 'zustand/react/shallow'
 import {Shield, LogIn, FilePlus, Search, Sparkles} from 'lucide-react'
 import {useEffect, useState} from "react"
 import MemoDialog from "../../memo/MemoDialog"
@@ -9,11 +10,9 @@ import {getTsid} from 'tsid-ts'
 import {searchObjectInit} from "../../../model/searchObject"
 import styles from './Header.module.css'
 import {Button} from '../../ui/button'
-import type {RootState} from '@/types/store'
-
 export default function Header() {
     const router = useRouter()
-    const userState = useSelector((state: RootState) => state.user)
+    const userState = useAuthStore(useShallow(s => ({isAuthenticated: s.isAuthenticated, user: s.user})))
     const [searchText, setSearchText] = useState<string>('')
     const [memoDialogOpen, setMemoDialogOpen] = useState<boolean>(false)
 

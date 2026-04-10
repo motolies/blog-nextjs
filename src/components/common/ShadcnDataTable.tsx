@@ -638,11 +638,11 @@ export default function ShadcnDataTable<TData extends RowData>({
       {showMobileCards && (
         <div className="md:hidden">
           {loading ? (
-            <div className="flex min-h-40 items-center justify-center rounded-[1.15rem] border border-[color:var(--admin-border)] bg-white/72">
-              <Loader2 className="h-6 w-6 animate-spin text-sky-600" />
+            <div className="flex min-h-40 items-center justify-center rounded-[1.15rem] border border-[color:var(--admin-border)] bg-white/72 dark:bg-[rgba(40,44,52,0.72)]">
+              <Loader2 className="h-6 w-6 animate-spin text-sky-600 dark:text-[#61afef]" />
             </div>
           ) : rows.length === 0 ? (
-            <div className="rounded-[1.15rem] border border-[color:var(--admin-border)] bg-white/84 px-4 py-8 text-center text-sm text-[color:var(--admin-text-faint)]">
+            <div className="rounded-[1.15rem] border border-[color:var(--admin-border)] bg-white/84 px-4 py-8 text-center text-sm text-[color:var(--admin-text-faint)] dark:bg-[rgba(40,44,52,0.84)]">
               데이터가 없습니다
             </div>
           ) : (
@@ -665,7 +665,7 @@ export default function ShadcnDataTable<TData extends RowData>({
                     key={row.id}
                     onClick={onRowClick ? () => onRowClick({ row: row.original, id: row.id }) : undefined}
                     className={cn(
-                      'rounded-[1.15rem] border border-[color:var(--admin-border)] bg-white/92 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)]',
+                      'rounded-[1.15rem] border border-[color:var(--admin-border)] bg-white/92 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] dark:bg-[rgba(40,44,52,0.92)] dark:shadow-[0_10px_24px_rgba(0,0,0,0.15)]',
                       onRowClick && 'cursor-pointer',
                       rowClassName,
                     )}
@@ -698,7 +698,7 @@ export default function ShadcnDataTable<TData extends RowData>({
                           return (
                             <div
                               key={cell.id}
-                              className="grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-3 rounded-2xl bg-slate-50/80 px-3 py-2"
+                              className="grid grid-cols-[6.25rem_minmax(0,1fr)] items-start gap-3 rounded-2xl bg-slate-50/80 px-3 py-2 dark:bg-[rgba(33,37,43,0.8)]"
                             >
                               <dt className="text-xs font-semibold uppercase tracking-[0.08em] text-[color:var(--admin-text-faint)]">
                                 {meta?.mobileLabel || '값'}

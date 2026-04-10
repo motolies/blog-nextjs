@@ -145,8 +145,8 @@ export default function RegexTester() {
                                     <div className="flex items-center justify-between mb-2">
                                         <p className="font-medium">정규식 패턴</p>
                                         {pattern && (
-                                            <button onClick={() => void handleCopy(pattern, '패턴')} className="p-1 rounded hover:bg-gray-100">
-                                                <Copy className="h-4 w-4 text-gray-500"/>
+                                            <button onClick={() => void handleCopy(pattern, '패턴')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]">
+                                                <Copy className="h-4 w-4 text-gray-500 dark:text-[#636d83]"/>
                                             </button>
                                         )}
                                     </div>
@@ -183,8 +183,8 @@ export default function RegexTester() {
                                     <div className="flex items-center justify-between mb-2">
                                         <p className="font-medium">테스트 문자열</p>
                                         {testString && (
-                                            <button onClick={() => void handleCopy(testString, '테스트 문자열')} className="p-1 rounded hover:bg-gray-100">
-                                                <Copy className="h-4 w-4 text-gray-500"/>
+                                            <button onClick={() => void handleCopy(testString, '테스트 문자열')} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]">
+                                                <Copy className="h-4 w-4 text-gray-500 dark:text-[#636d83]"/>
                                             </button>
                                         )}
                                     </div>
@@ -204,7 +204,7 @@ export default function RegexTester() {
                                             <button
                                                 key={idx}
                                                 onClick={() => handleLoadExample(example)}
-                                                className="text-xs px-2.5 py-1 border rounded-full hover:bg-gray-100 transition-colors"
+                                                className="text-xs px-2.5 py-1 border rounded-full hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)] transition-colors"
                                             >
                                                 {example.name}
                                             </button>
@@ -217,15 +217,15 @@ export default function RegexTester() {
                             <div className="space-y-4">
                                 <div className="grid grid-cols-3 gap-2">
                                     <div className="border rounded-md p-3">
-                                        <p className="text-xs text-gray-500">Language</p>
+                                        <p className="text-xs text-gray-500 dark:text-[#636d83]">Language</p>
                                         <p className="text-lg font-semibold">{currentLang.name}</p>
                                     </div>
                                     <div className="border rounded-md p-3">
-                                        <p className="text-xs text-gray-500">Syntax</p>
+                                        <p className="text-xs text-gray-500 dark:text-[#636d83]">Syntax</p>
                                         <p className="font-mono text-sm mt-1">{currentLang.namedGroupSyntax}</p>
                                     </div>
                                     <div className="border rounded-md p-3">
-                                        <p className="text-xs text-gray-500">Result</p>
+                                        <p className="text-xs text-gray-500 dark:text-[#636d83]">Result</p>
                                         <p className="text-lg font-semibold">{result?.matchCount ?? 0} matches</p>
                                     </div>
                                 </div>
@@ -236,7 +236,7 @@ export default function RegexTester() {
                                             <div key={idx} className={`border rounded-md p-3 text-sm ${
                                                 warn.severity === 'error' ? 'border-red-200 bg-red-50 text-red-800' :
                                                 warn.severity === 'warning' ? 'border-amber-200 bg-amber-50 text-amber-800' :
-                                                'border-sky-200 bg-sky-50 text-sky-800'
+                                                'border-sky-200 bg-sky-50 text-sky-800 dark:border-[rgba(97,175,239,0.2)] dark:bg-[rgba(97,175,239,0.08)] dark:text-[#61afef]'
                                             }`}>
                                                 <strong>{warn.feature}:</strong> {warn.message}
                                             </div>
@@ -250,13 +250,13 @@ export default function RegexTester() {
                                             <TestTubeDiagonal className="h-4 w-4 text-sky-600"/>
                                             매칭 결과
                                             {result && (
-                                                <span className={`rounded-full px-2.5 py-0.5 text-xs font-normal ${result.matchCount > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                                                <span className={`rounded-full px-2.5 py-0.5 text-xs font-normal ${result.matchCount > 0 ? 'bg-green-100 text-green-800 dark:bg-[rgba(152,195,121,0.12)] dark:text-[#98c379]' : 'bg-gray-100 text-gray-600 dark:bg-[rgba(44,49,58,0.7)] dark:text-[#636d83]'}`}>
                                                     {result.matchCount}개
                                                 </span>
                                             )}
                                         </span>
                                     </p>
-                                    <div className="min-h-[12rem] border rounded-md bg-gray-50 p-4 font-mono text-sm whitespace-pre-wrap break-all">
+                                    <div className="min-h-[12rem] border rounded-md bg-gray-50 dark:bg-[rgba(33,37,43,0.8)] p-4 font-mono text-sm whitespace-pre-wrap break-all">
                                         {highlightSegments.map((segment, idx) => (
                                             segment.isMatch ? (
                                                 <span
@@ -271,7 +271,7 @@ export default function RegexTester() {
                                             )
                                         ))}
                                         {!testString && (
-                                            <span className="text-gray-400">테스트 문자열을 입력하세요</span>
+                                            <span className="text-gray-400 dark:text-[#636d83]">테스트 문자열을 입력하세요</span>
                                         )}
                                     </div>
                                 </div>
@@ -281,7 +281,7 @@ export default function RegexTester() {
                                         <p className="font-semibold mb-3">매치 상세</p>
                                         <div className="space-y-2">
                                             {result.matches.map((match, matchIdx) => (
-                                                <div key={matchIdx} className="border rounded-md bg-gray-50 p-3">
+                                                <div key={matchIdx} className="border rounded-md bg-gray-50 dark:bg-[rgba(33,37,43,0.8)] p-3">
                                                     <div className="flex items-center gap-2 flex-wrap">
                                                         <span
                                                             className="rounded-full px-2 py-0.5 text-xs font-bold"
@@ -290,19 +290,19 @@ export default function RegexTester() {
                                                             #{matchIdx + 1}
                                                         </span>
                                                         <span className="font-mono text-sm">&quot;{match.fullMatch}&quot;</span>
-                                                        <span className="text-xs text-gray-500">(index: {match.index}~{match.endIndex})</span>
-                                                        <button onClick={() => void handleCopy(match.fullMatch, '매치')} className="p-1 rounded hover:bg-gray-200 ml-auto">
-                                                            <Copy className="h-3.5 w-3.5 text-gray-500"/>
+                                                        <span className="text-xs text-gray-500 dark:text-[#636d83]">(index: {match.index}~{match.endIndex})</span>
+                                                        <button onClick={() => void handleCopy(match.fullMatch, '매치')} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-[rgba(44,49,58,0.7)] ml-auto">
+                                                            <Copy className="h-3.5 w-3.5 text-gray-500 dark:text-[#636d83]"/>
                                                         </button>
                                                     </div>
                                                     {match.groups.length > 0 && (
                                                         <div className="mt-2">
-                                                            <span className="text-xs text-gray-500">그룹: </span>
+                                                            <span className="text-xs text-gray-500 dark:text-[#636d83]">그룹: </span>
                                                             <div className="flex flex-wrap gap-1 mt-1">
                                                                 {match.groups.map((group, gIdx) => (
                                                                     <span
                                                                         key={gIdx}
-                                                                        className={`rounded-full border px-2 py-0.5 text-xs ${group.captured ? 'border-blue-400 text-blue-700' : 'text-gray-500'}`}
+                                                                        className={`rounded-full border px-2 py-0.5 text-xs ${group.captured ? 'border-blue-400 text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-[#636d83]'}`}
                                                                     >
                                                                         ${group.index}: {group.captured ? `"${group.value}"` : '(미캡처)'}
                                                                     </span>
@@ -312,10 +312,10 @@ export default function RegexTester() {
                                                     )}
                                                     {match.hasNamedGroups && (
                                                         <div className="mt-2">
-                                                            <span className="text-xs text-gray-500">Named Groups: </span>
+                                                            <span className="text-xs text-gray-500 dark:text-[#636d83]">Named Groups: </span>
                                                             <div className="flex flex-wrap gap-1 mt-1">
                                                                 {Object.entries(match.namedGroups).map(([name, value]) => (
-                                                                    <span key={name} className="rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-800">
+                                                                    <span key={name} className="rounded-full bg-purple-100 dark:bg-[rgba(198,120,221,0.12)] px-2 py-0.5 text-xs text-purple-800 dark:text-[#c678dd]">
                                                                         {name}: &quot;{String(value)}&quot;
                                                                     </span>
                                                                 ))}
@@ -338,10 +338,10 @@ export default function RegexTester() {
                                         </p>
                                         <div className="space-y-2">
                                             {namedGroups.map((group, idx) => (
-                                                <div key={idx} className="flex flex-wrap items-center gap-2 border rounded-md bg-gray-50 px-3 py-2">
+                                                <div key={idx} className="flex flex-wrap items-center gap-2 border rounded-md bg-gray-50 dark:bg-[rgba(33,37,43,0.8)] px-3 py-2">
                                                     <span className="rounded-full border px-2 py-0.5 text-xs">${group.index + 1}</span>
                                                     <span className="font-mono font-bold text-sm">{group.name}</span>
-                                                    <span className="text-xs text-gray-500">패턴 내 위치: {group.position}</span>
+                                                    <span className="text-xs text-gray-500 dark:text-[#636d83]">패턴 내 위치: {group.position}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -353,13 +353,13 @@ export default function RegexTester() {
                                         <p className="font-semibold mb-3">감지된 특수 기능</p>
                                         <div className="space-y-2">
                                             {compatibility.detectedFeatures.map((feature, idx) => (
-                                                <div key={idx} className="border rounded-md bg-gray-50 p-3">
+                                                <div key={idx} className="border rounded-md bg-gray-50 dark:bg-[rgba(33,37,43,0.8)] p-3">
                                                     <p className="text-sm font-medium">{feature.name}</p>
-                                                    <p className="text-xs text-gray-500">예시: {feature.example}</p>
-                                                    <p className="text-xs text-gray-500">지원 언어: {feature.supportedIn.join(', ')}</p>
+                                                    <p className="text-xs text-gray-500 dark:text-[#636d83]">예시: {feature.example}</p>
+                                                    <p className="text-xs text-gray-500 dark:text-[#636d83]">지원 언어: {feature.supportedIn.join(', ')}</p>
                                                     <div className="flex flex-wrap gap-1 mt-1">
                                                         {feature.matches.map((m, mIdx) => (
-                                                            <span key={mIdx} className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-mono text-orange-800">
+                                                            <span key={mIdx} className="rounded-full bg-orange-100 dark:bg-[rgba(229,192,123,0.12)] px-2 py-0.5 text-xs font-mono text-orange-800 dark:text-[#e5c07b]">
                                                                 {m.value}
                                                             </span>
                                                         ))}
@@ -371,7 +371,7 @@ export default function RegexTester() {
                                 )}
 
                                 {!result && !compatibility && (
-                                    <div className="border border-dashed rounded-md p-8 text-center text-sm text-gray-500">
+                                    <div className="border border-dashed rounded-md p-8 text-center text-sm text-gray-500 dark:text-[#636d83]">
                                         <p>정규식 패턴과 테스트 문자열을 입력한 뒤</p>
                                         <p className="mt-1"><strong>테스트</strong> 버튼을 눌러 결과를 확인하세요.</p>
                                     </div>
@@ -382,9 +382,9 @@ export default function RegexTester() {
                 </Tabs>
             </div>
 
-            <div className="mt-4 p-3 bg-gray-100 rounded-md">
+            <div className="mt-4 p-3 bg-gray-100 dark:bg-[rgba(44,49,58,0.7)] rounded-md">
                 <p className="text-sm font-semibold mb-1">정규식 테스터 안내</p>
-                <ul className="text-sm text-gray-500 list-disc ml-5 space-y-0.5">
+                <ul className="text-sm text-gray-500 dark:text-[#636d83] list-disc ml-5 space-y-0.5">
                     <li>브라우저의 JavaScript 엔진으로 실행되므로 일부 언어별 고유 기능은 호환성 경고가 표시됩니다.</li>
                     <li><strong>Python</strong>의 Named Group 문법 (?P&lt;name&gt;...)은 자동으로 JavaScript 형식으로 변환됩니다.</li>
                     <li>각 언어의 Named Group 문법은 상단 Syntax 카드에서 확인할 수 있습니다.</li>

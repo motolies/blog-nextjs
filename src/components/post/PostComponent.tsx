@@ -340,7 +340,7 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
                                         {post.subject}
                                     </h1>
                                     <div className="public-muted-text mt-5 flex flex-wrap items-center gap-3 text-sm">
-                                        <Link href={searchCategory()} className="rounded-full border border-sky-100 bg-sky-50 px-4 py-2 font-semibold text-sky-800 transition hover:border-sky-200 hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-300 dark:hover:border-sky-700 dark:hover:bg-sky-900/50">
+                                        <Link href={searchCategory()} className="rounded-full border border-sky-100 bg-sky-50 px-4 py-2 font-semibold text-sky-800 transition hover:border-sky-200 hover:bg-sky-100 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:border-blue-700 dark:hover:bg-blue-900/50">
                                             {post.category?.name}
                                         </Link>
                                         <span className="public-chip-surface-strong inline-flex items-center gap-2 rounded-full border px-4 py-2">
@@ -385,34 +385,34 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
 
                         {series && (
                             <div className="border-b border-[color:var(--line-soft)] px-6 py-5 sm:px-8">
-                                <div className="rounded-2xl border border-sky-200 bg-sky-50/80 p-4 dark:border-sky-800 dark:bg-sky-950/30">
+                                <div className="rounded-2xl border border-sky-200 bg-sky-50/80 p-4 dark:border-blue-800 dark:bg-blue-950/30">
                                     <button
                                         type="button"
                                         className="flex w-full items-center justify-between text-left"
                                         onClick={() => setSeriesExpanded(!seriesExpanded)}
                                     >
                                         <div className="flex items-center gap-2">
-                                            <List className="h-4 w-4 text-sky-600 dark:text-sky-400"/>
-                                            <span className="text-sm font-semibold text-sky-800 dark:text-sky-300">{series.title}</span>
-                                            <span className="rounded-full bg-sky-200 px-2 py-0.5 text-xs font-medium text-sky-700 dark:bg-sky-800 dark:text-sky-300">
+                                            <List className="h-4 w-4 text-sky-600 dark:text-blue-400"/>
+                                            <span className="text-sm font-semibold text-sky-800 dark:text-blue-300">{series.title}</span>
+                                            <span className="rounded-full bg-sky-200 px-2 py-0.5 text-xs font-medium text-sky-700 dark:bg-blue-800 dark:text-blue-300">
                                                 {series.posts?.length ?? 0}편
                                             </span>
                                         </div>
-                                        {seriesExpanded ? <ChevronUp className="h-4 w-4 text-sky-600 dark:text-sky-400"/> : <ChevronDown className="h-4 w-4 text-sky-600 dark:text-sky-400"/>}
+                                        {seriesExpanded ? <ChevronUp className="h-4 w-4 text-sky-600 dark:text-blue-400"/> : <ChevronDown className="h-4 w-4 text-sky-600 dark:text-blue-400"/>}
                                     </button>
                                     {seriesExpanded && (
-                                        <ol className="mt-3 space-y-1 border-t border-sky-200 pt-3 dark:border-sky-800">
+                                        <ol className="mt-3 space-y-1 border-t border-sky-200 pt-3 dark:border-blue-800">
                                             {series.posts?.map((sp) => (
                                                 <li key={sp.postId}>
                                                     {sp.postId === post.id ? (
-                                                        <span className="flex items-center gap-2 rounded-lg bg-sky-200/60 px-3 py-2 text-sm font-semibold text-sky-900 dark:bg-sky-800/40 dark:text-sky-200">
+                                                        <span className="flex items-center gap-2 rounded-lg bg-sky-200/60 px-3 py-2 text-sm font-semibold text-sky-900 dark:bg-blue-800/40 dark:text-blue-200">
                                                             <span className="text-xs text-sky-500">{sp.seq}.</span>
                                                             {sp.subject}
                                                         </span>
                                                     ) : (
                                                         <Link
                                                             href={`/post/${sp.postId}`}
-                                                            className="public-muted-text flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition hover:bg-sky-100 dark:hover:bg-sky-900/30"
+                                                            className="public-muted-text flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition hover:bg-sky-100 dark:hover:bg-blue-900/30"
                                                         >
                                                             <span className="public-label-text text-xs">{sp.seq}.</span>
                                                             {sp.subject}
@@ -445,7 +445,7 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
                                 ) : (
                                     <Link href={`/post/${prevPostId}`} className="public-card-surface group rounded-[1.5rem] border px-5 py-6 transition">
                                         <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">Previous</p>
-                                        <div className="public-muted-text mt-3 flex items-center gap-2 text-sm font-semibold transition group-hover:text-sky-700 dark:group-hover:text-sky-400">
+                                        <div className="public-muted-text mt-3 flex items-center gap-2 text-sm font-semibold transition group-hover:text-sky-700 dark:group-hover:text-blue-400">
                                             <ArrowLeft className="h-4 w-4 shrink-0"/>
                                             <span className="truncate">{prevNext?.prevSubject || '이전 글로 이동'}</span>
                                         </div>
@@ -458,7 +458,7 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
                                 ) : (
                                     <Link href={`/post/${nextPostId}`} className="public-card-surface group rounded-[1.5rem] border px-5 py-6 text-right transition">
                                         <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">Next</p>
-                                        <div className="public-muted-text mt-3 flex items-center justify-end gap-2 text-sm font-semibold transition group-hover:text-sky-700 dark:group-hover:text-sky-400">
+                                        <div className="public-muted-text mt-3 flex items-center justify-end gap-2 text-sm font-semibold transition group-hover:text-sky-700 dark:group-hover:text-blue-400">
                                             <span className="truncate">{prevNext?.nextSubject || '다음 글로 이동'}</span>
                                             <ArrowRight className="h-4 w-4 shrink-0"/>
                                         </div>
@@ -477,7 +477,7 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
                                             href={`/post/${related.id}`}
                                             className="public-card-surface group rounded-2xl border p-4 transition hover:shadow-sm"
                                         >
-                                            <p className="truncate text-sm font-semibold text-foreground transition group-hover:text-sky-700 dark:group-hover:text-sky-400">
+                                            <p className="truncate text-sm font-semibold text-foreground transition group-hover:text-sky-700 dark:group-hover:text-blue-400">
                                                 {related.subject}
                                             </p>
                                             <div className="public-label-text mt-2 flex items-center gap-2 text-xs">

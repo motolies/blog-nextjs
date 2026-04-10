@@ -588,8 +588,8 @@ export default function DataTableCore<TData extends RowData>({
             onPointerDown={(event) => event.stopPropagation()}
             className={cn(
               'absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none',
-              'bg-slate-300 hover:bg-sky-500/70',
-              header.column.getIsResizing() && 'bg-sky-500',
+              'bg-slate-300 hover:bg-sky-500/70 dark:bg-[rgba(99,109,131,0.4)] dark:hover:bg-[rgba(97,175,239,0.7)]',
+              header.column.getIsResizing() && 'bg-sky-500 dark:bg-[#61afef]',
             )}
           />
         )}
@@ -641,14 +641,14 @@ export default function DataTableCore<TData extends RowData>({
     <div
       ref={tableContainerRef}
       className={cn(
-        'relative flex-1 overflow-auto rounded-md border border-[color:var(--admin-border)] bg-white/72 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]',
+        'relative flex-1 overflow-auto rounded-md border border-[color:var(--admin-border)] bg-white/72 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] dark:bg-[rgba(40,44,52,0.72)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]',
         !autoHeight && 'min-h-0',
         className,
       )}
     >
       {loading && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-[1px]">
-          <Loader2 className="h-6 w-6 animate-spin text-sky-600" />
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-[1px] dark:bg-[rgba(30,33,39,0.7)]">
+          <Loader2 className="h-6 w-6 animate-spin text-sky-600 dark:text-[#61afef]" />
         </div>
       )}
 
@@ -663,7 +663,7 @@ export default function DataTableCore<TData extends RowData>({
           })}
         </colgroup>
 
-        <thead className="sticky top-0 z-[1] bg-white/95 backdrop-blur-xl">
+        <thead className="sticky top-0 z-[1] bg-white/95 backdrop-blur-xl dark:bg-[rgba(33,37,43,0.95)]">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {enableColumnReorder ? (
@@ -724,8 +724,8 @@ export default function DataTableCore<TData extends RowData>({
                             onClick={(event) => event.stopPropagation()}
                             className={cn(
                               'absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none',
-                              'bg-slate-300 hover:bg-sky-500/70',
-                              header.column.getIsResizing() && 'bg-sky-500',
+                              'bg-slate-300 hover:bg-sky-500/70 dark:bg-[rgba(99,109,131,0.4)] dark:hover:bg-[rgba(97,175,239,0.7)]',
+                              header.column.getIsResizing() && 'bg-sky-500 dark:bg-[#61afef]',
                             )}
                           />
                         )}
@@ -761,7 +761,7 @@ export default function DataTableCore<TData extends RowData>({
                   onClick={onRowClick ? () => onRowClick({ row: row.original, id: row.id }) : undefined}
                   className={cn(
                     'border-b border-[color:var(--admin-border)] transition-colors',
-                    onRowClick ? 'cursor-pointer hover:bg-sky-600/6' : 'hover:bg-slate-50/70',
+                    onRowClick ? 'cursor-pointer hover:bg-sky-600/6 dark:hover:bg-[rgba(97,175,239,0.06)]' : 'hover:bg-slate-50/70 dark:hover:bg-[rgba(44,49,58,0.5)]',
                     rowClassName,
                   )}
                 >
@@ -822,7 +822,7 @@ export default function DataTableCore<TData extends RowData>({
         </tbody>
 
         {hasSummaryRow && (
-          <tfoot className="border-t-2 border-[color:var(--admin-border-strong)] bg-slate-50/90 font-bold text-[color:var(--admin-text)]">
+          <tfoot className="border-t-2 border-[color:var(--admin-border-strong)] bg-slate-50/90 font-bold text-[color:var(--admin-text)] dark:bg-[rgba(33,37,43,0.9)]">
             {table.getFooterGroups().map((footerGroup) => (
               <tr key={footerGroup.id}>
                 {footerGroup.headers.map((header) => {

@@ -21,6 +21,12 @@
     box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
 }
 
+:global(.dark) .navButton {
+    border-color: rgba(99, 109, 131, 0.3);
+    background: rgba(40, 44, 52, 0.92);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+}
+
 @media (max-width: 1279px) {
     .prevButton,
     .nextButton {

@@ -198,7 +198,7 @@ export default function BarcodePage() {
                             {/* 설정 영역 */}
                             <div className="md:col-span-2 space-y-4">
                                 <div>
-                                    <label className="text-sm text-gray-500 mb-1 block">포맷</label>
+                                    <label className="text-sm text-gray-500 dark:text-[#636d83] mb-1 block">포맷</label>
                                     <Select value={barcodeFormat} onValueChange={handleFormatChange}>
                                         <SelectTrigger>
                                             <SelectValue/>
@@ -214,17 +214,17 @@ export default function BarcodePage() {
                                 </div>
 
                                 <div>
-                                    <label className="text-sm text-gray-500 mb-1 block">텍스트</label>
+                                    <label className="text-sm text-gray-500 dark:text-[#636d83] mb-1 block">텍스트</label>
                                     <Input
                                         value={barcodeText}
                                         onChange={(e) => setBarcodeText(e.target.value)}
                                         placeholder={currentFormat?.example}
                                     />
-                                    {currentFormat && <p className="text-xs text-gray-500 mt-1">{currentFormat.description}</p>}
+                                    {currentFormat && <p className="text-xs text-gray-500 dark:text-[#636d83] mt-1">{currentFormat.description}</p>}
                                 </div>
 
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">선 굵기: {barcodeWidth}</p>
+                                    <p className="text-sm text-gray-500 dark:text-[#636d83] mb-1">선 굵기: {barcodeWidth}</p>
                                     <input
                                         type="range"
                                         min={1} max={5} step={0.5}
@@ -235,7 +235,7 @@ export default function BarcodePage() {
                                 </div>
 
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">높이: {barcodeHeight}px</p>
+                                    <p className="text-sm text-gray-500 dark:text-[#636d83] mb-1">높이: {barcodeHeight}px</p>
                                     <input
                                         type="range"
                                         min={50} max={200} step={10}
@@ -268,7 +268,7 @@ export default function BarcodePage() {
                             </div>
 
                             {/* 미리보기 영역 */}
-                            <div ref={barcodeRef} className="md:col-span-3 min-h-[250px] flex justify-center items-center bg-gray-50 border rounded-md p-4">
+                            <div ref={barcodeRef} className="md:col-span-3 min-h-[250px] flex justify-center items-center bg-gray-50 dark:bg-[rgba(33,37,43,0.8)] border rounded-md p-4">
                                 <svg ref={barcodeSvgRef}/>
                             </div>
                         </div>
@@ -280,7 +280,7 @@ export default function BarcodePage() {
                             {/* 설정 영역 */}
                             <div className="md:col-span-2 space-y-4">
                                 <div>
-                                    <label className="text-sm text-gray-500 mb-1 block">텍스트 / URL</label>
+                                    <label className="text-sm text-gray-500 dark:text-[#636d83] mb-1 block">텍스트 / URL</label>
                                     <Textarea
                                         value={qrText}
                                         onChange={(e) => setQrText(e.target.value)}
@@ -290,7 +290,7 @@ export default function BarcodePage() {
                                 </div>
 
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">사이즈: {qrSize}px</p>
+                                    <p className="text-sm text-gray-500 dark:text-[#636d83] mb-1">사이즈: {qrSize}px</p>
                                     <input
                                         type="range"
                                         min={100} max={500} step={50}
@@ -298,7 +298,7 @@ export default function BarcodePage() {
                                         onChange={(e) => setQrSize(Number(e.target.value))}
                                         className="w-full accent-blue-600"
                                     />
-                                    <div className="flex justify-between text-xs text-gray-400 mt-0.5">
+                                    <div className="flex justify-between text-xs text-gray-400 dark:text-[#636d83] mt-0.5">
                                         <span>100</span>
                                         <span>256</span>
                                         <span>500</span>
@@ -306,7 +306,7 @@ export default function BarcodePage() {
                                 </div>
 
                                 <div>
-                                    <label className="text-sm text-gray-500 mb-1 block">에러 보정 레벨</label>
+                                    <label className="text-sm text-gray-500 dark:text-[#636d83] mb-1 block">에러 보정 레벨</label>
                                     <Select value={qrErrorLevel} onValueChange={setQrErrorLevel}>
                                         <SelectTrigger>
                                             <SelectValue/>
@@ -334,7 +334,7 @@ export default function BarcodePage() {
                             </div>
 
                             {/* 미리보기 영역 */}
-                            <div ref={qrRef} className="md:col-span-3 min-h-[250px] flex justify-center items-center bg-gray-50 border rounded-md p-4">
+                            <div ref={qrRef} className="md:col-span-3 min-h-[250px] flex justify-center items-center bg-gray-50 dark:bg-[rgba(33,37,43,0.8)] border rounded-md p-4">
                                 <canvas ref={qrCanvasRef}/>
                             </div>
                         </div>
@@ -342,9 +342,9 @@ export default function BarcodePage() {
                 </Tabs>
             </div>
 
-            <div className="mt-4 p-3 bg-gray-100 rounded-md">
+            <div className="mt-4 p-3 bg-gray-100 dark:bg-[rgba(44,49,58,0.7)] rounded-md">
                 <p className="text-sm font-semibold mb-1">바코드 포맷 안내</p>
-                <ul className="text-sm text-gray-500 list-disc ml-5 space-y-0.5">
+                <ul className="text-sm text-gray-500 dark:text-[#636d83] list-disc ml-5 space-y-0.5">
                     <li><strong>CODE128</strong>: 가장 범용적인 포맷, 모든 ASCII 문자 지원</li>
                     <li><strong>EAN-13</strong>: 상품 바코드, 숫자 12-13자리</li>
                     <li><strong>EAN-8</strong>: 소형 상품용, 숫자 7-8자리</li>

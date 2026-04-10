@@ -55,7 +55,7 @@ export default function IndexPage({engines, favorites}: IndexPageProps) {
                                             href={favorite.url}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="public-card-surface group flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium text-slate-700 transition hover:text-sky-700 dark:text-slate-300 dark:hover:text-sky-300"
+                                            className="public-card-surface group flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium text-slate-700 transition hover:text-sky-700 dark:text-slate-300 dark:hover:text-blue-300"
                                         >
                                             <span className="truncate">{favorite.name}</span>
                                             <ArrowUpRight className="h-4 w-4 shrink-0 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"/>

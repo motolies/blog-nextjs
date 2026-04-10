@@ -83,16 +83,16 @@ export default function TsidPage() {
     const CopyButton = ({value}) => (
         <button
             onClick={() => void handleCopy(value)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]"
             title="복사"
         >
-            <Copy className="h-4 w-4 text-gray-500"/>
+            <Copy className="h-4 w-4 text-gray-500 dark:text-[#636d83]"/>
         </button>
     )
 
     const ReadonlyInputWithCopy = ({label, value}) => (
         <div className="space-y-1">
-            <label className="text-sm text-gray-500">{label}</label>
+            <label className="text-sm text-gray-500 dark:text-[#636d83]">{label}</label>
             <div className="relative">
                 <Input value={value} readOnly className="pr-8 font-mono"/>
                 <CopyButton value={value}/>
@@ -163,7 +163,7 @@ export default function TsidPage() {
 
                         {/* TSID → 날짜 */}
                         <TabsContent value="date">
-                            <p className="text-sm text-gray-500 mb-3">
+                            <p className="text-sm text-gray-500 dark:text-[#636d83] mb-3">
                                 TSID에 포함된 타임스탬프를 추출하여 날짜/시간으로 변환합니다. (TSID Epoch: 2020-01-01 00:00:00 UTC)
                             </p>
                             <div className="space-y-3">
@@ -180,9 +180,9 @@ export default function TsidPage() {
                 </Tabs>
             </div>
 
-            <div className="mt-4 p-3 bg-gray-100 rounded-md">
+            <div className="mt-4 p-3 bg-gray-100 dark:bg-[rgba(44,49,58,0.7)] rounded-md">
                 <p className="text-sm font-semibold mb-1">TSID란?</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-[#636d83]">
                     TSID (Time-Sorted Unique Identifier)는 시간순 정렬이 가능한 고유 식별자입니다.
                     13자리 문자열로 표현되며, 내부에 42비트 타임스탬프와 22비트 랜덤값을 포함합니다.
                 </p>

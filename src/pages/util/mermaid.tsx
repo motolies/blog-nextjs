@@ -679,7 +679,7 @@ export default function MermaidPage() {
         onMouseUp: handleMouseUp,
         onMouseLeave: handleMouseUp
     }
-    const previewAreaClassName = `flex-1 overflow-hidden flex justify-center items-center bg-gray-50 border ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`
+    const previewAreaClassName = `flex-1 overflow-hidden flex justify-center items-center bg-gray-50 dark:bg-[rgba(33,37,43,0.8)] border ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`
 
     // 일반 모드
     return (
@@ -700,7 +700,7 @@ export default function MermaidPage() {
                             <button
                                 key={key}
                                 onClick={() => handleSampleChange(key)}
-                                className={`text-sm px-3 py-1 rounded-full border transition-all flex-shrink-0 whitespace-nowrap ${selectedSample === key ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'hover:bg-gray-100'}`}
+                                className={`text-sm px-3 py-1 rounded-full border transition-all flex-shrink-0 whitespace-nowrap ${selectedSample === key ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]'}`}
                             >
                                 {label}
                             </button>
@@ -726,7 +726,7 @@ export default function MermaidPage() {
                         aria-controls="panel-editor"
                         id="tab-editor"
                         onClick={() => setActiveTab('editor')}
-                        className={`flex-1 py-2.5 text-sm font-medium text-center border-b-2 transition-colors duration-200 ${activeTab === 'editor' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 py-2.5 text-sm font-medium text-center border-b-2 transition-colors duration-200 ${activeTab === 'editor' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 dark:text-[#636d83] hover:text-gray-700 dark:hover:text-[#abb2bf]'}`}
                     >
                         코드
                     </button>
@@ -736,7 +736,7 @@ export default function MermaidPage() {
                         aria-controls="panel-preview"
                         id="tab-preview"
                         onClick={() => setActiveTab('preview')}
-                        className={`flex-1 py-2.5 text-sm font-medium text-center border-b-2 transition-colors duration-200 ${activeTab === 'preview' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 py-2.5 text-sm font-medium text-center border-b-2 transition-colors duration-200 ${activeTab === 'preview' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 dark:text-[#636d83] hover:text-gray-700 dark:hover:text-[#abb2bf]'}`}
                     >
                         미리보기
                     </button>
@@ -789,9 +789,9 @@ export default function MermaidPage() {
                     </div>
                 </div>
 
-                <div className="mt-4 p-3 bg-gray-100 rounded-md">
+                <div className="mt-4 p-3 bg-gray-100 dark:bg-[rgba(44,49,58,0.7)] rounded-md">
                     <p className="text-sm font-semibold mb-1">Mermaid 문법 참고</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-[#636d83]">
                         Mermaid는 텍스트 기반으로 다이어그램을 생성하는 도구입니다.
                         Flowchart, Sequence Diagram, Class Diagram, ER Diagram, Block Diagram, State Diagram 등 다양한 다이어그램을 지원합니다.
                         자세한 문법은{' '}
@@ -804,15 +804,15 @@ export default function MermaidPage() {
             </div>
 
             {isFullscreen && isClient && createPortal(
-                <div className="fixed inset-0 z-[1200] bg-white flex flex-col">
-                    <div className="p-2 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white shadow-sm">
+                <div className="fixed inset-0 z-[1200] bg-white dark:bg-[#1e2127] flex flex-col">
+                    <div className="p-2 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white dark:bg-[#21252b] shadow-sm">
                         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
                             <div className="flex items-center gap-2">
                                 <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
                                     <Minimize className="h-5 w-5"/>
                                 </Button>
                                 <span className="font-semibold">미리보기</span>
-                                <span className="text-xs text-gray-400 hidden sm:inline">(ESC로 닫기)</span>
+                                <span className="text-xs text-gray-400 dark:text-[#636d83] hidden sm:inline">(ESC로 닫기)</span>
                             </div>
                             <div className="sm:hidden"><ZoomControls/></div>
                         </div>
@@ -836,10 +836,10 @@ export default function MermaidPage() {
                     />
 
                     <div
-                        className={`fixed z-[1300] shadow-2xl overflow-hidden border bg-white transition-all duration-300 bottom-0 inset-x-0 rounded-t-xl sm:bottom-5 sm:right-5 sm:left-auto sm:inset-x-auto sm:rounded-lg ${isEditorVisible ? 'sm:w-[420px]' : 'w-auto sm:w-auto'}`}
+                        className={`fixed z-[1300] shadow-2xl overflow-hidden border bg-white dark:bg-[#282c34] transition-all duration-300 bottom-0 inset-x-0 rounded-t-xl sm:bottom-5 sm:right-5 sm:left-auto sm:inset-x-auto sm:rounded-lg ${isEditorVisible ? 'sm:w-[420px]' : 'w-auto sm:w-auto'}`}
                         style={{maxHeight: isEditorVisible ? '45vh' : 'auto'}}
                     >
-                        <div className="flex items-center px-3 py-2 border-b bg-gray-50">
+                        <div className="flex items-center px-3 py-2 border-b bg-gray-50 dark:bg-[rgba(33,37,43,0.8)]">
                             <span className="text-sm font-bold flex-1">코드</span>
                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsEditorVisible(!isEditorVisible)}>
                                 {isEditorVisible ? <EyeOff className="h-3.5 w-3.5"/> : <Eye className="h-3.5 w-3.5"/>}

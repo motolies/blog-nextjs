@@ -23,10 +23,10 @@ function CopyButton({value, onCopy}) {
     return (
         <button
             onClick={() => void onCopy(value)}
-            className="absolute right-2 top-2 p-1 rounded hover:bg-gray-100"
+            className="absolute right-2 top-2 p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]"
             title="복사"
         >
-            <Copy className="h-4 w-4 text-gray-500"/>
+            <Copy className="h-4 w-4 text-gray-500 dark:text-[#636d83]"/>
         </button>
     )
 }
@@ -288,9 +288,9 @@ export default function EncodePage() {
 
             <div className="border rounded-md">
                 <Tabs value={tabValue} onValueChange={setTabValue}>
-                    <TabsList className="w-full flex flex-wrap h-auto border-b rounded-none justify-start px-2 py-1 gap-1">
+                    <TabsList className="w-full flex h-auto border-b rounded-none justify-start px-2 py-1 gap-1 overflow-x-auto">
                         {ENCODING_TYPES.map((type) => (
-                            <TabsTrigger key={type.id} value={type.id}>{type.label}</TabsTrigger>
+                            <TabsTrigger key={type.id} value={type.id} className="flex-none">{type.label}</TabsTrigger>
                         ))}
                     </TabsList>
 
@@ -402,12 +402,12 @@ export default function EncodePage() {
                                     <>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             <div className="relative">
-                                                <label className="text-xs text-gray-500 mb-1 block">Header</label>
+                                                <label className="text-xs text-gray-500 dark:text-[#636d83] mb-1 block">Header</label>
                                                 <Textarea value={jwtHeader} readOnly rows={10} className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 font-mono text-xs`}/>
                                                 <CopyButton value={jwtHeader} onCopy={handleCopy}/>
                                             </div>
                                             <div className="relative">
-                                                <label className="text-xs text-gray-500 mb-1 block">Payload</label>
+                                                <label className="text-xs text-gray-500 dark:text-[#636d83] mb-1 block">Payload</label>
                                                 <Textarea value={jwtPayload} readOnly rows={10} className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 font-mono text-xs`}/>
                                                 <CopyButton value={jwtPayload} onCopy={handleCopy}/>
                                             </div>
@@ -453,9 +453,9 @@ export default function EncodePage() {
                 </Tabs>
             </div>
 
-            <div className="mt-4 p-3 bg-gray-100 rounded-md">
+            <div className="mt-4 p-3 bg-gray-100 dark:bg-[rgba(44,49,58,0.7)] rounded-md">
                 <p className="text-sm font-semibold mb-1">인코딩 타입 안내</p>
-                <ul className="text-sm text-gray-500 list-disc ml-5 space-y-0.5">
+                <ul className="text-sm text-gray-500 dark:text-[#636d83] list-disc ml-5 space-y-0.5">
                     <li><strong>Base64</strong>: 바이너리 데이터를 ASCII 문자로 변환</li>
                     <li><strong>URL</strong>: URL에서 사용할 수 없는 문자를 % 인코딩</li>
                     <li><strong>HTML</strong>: HTML 특수문자를 엔티티로 변환</li>

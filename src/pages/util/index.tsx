@@ -63,17 +63,17 @@ export default function UtilIndexPage() {
                         <Link
                             key={util.id}
                             href={util.path}
-                            className="group block rounded-[1.6rem] border border-slate-200/80 bg-white/82 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:border-sky-200 hover:shadow-[0_24px_50px_rgba(15,23,42,0.1)]"
+                            className="group block rounded-[1.6rem] border border-slate-200/80 bg-white/82 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:border-sky-200 hover:shadow-[0_24px_50px_rgba(15,23,42,0.1)] dark:border-[rgba(99,109,131,0.22)] dark:bg-[rgba(40,44,52,0.82)] dark:shadow-[0_18px_40px_rgba(0,0,0,0.15)] dark:hover:border-[rgba(97,175,239,0.3)] dark:hover:shadow-[0_24px_50px_rgba(0,0,0,0.25)]"
                         >
                             <div className="flex items-start gap-4">
                                 <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0d7ff2,#7dd3fc)] text-white shadow-[0_12px_30px_rgba(13,127,242,0.24)]">
                                     <Icon className="h-5 w-5"/>
                                 </span>
                                 <div className="min-w-0 flex-1">
-                                    <h2 className="text-lg font-semibold tracking-[-0.02em] text-slate-950 transition group-hover:text-sky-700">
+                                    <h2 className="text-lg font-semibold tracking-[-0.02em] text-slate-950 transition group-hover:text-sky-700 dark:text-slate-50 dark:group-hover:text-blue-400">
                                         {util.title}
                                     </h2>
-                                    <p className="mt-2 text-sm leading-6 text-slate-600">{util.description}</p>
+                                    <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-[#abb2bf]">{util.description}</p>
                                 </div>
                             </div>
                         </Link>

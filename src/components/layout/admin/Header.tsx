@@ -1,5 +1,7 @@
 import Link from 'next/link'
-import {ArrowUpRight, Menu} from 'lucide-react'
+import {ArrowUpRight, Menu, Sun, Moon} from 'lucide-react'
+import {useTheme} from 'next-themes'
+import {useEffect, useState} from 'react'
 import styles from './Header.module.css'
 
 interface AdminRouteMeta {
@@ -13,6 +15,10 @@ interface HeaderProps {
 }
 
 export default function Header({toggleMenu, meta}: HeaderProps) {
+    const {resolvedTheme, setTheme} = useTheme()
+    const [mounted, setMounted] = useState(false)
+    useEffect(() => { setMounted(true) }, [])
+
     return (
         <nav className={styles.layoutNavbar}>
             <div className={styles.navbarContent}>
@@ -30,6 +36,15 @@ export default function Header({toggleMenu, meta}: HeaderProps) {
                 </div>
 
                 <div className={styles.navbarEnd}>
+                    {mounted && (
+                        <button
+                            className={styles.themeToggleBtn}
+                            onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                            aria-label={resolvedTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
+                        >
+                            {resolvedTheme === 'dark' ? <Sun className="h-4 w-4"/> : <Moon className="h-4 w-4"/>}
+                        </button>
+                    )}
                     <Link href="/" className={styles.siteLink}>
                         블로그 보기
                         <ArrowUpRight className="h-4 w-4"/>

@@ -78,7 +78,7 @@ export default function Header() {
                                 value={searchText}
                                 onChange={onChangeText}
                                 onKeyDown={onSearchTextKeyDown}
-                                className="public-control-surface h-10 w-full rounded-full border pl-7 pr-3 text-sm placeholder:text-[color:var(--public-text-subtle)] backdrop-blur transition focus:border-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-100/80 dark:focus:border-sky-400 dark:focus:ring-sky-900/50 sm:h-11 sm:pl-9 sm:pr-4 sm:text-sm"
+                                className="public-control-surface h-10 w-full rounded-full border pl-7 pr-3 text-sm placeholder:text-[color:var(--public-text-subtle)] backdrop-blur transition focus:border-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-100/80 dark:focus:border-blue-400 dark:focus:ring-blue-900/50 sm:h-11 sm:pl-9 sm:pr-4 sm:text-sm"
                             />
                         </div>
 
@@ -87,7 +87,7 @@ export default function Header() {
                                 variant="ghost"
                                 size="icon"
                                 aria-label={resolvedTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
-                                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-sky-300"
+                                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-blue-300"
                                 onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
                             >
                                 {resolvedTheme === 'dark' ? <Sun className="h-4 w-4"/> : <Moon className="h-4 w-4"/>}
@@ -99,7 +99,7 @@ export default function Header() {
                                 variant="ghost"
                                 size="icon"
                                 aria-label="메모 작성"
-                                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-sky-300"
+                                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-blue-300"
                                 onClick={() => setMemoDialogOpen(true)}
                             >
                                 <FilePlus className="h-4 w-4"/>
@@ -111,7 +111,7 @@ export default function Header() {
                                 variant="ghost"
                                 size="icon"
                                 aria-label="로그인"
-                                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-sky-300"
+                                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-blue-300"
                                 asChild
                             >
                                 <Link href="/login"><LogIn className="h-4 w-4"/></Link>
@@ -123,7 +123,7 @@ export default function Header() {
                                 variant="ghost"
                                 size="icon"
                                 aria-label="관리자 페이지"
-                                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-sky-300"
+                                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-blue-300"
                                 asChild
                             >
                                 <Link href="/admin"><Shield className="h-4 w-4"/></Link>

@@ -80,7 +80,6 @@ function Skyscape({Component, pageProps}: AppProps) {
           attribute="class"
           defaultTheme="system"
           enableSystem
-          forcedTheme={isAdminLikeRoute ? 'light' : undefined}
         >
           <HydrationBoundary state={pageProps.dehydratedState}>
             <Toaster richColors duration={2000} position="top-right" />

@@ -49,7 +49,7 @@ export const SearchEngineComponent = ({engines = []}: SearchEngineComponentProps
               현재 선택: <span className="font-medium text-foreground">{host}</span>
             </p>
           </div>
-          <span className="flex size-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 dark:bg-sky-950/50 dark:text-sky-400">
+          <span className="flex size-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 dark:bg-blue-950/50 dark:text-blue-400">
             <Search className="h-4 w-4"/>
           </span>
         </div>
@@ -80,7 +80,7 @@ export const SearchEngineComponent = ({engines = []}: SearchEngineComponentProps
               }}
               onCompositionStart={() => setIsComposing(true)}
               onCompositionEnd={() => setIsComposing(false)}
-              className={`${controlClassName} public-control-surface border px-4 placeholder:text-[color:var(--public-text-subtle)] focus-visible:border-sky-400 focus-visible:ring-sky-100/80 dark:focus-visible:border-sky-400 dark:focus-visible:ring-sky-900/50`}
+              className={`${controlClassName} public-control-surface border px-4 placeholder:text-[color:var(--public-text-subtle)] focus-visible:border-sky-400 focus-visible:ring-sky-100/80 dark:focus-visible:border-blue-400 dark:focus-visible:ring-blue-900/50`}
           />
 
           <Button

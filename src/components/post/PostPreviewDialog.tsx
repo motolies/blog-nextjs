@@ -16,7 +16,7 @@ interface PostPreviewDialogProps {
 export default function PostPreviewDialog({open, subject, body, onClose}: PostPreviewDialogProps) {
     return (
         <Dialog open={open} onOpenChange={(isOpen: boolean) => { if (!isOpen) onClose() }}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[calc(100vw-6rem)] max-h-[calc(100vh-6rem)] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Eye size={20} />

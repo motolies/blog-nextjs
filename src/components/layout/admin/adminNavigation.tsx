@@ -2,6 +2,7 @@ import type {LucideIcon} from 'lucide-react'
 import {
   Activity,
   BarChart3,
+  BookOpen,
   BookOpenText,
   Flame,
   FolderTree,
@@ -61,6 +62,11 @@ export const adminNavigationSections: AdminNavigationSection[] = [
         href: '/admin/tags',
         label: '태그',
         icon: Tags,
+      },
+      {
+        href: '/admin/series',
+        label: '시리즈',
+        icon: BookOpen,
       },
       {
         href: '/admin/master-code',
@@ -136,6 +142,10 @@ export const adminRouteMeta: Record<string, AdminRouteMeta> = {
   '/admin/tags': {
     title: '태그 관리',
     icon: Tags,
+  },
+  '/admin/series': {
+    title: '시리즈 관리',
+    icon: BookOpen,
   },
   '/admin/master-code': {
     title: '마스터코드 관리',

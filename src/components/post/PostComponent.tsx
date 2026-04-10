@@ -2,10 +2,14 @@ import {useEffect, useState} from "react"
 import {
     ArrowLeft,
     ArrowRight,
+    BookOpen,
     CalendarDays,
+    ChevronDown,
+    ChevronUp,
     Clock3,
     Globe,
     GlobeLock,
+    List,
     Pencil,
     Trash2
 } from "lucide-react"
@@ -22,10 +26,13 @@ import {searchObjectInit} from "../../model/searchObject"
 import {base64Encode} from "../../util/base64Util"
 import {fileLink} from "../../util/fileLink"
 import {usePostNavigationShortcut} from "../../util/usePostNavigationShortcut"
+import {useCodeHighlight} from "../../hooks/useCodeHighlight"
+import TableOfContents from "./TableOfContents"
 import styles from './PostComponent.module.css'
 import {format} from 'date-fns'
 import service from "../../service"
 import type {Tag} from "@/types/tag"
+import type {Series} from "@/types/series"
 
 interface PostData {
     id: number
@@ -36,6 +43,7 @@ interface PostData {
         name: string
     }
     public: boolean
+    status?: 'TEMP' | 'PUBLISH'
     tags: Tag[]
     created: { at: string }
     updated: { at: string }
@@ -44,6 +52,16 @@ interface PostData {
 interface PrevNext {
     prev: number
     next: number
+    prevSubject?: string
+    nextSubject?: string
+}
+
+interface RelatedPost {
+    id: number
+    subject: string
+    categoryName: string
+    createDate: string
+    commonTagCount: number
 }
 
 interface PostComponentProps {
@@ -62,6 +80,9 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
     const [publicConfirmQuestion, setPublicConfirmQuestion] = useState<string>('')
     const [postBody, setPostBody] = useState<string>('')
     const [isClientMounted, setIsClientMounted] = useState<boolean>(false)
+    const [relatedPosts, setRelatedPosts] = useState<RelatedPost[]>([])
+    const [series, setSeries] = useState<Series | null>(null)
+    const [seriesExpanded, setSeriesExpanded] = useState<boolean>(false)
 
     const prevPostId = prevNext?.prev || 0
     const nextPostId = prevNext?.next || 0
@@ -75,11 +96,24 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
     }
 
     usePostNavigationShortcut(['ArrowLeft', 'ArrowRight'], onKeyPress)
+    useCodeHighlight(postBody)
 
     useEffect(() => {
         setPostPublic(post?.public)
         setTags(post?.tags || [])
     }, [post])
+
+    useEffect(() => {
+        if (post?.id && post.id > 0) {
+            service.post.getRelatedPosts({postId: String(post.id)})
+                .then((res: { data: RelatedPost[] }) => setRelatedPosts(res.data ?? []))
+                .catch(() => setRelatedPosts([]))
+
+            service.series.getByPostId({postId: String(post.id)})
+                .then((res: { data: Series | null }) => setSeries(res.data))
+                .catch(() => setSeries(null))
+        }
+    }, [post?.id])
 
     useEffect(() => {
         setIsClientMounted(true)
@@ -280,31 +314,43 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
         return format(new Date(value.endsWith('Z') ? value : `${value}Z`), 'yyyy-MM-dd HH:mm:ss')
     }
 
+    const readingTime = (): string => {
+        if (!post?.body) return ''
+        const plainText = post.body.replace(/<[^>]*>/g, '')
+        const charCount = plainText.length
+        const minutes = Math.ceil(charCount / 500)
+        return minutes < 1 ? '1분 미만' : `약 ${minutes}분 소요`
+    }
+
     if (post?.id !== 0 && post?.id > 0) {
         return (
             <div className="public-container px-4 pb-8 pt-28 sm:px-6 lg:px-8">
                 <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
                     <article className="surface-panel-strong overflow-hidden rounded-[2rem]">
-                        <div className="border-b border-slate-200/80 px-6 py-8 sm:px-8">
+                        <div className="border-b border-[color:var(--line-soft)] px-6 py-8 sm:px-8">
                             <div className="flex flex-wrap items-start justify-between gap-6">
                                 <div className="max-w-3xl">
-                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                                    <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                                         Article
                                     </p>
-                                    <h1 className="section-title mt-3 text-4xl font-semibold leading-tight tracking-[-0.045em] text-slate-950 sm:text-5xl">
+                                    <h1 className="section-title mt-3 text-4xl font-semibold leading-tight tracking-[-0.045em] text-slate-950 dark:text-slate-50 sm:text-5xl">
                                         {post.subject}
                                     </h1>
-                                    <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-                                        <Link href={searchCategory()} className="rounded-full border border-sky-100 bg-sky-50 px-4 py-2 font-semibold text-sky-800 transition hover:border-sky-200 hover:bg-sky-100">
+                                    <div className="public-muted-text mt-5 flex flex-wrap items-center gap-3 text-sm">
+                                        <Link href={searchCategory()} className="rounded-full border border-sky-100 bg-sky-50 px-4 py-2 font-semibold text-sky-800 transition hover:border-sky-200 hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-300 dark:hover:border-sky-700 dark:hover:bg-sky-900/50">
                                             {post.category?.name}
                                         </Link>
-                                        <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2">
+                                        <span className="public-chip-surface-strong inline-flex items-center gap-2 rounded-full border px-4 py-2">
                                             <CalendarDays className="h-4 w-4"/>
                                             created {formatDate(post.created.at)}
                                         </span>
-                                        <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2">
+                                        <span className="public-chip-surface-strong inline-flex items-center gap-2 rounded-full border px-4 py-2">
                                             <Clock3 className="h-4 w-4"/>
                                             updated {formatDate(post.updated.at)}
+                                        </span>
+                                        <span className="public-chip-surface-strong inline-flex items-center gap-2 rounded-full border px-4 py-2">
+                                            <BookOpen className="h-4 w-4"/>
+                                            {readingTime()}
                                         </span>
                                     </div>
                                 </div>
@@ -314,18 +360,18 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            className="rounded-full border-slate-200 bg-white"
+                                            className="public-control-surface rounded-full border"
                                             aria-label="공개 상태 변경"
                                             onClick={showPublicConfirmDialog}
                                         >
                                             {postPublic ? <Globe className="h-4 w-4"/> : <GlobeLock className="h-4 w-4"/>}
                                             {postPublic ? 'Public' : 'Private'}
                                         </Button>
-                                        <Button variant="outline" size="sm" className="rounded-full border-slate-200 bg-white" aria-label="edit" onClick={onEditor}>
+                                        <Button variant="outline" size="sm" className="public-control-surface rounded-full border" aria-label="edit" onClick={onEditor}>
                                             <Pencil className="h-4 w-4"/>
                                             Edit
                                         </Button>
-                                        <Button variant="outline" size="sm" className="rounded-full border-slate-200 bg-white text-red-600 hover:text-red-700" aria-label="delete" onClick={showDeleteConfirmDialog}>
+                                        <Button variant="outline" size="sm" className="public-control-surface rounded-full border text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300" aria-label="delete" onClick={showDeleteConfirmDialog}>
                                             <Trash2 className="h-4 w-4"/>
                                             Delete
                                         </Button>
@@ -334,69 +380,139 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
                             </div>
                         </div>
 
+                        {series && (
+                            <div className="border-b border-[color:var(--line-soft)] px-6 py-5 sm:px-8">
+                                <div className="rounded-2xl border border-sky-200 bg-sky-50/80 p-4 dark:border-sky-800 dark:bg-sky-950/30">
+                                    <button
+                                        type="button"
+                                        className="flex w-full items-center justify-between text-left"
+                                        onClick={() => setSeriesExpanded(!seriesExpanded)}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <List className="h-4 w-4 text-sky-600 dark:text-sky-400"/>
+                                            <span className="text-sm font-semibold text-sky-800 dark:text-sky-300">{series.title}</span>
+                                            <span className="rounded-full bg-sky-200 px-2 py-0.5 text-xs font-medium text-sky-700 dark:bg-sky-800 dark:text-sky-300">
+                                                {series.posts?.length ?? 0}편
+                                            </span>
+                                        </div>
+                                        {seriesExpanded ? <ChevronUp className="h-4 w-4 text-sky-600 dark:text-sky-400"/> : <ChevronDown className="h-4 w-4 text-sky-600 dark:text-sky-400"/>}
+                                    </button>
+                                    {seriesExpanded && (
+                                        <ol className="mt-3 space-y-1 border-t border-sky-200 pt-3 dark:border-sky-800">
+                                            {series.posts?.map((sp) => (
+                                                <li key={sp.postId}>
+                                                    {sp.postId === post.id ? (
+                                                        <span className="flex items-center gap-2 rounded-lg bg-sky-200/60 px-3 py-2 text-sm font-semibold text-sky-900 dark:bg-sky-800/40 dark:text-sky-200">
+                                                            <span className="text-xs text-sky-500">{sp.seq}.</span>
+                                                            {sp.subject}
+                                                        </span>
+                                                    ) : (
+                                                        <Link
+                                                            href={`/post/${sp.postId}`}
+                                                            className="public-muted-text flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition hover:bg-sky-100 dark:hover:bg-sky-900/30"
+                                                        >
+                                                            <span className="public-label-text text-xs">{sp.seq}.</span>
+                                                            {sp.subject}
+                                                        </Link>
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="px-6 py-6 sm:px-8">
                             <TagGroupComponent postId={post?.id?.toString() ?? null} tagList={tags} clickable={true}/>
                         </div>
 
-                        <div className="border-t border-slate-200/70 px-6 py-8 sm:px-8">
+                        <div className="border-t border-[color:var(--line-soft)] px-6 py-8 sm:px-8">
                             <div className="content break-words" id="post-content" dangerouslySetInnerHTML={{__html: postBody}}/>
                         </div>
 
-                        <div className="border-t border-slate-200/80 px-6 py-6 sm:px-8">
+                        <div className="border-t border-[color:var(--line-soft)] px-6 py-6 sm:px-8">
                             <div className="grid gap-4 md:grid-cols-2">
                                 {prevPostId === 0 ? (
-                                    <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50/70 px-5 py-6 text-sm text-slate-400">
+                                    <div className="public-muted-panel public-muted-text rounded-[1.5rem] border border-dashed px-5 py-6 text-sm">
                                         이전 글이 없습니다.
                                     </div>
                                 ) : (
-                                    <Link href={`/post/${prevPostId}`} className="group rounded-[1.5rem] border border-slate-200 bg-white/80 px-5 py-6 transition hover:border-sky-200">
-                                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Previous</p>
-                                        <div className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition group-hover:text-sky-700">
-                                            <ArrowLeft className="h-4 w-4"/>
-                                            이전 글로 이동
+                                    <Link href={`/post/${prevPostId}`} className="public-card-surface group rounded-[1.5rem] border px-5 py-6 transition">
+                                        <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">Previous</p>
+                                        <div className="public-muted-text mt-3 flex items-center gap-2 text-sm font-semibold transition group-hover:text-sky-700 dark:group-hover:text-sky-400">
+                                            <ArrowLeft className="h-4 w-4 shrink-0"/>
+                                            <span className="truncate">{prevNext?.prevSubject || '이전 글로 이동'}</span>
                                         </div>
                                     </Link>
                                 )}
                                 {nextPostId === 0 ? (
-                                    <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50/70 px-5 py-6 text-right text-sm text-slate-400">
+                                    <div className="public-muted-panel public-muted-text rounded-[1.5rem] border border-dashed px-5 py-6 text-right text-sm">
                                         다음 글이 없습니다.
                                     </div>
                                 ) : (
-                                    <Link href={`/post/${nextPostId}`} className="group rounded-[1.5rem] border border-slate-200 bg-white/80 px-5 py-6 text-right transition hover:border-sky-200">
-                                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Next</p>
-                                        <div className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition group-hover:text-sky-700">
-                                            다음 글로 이동
-                                            <ArrowRight className="h-4 w-4"/>
+                                    <Link href={`/post/${nextPostId}`} className="public-card-surface group rounded-[1.5rem] border px-5 py-6 text-right transition">
+                                        <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">Next</p>
+                                        <div className="public-muted-text mt-3 flex items-center justify-end gap-2 text-sm font-semibold transition group-hover:text-sky-700 dark:group-hover:text-sky-400">
+                                            <span className="truncate">{prevNext?.nextSubject || '다음 글로 이동'}</span>
+                                            <ArrowRight className="h-4 w-4 shrink-0"/>
                                         </div>
                                     </Link>
                                 )}
                             </div>
                         </div>
+
+                        {relatedPosts.length > 0 && (
+                            <div className="border-t border-[color:var(--line-soft)] px-6 py-6 sm:px-8">
+                                <p className="public-label-text mb-4 text-xs font-semibold uppercase tracking-[0.18em]">Related Posts</p>
+                                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                    {relatedPosts.map((related) => (
+                                        <Link
+                                            key={related.id}
+                                            href={`/post/${related.id}`}
+                                            className="public-card-surface group rounded-2xl border p-4 transition hover:shadow-sm"
+                                        >
+                                            <p className="truncate text-sm font-semibold text-foreground transition group-hover:text-sky-700 dark:group-hover:text-sky-400">
+                                                {related.subject}
+                                            </p>
+                                            <div className="public-label-text mt-2 flex items-center gap-2 text-xs">
+                                                <span className="public-chip-surface inline-flex rounded-full border px-2 py-0.5">
+                                                    {related.categoryName}
+                                                </span>
+                                                {isClientMounted && related.createDate && (
+                                                    <span>{format(new Date(related.createDate), 'yyyy-MM-dd')}</span>
+                                                )}
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </article>
 
                     <aside className="space-y-5 xl:sticky xl:top-28 xl:self-start">
                         <div className="surface-panel-strong rounded-[1.75rem] p-6">
-                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                            <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                                 Reading Context
                             </p>
-
+                            <TableOfContents postBody={postBody}/>
                         </div>
                         <div className="surface-panel-strong rounded-[1.75rem] p-6">
-                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                            <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                                 Metadata
                             </p>
-                            <dl className="mt-4 space-y-4 text-sm text-slate-600">
+                            <dl className="public-muted-text mt-4 space-y-4 text-sm">
                                 <div>
-                                    <dt className="font-semibold text-slate-500">Category</dt>
-                                    <dd className="mt-1 text-slate-950">{post.category?.name || '-'}</dd>
+                                    <dt className="public-label-text font-semibold">Category</dt>
+                                    <dd className="mt-1 text-slate-950 dark:text-slate-100">{post.category?.name || '-'}</dd>
                                 </div>
                                 <div>
-                                    <dt className="font-semibold text-slate-500">Tags</dt>
-                                    <dd className="mt-1 text-slate-950">{tags?.length || 0}</dd>
+                                    <dt className="public-label-text font-semibold">Tags</dt>
+                                    <dd className="mt-1 text-slate-950 dark:text-slate-100">{tags?.length || 0}</dd>
                                 </div>
                                 <div>
-                                    <dt className="font-semibold text-slate-500">Visibility</dt>
-                                    <dd className="mt-1 text-slate-950">{postPublic ? 'Public' : 'Private'}</dd>
+                                    <dt className="public-label-text font-semibold">Visibility</dt>
+                                    <dd className="mt-1 text-slate-950 dark:text-slate-100">{postPublic ? 'Public' : 'Private'}</dd>
                                 </div>
                             </dl>
                         </div>
@@ -413,8 +529,8 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
     return (
         <article className="mx-auto max-w-4xl px-4 pb-16 pt-28 sm:px-6 lg:px-8">
             <div className="surface-panel-strong rounded-[2rem] px-6 py-12 text-center sm:px-8">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Missing Article</p>
-                <h2 className="section-title mt-3 text-4xl font-semibold text-slate-950">No post found</h2>
+                <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">Missing Article</p>
+                <h2 className="section-title mt-3 text-4xl font-semibold text-slate-950 dark:text-slate-50">No post found</h2>
             </div>
         </article>
     )

@@ -10,8 +10,9 @@ export default function ModifyPostPage() {
     const postId = router.query.id as string
 
     useEffect(() => {
+        if (!router.isReady) return
         loadForModify(postId)
-    }, [loadForModify, postId])
+    }, [loadForModify, postId, router.isReady])
 
     return (
         <AdminPageFrame contentClassName="min-h-0">

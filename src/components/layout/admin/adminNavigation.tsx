@@ -1,6 +1,7 @@
 import type {LucideIcon} from 'lucide-react'
 import {
   Activity,
+  BarChart3,
   BookOpenText,
   Flame,
   FolderTree,
@@ -106,6 +107,11 @@ export const adminNavigationSections: AdminNavigationSection[] = [
         label: '스프린트',
         icon: Workflow,
       },
+      {
+        href: '/admin/stats',
+        label: '블로그 통계',
+        icon: BarChart3,
+      },
     ],
   },
 ]
@@ -158,6 +164,10 @@ export const adminRouteMeta: Record<string, AdminRouteMeta> = {
   '/admin/sprint': {
     title: '스프린트 관리',
     icon: Workflow,
+  },
+  '/admin/stats': {
+    title: '블로그 통계',
+    icon: BarChart3,
   },
 }
 
@@ -219,5 +229,11 @@ export const adminQuickLinks: AdminQuickLink[] = [
     label: '마스터코드 운영',
     description: '계층 코드와 캐시 상태 점검',
     icon: BookOpenText,
+  },
+  {
+    href: '/admin/stats',
+    label: '블로그 통계',
+    description: '조회수 추이와 콘텐츠 분포 분석',
+    icon: BarChart3,
   },
 ]

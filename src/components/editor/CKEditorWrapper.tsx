@@ -39,9 +39,10 @@ interface CreateEditorConfigParams {
     defaultData: string
     imageUploadAdapter: (loader: unknown) => unknown
     uploadServer: (editor: unknown, file: File) => Promise<void>
+    onChangeDataRef: React.MutableRefObject<(data: string, options?: {shouldSave?: boolean; trigger?: string}) => void>
 }
 
-function createEditorConfig({ defaultData, imageUploadAdapter, uploadServer }: CreateEditorConfigParams) {
+function createEditorConfig({ defaultData, imageUploadAdapter, uploadServer, onChangeDataRef }: CreateEditorConfigParams) {
     const customImageUploadPlugin = function (editor: any) {
         editor.plugins.get('FileRepository').createUploadAdapter = (loader: unknown) => {
             return imageUploadAdapter(loader)
@@ -162,6 +163,12 @@ function createEditorConfig({ defaultData, imageUploadAdapter, uploadServer }: C
                 { language: 'yaml', label: 'YAML' }
             ]
         },
+        autosave: {
+            save(editor: any) {
+                onChangeDataRef.current(editor.getData(), {shouldSave: true, trigger: 'autosave'})
+            },
+            waitingTime: 30000
+        },
         placeholder: '내용을 입력하세요...',
         table: {
             contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties']
@@ -176,11 +183,12 @@ interface CKEditorWrapperProps {
     onChangeData: (data: string, options?: {shouldSave?: boolean; trigger?: string}) => void
     insertData: string
     getDataTrigger: string
+    onSaveShortcut?: () => void
     imageUploadAdapter: (loader: unknown) => unknown
     uploadServer: (editor: unknown, file: File) => Promise<void>
 }
 
-export default function CKEditorWrapper({ postId, defaultData, onChangeData, insertData, getDataTrigger, imageUploadAdapter, uploadServer }: CKEditorWrapperProps) {
+export default function CKEditorWrapper({ postId, defaultData, onChangeData, insertData, getDataTrigger, onSaveShortcut, imageUploadAdapter, uploadServer }: CKEditorWrapperProps) {
     const initialData = defaultData ?? ''
     const prevDefaultDataRef = useRef<string>(initialData)
     const prevPostIdRef = useRef<string | null>(postId)
@@ -188,13 +196,30 @@ export default function CKEditorWrapper({ postId, defaultData, onChangeData, ins
     const onChangeDataRef = useRef(onChangeData)
     const [editorInstance, setEditorInstance] = useState<any>(null)
     const [initError, setInitError] = useState<string | null>(null)
+    const onSaveShortcutRef = useRef(onSaveShortcut)
     const [editorConfig] = useState(() =>
         createEditorConfig({
             defaultData: initialData,
             imageUploadAdapter,
-            uploadServer
+            uploadServer,
+            onChangeDataRef
         })
     )
+
+    useEffect(() => {
+        onSaveShortcutRef.current = onSaveShortcut
+    }, [onSaveShortcut])
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault()
+                onSaveShortcutRef.current?.()
+            }
+        }
+        document.addEventListener('keydown', handleKeyDown)
+        return () => document.removeEventListener('keydown', handleKeyDown)
+    }, [])
 
     useEffect(() => {
         if (insertData !== '' && editorInstance) {
@@ -259,6 +284,11 @@ export default function CKEditorWrapper({ postId, defaultData, onChangeData, ins
                     }
                     prevDefaultDataRef.current = nextData
                     prevPostIdRef.current = postId
+
+                    editor.keystrokes.set('Ctrl+S', (_keyEvtData: unknown, cancel: () => void) => {
+                        cancel()
+                        onSaveShortcut?.()
+                    })
                 }}
                 onError={(error: Error, details?: {phase?: string}) => {
                     console.error('CKEditor error:', details?.phase, error)

@@ -57,7 +57,7 @@ export default function SearchCategory({onChangeAddCategory, onChangeDeleteCateg
                         variant="outline"
                         role="combobox"
                         aria-expanded={open}
-                        className="h-11 w-full justify-between rounded-[1.15rem] border-slate-200 bg-white/95 px-4 text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.68)] hover:bg-slate-50"
+                        className="public-control-surface public-muted-text h-11 w-full justify-between rounded-[1.15rem] border px-4"
                     >
                         카테고리(하위포함, OR 조건)
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
@@ -93,8 +93,8 @@ export default function SearchCategory({onChangeAddCategory, onChangeDeleteCateg
                 </PopoverContent>
             </Popover>
             {selectCategories.length > 0 ? (
-                <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50/70 p-3.5">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                <div className="public-muted-panel rounded-[1.5rem] border border-dashed p-3.5">
+                    <p className="public-label-text mb-2 text-xs font-semibold uppercase tracking-[0.18em]">
                         Categories
                     </p>
                     <div className="flex min-h-11 flex-wrap gap-2">

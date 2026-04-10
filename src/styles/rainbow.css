@@ -2,8 +2,9 @@
 
 /*This is coded CSS rainbow*/
 
-a {
-    color: #000;
+a,
+a:visited {
+    color: inherit;
 }
 
 a:hover {

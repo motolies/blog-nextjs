@@ -15,21 +15,32 @@ import {useFiles, useInvalidateFiles} from "../../hooks/useFiles"
 import {Button} from "../ui/button"
 import {Input} from "../ui/input"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../ui/select"
+import ConfirmDialog from "../confirm/ConfirmDialog"
+import PostPreviewDialog from "./PostPreviewDialog"
+import {LogOut, Eye, Save, Send, Undo2} from 'lucide-react'
 import type {Tag} from "@/types/tag"
-import type {Post} from "@/types/post"
+import type {Post, PostStatus} from "@/types/post"
 import type {Category} from "@/types/category"
 
 export default function PostModifyComponent() {
     const router = useRouter()
-    const {post, setSubject, setCategoryId, setBody, setPublic: setPostPublic} = usePostFormStore()
+    const {post, setSubject, setCategoryId, setBody, setPublic: setPostPublic, loadForModify} = usePostFormStore()
     const {setLoading, cancelLoading} = useLoadingStore()
     const {data: files} = useFiles(post.id)
     const invalidateFiles = useInvalidateFiles()
     const [insertData, setInsertData] = useState<string>('')
     const [triggerGetData, setTriggerGetData] = useState<string>('')
     const [tags, setTags] = useState<Tag[]>([])
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+    const [lastSavedTime, setLastSavedTime] = useState<string | null>(null)
+    const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false)
+    const [discardDraftConfirmOpen, setDiscardDraftConfirmOpen] = useState(false)
+    const [previewOpen, setPreviewOpen] = useState(false)
     const postRef = useRef<Post>(post)
+    const initialBodyRef = useRef<string>(post.body)
+    const initialSubjectRef = useRef<string>(post.subject)
     const isSavingRef = useRef<boolean>(false)
+    const pendingStatusRef = useRef<PostStatus>('PUBLISH')
 
     useEffect(() => {
         postRef.current = post
@@ -39,28 +50,65 @@ export default function PostModifyComponent() {
         setTags(post.tags)
     }, [post.tags])
 
-    const savePost = useCallback((body: string) => {
+    const savePost = useCallback((body: string, trigger?: string, status?: PostStatus) => {
         if (isSavingRef.current) {
             return
         }
+
+        const isAutosave = trigger === 'autosave'
+        const saveStatus: PostStatus = status ?? (isAutosave ? 'TEMP' : 'PUBLISH')
 
         isSavingRef.current = true
         const nextPost = {
             ...postRef.current,
             body,
+            status: saveStatus,
         }
 
-        setLoading()
+        if (isAutosave) {
+            setSaveStatus('saving')
+        } else {
+            setLoading()
+        }
+
         service.post.save({post: nextPost}).then(() => {
-            router.push(`/post/${nextPost.id}`)
+            if (isAutosave) {
+                setSaveStatus('saved')
+                setLastSavedTime(new Date().toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false}))
+            } else if (saveStatus === 'TEMP') {
+                setSaveStatus('saved')
+                setLastSavedTime(new Date().toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false}))
+                toast.success("임시저장되었습니다.")
+            } else {
+                router.push(`/post/${nextPost.id}`)
+            }
         }).catch((err: unknown) => {
             toast.error("저장에 실패하였습니다.")
             console.error("content save error", err)
+            if (isAutosave) {
+                setSaveStatus('idle')
+            }
         }).finally(() => {
             isSavingRef.current = false
-            cancelLoading()
+            if (!isAutosave) {
+                cancelLoading()
+            }
         })
     }, [setLoading, cancelLoading, router])
+
+    const onDiscardDraft = useCallback(async () => {
+        if (!post.id) return
+        setLoading()
+        try {
+            await service.post.deleteDraft({postId: String(post.id)})
+            await loadForModify(String(post.id))
+            toast.success("초안이 폐기되었습니다.")
+        } catch {
+            toast.error("초안 폐기에 실패하였습니다.")
+        } finally {
+            cancelLoading()
+        }
+    }, [post.id, setLoading, cancelLoading, loadForModify])
 
     const onChangeCategory = (category: Category | null) => {
         if (category?.id) {
@@ -74,11 +122,12 @@ export default function PostModifyComponent() {
         invalidateFiles(post.id)
     }
 
-    const onChangeBody = useCallback((body: string, options: {shouldSave?: boolean} = {}) => {
+    const onChangeBody = useCallback((body: string, options: {shouldSave?: boolean; trigger?: string} = {}) => {
         setBody(body)
 
         if (options.shouldSave) {
-            savePost(body)
+            const status = options.trigger === 'autosave' ? 'TEMP' as PostStatus : pendingStatusRef.current
+            savePost(body, options.trigger, status)
         }
     }, [setBody, savePost])
 
@@ -153,7 +202,12 @@ export default function PostModifyComponent() {
                     }
                     className="mb-4"
                 />
-                <DynamicEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData} getDataTrigger={triggerGetData}/>
+                <DynamicEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData} getDataTrigger={triggerGetData} onSaveShortcut={() => {
+                    if (!isSavingRef.current) {
+                        pendingStatusRef.current = 'TEMP'
+                        setTriggerGetData(getTsid().toString())
+                    }
+                }}/>
             </div>
 
             {/* 사이드바 영역 */}
@@ -202,20 +256,102 @@ export default function PostModifyComponent() {
                     marginTop: '0.25rem',
                 }}/>
 
-                <div className="grid grid-cols-2 gap-3">
+                <Button variant="outline" className="w-full" onClick={() => setPreviewOpen(true)}>
+                    <Eye size={16} className="mr-2" />
+                    미리보기
+                </Button>
+
+                <div className="flex items-center justify-between text-xs text-[color:var(--admin-text-faint)]">
+                    <div>
+                        {post.hasDraft && post.status === 'PUBLISH' && (
+                            <button
+                                type="button"
+                                className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50"
+                                onClick={() => setDiscardDraftConfirmOpen(true)}
+                            >
+                                <Undo2 size={12} />
+                                초안 폐기
+                            </button>
+                        )}
+                    </div>
+                    <div>
+                        {saveStatus === 'saving' && '저장 중...'}
+                        {saveStatus === 'saved' && lastSavedTime && `마지막 저장: ${lastSavedTime}`}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                    <Button
+                        size="lg"
+                        variant="outline"
+                        onClick={() => {
+                            if (isSavingRef.current) {
+                                return
+                            }
+                            pendingStatusRef.current = 'TEMP'
+                            setTriggerGetData(getTsid().toString())
+                        }}
+                    >
+                        <Save size={16} className="mr-1" />
+                        임시저장
+                    </Button>
                     <Button
                         size="lg"
                         onClick={() => {
                             if (isSavingRef.current) {
                                 return
                             }
+                            pendingStatusRef.current = 'PUBLISH'
                             setTriggerGetData(getTsid().toString())
                         }}
                     >
-                        저장
+                        <Send size={16} className="mr-1" />
+                        발행
                     </Button>
-                    <Button size="lg" variant="destructive">취소</Button>
+                    <Button size="lg" variant="destructive" onClick={() => {
+                        const hasChanges = post.body !== initialBodyRef.current || post.subject !== initialSubjectRef.current
+                        if (hasChanges) {
+                            setCancelConfirmOpen(true)
+                        } else {
+                            post.id ? router.push(`/post/${post.id}`) : router.back()
+                        }
+                    }}>취소</Button>
                 </div>
+
+                <ConfirmDialog
+                    open={cancelConfirmOpen}
+                    icon={LogOut}
+                    iconClassName="text-amber-500"
+                    title="작성 취소"
+                    question="저장하지 않은 내용이 있습니다. 정말 나가시겠습니까?"
+                    confirmText="나가기"
+                    onConfirm={() => {
+                        setCancelConfirmOpen(false)
+                        post.id ? router.push(`/post/${post.id}`) : router.back()
+                    }}
+                    onCancel={() => setCancelConfirmOpen(false)}
+                />
+
+                <ConfirmDialog
+                    open={discardDraftConfirmOpen}
+                    icon={Undo2}
+                    iconClassName="text-amber-500"
+                    title="초안 폐기"
+                    question="초안을 폐기하고 발행된 원본 내용으로 되돌리시겠습니까?"
+                    confirmText="폐기"
+                    onConfirm={() => {
+                        setDiscardDraftConfirmOpen(false)
+                        onDiscardDraft()
+                    }}
+                    onCancel={() => setDiscardDraftConfirmOpen(false)}
+                />
+
+                <PostPreviewDialog
+                    open={previewOpen}
+                    subject={post.subject}
+                    body={post.body}
+                    onClose={() => setPreviewOpen(false)}
+                />
             </div>
         </div>
     )

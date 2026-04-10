@@ -12,7 +12,6 @@ interface IndexPageProps {
 }
 
 export default function IndexPage({engines, favorites}: IndexPageProps) {
-
     return (
         <>
             <h1 className="visually-hidden">Skyscape - 홈</h1>
@@ -27,7 +26,7 @@ export default function IndexPage({engines, favorites}: IndexPageProps) {
             <section className="public-container px-4 pb-14 pt-6 sm:px-6 lg:px-8">
                 <div className="mb-6 flex items-end justify-between gap-4">
                     <div>
-                        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+                        <p className="public-label-text text-sm font-semibold uppercase tracking-[0.18em]">
                             Favorite Groups
                         </p>
                     </div>
@@ -38,14 +37,14 @@ export default function IndexPage({engines, favorites}: IndexPageProps) {
                         <section key={group.name} className="surface-panel-strong overflow-hidden rounded-[1.75rem] p-6">
                             <div className="flex items-start justify-between gap-4">
                                 <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                                    <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                                         Collection
                                     </p>
-                                    <h3 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-slate-950">
+                                    <h3 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-slate-950 dark:text-slate-50">
                                         {group.name}
                                     </h3>
                                 </div>
-                                <span className="flex size-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+                                <span className="public-chip-surface flex size-11 items-center justify-center rounded-2xl border">
                                     <Link2 className="h-5 w-5"/>
                                 </span>
                             </div>
@@ -56,7 +55,7 @@ export default function IndexPage({engines, favorites}: IndexPageProps) {
                                             href={favorite.url}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="group flex items-center justify-between rounded-2xl border border-slate-200/70 bg-white/80 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-sky-200 hover:text-sky-700"
+                                            className="public-card-surface group flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium text-slate-700 transition hover:text-sky-700 dark:text-slate-300 dark:hover:text-sky-300"
                                         >
                                             <span className="truncate">{favorite.name}</span>
                                             <ArrowUpRight className="h-4 w-4 shrink-0 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"/>

@@ -41,22 +41,22 @@ export const SearchEngineComponent = ({engines = []}: SearchEngineComponentProps
   }
 
   return (
-      <div className="surface-panel-strong w-full rounded-[1.75rem] border border-slate-200/80 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-6">
+      <div className="surface-panel-strong w-full rounded-[1.75rem] p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] dark:shadow-[0_24px_70px_rgba(2,6,23,0.3)] sm:p-6">
         <div className="mb-5 flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Quick Search</p>
-            <p className="mt-2 text-sm text-slate-500">
-              현재 선택: <span className="font-medium text-slate-700">{host}</span>
+            <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">Quick Search</p>
+            <p className="public-muted-text mt-2 text-sm">
+              현재 선택: <span className="font-medium text-foreground">{host}</span>
             </p>
           </div>
-          <span className="flex size-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
+          <span className="flex size-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 dark:bg-sky-950/50 dark:text-sky-400">
             <Search className="h-4 w-4"/>
           </span>
         </div>
 
         <div className="grid gap-3 md:grid-cols-[minmax(160px,220px)_minmax(0,1fr)_140px]">
           <Select value={selectedEngine?.url ?? ""} onValueChange={setSelectedUrl}>
-            <SelectTrigger className={`${controlClassName} w-full border-slate-200/90 bg-white/90 px-4 py-0 leading-none`}>
+            <SelectTrigger className={`${controlClassName} public-control-surface w-full border px-4 py-0 leading-none`}>
               <SelectValue placeholder="검색 엔진 선택"/>
             </SelectTrigger>
             <SelectContent>
@@ -80,14 +80,14 @@ export const SearchEngineComponent = ({engines = []}: SearchEngineComponentProps
               }}
               onCompositionStart={() => setIsComposing(true)}
               onCompositionEnd={() => setIsComposing(false)}
-              className={`${controlClassName} border-slate-200/90 bg-white/90 px-4 text-slate-900 placeholder:text-slate-400 focus-visible:border-sky-400 focus-visible:ring-sky-100`}
+              className={`${controlClassName} public-control-surface border px-4 placeholder:text-[color:var(--public-text-subtle)] focus-visible:border-sky-400 focus-visible:ring-sky-100/80 dark:focus-visible:border-sky-400 dark:focus-visible:ring-sky-900/50`}
           />
 
           <Button
               type="button"
               onClick={goSearch}
               disabled={!selectedEngine?.url || text.length === 0}
-              className={`${controlClassName} w-full bg-sky-600 px-5 text-white hover:bg-sky-700 disabled:bg-slate-300`}
+              className={`${controlClassName} w-full bg-sky-600 px-5 text-white hover:bg-sky-700 disabled:bg-slate-300 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400`}
           >
             <ArrowUpRight className="h-4 w-4"/>
             Search

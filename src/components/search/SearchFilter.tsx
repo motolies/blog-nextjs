@@ -43,9 +43,9 @@ const searchLogic = [
     {name: "OR", value: "OR"}
 ]
 
-const controlClassName = "h-11 w-full rounded-[1.15rem] border-slate-200 bg-white/95 px-4 text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.68)]"
-const fieldLabelClassName = "text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400"
-const sectionClassName = "rounded-[1.35rem] border border-slate-200/80 bg-white/72 p-3.5"
+const controlClassName = "public-control-surface h-11 w-full rounded-[1.15rem] border px-4"
+const fieldLabelClassName = "public-label-text text-[11px] font-semibold uppercase tracking-[0.18em]"
+const sectionClassName = "public-muted-panel rounded-[1.35rem] border p-3.5"
 
 export default function SearchFilter({onSearch, defaultLogic, defaultKeyword, defaultSearchType, defaultCategories, defaultTags, pageSize = searchObjectInit.pageSize}: SearchFilterProps) {
     const router = useRouter()
@@ -115,7 +115,7 @@ export default function SearchFilter({onSearch, defaultLogic, defaultKeyword, de
         <div className="surface-panel-strong rounded-[1.75rem] p-5">
             <div className="mb-5">
                 <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                         Filter Stack
                     </p>
                 </div>
@@ -179,8 +179,8 @@ export default function SearchFilter({onSearch, defaultLogic, defaultKeyword, de
                 </div>
 
                 {keywords.length > 0 ? (
-                    <div className="rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50/70 p-3.5">
-                        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    <div className="public-muted-panel rounded-[1.5rem] border border-dashed p-3.5">
+                        <p className="public-label-text mb-2 text-xs font-semibold uppercase tracking-[0.18em]">
                             Keywords
                         </p>
                         <div className="flex min-h-11 flex-wrap gap-2">

@@ -1,4 +1,5 @@
 import PostComponent from "../../components/post/PostComponent"
+import ReadingProgressBar from "../../components/post/ReadingProgressBar"
 import service from "../../service"
 import {tagKeys} from "../../hooks/useTags"
 import Head from "next/head"
@@ -36,6 +37,7 @@ export default function PostPage({children, post, prevNext, meta}: PostPageProps
                 <meta property="og:description" content={meta.description ?? undefined}/>
                 <meta property="og:site_name" content="Skyscape"/>
             </Head>
+            <ReadingProgressBar/>
             <PostComponent post={post} prevNext={prevNext}/>
         </>
     )

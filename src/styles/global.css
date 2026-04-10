@@ -4,6 +4,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "./content-typography.css";
+@import "./code-highlight.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -38,6 +39,21 @@
     --line-soft: rgba(148, 163, 184, 0.2);
     --shadow-soft: 0 22px 70px rgba(15, 23, 42, 0.08);
     --shadow-card: 0 18px 50px rgba(15, 23, 42, 0.08);
+    --public-text-subtle: #7b8a9e;
+    --public-text-muted: #58677c;
+    --public-control-bg: rgba(255, 255, 255, 0.9);
+    --public-control-hover-bg: rgba(248, 250, 252, 0.96);
+    --public-control-border: rgba(203, 213, 225, 0.88);
+    --public-control-border-strong: rgba(148, 163, 184, 0.48);
+    --public-chip-bg: rgba(248, 250, 252, 0.82);
+    --public-chip-bg-strong: rgba(255, 255, 255, 0.9);
+    --public-chip-border: rgba(203, 213, 225, 0.82);
+    --public-panel-muted: rgba(248, 250, 252, 0.74);
+    --public-card-bg: rgba(255, 255, 255, 0.84);
+    --public-card-hover-bg: rgba(255, 255, 255, 0.92);
+    --public-card-hover-border: rgba(125, 211, 252, 0.52);
+    --public-header-bg: rgba(248, 251, 253, 0.84);
+    --public-header-border: rgba(148, 163, 184, 0.16);
     --public-max-width: 120rem;
     --font-display: "D2Coding", monospace;
     --font-body: "D2Coding", monospace;
@@ -46,33 +62,48 @@
 
   .dark {
     --background: 215 33% 10%;
-    --foreground: 210 40% 96%;
+    --foreground: 210 40% 98%;
     --card: 216 28% 14%;
-    --card-foreground: 210 40% 96%;
+    --card-foreground: 210 40% 98%;
     --popover: 216 28% 14%;
-    --popover-foreground: 210 40% 96%;
+    --popover-foreground: 210 40% 98%;
     --primary: 204 86% 62%;
     --primary-foreground: 216 32% 12%;
     --secondary: 215 25% 18%;
-    --secondary-foreground: 210 40% 96%;
+    --secondary-foreground: 210 40% 98%;
     --muted: 216 22% 17%;
-    --muted-foreground: 214 18% 73%;
+    --muted-foreground: 214 24% 80%;
     --accent: 213 30% 22%;
-    --accent-foreground: 210 40% 96%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 73% 58%;
     --destructive-foreground: 210 40% 98%;
-    --border: 215 20% 25%;
-    --input: 215 20% 25%;
+    --border: 215 18% 30%;
+    --input: 215 18% 30%;
     --ring: 204 86% 62%;
 
-    --surface-hero: #111d28;
-    --surface-panel: rgba(20, 31, 44, 0.78);
-    --surface-panel-strong: rgba(20, 31, 44, 0.96);
+    --surface-hero: #0f1a25;
+    --surface-panel: rgba(16, 27, 39, 0.82);
+    --surface-panel-strong: rgba(16, 27, 39, 0.96);
     --surface-dark: #101922;
     --surface-dark-soft: #192738;
-    --line-soft: rgba(148, 163, 184, 0.12);
-    --shadow-soft: 0 24px 80px rgba(2, 6, 23, 0.35);
-    --shadow-card: 0 24px 60px rgba(2, 6, 23, 0.36);
+    --line-soft: rgba(148, 163, 184, 0.18);
+    --shadow-soft: 0 28px 90px rgba(2, 6, 23, 0.42);
+    --shadow-card: 0 24px 64px rgba(2, 6, 23, 0.4);
+    --public-text-subtle: #9fb3c8;
+    --public-text-muted: #c3d2e2;
+    --public-control-bg: rgba(16, 27, 39, 0.92);
+    --public-control-hover-bg: rgba(23, 36, 50, 0.96);
+    --public-control-border: rgba(115, 132, 156, 0.42);
+    --public-control-border-strong: rgba(148, 163, 184, 0.32);
+    --public-chip-bg: rgba(21, 34, 47, 0.88);
+    --public-chip-bg-strong: rgba(24, 38, 54, 0.94);
+    --public-chip-border: rgba(115, 132, 156, 0.36);
+    --public-panel-muted: rgba(18, 30, 43, 0.72);
+    --public-card-bg: rgba(21, 34, 49, 0.82);
+    --public-card-hover-bg: rgba(27, 42, 59, 0.9);
+    --public-card-hover-border: rgba(56, 189, 248, 0.34);
+    --public-header-bg: rgba(8, 15, 23, 0.84);
+    --public-header-border: rgba(148, 163, 184, 0.18);
   }
 
   * {
@@ -141,6 +172,10 @@
     border: 0;
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.5), transparent);
+  }
+
+  .dark hr {
+    background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.25), transparent);
   }
 
   code,
@@ -223,6 +258,14 @@ a.file-link {
   box-shadow: var(--shadow-card);
 }
 
+.dark .surface-panel {
+  border-color: rgba(115, 132, 156, 0.22);
+}
+
+.dark .surface-panel-strong {
+  border-color: rgba(115, 132, 156, 0.2);
+}
+
 .section-eyebrow {
   display: inline-flex;
   align-items: center;
@@ -238,6 +281,12 @@ a.file-link {
   text-transform: uppercase;
 }
 
+.dark .section-eyebrow {
+  border-color: rgba(56, 189, 248, 0.2);
+  background: rgba(56, 189, 248, 0.1);
+  color: rgb(125 211 252);
+}
+
 .section-title {
   font-family: var(--font-display);
   letter-spacing: 0;
@@ -251,6 +300,62 @@ a.file-link {
   width: 100%;
   max-width: var(--public-max-width);
   margin-inline: auto;
+}
+
+.public-label-text {
+  color: var(--public-text-subtle);
+}
+
+.public-muted-text {
+  color: var(--public-text-muted);
+}
+
+.public-control-surface {
+  border-color: var(--public-control-border);
+  background: var(--public-control-bg);
+  color: hsl(var(--foreground));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.public-control-surface:hover {
+  border-color: var(--public-control-border-strong);
+  background: var(--public-control-hover-bg);
+}
+
+.dark .public-control-surface {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.public-chip-surface {
+  border-color: var(--public-chip-border);
+  background: var(--public-chip-bg);
+  color: hsl(var(--foreground));
+}
+
+.public-chip-surface-strong {
+  border-color: var(--public-chip-border);
+  background: var(--public-chip-bg-strong);
+  color: hsl(var(--foreground));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.dark .public-chip-surface-strong {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.public-muted-panel {
+  border-color: var(--public-chip-border);
+  background: var(--public-panel-muted);
+}
+
+.public-card-surface {
+  border-color: var(--public-chip-border);
+  background: var(--public-card-bg);
+}
+
+.public-card-surface:hover {
+  border-color: var(--public-card-hover-border);
+  background: var(--public-card-hover-bg);
 }
 
 html[data-admin-ui="admin"] {
@@ -645,4 +750,3 @@ body[data-admin-ui="admin"] [data-slot="select-item"][data-highlighted] {
     justify-content: flex-start;
   }
 }
-

@@ -35,12 +35,13 @@ const CKEditorWrapper = dynamic(
 interface DynamicEditorProps {
     postId: string | null
     defaultData: string
-    onChangeData: (data: string, options?: {shouldSave?: boolean}) => void
+    onChangeData: (data: string, options?: {shouldSave?: boolean; trigger?: string}) => void
     insertData: string
     getDataTrigger: string
+    onSaveShortcut?: () => void
 }
 
-export default function DynamicEditor({ postId, defaultData, onChangeData, insertData, getDataTrigger }: DynamicEditorProps) {
+export default function DynamicEditor({ postId, defaultData, onChangeData, insertData, getDataTrigger, onSaveShortcut }: DynamicEditorProps) {
     const postIdRef = useRef<string | null>(postId)
     const {setLoading, cancelLoading} = useLoadingStore()
     const invalidateFiles = useInvalidateFiles()
@@ -119,6 +120,7 @@ export default function DynamicEditor({ postId, defaultData, onChangeData, inser
             onChangeData={onChangeData}
             insertData={insertData}
             getDataTrigger={getDataTrigger}
+            onSaveShortcut={onSaveShortcut}
             imageUploadAdapter={imageUploadAdapter}
             uploadServer={uploadServer}
         />

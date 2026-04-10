@@ -110,7 +110,7 @@ export default function TagGroupComponent({postId, tagList, clickable, listHeigh
                             aria-expanded={open}
                             className={writePage
                                 ? 'h-11 w-full justify-between rounded-full border-slate-300/80 bg-white/90 text-[color:var(--admin-text)] hover:bg-sky-600/8'
-                                : 'h-11 w-full justify-between rounded-full border-slate-200 bg-white/90'}
+                                : 'public-control-surface public-muted-text h-11 w-full justify-between rounded-full border'}
                         >
                             Add Tags
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50"/>

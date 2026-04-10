@@ -2,6 +2,8 @@ import type { Category } from './category'
 import type { Tag } from './tag'
 import type { FileItem } from './file'
 
+export type PostStatus = 'TEMP' | 'PUBLISH'
+
 export interface Post {
   id: string | null
   subject: string
@@ -9,8 +11,12 @@ export interface Post {
   category: Pick<Category, 'id'>
   categoryId: string
   public: boolean
+  status: PostStatus
   tags: Tag[]
   files: FileItem[]
+  hasDraft?: boolean
+  draftSubject?: string | null
+  draftBody?: string | null
 }
 
 export interface SearchCondition {

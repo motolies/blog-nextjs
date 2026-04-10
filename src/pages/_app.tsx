@@ -13,6 +13,7 @@ import {useLoadingStore} from "../store/useLoadingStore"
 import {useEffect, useRef, useState} from "react"
 import {QueryClientProvider, HydrationBoundary} from '@tanstack/react-query'
 import {makeQueryClient} from '../lib/queryClient'
+import {ThemeProvider} from 'next-themes'
 import type {AppProps} from 'next/app'
 
 function Skyscape({Component, pageProps}: AppProps) {
@@ -75,23 +76,30 @@ function Skyscape({Component, pageProps}: AppProps) {
 
   return (
       <QueryClientProvider client={queryClient}>
-        <HydrationBoundary state={pageProps.dehydratedState}>
-          <Toaster richColors duration={2000} position="top-right" />
-          {isLoading && <Loading/>}
-          {isAdminLikeRoute ?
-              <AdminLayout>
-                <Component {...pageProps} />
-              </AdminLayout>
-              : <CommonLayout>
-                {isUtilRoute ? (
-                    <UtilityLayout>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          forcedTheme={isAdminLikeRoute ? 'light' : undefined}
+        >
+          <HydrationBoundary state={pageProps.dehydratedState}>
+            <Toaster richColors duration={2000} position="top-right" />
+            {isLoading && <Loading/>}
+            {isAdminLikeRoute ?
+                <AdminLayout>
+                  <Component {...pageProps} />
+                </AdminLayout>
+                : <CommonLayout>
+                  {isUtilRoute ? (
+                      <UtilityLayout>
+                        <Component {...pageProps} />
+                      </UtilityLayout>
+                  ) : (
                       <Component {...pageProps} />
-                    </UtilityLayout>
-                ) : (
-                    <Component {...pageProps} />
-                )}
-              </CommonLayout>}
-        </HydrationBoundary>
+                  )}
+                </CommonLayout>}
+          </HydrationBoundary>
+        </ThemeProvider>
       </QueryClientProvider>
   )
 }

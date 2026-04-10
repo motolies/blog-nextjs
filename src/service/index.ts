@@ -10,6 +10,8 @@ import memoService from "./memoService"
 import logService from "./logService"
 import masterCodeService from "./masterCodeService"
 import hotDealService from "./hotDealService"
+import seriesService from "./seriesService"
+import statsService from "./statsService"
 
 const service = {
     user: userService
@@ -24,6 +26,8 @@ const service = {
     , log: logService
     , masterCode: masterCodeService
     , hotDeal: hotDealService
+    , series: seriesService
+    , stats: statsService
 }
 
 export default service

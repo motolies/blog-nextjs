@@ -2,8 +2,9 @@ import Link from "next/link"
 import {useRouter} from "next/router"
 import {useAuthStore} from '../../../store/useAuthStore'
 import {useShallow} from 'zustand/react/shallow'
-import {Shield, LogIn, FilePlus, Search, Sparkles} from 'lucide-react'
+import {Shield, LogIn, FilePlus, Search, Sparkles, Sun, Moon} from 'lucide-react'
 import {useEffect, useState} from "react"
+import {useTheme} from 'next-themes'
 import MemoDialog from "../../memo/MemoDialog"
 import {base64Encode} from "../../../util/base64Util"
 import {getTsid} from 'tsid-ts'
@@ -15,6 +16,12 @@ export default function Header() {
     const userState = useAuthStore(useShallow(s => ({isAuthenticated: s.isAuthenticated, user: s.user})))
     const [searchText, setSearchText] = useState<string>('')
     const [memoDialogOpen, setMemoDialogOpen] = useState<boolean>(false)
+    const {resolvedTheme, setTheme} = useTheme()
+    const [mounted, setMounted] = useState<boolean>(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     useEffect(() => {
         if (!router.pathname.startsWith('/search')) {
@@ -54,7 +61,7 @@ export default function Header() {
                                 <Sparkles className="h-5 w-5"/>
                             </span>
                             <span className="min-w-0">
-                                <span className="block truncate text-lg font-semibold tracking-[-0.02em] text-slate-950">
+                                <span className="block truncate text-lg font-semibold tracking-[-0.02em] text-slate-950 dark:text-slate-50">
                                     motolies
                                 </span>
                             </span>
@@ -64,23 +71,35 @@ export default function Header() {
 
                     <div className="flex flex-1 items-center justify-end gap-2">
                         <div className="relative w-full max-w-lg">
-                            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 sm:left-3"/>
+                            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 public-label-text sm:left-3"/>
                             <input
                                 type="search"
                                 placeholder="Search posts"
                                 value={searchText}
                                 onChange={onChangeText}
                                 onKeyDown={onSearchTextKeyDown}
-                                className="h-10 w-full rounded-full border border-slate-200/80 bg-white/80 pl-7 pr-3 text-sm text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] backdrop-blur transition focus:border-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-100 sm:h-11 sm:pl-9 sm:pr-4 sm:text-sm"
+                                className="public-control-surface h-10 w-full rounded-full border pl-7 pr-3 text-sm placeholder:text-[color:var(--public-text-subtle)] backdrop-blur transition focus:border-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-100/80 dark:focus:border-sky-400 dark:focus:ring-sky-900/50 sm:h-11 sm:pl-9 sm:pr-4 sm:text-sm"
                             />
                         </div>
+
+                        {mounted && (
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={resolvedTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
+                                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-sky-300"
+                                onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                            >
+                                {resolvedTheme === 'dark' ? <Sun className="h-4 w-4"/> : <Moon className="h-4 w-4"/>}
+                            </Button>
+                        )}
 
                         {!userState.user.username ? null : (
                             <Button
                                 variant="ghost"
                                 size="icon"
                                 aria-label="메모 작성"
-                                className="rounded-full border border-slate-200/80 bg-white/70 text-slate-600 hover:bg-slate-50"
+                                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-sky-300"
                                 onClick={() => setMemoDialogOpen(true)}
                             >
                                 <FilePlus className="h-4 w-4"/>
@@ -92,7 +111,7 @@ export default function Header() {
                                 variant="ghost"
                                 size="icon"
                                 aria-label="로그인"
-                                className="rounded-full border border-slate-200/80 bg-white/70 text-slate-600 hover:bg-slate-50"
+                                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-sky-300"
                                 asChild
                             >
                                 <Link href="/login"><LogIn className="h-4 w-4"/></Link>
@@ -104,7 +123,7 @@ export default function Header() {
                                 variant="ghost"
                                 size="icon"
                                 aria-label="관리자 페이지"
-                                className="rounded-full border border-slate-200/80 bg-white/70 text-slate-600 hover:bg-slate-50"
+                                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-sky-300"
                                 asChild
                             >
                                 <Link href="/admin"><Shield className="h-4 w-4"/></Link>

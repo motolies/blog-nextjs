@@ -9,6 +9,7 @@ const modifyPostInit: Post = {
     category: {id: 'ROOT'},
     categoryId: 'ROOT',
     public: false,
+    status: 'TEMP',
     tags: [],
     files: [],
 }
@@ -36,7 +37,12 @@ export const usePostFormStore = create<PostFormState & PostFormActions>((set) =>
         try {
             if (postId) {
                 const res = await service.post.getPost({postId})
-                set({isLoading: false, post: res.data})
+                const post = res.data
+                if (post.draftSubject != null) {
+                    post.subject = post.draftSubject
+                    post.body = post.draftBody ?? ''
+                }
+                set({isLoading: false, post})
             } else {
                 const res = await service.post.new()
                 set({isLoading: false, post: res.data})

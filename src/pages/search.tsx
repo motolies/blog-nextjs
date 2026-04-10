@@ -63,18 +63,18 @@ export default function SearchPage() {
   return (
       <div className="public-container px-4 pb-8 pt-28 sm:px-6 lg:px-8">
         <h1 className="visually-hidden">검색 결과</h1>
-        <section className="mb-6 flex flex-wrap items-center gap-3 rounded-[1.4rem] border border-slate-200/80 bg-white/82 px-4 py-3 shadow-[0_14px_40px_rgba(15,23,42,0.05)] sm:px-5">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+        <section className="public-card-surface mb-6 flex flex-wrap items-center gap-3 rounded-[1.4rem] border px-4 py-3 shadow-[0_14px_40px_rgba(15,23,42,0.05)] dark:shadow-[0_14px_40px_rgba(2,6,23,0.2)] sm:px-5">
+          <span className="public-label-text text-[11px] font-semibold uppercase tracking-[0.2em]">
             Search Summary
           </span>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="rounded-full border border-slate-200 bg-slate-50/80 px-3 py-1.5 text-sm text-slate-600">
-              <span className="mr-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Results</span>
-              <span className="font-semibold text-slate-950">{resultCount}</span>
+            <div className="public-chip-surface public-muted-text flex rounded-full border px-3 py-1.5 text-sm">
+              <span className="public-label-text mr-2 text-[11px] font-semibold uppercase tracking-[0.18em]">Results</span>
+              <span className="font-semibold text-slate-950 dark:text-slate-100">{resultCount}</span>
             </div>
-            <div className="rounded-full border border-slate-200 bg-slate-50/80 px-3 py-1.5 text-sm text-slate-600">
-              <span className="mr-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Pages</span>
-              <span className="font-semibold text-slate-950">{totalPage}</span>
+            <div className="public-chip-surface public-muted-text flex rounded-full border px-3 py-1.5 text-sm">
+              <span className="public-label-text mr-2 text-[11px] font-semibold uppercase tracking-[0.18em]">Pages</span>
+              <span className="font-semibold text-slate-950 dark:text-slate-100">{totalPage}</span>
             </div>
           </div>
         </section>
@@ -95,13 +95,13 @@ export default function SearchPage() {
         </div>
 
         {totalPage > 0 && (
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-2 rounded-[1.5rem] border border-slate-200/80 bg-white/80 px-4 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+            <div className="public-card-surface mt-8 flex flex-wrap items-center justify-center gap-2 rounded-[1.5rem] border px-4 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)] dark:shadow-[0_16px_40px_rgba(2,6,23,0.2)]">
               <Button
                   variant="outline" size="icon"
                   onClick={() => goPage(1)}
                   disabled={currentPage === 1}
                   aria-label="첫 페이지"
-                  className="rounded-full border-slate-200 bg-white"
+                  className="public-control-surface rounded-full border"
               >
                 <ChevronsLeft className="h-4 w-4"/>
               </Button>
@@ -110,7 +110,7 @@ export default function SearchPage() {
                   onClick={() => goPage(currentPage - 1)}
                   disabled={currentPage === 1}
                   aria-label="이전 페이지"
-                  className="rounded-full border-slate-200 bg-white"
+                  className="public-control-surface rounded-full border"
               >
                 <ChevronLeft className="h-4 w-4"/>
               </Button>
@@ -123,7 +123,7 @@ export default function SearchPage() {
                           variant={p === currentPage ? 'default' : 'outline'}
                           size="icon"
                           onClick={() => goPage(p)}
-                          className={p === currentPage ? 'rounded-full bg-sky-600 text-white hover:bg-sky-600' : 'rounded-full border-slate-200 bg-white'}
+                          className={p === currentPage ? 'rounded-full bg-sky-600 text-white hover:bg-sky-600' : 'public-control-surface rounded-full border'}
                       >
                         {p}
                       </Button>
@@ -134,7 +134,7 @@ export default function SearchPage() {
                   onClick={() => goPage(currentPage + 1)}
                   disabled={currentPage === totalPage}
                   aria-label="다음 페이지"
-                  className="rounded-full border-slate-200 bg-white"
+                  className="public-control-surface rounded-full border"
               >
                 <ChevronRight className="h-4 w-4"/>
               </Button>
@@ -143,7 +143,7 @@ export default function SearchPage() {
                   onClick={() => goPage(totalPage)}
                   disabled={currentPage === totalPage}
                   aria-label="마지막 페이지"
-                  className="rounded-full border-slate-200 bg-white"
+                  className="public-control-surface rounded-full border"
               >
                 <ChevronsRight className="h-4 w-4"/>
               </Button>

@@ -110,7 +110,10 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
                 .catch(() => setRelatedPosts([]))
 
             service.series.getByPostId({postId: String(post.id)})
-                .then((res: { data: Series | null }) => setSeries(res.data))
+                .then((res: { data: Series | null }) => {
+                    const data = res.data
+                    setSeries(data?.id ? data : null)
+                })
                 .catch(() => setSeries(null))
         }
     }, [post?.id])
@@ -423,9 +426,11 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
                             </div>
                         )}
 
-                        <div className="px-6 py-6 sm:px-8">
-                            <TagGroupComponent postId={post?.id?.toString() ?? null} tagList={tags} clickable={true}/>
-                        </div>
+                        {(tags?.length > 0 || (userState.isAuthenticated && userState.user.username)) && (
+                            <div className="px-6 py-6 sm:px-8">
+                                <TagGroupComponent postId={post?.id?.toString() ?? null} tagList={tags} clickable={true}/>
+                            </div>
+                        )}
 
                         <div className="border-t border-[color:var(--line-soft)] px-6 py-8 sm:px-8">
                             <div className="content break-words" id="post-content" dangerouslySetInnerHTML={{__html: postBody}}/>

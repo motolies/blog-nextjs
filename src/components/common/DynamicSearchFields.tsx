@@ -50,7 +50,17 @@ interface DateRangeSearchField {
   pinned?: boolean
 }
 
-type SearchField = BaseSearchField | DateRangeSearchField
+interface NumberRangeSearchField {
+  type: 'numberRange'
+  fromName: string
+  toName: string
+  fromLabel: string
+  toLabel: string
+  pinned?: boolean
+}
+
+type RangeSearchField = DateRangeSearchField | NumberRangeSearchField
+type SearchField = BaseSearchField | DateRangeSearchField | NumberRangeSearchField
 
 interface SpacingConfig {
   [key: string]: unknown
@@ -59,8 +69,11 @@ interface SpacingConfig {
 /**
  * 필드의 고유 키를 반환
  */
+const isRangeField = (field: SearchField): field is RangeSearchField =>
+  field.type === 'dateRange' || field.type === 'numberRange'
+
 const getFieldKey = (field: SearchField): string => {
-  if (field.type === 'dateRange') return (field as DateRangeSearchField).fromName
+  if (isRangeField(field)) return field.fromName
   return (field as BaseSearchField).name
 }
 
@@ -68,9 +81,8 @@ const getFieldKey = (field: SearchField): string => {
  * 필드의 라벨을 반환
  */
 const getFieldLabel = (field: SearchField): string => {
-  if (field.type === 'dateRange') {
-    const df = field as DateRangeSearchField
-    return `${df.fromLabel} ~ ${df.toLabel}`
+  if (isRangeField(field)) {
+    return `${field.fromLabel} ~ ${field.toLabel}`
   }
   return (field as BaseSearchField).label
 }
@@ -98,6 +110,34 @@ const renderField = (
         toLabel={df.toLabel}
         size="small"
       />
+    )
+  }
+
+  if (field.type === 'numberRange') {
+    const nf = field as NumberRangeSearchField
+    return (
+      <div key={nf.fromName} className="flex flex-col gap-1">
+        <Label className="text-xs text-muted-foreground">{`${nf.fromLabel} ~ ${nf.toLabel}`}</Label>
+        <div className="flex items-center gap-1">
+          <Input
+            type="number"
+            value={String(searchInputs[nf.fromName] ?? '')}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onInputChange(nf.fromName, e.target.value)}
+            onKeyPress={onKeyPress}
+            className="h-8 w-[90px]"
+            placeholder={nf.fromLabel}
+          />
+          <span className="text-muted-foreground text-xs">~</span>
+          <Input
+            type="number"
+            value={String(searchInputs[nf.toName] ?? '')}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onInputChange(nf.toName, e.target.value)}
+            onKeyPress={onKeyPress}
+            className="h-8 w-[90px]"
+            placeholder={nf.toLabel}
+          />
+        </div>
+      </div>
     )
   }
 
@@ -185,9 +225,8 @@ export default function DynamicSearchFields({
     const autoActive = dynamicFields
       .filter(field => {
         const key = getFieldKey(field)
-        if (field.type === 'dateRange') {
-          const df = field as DateRangeSearchField
-          return defaultSearchParams[df.fromName] || defaultSearchParams[df.toName]
+        if (isRangeField(field)) {
+          return defaultSearchParams[field.fromName] || defaultSearchParams[field.toName]
         }
         return defaultSearchParams[key]
       })
@@ -255,10 +294,9 @@ export default function DynamicSearchFields({
     setActiveFields(prev => prev.filter(k => k !== key))
 
     // 값 초기화
-    if (field.type === 'dateRange') {
-      const df = field as DateRangeSearchField
-      onInputChange(df.fromName, '')
-      onInputChange(df.toName, '')
+    if (isRangeField(field)) {
+      onInputChange(field.fromName, '')
+      onInputChange(field.toName, '')
     } else {
       onInputChange((field as BaseSearchField).name, '')
     }

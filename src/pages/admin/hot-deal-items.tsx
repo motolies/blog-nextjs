@@ -133,6 +133,27 @@ export default function HotDealItemsPage() {
       ],
     },
     {name: 'dealCategory', label: '딜 카테고리'},
+    {
+      type: 'numberRange',
+      fromName: 'minRecommendationCount',
+      toName: 'maxRecommendationCount',
+      fromLabel: '추천 최소',
+      toLabel: '추천 최대',
+    },
+    {
+      type: 'numberRange',
+      fromName: 'minViewCount',
+      toName: 'maxViewCount',
+      fromLabel: '조회 최소',
+      toLabel: '조회 최대',
+    },
+    {
+      type: 'numberRange',
+      fromName: 'minCommentCount',
+      toName: 'maxCommentCount',
+      fromLabel: '댓글 최소',
+      toLabel: '댓글 최대',
+    },
   ], [siteOptions])
 
   return (

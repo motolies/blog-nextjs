@@ -183,16 +183,18 @@ interface CKEditorWrapperProps {
     onChangeData: (data: string, options?: {shouldSave?: boolean; trigger?: string}) => void
     insertData: string
     getDataTrigger: string
+    getDataPreviewTrigger?: string
     onSaveShortcut?: () => void
     imageUploadAdapter: (loader: unknown) => unknown
     uploadServer: (editor: unknown, file: File) => Promise<void>
 }
 
-export default function CKEditorWrapper({ postId, defaultData, onChangeData, insertData, getDataTrigger, onSaveShortcut, imageUploadAdapter, uploadServer }: CKEditorWrapperProps) {
+export default function CKEditorWrapper({ postId, defaultData, onChangeData, insertData, getDataTrigger, getDataPreviewTrigger, onSaveShortcut, imageUploadAdapter, uploadServer }: CKEditorWrapperProps) {
     const initialData = defaultData ?? ''
     const prevDefaultDataRef = useRef<string>(initialData)
     const prevPostIdRef = useRef<string | null>(postId)
     const lastGetDataTriggerRef = useRef<string>('')
+    const lastGetDataPreviewTriggerRef = useRef<string>('')
     const onChangeDataRef = useRef(onChangeData)
     const [editorInstance, setEditorInstance] = useState<any>(null)
     const [initError, setInitError] = useState<string | null>(null)
@@ -251,6 +253,22 @@ export default function CKEditorWrapper({ postId, defaultData, onChangeData, ins
             trigger: getDataTrigger,
         })
     }, [getDataTrigger, editorInstance])
+
+    useEffect(() => {
+        if (!getDataPreviewTrigger || !editorInstance) {
+            return
+        }
+
+        if (lastGetDataPreviewTriggerRef.current === getDataPreviewTrigger) {
+            return
+        }
+
+        lastGetDataPreviewTriggerRef.current = getDataPreviewTrigger
+        onChangeDataRef.current(editorInstance.getData(), {
+            shouldSave: false,
+            trigger: 'preview',
+        })
+    }, [getDataPreviewTrigger, editorInstance])
 
     useEffect(() => {
         if (!editorInstance) {

@@ -30,12 +30,15 @@ export default function PostModifyComponent() {
     const invalidateFiles = useInvalidateFiles()
     const [insertData, setInsertData] = useState<string>('')
     const [triggerGetData, setTriggerGetData] = useState<string>('')
+    const [triggerGetDataForPreview, setTriggerGetDataForPreview] = useState<string>('')
     const [tags, setTags] = useState<Tag[]>([])
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
     const [lastSavedTime, setLastSavedTime] = useState<string | null>(null)
     const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false)
     const [discardDraftConfirmOpen, setDiscardDraftConfirmOpen] = useState(false)
     const [previewOpen, setPreviewOpen] = useState(false)
+    const [previewSubject, setPreviewSubject] = useState<string>('')
+    const [previewBody, setPreviewBody] = useState<string>('')
     const postRef = useRef<Post>(post)
     const initialBodyRef = useRef<string>(post.body)
     const initialSubjectRef = useRef<string>(post.subject)
@@ -123,6 +126,13 @@ export default function PostModifyComponent() {
     }
 
     const onChangeBody = useCallback((body: string, options: {shouldSave?: boolean; trigger?: string} = {}) => {
+        if (options.trigger === 'preview') {
+            setPreviewSubject(postRef.current.subject)
+            setPreviewBody(body)
+            setPreviewOpen(true)
+            return
+        }
+
         setBody(body)
 
         if (options.shouldSave) {
@@ -202,7 +212,7 @@ export default function PostModifyComponent() {
                     }
                     className="mb-4"
                 />
-                <DynamicEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData} getDataTrigger={triggerGetData} onSaveShortcut={() => {
+                <DynamicEditor postId={post.id} defaultData={post.body} onChangeData={onChangeBody} insertData={insertData} getDataTrigger={triggerGetData} getDataPreviewTrigger={triggerGetDataForPreview} onSaveShortcut={() => {
                     if (!isSavingRef.current) {
                         pendingStatusRef.current = 'TEMP'
                         setTriggerGetData(getTsid().toString())
@@ -256,7 +266,7 @@ export default function PostModifyComponent() {
                     marginTop: '0.25rem',
                 }}/>
 
-                <Button variant="outline" className="w-full" onClick={() => setPreviewOpen(true)}>
+                <Button variant="outline" className="w-full" onClick={() => setTriggerGetDataForPreview(getTsid().toString())}>
                     <Eye size={16} className="mr-2" />
                     미리보기
                 </Button>
@@ -348,8 +358,8 @@ export default function PostModifyComponent() {
 
                 <PostPreviewDialog
                     open={previewOpen}
-                    subject={post.subject}
-                    body={post.body}
+                    subject={previewSubject}
+                    body={previewBody}
                     onClose={() => setPreviewOpen(false)}
                 />
             </div>

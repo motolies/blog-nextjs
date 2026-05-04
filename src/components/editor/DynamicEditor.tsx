@@ -38,10 +38,11 @@ interface DynamicEditorProps {
     onChangeData: (data: string, options?: {shouldSave?: boolean; trigger?: string}) => void
     insertData: string
     getDataTrigger: string
+    getDataPreviewTrigger?: string
     onSaveShortcut?: () => void
 }
 
-export default function DynamicEditor({ postId, defaultData, onChangeData, insertData, getDataTrigger, onSaveShortcut }: DynamicEditorProps) {
+export default function DynamicEditor({ postId, defaultData, onChangeData, insertData, getDataTrigger, getDataPreviewTrigger, onSaveShortcut }: DynamicEditorProps) {
     const postIdRef = useRef<string | null>(postId)
     const {setLoading, cancelLoading} = useLoadingStore()
     const invalidateFiles = useInvalidateFiles()
@@ -120,6 +121,7 @@ export default function DynamicEditor({ postId, defaultData, onChangeData, inser
             onChangeData={onChangeData}
             insertData={insertData}
             getDataTrigger={getDataTrigger}
+            getDataPreviewTrigger={getDataPreviewTrigger}
             onSaveShortcut={onSaveShortcut}
             imageUploadAdapter={imageUploadAdapter}
             uploadServer={uploadServer}

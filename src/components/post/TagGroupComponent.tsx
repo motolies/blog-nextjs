@@ -109,7 +109,7 @@ export default function TagGroupComponent({postId, tagList, clickable, listHeigh
                             role="combobox"
                             aria-expanded={open}
                             className={writePage
-                                ? 'h-11 w-full justify-between rounded-full border-slate-300/80 bg-white/90 text-[color:var(--admin-text)] hover:bg-sky-600/8'
+                                ? 'h-11 w-full justify-between rounded-full border-slate-300/80 bg-white/90 text-[color:var(--admin-text)] hover:bg-sky-600/8 dark:border-[color:var(--admin-border-strong)] dark:bg-[color:var(--admin-panel)] dark:hover:bg-sky-500/15'
                                 : 'public-control-surface public-muted-text h-11 w-full justify-between rounded-full border'}
                         >
                             Add Tags

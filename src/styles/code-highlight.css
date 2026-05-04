@@ -151,3 +151,23 @@ pre:hover .code-copy-btn {
 :where(.content, .ck-content) .token.variable {
     color: #d19a66;
 }
+
+/* ── Dark mode: 코드블록 가독성 보정 ──
+   다크 본문 글자 rgba(171,178,191,0.92)와 코드 기본색 #abb2bf의 명도가
+   거의 같아 박스가 묻히는 인상을 줌. 다크에서만 한 톤 밝게 조정한다.
+   라이트 테마는 손대지 않는다. */
+
+:is(.dark .content, .dark .ck-content) pre[class*="language-"] {
+    color: #d7dae0;
+}
+
+:is(.dark .content, .dark .ck-content) .token.punctuation {
+    color: #c0c5cf;
+}
+
+:is(.dark .content, .dark .ck-content) .token.comment,
+:is(.dark .content, .dark .ck-content) .token.prolog,
+:is(.dark .content, .dark .ck-content) .token.doctype,
+:is(.dark .content, .dark .ck-content) .token.cdata {
+    color: #8b95a5;
+}

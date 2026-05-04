@@ -60,7 +60,7 @@ export const Tag = (props: TagProps) => {
         <div
             className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition ${
                 isAdminVariant
-                    ? 'border border-slate-300/80 bg-white/92 text-[color:var(--admin-text)] hover:border-sky-600/18 hover:bg-sky-600/8 hover:text-sky-700'
+                    ? 'border border-slate-300/80 bg-white/92 text-[color:var(--admin-text)] hover:border-sky-600/18 hover:bg-sky-600/8 hover:text-sky-700 dark:border-[color:var(--admin-border-strong)] dark:bg-[color:var(--admin-panel)] dark:hover:border-sky-500/35 dark:hover:bg-sky-500/15 dark:hover:text-sky-300'
                     : 'public-chip-surface public-muted-text border hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800 dark:hover:border-blue-700 dark:hover:bg-blue-900/40 dark:hover:text-blue-300'
             }${props.clickable ? ' cursor-pointer' : ''}`}
             onClick={props.clickable ? searchTagName : undefined}
@@ -73,7 +73,7 @@ export const Tag = (props: TagProps) => {
                     size="icon"
                     className={`ml-1 h-6 w-6 rounded-full ${
                         isAdminVariant
-                            ? 'text-[color:var(--admin-text-faint)] hover:bg-sky-600/8 hover:text-sky-700'
+                            ? 'text-[color:var(--admin-text-faint)] hover:bg-sky-600/8 hover:text-sky-700 dark:text-[color:var(--admin-text-muted)] dark:hover:bg-sky-500/15 dark:hover:text-sky-300'
                             : 'public-label-text hover:bg-[color:var(--public-chip-bg)] hover:text-foreground'
                     }`}
                     aria-label="delete"

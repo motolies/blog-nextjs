@@ -1,0 +1,124 @@
+/*
+ * ckeditor-theme.css
+ *
+ * CKEditor 5 다크 테마. ckeditor5/ckeditor5.css와 ckeditor.css 이후에 로드되어
+ * `<html>.dark`(next-themes)에서만 활성화되는 변수 오버라이드.
+ *
+ * 팔레트는 발행 페이지 surface-panel-strong 다크값(#282c34, Atom One Dark)과
+ * 통일하여 작성/미리보기/발행 페이지가 동일 디자인 언어를 공유하도록 한다.
+ *
+ * Selector 강화 이유:
+ * - ckeditor5.css는 모든 변수를 :root((0,0,1))에 정의. 단순 .dark((0,1,0))도
+ *   specificity로 이기지만, dynamic import 순서/내부 더 specific selector
+ *   가능성을 모두 회피하기 위해 다음 세 selector를 함께 사용:
+ *   - :root.dark        ((0,1,1))  → html에 직접 정의되어 자손이 모두 inherit
+ *   - .dark .ck         ((0,2,0))  → 모든 CKEditor 요소 자체에 정의
+ *   - .dark .ck-body-wrapper       → portal 렌더 컨테이너에 직접 정의
+ */
+
+:root.dark,
+.dark .ck,
+.dark .ck-body-wrapper {
+    /* ── Base ── */
+    --ck-color-base-background: #282c34;
+    --ck-color-base-foreground: #1f232a;
+    --ck-color-base-border: rgba(99, 109, 131, 0.3);
+    --ck-color-base-text: #abb2bf;
+    --ck-color-base-action: #61afef;
+    --ck-color-base-focus: #61afef;
+    --ck-color-base-active: #61afef;
+    --ck-color-base-active-focus: #4d9fdf;
+    --ck-color-base-error: #f87171;
+
+    /* ── Toolbar ── */
+    --ck-color-toolbar-background: #1f232a;
+    --ck-color-toolbar-border: rgba(99, 109, 131, 0.3);
+
+    /* ── Buttons (default = inactive icon button) ── */
+    --ck-color-button-default-background: transparent;
+    --ck-color-button-default-hover-background: rgba(255, 255, 255, 0.06);
+    --ck-color-button-default-active-background: rgba(255, 255, 255, 0.1);
+    --ck-color-button-default-disabled-background: transparent;
+
+    /* ── Buttons (on = toggled / pressed) ── */
+    --ck-color-button-on-background: rgba(97, 175, 239, 0.15);
+    --ck-color-button-on-hover-background: rgba(97, 175, 239, 0.22);
+    --ck-color-button-on-active-background: rgba(97, 175, 239, 0.3);
+    --ck-color-button-on-disabled-background: rgba(97, 175, 239, 0.08);
+    --ck-color-button-on-color: #61afef;
+
+    /* ── Buttons (action = primary CTA inside dialogs) ── */
+    --ck-color-button-action-background: #61afef;
+    --ck-color-button-action-hover-background: #4d9fdf;
+    --ck-color-button-action-active-background: #3a8fcf;
+    --ck-color-button-action-disabled-background: rgba(97, 175, 239, 0.4);
+    --ck-color-button-action-text: #1f232a;
+
+    --ck-color-button-save: #6dc870;
+    --ck-color-button-cancel: #f87171;
+
+    /* ── Switch button ── */
+    --ck-color-switch-button-off-background: rgba(99, 109, 131, 0.6);
+    --ck-color-switch-button-off-hover-background: rgba(99, 109, 131, 0.78);
+    --ck-color-switch-button-on-background: #61afef;
+    --ck-color-switch-button-on-hover-background: #4d9fdf;
+    --ck-color-switch-button-inner-background: #abb2bf;
+    --ck-color-switch-button-inner-shadow: rgba(0, 0, 0, 0.4);
+
+    /* ── Dropdown panel ── */
+    --ck-color-dropdown-panel-background: #282c34;
+    --ck-color-dropdown-panel-border: rgba(99, 109, 131, 0.3);
+
+    /* ── Input ── */
+    --ck-color-input-background: #1f232a;
+    --ck-color-input-border: rgba(99, 109, 131, 0.3);
+    --ck-color-input-error-border: #f87171;
+    --ck-color-input-text: #abb2bf;
+    --ck-color-input-disabled-background: rgba(40, 44, 52, 0.6);
+    --ck-color-input-disabled-border: rgba(99, 109, 131, 0.2);
+    --ck-color-input-disabled-text: rgba(171, 178, 191, 0.5);
+
+    /* ── List (dropdown items) ── */
+    --ck-color-list-background: #282c34;
+    --ck-color-list-button-hover-background: rgba(255, 255, 255, 0.06);
+    --ck-color-list-button-on-background: rgba(97, 175, 239, 0.18);
+    --ck-color-list-button-on-background-focus: rgba(97, 175, 239, 0.28);
+    --ck-color-list-button-on-text: #61afef;
+
+    /* ── Panel ── */
+    --ck-color-panel-background: #282c34;
+    --ck-color-panel-border: rgba(99, 109, 131, 0.3);
+
+    /* ── Tooltip ── */
+    --ck-color-tooltip-background: #1c2026;
+    --ck-color-tooltip-text: #abb2bf;
+
+    /* ── Engine (placeholder text in empty editor) ── */
+    --ck-color-engine-placeholder-text: rgba(171, 178, 191, 0.5);
+
+    /* ── Link ── */
+    --ck-color-link-default: #61afef;
+    --ck-color-link-selected-background: rgba(97, 175, 239, 0.12);
+    --ck-color-link-fake-selection: rgba(97, 175, 239, 0.3);
+
+    /* ── Shadows ── */
+    --ck-color-shadow-drop: rgba(0, 0, 0, 0.45);
+    --ck-color-shadow-drop-active: rgba(0, 0, 0, 0.55);
+    --ck-color-shadow-inner: rgba(0, 0, 0, 0.35);
+
+    /* ── Image caption ── */
+    --ck-color-image-caption-background: rgba(40, 44, 52, 0.8);
+    --ck-color-image-caption-text: #abb2bf;
+
+    /* ── Widget (image/table outlines, drag handle) ── */
+    --ck-color-widget-blurred-border: rgba(99, 109, 131, 0.3);
+    --ck-color-widget-hover-border: #61afef;
+    --ck-color-widget-editable-focus-background: #282c34;
+    --ck-color-widget-drag-handler-icon-color: #1f232a;
+
+    /* ── Table ── */
+    --ck-color-table-focused-cell-background: rgba(97, 175, 239, 0.18);
+
+    /* ── Highlight (yellow text marker plugin) ── */
+    --ck-color-highlight-background: rgba(255, 255, 0, 0.35);
+}

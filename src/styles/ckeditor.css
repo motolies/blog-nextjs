@@ -123,3 +123,48 @@
     border: 0;
     margin: 2rem 0;
 }
+
+/* ── Dark mode ──
+ * 이 파일이 _app.tsx에서 content-typography.css(=global.css 내 @import)보다
+ * 늦게 로드되어 .ck-content 라이트 톤이 .dark 분기를 cascade로 덮어쓰는
+ * 문제를 해소하기 위한 다크 분기. content-typography.css의 다크 규칙과
+ * 동일한 톤을 .ck-content에 적용한다.
+ */
+
+.dark .ck-content {
+    color: rgba(171, 178, 191, 0.92);
+}
+
+.dark .ck-content blockquote {
+    border-left-color: rgba(97, 175, 239, 0.6);
+    background: rgba(97, 175, 239, 0.06);
+}
+
+.dark .ck-content :not(pre) > code {
+    background: rgba(171, 178, 191, 0.1);
+    color: rgb(171 178 191);
+}
+
+.dark .ck-content table.table:not(.layout-table),
+.dark .ck-content figure.table:not(.layout-table) > table {
+    border-color: rgba(99, 109, 131, 0.2);
+}
+
+.dark .ck-content table.table:not(.layout-table) > thead > tr > th,
+.dark .ck-content figure.table:not(.layout-table) > table > thead > tr > th,
+.dark .ck-content table.table:not(.layout-table) > tbody > tr > th,
+.dark .ck-content figure.table:not(.layout-table) > table > tbody > tr > th {
+    background: rgba(44, 49, 58, 0.5);
+    border-bottom-color: rgba(99, 109, 131, 0.12);
+}
+
+.dark .ck-content table.table:not(.layout-table) > thead > tr > td,
+.dark .ck-content figure.table:not(.layout-table) > table > thead > tr > td,
+.dark .ck-content table.table:not(.layout-table) > tbody > tr > td,
+.dark .ck-content figure.table:not(.layout-table) > table > tbody > tr > td {
+    border-bottom-color: rgba(99, 109, 131, 0.12);
+}
+
+.dark .ck-content hr {
+    background: rgba(99, 109, 131, 0.3);
+}

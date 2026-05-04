@@ -205,3 +205,9 @@
   ) {
   background-color: transparent !important;
 }
+
+/* 코드블록 텍스트: 다크 본문 글자와 명도가 너무 가까워 박스가 묻히는 인상을
+   주므로, 다크 모드에서만 한 톤 밝게 끌어올려 본문과 차별화한다. */
+:is(.dark .content, .dark .ck-content) pre {
+  color: #d7dae0;
+}

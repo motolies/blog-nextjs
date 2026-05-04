@@ -156,28 +156,28 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
 
     const postImagePopup = () => {
         const imgs = document.querySelectorAll('#post-content img') as NodeListOf<HTMLImageElement>
-        for (let i = 0; i < imgs.length; i++) {
-            const currentImg = imgs[i]
+        imgs.forEach((currentImg) => {
             currentImg.style.maxWidth = '100%'
-            currentImg.addEventListener('click', function () {
-                const imgPopupHtml = `<html>
-                                  <head>
-                                    <meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0, width=device-width" />
-                                  </head>
-                                  <body style="margin:0; background:#000;height:100%;" onclick="javascript:window.close('simpleLightbox');">
-                                      <table border="0" width="100%" height="100%">
-                                          <tr>
-                                              <td valign="middle" align="center">
-                                                <img alt="확대 이미지" style="position:relative;z-index:2;width:100%" src="${currentImg.src}"/>
-                                              </td>
-                                          </tr>
-                                      </table>
-                                  </body>
-                                  </html>`
-                const popup = window.open('', 'simpleLightbox', 'noopener,noreferrer')
-                if (popup) popup.document.write(imgPopupHtml)
+            currentImg.style.cursor = 'zoom-in'
+            currentImg.addEventListener('click', () => {
+                const safeSrc = currentImg.src.replace(/"/g, '&quot;')
+                const imgPopupHtml = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="user-scalable=yes, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0, width=device-width" />
+    <title>이미지 보기</title>
+</head>
+<body style="margin:0;background:#000;min-height:100vh;display:flex;align-items:center;justify-content:center;">
+    <img alt="확대 이미지" style="max-width:100%;max-height:100vh;height:auto;" src="${safeSrc}" />
+</body>
+</html>`
+                const blob = new Blob([imgPopupHtml], {type: 'text/html'})
+                const url = URL.createObjectURL(blob)
+                window.open(url, '_blank', 'noopener,noreferrer')
+                setTimeout(() => URL.revokeObjectURL(url), 60000)
             })
-        }
+        })
     }
 
     const initVsCode = (doc: Document) => {

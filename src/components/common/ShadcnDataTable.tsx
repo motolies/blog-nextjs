@@ -301,6 +301,7 @@ export default function ShadcnDataTable<TData extends RowData>({
   })
   const [searchParams, setSearchParams] = useState<Record<string, unknown>>(defaultSearchParams)
   const [searchInputs, setSearchInputs] = useState<Record<string, unknown>>(defaultSearchParams)
+  const [searchTrigger, setSearchTrigger] = useState(0)
   const [paginationViewportWidth, setPaginationViewportWidth] = useState(0)
   const [isDesktopPagination, setIsDesktopPagination] = useState(false)
   const requestRef = useRef(0)
@@ -313,12 +314,14 @@ export default function ShadcnDataTable<TData extends RowData>({
   const handleSearch = useCallback(() => {
     setSearchParams(searchInputs)
     setPagination((previous) => ({ ...previous, pageIndex: 0 }))
+    setSearchTrigger((t) => t + 1)
   }, [searchInputs])
 
   const handleReset = useCallback(() => {
     setSearchInputs(defaultSearchParams)
     setSearchParams(defaultSearchParams)
     setPagination((previous) => ({ ...previous, pageIndex: 0 }))
+    setSearchTrigger((t) => t + 1)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -367,7 +370,7 @@ export default function ShadcnDataTable<TData extends RowData>({
     }
 
     loadData()
-  }, [fetchData, pagination.pageIndex, pagination.pageSize, paginationMode, searchFields, searchParams, sorting])
+  }, [fetchData, pagination.pageIndex, pagination.pageSize, paginationMode, searchFields, searchParams, sorting, searchTrigger])
 
   useEffect(() => {
     if (paginationMode !== 'client') return

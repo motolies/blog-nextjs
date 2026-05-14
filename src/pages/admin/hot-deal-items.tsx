@@ -139,6 +139,9 @@ export default function HotDealItemsPage() {
       toName: 'maxRecommendationCount',
       fromLabel: '추천 최소',
       toLabel: '추천 최대',
+      allowNegative: false,
+      min: 0,
+      integerOnly: true,
     },
     {
       type: 'numberRange',
@@ -146,6 +149,9 @@ export default function HotDealItemsPage() {
       toName: 'maxViewCount',
       fromLabel: '조회 최소',
       toLabel: '조회 최대',
+      allowNegative: false,
+      min: 0,
+      integerOnly: true,
     },
     {
       type: 'numberRange',
@@ -153,6 +159,9 @@ export default function HotDealItemsPage() {
       toName: 'maxCommentCount',
       fromLabel: '댓글 최소',
       toLabel: '댓글 최대',
+      allowNegative: false,
+      min: 0,
+      integerOnly: true,
     },
   ], [siteOptions])
 

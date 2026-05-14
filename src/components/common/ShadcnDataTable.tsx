@@ -133,17 +133,21 @@ export interface SearchField {
   fromLabel?: string
   toLabel?: string
   defaultValue?: unknown
+  allowNegative?: boolean
+  min?: number
+  max?: number
+  integerOnly?: boolean
 }
 
 function sanitizeSearchParams(
   params: Record<string, unknown>,
   fields: SearchField[],
 ): Record<string, unknown> {
-  const numberRangeKeys = new Set<string>()
+  const numberRangeMeta = new Map<string, SearchField>()
   for (const field of fields) {
     if (field.type === 'numberRange' && field.fromName && field.toName) {
-      numberRangeKeys.add(field.fromName)
-      numberRangeKeys.add(field.toName)
+      numberRangeMeta.set(field.fromName, field)
+      numberRangeMeta.set(field.toName, field)
     }
   }
 
@@ -151,9 +155,20 @@ function sanitizeSearchParams(
   for (const [key, value] of Object.entries(params)) {
     if (value === undefined || value === null || value === '') continue
 
-    if (numberRangeKeys.has(key)) {
-      const num = typeof value === 'number' ? value : Number(value)
-      if (Number.isFinite(num)) cleaned[key] = num
+    const meta = numberRangeMeta.get(key)
+    if (meta) {
+      let num = typeof value === 'number' ? value : Number(value)
+      if (!Number.isFinite(num)) continue
+
+      if (meta.integerOnly) num = Math.trunc(num)
+
+      const effectiveMin = meta.allowNegative === false
+        ? Math.max(0, meta.min ?? 0)
+        : meta.min
+      if (typeof effectiveMin === 'number' && num < effectiveMin) num = effectiveMin
+      if (typeof meta.max === 'number' && num > meta.max) num = meta.max
+
+      cleaned[key] = num
       continue
     }
 

@@ -57,6 +57,10 @@ interface NumberRangeSearchField {
   fromLabel: string
   toLabel: string
   pinned?: boolean
+  allowNegative?: boolean
+  min?: number
+  max?: number
+  integerOnly?: boolean
 }
 
 type RangeSearchField = DateRangeSearchField | NumberRangeSearchField
@@ -115,6 +119,8 @@ const renderField = (
 
   if (field.type === 'numberRange') {
     const nf = field as NumberRangeSearchField
+    const inputMin = nf.allowNegative === false ? Math.max(0, nf.min ?? 0) : nf.min
+    const inputStep = nf.integerOnly ? 1 : undefined
     return (
       <div key={nf.fromName} className="flex flex-col gap-1">
         <Label className="text-xs text-muted-foreground">{`${nf.fromLabel} ~ ${nf.toLabel}`}</Label>
@@ -126,6 +132,9 @@ const renderField = (
             onKeyPress={onKeyPress}
             className="h-8 w-[90px]"
             placeholder={nf.fromLabel}
+            min={inputMin}
+            max={nf.max}
+            step={inputStep}
           />
           <span className="text-muted-foreground text-xs">~</span>
           <Input
@@ -135,6 +144,9 @@ const renderField = (
             onKeyPress={onKeyPress}
             className="h-8 w-[90px]"
             placeholder={nf.toLabel}
+            min={inputMin}
+            max={nf.max}
+            step={inputStep}
           />
         </div>
       </div>

@@ -135,6 +135,33 @@ export interface SearchField {
   defaultValue?: unknown
 }
 
+function sanitizeSearchParams(
+  params: Record<string, unknown>,
+  fields: SearchField[],
+): Record<string, unknown> {
+  const numberRangeKeys = new Set<string>()
+  for (const field of fields) {
+    if (field.type === 'numberRange' && field.fromName && field.toName) {
+      numberRangeKeys.add(field.fromName)
+      numberRangeKeys.add(field.toName)
+    }
+  }
+
+  const cleaned: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === '') continue
+
+    if (numberRangeKeys.has(key)) {
+      const num = typeof value === 'number' ? value : Number(value)
+      if (Number.isFinite(num)) cleaned[key] = num
+      continue
+    }
+
+    cleaned[key] = value
+  }
+  return cleaned
+}
+
 export interface OrderBy {
   column: string
   direction: 'ASCENDING' | 'DESCENDING'
@@ -299,11 +326,12 @@ export default function ShadcnDataTable<TData extends RowData>({
           direction: sort.desc ? 'DESCENDING' : 'ASCENDING',
         }))
 
+        const sanitizedParams = sanitizeSearchParams(searchParams, searchFields)
         const response = await fetchData({
           page: pagination.pageIndex,
           pageSize: pagination.pageSize,
           orderBy,
-          ...searchParams,
+          ...sanitizedParams,
         })
 
         if (currentRequest === requestRef.current) {
@@ -324,7 +352,7 @@ export default function ShadcnDataTable<TData extends RowData>({
     }
 
     loadData()
-  }, [fetchData, pagination.pageIndex, pagination.pageSize, paginationMode, searchParams, sorting])
+  }, [fetchData, pagination.pageIndex, pagination.pageSize, paginationMode, searchFields, searchParams, sorting])
 
   useEffect(() => {
     if (paginationMode !== 'client') return

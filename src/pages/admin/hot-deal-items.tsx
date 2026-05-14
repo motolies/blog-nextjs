@@ -123,16 +123,16 @@ export default function HotDealItemsPage() {
       options: siteOptions,
     },
     {name: 'title', label: '제목'},
-    {
-      name: 'notified',
-      label: '알림 상태',
-      type: 'select',
-      options: [
-        {value: 'true', label: '발송'},
-        {value: 'false', label: '미발송'},
-      ],
-    },
-    {name: 'dealCategory', label: '딜 카테고리'},
+    // {
+    //   name: 'notified',
+    //   label: '알림 상태',
+    //   type: 'select',
+    //   options: [
+    //     {value: 'true', label: '발송'},
+    //     {value: 'false', label: '미발송'},
+    //   ],
+    // },
+    // {name: 'dealCategory', label: '딜 카테고리'},
     {
       type: 'numberRange',
       fromName: 'minRecommendationCount',

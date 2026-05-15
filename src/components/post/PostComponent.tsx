@@ -169,7 +169,7 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
     <title>이미지 보기</title>
 </head>
 <body style="margin:0;background:#000;min-height:100vh;display:flex;align-items:center;justify-content:center;">
-    <img alt="확대 이미지" style="max-width:100%;max-height:100vh;height:auto;" src="${safeSrc}" />
+    <img alt="확대 이미지" style="max-width:100%;max-height:100vh;height:auto;" onclick="window.close()" src="${safeSrc}" />
 </body>
 </html>`
                 const blob = new Blob([imgPopupHtml], {type: 'text/html'})

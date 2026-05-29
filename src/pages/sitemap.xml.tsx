@@ -1,4 +1,5 @@
 import {getBackendBaseUrl} from "../lib/backendUrl"
+import {buildForwardedHeaders} from "../lib/forwardedHeaders"
 import type { GetServerSidePropsContext } from 'next'
 
 function generateSiteMap(posts: string[]) {
@@ -25,8 +26,10 @@ function SiteMap() {
     // getServerSideProps will do the heavy lifting
 }
 
-export async function getServerSideProps({res}: GetServerSidePropsContext) {
-    const request = await fetch(getBackendBaseUrl() + '/api/post/public-content');
+export async function getServerSideProps({req, res}: GetServerSidePropsContext) {
+    const request = await fetch(getBackendBaseUrl() + '/api/post/public-content', {
+        headers: buildForwardedHeaders(req),
+    });
     const posts = await request.json();
 
     const sitemap = generateSiteMap(posts);

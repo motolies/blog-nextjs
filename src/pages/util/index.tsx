@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import {ArrowLeftRight, GitBranch, QrCode, Lock, Clock, Braces} from 'lucide-react'
+import {ArrowLeftRight, GitBranch, QrCode, Lock, Clock, Braces, ShieldCheck} from 'lucide-react'
 
 const utilities = [
     {
@@ -36,6 +36,13 @@ const utilities = [
         description: 'Unix crontab과 Spring Scheduler cron 표현식을 분석하고 다음 실행 시간을 계산합니다.',
         icon: Clock,
         path: '/util/crontab'
+    },
+    {
+        id: 'crypto',
+        title: '암호화 도구',
+        description: 'AES-256 암호화/복호화 도구. PBKDF2 키 유도(enc:v1 포맷)와 Raw Key CBC 모드를 지원합니다.',
+        icon: ShieldCheck,
+        path: '/util/crypto'
     },
     {
         id: 'regex-tester',

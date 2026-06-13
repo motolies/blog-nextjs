@@ -4,6 +4,7 @@ import {Button} from '../ui/button'
 import {Input} from '../ui/input'
 import {Label} from '../ui/label'
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../ui/select'
+import {Switch} from '../ui/switch'
 
 const ATTRIBUTE_TYPES = [
   {value: 'text', label: '텍스트'},
@@ -15,6 +16,8 @@ interface AttributeSchemaItem {
   key: string
   label: string
   type: string
+  // 'true'이면 공개(비관리자) 응답에서 백엔드가 이 속성을 제거한다. 없으면 false(공개)로 간주.
+  sensitive?: string
 }
 
 interface AttributeSchemaEditorProps {
@@ -30,7 +33,7 @@ export function AttributeSchemaEditor({schema, onChange}: AttributeSchemaEditorP
   const safeSchema = Array.isArray(schema) ? schema : []
 
   const handleAdd = () => {
-    onChange([...safeSchema, {key: '', label: '', type: 'text'}])
+    onChange([...safeSchema, {key: '', label: '', type: 'text', sensitive: 'false'}])
   }
 
   const handleRemove = (index: number) => {
@@ -93,6 +96,16 @@ export function AttributeSchemaEditor({schema, onChange}: AttributeSchemaEditorP
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="shrink-0 space-y-1">
+              <Label className="text-xs">민감</Label>
+              <div className="flex h-9 items-center justify-center">
+                <Switch
+                  checked={item.sensitive === 'true'}
+                  onCheckedChange={(checked: boolean) => handleChange(index, 'sensitive', checked ? 'true' : 'false')}
+                  aria-label="민감 속성 여부"
+                />
+              </div>
             </div>
             <Button
               type="button"

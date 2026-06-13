@@ -15,6 +15,8 @@ interface AttributeSchemaItem {
   key: string
   label: string
   type: string
+  // 'true'이면 공개(비관리자) 응답에서 백엔드가 이 속성을 제거한다. 없으면 false(공개)로 간주.
+  sensitive?: string
 }
 
 interface MasterCodeNode {
@@ -205,6 +207,14 @@ export default function MasterCodePage() {
     try {
       setLoading(true)
 
+      // 저장 시 모든 스키마 항목에 sensitive를 'true'/'false'로 명시한다(읽기는 기본 false, 저장 시 명시).
+      const normalizedSchema = (formData.attributeSchema || []).map((it: AttributeSchemaItem) => ({
+        key: it.key,
+        label: it.label,
+        type: it.type,
+        sensitive: it.sensitive === 'true' ? 'true' : 'false',
+      }))
+
       if (dialogMode === 'addRoot') {
         const payload = {
           code: formData.code.trim(),
@@ -213,7 +223,7 @@ export default function MasterCodePage() {
           sort: formData.sort,
           isActive: formData.isActive,
           parentId: null,
-          attributeSchema: formData.attributeSchema,
+          attributeSchema: normalizedSchema,
         }
         await service.masterCode.createNode(payload)
         toast.success('루트 노드가 성공적으로 생성되었습니다.')
@@ -242,7 +252,7 @@ export default function MasterCodePage() {
           sort: formData.sort,
           isActive: formData.isActive,
           ...(isRoot
-            ? {attributeSchema: formData.attributeSchema}
+            ? {attributeSchema: normalizedSchema}
             : {attributes: formData.attributes}
           ),
         }

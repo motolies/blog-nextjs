@@ -10,6 +10,8 @@ interface AttributeSchemaItem {
   key: string
   label: string
   type: string
+  // 'true'이면 공개(비관리자) 응답에서 백엔드가 이 속성을 제거한다. 없으면 false(공개)로 간주.
+  sensitive?: string
 }
 
 interface NodeFormData {

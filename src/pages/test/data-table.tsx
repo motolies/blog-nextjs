@@ -169,8 +169,8 @@ export default function DataTableTestPage() {
             <li>3. <strong>칼럼 리사이즈</strong> — 헤더 우측 경계선 드래그로 너비 조절</li>
             <li>4. <strong>행 선택</strong> — 체크박스로 개별/전체 선택, 선택 시 툴바에 N개 선택됨 표시</li>
             <li>5. <strong>선택 삭제</strong> — 선택된 행을 삭제하는 버튼 동작</li>
-            <li>6. <strong>행 추가</strong> — 툴바 "추가" 버튼으로 새 행 생성 (노란 배경 표시)</li>
-            <li>7. <strong>전체 저장</strong> — 툴바 "저장" 버튼 클릭 시 토스트 메시지 확인</li>
+            <li>6. <strong>행 추가</strong> — 툴바 &quot;추가&quot; 버튼으로 새 행 생성 (노란 배경 표시)</li>
+            <li>7. <strong>전체 저장</strong> — 툴바 &quot;저장&quot; 버튼 클릭 시 토스트 메시지 확인</li>
             <li>8. <strong>인라인 편집</strong> — 셀 더블클릭으로 편집 (이름/이메일=텍스트, 역할/상태=셀렉트, 점수=숫자)</li>
           </ul>
         </div>

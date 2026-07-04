@@ -5,7 +5,7 @@ import {
     analyzeCompatibility,
     executeRegexTest,
     validateBasicSyntax
-} from '../../src/util/regexValidator.js'
+} from '../../src/util/regexValidator.ts'
 
 test('Python named groups are marked as browser-convertible', () => {
     const result = analyzeCompatibility('(?P<year>\\d{4})-(?P<month>\\d{2})', 'python')

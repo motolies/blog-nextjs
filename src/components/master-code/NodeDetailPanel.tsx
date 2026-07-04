@@ -75,7 +75,7 @@ export default function NodeDetailPanel({
     ['설명', selectedNode.description || '-'],
     ['정렬순서', selectedNode.sort ?? 0],
     ['상태', (
-      <Badge variant={selectedNode.isActive ? 'success' : 'secondary'} className="text-xs">
+      <Badge key="status" variant={selectedNode.isActive ? 'success' : 'secondary'} className="text-xs">
         {selectedNode.isActive ? '활성' : '비활성'}
       </Badge>
     )],

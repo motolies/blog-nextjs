@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import {calculateNextRuns, generateKoreanDescription} from '../../src/util/crontabUtils.js'
+import {calculateNextRuns, generateKoreanDescription} from '../../src/util/crontabUtils.ts'
 
 test('Cron description keeps common unix phrases readable', () => {
     assert.equal(generateKoreanDescription('0 0 * * *'), '매일 자정 실행')

@@ -9,7 +9,7 @@ import {
     encodeUnicodeEscapes,
     formatJsonText,
     minifyJsonText
-} from '../../src/util/encodeUtils.js'
+} from '../../src/util/encodeUtils.ts'
 
 test('UTF-8 Base64 roundtrip handles Korean and emoji', () => {
     const input = '한글 emoji 😀'

@@ -521,6 +521,8 @@ export default function DataTableCore<TData extends RowData>({
     headerWidth: number
   }) => {
     const isReorderable = enableColumnReorder && !NON_REORDERABLE_COLUMNS.has(header.column.id)
+    // JSX 요소(<DraggableHeader/>)로만 렌더링되는 내부 컴포넌트이므로 훅 호출이 유효함
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const { attributes, isDragging, listeners, setNodeRef, transform } = useSortable({
       id: header.column.id,
       disabled: !isReorderable,
@@ -611,6 +613,8 @@ export default function DataTableCore<TData extends RowData>({
     row: Row<TData>
   }) => {
     const isEditingThisCell = editingCell?.rowId === row.id && editingCell?.columnId === cell.column.id
+    // JSX 요소(<DragAlongCell/>)로만 렌더링되는 내부 컴포넌트이므로 훅 호출이 유효함
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const { isDragging, setNodeRef, transform } = useSortable({
       id: cell.column.id,
       disabled: !enableColumnReorder || NON_REORDERABLE_COLUMNS.has(cell.column.id) || isEditingThisCell,

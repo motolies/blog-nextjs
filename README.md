@@ -5,6 +5,7 @@
 ## 📚 문서
 
 - [인증 시스템 (Authentication)](./docs/authentication.md) - 쿠키 기반 인증 구조 및 SSR/CSR 플로우
+- [디버깅 가이드 (Debug)](./docs/debug.md) - IntelliJ에서 Turbopack 서버/클라이언트 디버깅 설정
 
 ## 사용법
 

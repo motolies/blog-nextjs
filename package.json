@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "cross-env NODE_OPTIONS='--inspect' next dev",
+    "dev": "next dev --inspect",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "test:util": "node --test test/util/*.test.js"
   },
   "dependencies": {
-    "@ckeditor/ckeditor5-react": "^11.0.1",
+    "@ckeditor/ckeditor5-react": "^11.2.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
@@ -22,7 +22,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@types/prismjs": "^1.26.6",
     "axios": "^1.15.0",
-    "ckeditor5": "^47.6.0",
+    "ckeditor5": "^48.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

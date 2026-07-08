@@ -131,7 +131,11 @@ function createEditorConfig({ defaultData, imageUploadAdapter, uploadServer, onC
                 'resizeImage'
             ]
         },
-        initialData: defaultData,
+        // v48부터 initialData/placeholder는 config.root 하위로 이동 (최상위 형식은 deprecated)
+        root: {
+            initialData: defaultData,
+            placeholder: '내용을 입력하세요...'
+        },
         language: 'ko',
         licenseKey: 'GPL' as const,
         link: {
@@ -169,7 +173,6 @@ function createEditorConfig({ defaultData, imageUploadAdapter, uploadServer, onC
             },
             waitingTime: 30000
         },
-        placeholder: '내용을 입력하세요...',
         table: {
             contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties']
         },

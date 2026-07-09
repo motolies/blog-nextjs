@@ -27,6 +27,7 @@ import {base64Encode} from "../../util/base64Util"
 import {fileLink} from "../../util/fileLink"
 import {usePostNavigationShortcut} from "../../util/usePostNavigationShortcut"
 import {useCodeHighlight} from "../../hooks/useCodeHighlight"
+import {sanitizeThemeHostileStyles} from "../../util/contentStyleSanitizer"
 import TableOfContents from "./TableOfContents"
 import styles from './PostComponent.module.css'
 import {format} from 'date-fns'
@@ -136,6 +137,8 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
             return
         }
         const doc = new DOMParser().parseFromString(post.body, 'text/html')
+        // 정화 정책이 IDE 코드 블록의 어두운 배경을 유지하므로 initVsCode 등의 배경색 감지가 그대로 동작한다
+        sanitizeThemeHostileStyles(doc.body)
         initVsCode(doc)
         initJetbrains(doc)
         initIntellij(doc)

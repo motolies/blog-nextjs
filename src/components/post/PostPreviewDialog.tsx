@@ -1,3 +1,4 @@
+import {useMemo} from 'react'
 import {
     Dialog,
     DialogContent,
@@ -5,6 +6,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import {Eye} from 'lucide-react'
+import {sanitizeThemeHostileStyles} from '../../util/contentStyleSanitizer'
 
 interface PostPreviewDialogProps {
     open: boolean
@@ -14,6 +16,16 @@ interface PostPreviewDialogProps {
 }
 
 export default function PostPreviewDialog({open, subject, body, onClose}: PostPreviewDialogProps) {
+    // 발행 페이지(PostComponent)와 동일하게 테마 적대적 인라인 스타일을 제거해 미리보기 일관성 유지
+    const sanitizedBody = useMemo(() => {
+        if (!body || typeof window === 'undefined') {
+            return body
+        }
+        const doc = new DOMParser().parseFromString(body, 'text/html')
+        sanitizeThemeHostileStyles(doc.body)
+        return doc.body.innerHTML
+    }, [body])
+
     return (
         <Dialog open={open} onOpenChange={(isOpen: boolean) => { if (!isOpen) onClose() }}>
             <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-5xl max-h-[calc(100vh-6rem)] overflow-y-auto">
@@ -30,7 +42,7 @@ export default function PostPreviewDialog({open, subject, body, onClose}: PostPr
                         )}
                         <div
                             className="content break-words"
-                            dangerouslySetInnerHTML={{__html: body}}
+                            dangerouslySetInnerHTML={{__html: sanitizedBody}}
                         />
                     </div>
                 </div>

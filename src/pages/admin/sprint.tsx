@@ -3,6 +3,7 @@ import ReactECharts from 'echarts-for-react'
 import {toast} from 'sonner'
 import service from '../../service'
 import ShadcnDataTable, {type DataTableColumn} from '../../components/common/ShadcnDataTable'
+import {formatLocalDateTime} from '../../util/dateTimeUtil'
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../../components/ui/select'
 import {Skeleton} from '../../components/ui/skeleton'
 import AdminPageFrame from '../../components/layout/admin/AdminPageFrame'
@@ -195,22 +196,6 @@ export default function SprintPage() {
         {accessorKey: 'timeHours', header: '작업시간', size: 120, headerAlign: 'right', cellAlign: 'right', footerAlign: 'right'}
     ], [])
 
-    const convertUTCToKST = (utcTimeString: string) => {
-        if (!utcTimeString) return ''
-        try {
-            const utcDate = new Date(utcTimeString)
-            const kstDate = new Date(utcDate.getTime() + (9 * 60 * 60 * 1000))
-            const year = kstDate.getFullYear()
-            const month = String(kstDate.getMonth() + 1).padStart(2, '0')
-            const day = String(kstDate.getDate()).padStart(2, '0')
-            const hours = String(kstDate.getHours()).padStart(2, '0')
-            const minutes = String(kstDate.getMinutes()).padStart(2, '0')
-            return `${year}-${month}-${day} ${hours}:${minutes}`
-        } catch (error) {
-            return utcTimeString
-        }
-    }
-
     const sprintDetailRows = sprintDetailData.map((item, index) => ({id: index, ...item}))
 
     const sprintDetailTotals = useMemo(() => {
@@ -224,7 +209,7 @@ export default function SprintPage() {
     const issueWorklogRows = issueWorklogData.map((item, index) => ({
         id: index,
         ...item,
-        started: convertUTCToKST(item.started)
+        started: formatLocalDateTime(item.started)
     }))
 
     const issueWorklogTotals = useMemo(() => {

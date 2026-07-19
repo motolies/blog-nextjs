@@ -30,7 +30,7 @@ import {useCodeHighlight} from "../../hooks/useCodeHighlight"
 import {sanitizeThemeHostileStyles} from "../../util/contentStyleSanitizer"
 import TableOfContents from "./TableOfContents"
 import styles from './PostComponent.module.css'
-import {format} from 'date-fns'
+import {formatLocalDate, formatUtcToLocal} from "../../util/dateTimeUtil"
 import service from "../../service"
 import type {Tag} from "@/types/tag"
 import type {Series} from "@/types/series"
@@ -314,10 +314,11 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
     }
 
     const formatDate = (value: string | undefined): string => {
+        // 서버 렌더링 시 로컬 타임존 불일치를 피하기 위해 클라이언트 마운트 후에만 포맷한다
         if (!value || !isClientMounted) {
             return ''
         }
-        return format(new Date(value.endsWith('Z') ? value : `${value}Z`), 'yyyy-MM-dd HH:mm:ss')
+        return formatUtcToLocal(value, 'yyyy-MM-dd HH:mm:ss')
     }
 
     const readingTime = (): string => {
@@ -488,7 +489,7 @@ export default function PostComponent({post, prevNext}: PostComponentProps) {
                                                     {related.categoryName}
                                                 </span>
                                                 {isClientMounted && related.createDate && (
-                                                    <span>{format(new Date(related.createDate), 'yyyy-MM-dd')}</span>
+                                                    <span>{formatLocalDate(related.createDate)}</span>
                                                 )}
                                             </div>
                                         </Link>

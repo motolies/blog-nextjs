@@ -7,9 +7,9 @@ import service from '../../service'
 import {formatUtcToLocal} from '../../util/dateTimeUtil'
 import AdminPageFrame from '../../components/layout/admin/AdminPageFrame'
 
-const today = format(new Date(), 'yyyy-MM-dd')
-
 export default function SystemLog() {
+  // 모듈 로드 시점이 아닌 마운트 시점에 기본 검색일을 계산한다(자정 넘김 stale 방지)
+  const [today] = useState(() => format(new Date(), 'yyyy-MM-dd'))
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogTitle, setDialogTitle] = useState('')
   const [dialogContent, setDialogContent] = useState('')

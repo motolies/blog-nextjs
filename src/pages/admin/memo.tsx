@@ -8,6 +8,7 @@ import MemoDialog from '../../components/memo/MemoDialog'
 import CategoryManagementPanel from '../../components/memo/CategoryManagementPanel'
 import DeleteConfirm from '../../components/confirm/DeleteConfirm'
 import service from '../../service'
+import {formatUtcToLocal} from '../../util/dateTimeUtil'
 import AdminPageFrame from '../../components/layout/admin/AdminPageFrame'
 
 export default function MemoPage() {
@@ -74,9 +75,7 @@ export default function MemoPage() {
       cell: ({value}: {value: any}) => {
         const val = value
         if (!val?.at) return '-'
-        const d = new Date(val.at)
-        const pad = (n: number) => String(n).padStart(2, '0')
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+        return formatUtcToLocal(val.at, 'yyyy-MM-dd HH:mm:ss')
       }
     },
   ], [])

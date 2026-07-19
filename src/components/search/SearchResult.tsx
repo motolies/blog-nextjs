@@ -1,4 +1,4 @@
-import {format} from 'date-fns'
+import {formatUtcToLocal} from "../../util/dateTimeUtil"
 import Link from "next/link"
 import {ArrowRight, Clock3, FolderOpen} from "lucide-react"
 
@@ -17,7 +17,7 @@ export default function SearchResult({posts}: SearchResultProps) {
     const searchedPost = posts ?? []
 
     const timestampFormat = (timestamp: string | number): string => {
-        return format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss')
+        return formatUtcToLocal(timestamp, 'yyyy-MM-dd HH:mm:ss')
     }
 
     return (

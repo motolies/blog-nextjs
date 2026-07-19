@@ -6,6 +6,7 @@ import {Separator} from '../ui/separator'
 import SortablePostList from './SortablePostList'
 import PostSearchCombobox from './PostSearchCombobox'
 import service from '../../service'
+import {parseServerDate} from '../../util/dateTimeUtil'
 import type {Series} from '@/types/series'
 import type React from 'react'
 
@@ -61,7 +62,7 @@ export default function SeriesDetailPanel({
         {series.posts.length}개
       </Badge>,
     ],
-    ['생성일', new Date(series.created.at).toLocaleDateString('ko-KR')],
+    ['생성일', parseServerDate(series.created.at)?.toLocaleDateString('ko-KR') ?? '-'],
   ]
 
   const excludePostIds = series.posts.map(p => p.postId)

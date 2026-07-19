@@ -6,14 +6,14 @@ import {Badge} from '../../components/ui/badge'
 import service from '../../service'
 import {formatUtcToLocal} from '../../util/dateTimeUtil'
 
-const today = format(new Date(), 'yyyy-MM-dd')
-
 interface SiteOption {
   value: string
   label: string
 }
 
 export default function HotDealItemsPage() {
+  // 모듈 로드 시점이 아닌 마운트 시점에 기본 검색일을 계산한다(자정 넘김 stale 방지)
+  const [today] = useState(() => format(new Date(), 'yyyy-MM-dd'))
   const [siteOptions, setSiteOptions] = useState<SiteOption[]>([])
 
   useEffect(() => {

@@ -1,22 +1,24 @@
 import { useEffect, useRef, useState } from "react"
 import { CKEditor } from '@ckeditor/ckeditor5-react'
 import {
-    Autoformat, AutoImage, Autosave, BlockQuote, Bold, Code, CodeBlock,
-    Essentials, FontBackgroundColor, FontColor, FontFamily, FontSize,
-    GeneralHtmlSupport, Heading, Highlight, HorizontalLine,
-    HtmlEmbed, ImageBlock, ImageCaption, ImageInline,
+    Alignment, Autoformat, AutoImage, Autosave, BlockQuote, Bold, ButtonView,
+    Code, CodeBlock, Emoji, Essentials, FindAndReplace,
+    FontBackgroundColor, FontColor, FontFamily, FontSize,
+    GeneralHtmlSupport, Heading, Highlight, HorizontalLine, HtmlComment,
+    HtmlEmbed, IconSource, ImageBlock, ImageCaption, ImageInline,
     ImageInsert, ImageInsertViaUrl, ImageResize, ImageStyle,
     ImageTextAlternative, ImageToolbar, ImageUpload, Indent, IndentBlock,
     Italic, Link, LinkImage, List, ListProperties, MediaEmbed, Mention,
-    Paragraph, PasteFromOffice, RemoveFormat, SourceEditing, SpecialCharacters,
+    Paragraph, PasteFromOffice, RemoveFormat, ShowBlocks, SourceEditing, SpecialCharacters,
     SpecialCharactersArrows, SpecialCharactersCurrency,
     SpecialCharactersEssentials, SpecialCharactersLatin,
     SpecialCharactersMathematical, SpecialCharactersText, Strikethrough,
     Subscript, Superscript, Table, TableCaption, TableCellProperties,
-    TableColumnResize, TableProperties, TableToolbar,
+    TableColumnResize, TableLayout, TableProperties, TableToolbar,
     TextTransformation, TodoList, Underline, WordCount, ClassicEditor
 } from 'ckeditor5'
-import { MarkdownGfmDataProcessor } from '@ckeditor/ckeditor5-markdown-gfm'
+import { MarkdownGfmDataProcessor, MarkdownGfmHtmlToMd, MarkdownGfmMdToHtml } from '@ckeditor/ckeditor5-markdown-gfm'
+import { toast } from 'sonner'
 import translations from 'ckeditor5/translations/ko.js'
 import 'ckeditor5/ckeditor5.css'
 import { sanitizeThemeHostileStyles } from '@/util/contentStyleSanitizer'
@@ -93,6 +95,158 @@ function createEditorConfig({ defaultData, imageUploadAdapter, uploadServer, onC
         )
     }
 
+    // 파일 업로드 진행 중 여부 확인. 소스/마크다운 편집 전환 시 업로드 중 콘텐츠가 깨지는 것을 막는 가드
+    const hasPendingUploads = (editor: any) => {
+        return editor.plugins.get('FileRepository').loaders.length > 0
+    }
+
+    // HTML 소스 편집 버튼 교체 플러그인. 내장 sourceEditing 버튼은 autosave 대기(pending action) 중
+    // 비활성화되어 편집 후 waitingTime(30초) 동안 누를 수 없으므로, pending action과 무관하게 동작하는
+    // 버튼으로 교체한다. 단, 파일 업로드 진행 중에는 전환을 차단한다.
+    const htmlSourceEditingButtonPlugin = function (editor: any) {
+        editor.ui.componentFactory.add('htmlSourceEditing', (locale: any) => {
+            const sourceEditing = editor.plugins.get('SourceEditing')
+            const buttonView = new ButtonView(locale) as any
+            buttonView.set({
+                label: 'HTML 소스 편집',
+                icon: IconSource,
+                tooltip: true,
+                isToggleable: true
+            })
+            buttonView.bind('isOn').to(sourceEditing, 'isSourceEditingMode')
+            buttonView.bind('isEnabled').to(
+                sourceEditing, 'isEnabled', editor, 'isReadOnly',
+                (isEnabled: boolean, isReadOnly: boolean) => isEnabled && !isReadOnly
+            )
+            buttonView.on('execute', () => {
+                if (!sourceEditing.isSourceEditingMode && hasPendingUploads(editor)) {
+                    toast.warning('파일 업로드가 진행 중입니다. 업로드 완료 후 다시 시도해주세요.')
+                    return
+                }
+                sourceEditing.isSourceEditingMode = !sourceEditing.isSourceEditingMode
+            })
+            return buttonView
+        })
+    }
+
+    // 마크다운 소스 편집 토글 플러그인. 내장 SourceEditing과 동일한 UX로 본문을 GFM 마크다운으로
+    // 변환해 textarea에서 편집하고, 복귀 시 HTML로 되돌린다.
+    // - 변환은 공개 API(MarkdownGfmHtmlToMd/MarkdownGfmMdToHtml) 사용.
+    // - textarea 값이 진입 시점 스냅샷과 같으면 setData를 생략해 GFM 미지원 서식(글자색·표 속성 등) 손실을 방지.
+    // - 모드 활성 중 editor.getData() 호출(Ctrl+S·미리보기·autosave) 시 편집분을 먼저 커밋(내장 SourceEditing 패턴).
+    // - 내장 SourceEditing과 상호배제: 마크다운 모드 중 소스 편집 비활성화, 소스 편집 중 마크다운 버튼 비활성화.
+    const markdownSourceEditingPlugin = function (editor: any) {
+        const LOCK_ID = 'markdown-source-editing'
+        // 마크다운 로고 SVG (패키지에 IconMarkdown이 없어 커스텀 아이콘 사용)
+        const markdownIcon = '<svg viewBox="0 0 208 128" xmlns="http://www.w3.org/2000/svg"><path d="M15 10h178a5 5 0 0 1 5 5v98a5 5 0 0 1-5 5H15a5 5 0 0 1-5-5V15a5 5 0 0 1 5-5zm0-10C6.7 0 0 6.7 0 15v98c0 8.3 6.7 15 15 15h178c8.3 0 15-6.7 15-15V15c0-8.3-6.7-15-15-15H15z"/><path d="M30 98V30h20l20 25 20-25h20v68H90V59L70 84 50 59v39zm125 0-30-33h20V30h20v35h20z"/></svg>'
+        const htmlToMd = new MarkdownGfmHtmlToMd()
+        const mdToHtml = new MarkdownGfmMdToHtml()
+        let wrapper: HTMLElement | null = null
+        let textarea: HTMLTextAreaElement | null = null
+        let snapshot = ''
+        let isActive = false
+
+        // textarea 편집분이 스냅샷과 다를 때만 HTML로 변환해 에디터 데이터에 반영
+        const commitPendingChanges = () => {
+            if (!textarea || textarea.value === snapshot) {
+                return
+            }
+            snapshot = textarea.value
+            editor.data.set(mdToHtml.parse(snapshot), { batchType: { isUndoable: true } })
+        }
+
+        // 마크다운 편집 모드 진입: 편집영역을 숨기고 같은 자리에 textarea를 표시
+        const enterMarkdownMode = () => {
+            const editingView = editor.editing.view
+            const domRoot = editingView.getDomRoot()
+            if (!domRoot || !domRoot.parentElement) {
+                return
+            }
+            if (hasPendingUploads(editor)) {
+                toast.warning('파일 업로드가 진행 중입니다. 업로드 완료 후 다시 시도해주세요.')
+                return
+            }
+            snapshot = htmlToMd.parse(editor.getData())
+            textarea = document.createElement('textarea')
+            textarea.rows = 1
+            textarea.setAttribute('aria-label', '마크다운 편집 영역')
+            textarea.value = snapshot
+            wrapper = document.createElement('div')
+            wrapper.className = 'ck-source-editing-area'
+            wrapper.dataset.value = snapshot
+            wrapper.appendChild(textarea)
+            // 내장 소스 편집과 동일한 autogrow 방식: data-value(::after)로 높이 확보
+            textarea.addEventListener('input', () => {
+                if (wrapper && textarea) {
+                    wrapper.dataset.value = textarea.value
+                    editor.ui.update()
+                }
+            })
+            editingView.change((writer: any) => {
+                writer.addClass('ck-hidden', editingView.document.getRoot())
+            })
+            domRoot.parentElement.insertBefore(wrapper, domRoot.nextSibling)
+            editor.ui.focusTracker.add(textarea)
+            editor.enableReadOnlyMode(LOCK_ID)
+            editor.plugins.get('SourceEditing').forceDisabled(LOCK_ID)
+            isActive = true
+            textarea.focus()
+        }
+
+        // 마크다운 편집 모드 종료: 편집분 커밋 후 원래 편집영역 복원
+        const exitMarkdownMode = () => {
+            const editingView = editor.editing.view
+            commitPendingChanges()
+            if (wrapper) {
+                if (textarea) {
+                    editor.ui.focusTracker.remove(textarea)
+                }
+                wrapper.remove()
+                wrapper = null
+                textarea = null
+            }
+            editingView.change((writer: any) => {
+                writer.removeClass('ck-hidden', editingView.document.getRoot())
+            })
+            editor.disableReadOnlyMode(LOCK_ID)
+            editor.plugins.get('SourceEditing').clearForceDisabled(LOCK_ID)
+            isActive = false
+            editor.editing.view.focus()
+        }
+
+        // 모드 활성 중 getData() 호출 시(저장·미리보기·autosave) 마크다운 편집분을 먼저 반영
+        editor.data.on('get', () => {
+            if (isActive) {
+                commitPendingChanges()
+            }
+        }, { priority: 'high' })
+
+        editor.ui.componentFactory.add('markdownSourceEditing', (locale: any) => {
+            const sourceEditing = editor.plugins.get('SourceEditing')
+            const buttonView = new ButtonView(locale) as any
+            buttonView.set({
+                label: '마크다운으로 편집',
+                icon: markdownIcon,
+                tooltip: true,
+                isToggleable: true
+            })
+            // 내장 소스 편집 모드 중에는 마크다운 버튼 비활성화 (상호배제)
+            buttonView.bind('isEnabled').to(
+                sourceEditing, 'isSourceEditingMode',
+                (isSourceEditingMode: boolean) => !isSourceEditingMode
+            )
+            buttonView.on('execute', () => {
+                if (isActive) {
+                    exitMarkdownMode()
+                } else {
+                    enterMarkdownMode()
+                }
+                buttonView.isOn = isActive
+            })
+            return buttonView
+        })
+    }
+
     const fileUploadPlugin = function (editor: any) {
         editor.editing.view.document.on(
             'drop',
@@ -122,32 +276,34 @@ function createEditorConfig({ defaultData, imageUploadAdapter, uploadServer, onC
     return {
         toolbar: {
             items: [
-                'undo', 'redo', '|', 'sourceEditing', 'horizontalLine', '|',
+                'undo', 'redo', '|', 'htmlSourceEditing', 'markdownSourceEditing', 'showBlocks', 'findAndReplace', '|',
                 'heading', '|', 'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
                 'bold', 'italic', 'underline', 'strikethrough', 'subscript', 'superscript',
                 'code', 'codeBlock', 'removeFormat', '-',
-                'specialCharacters', 'link', 'insertImage', 'mediaEmbed',
-                'insertTable', 'highlight', 'blockQuote', 'htmlEmbed', '|',
-                'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent'
+                'emoji', 'specialCharacters', 'horizontalLine', 'link', 'insertImage', 'mediaEmbed',
+                'insertTable', 'insertTableLayout', 'highlight', 'blockQuote', 'htmlEmbed', '|',
+                'alignment', 'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent'
             ],
             shouldNotGroupWhenFull: true
         },
         plugins: [
-            Autoformat, AutoImage, Autosave, BlockQuote, Bold, Code, CodeBlock,
-            Essentials, FontBackgroundColor, FontColor, FontFamily, FontSize,
-            GeneralHtmlSupport, Heading, Highlight, HorizontalLine,
+            Alignment, Autoformat, AutoImage, Autosave, BlockQuote, Bold, Code, CodeBlock,
+            Emoji, Essentials, FindAndReplace,
+            FontBackgroundColor, FontColor, FontFamily, FontSize,
+            GeneralHtmlSupport, Heading, Highlight, HorizontalLine, HtmlComment,
             HtmlEmbed, ImageBlock, ImageCaption, ImageInline,
             ImageInsert, ImageInsertViaUrl, ImageResize, ImageStyle,
             ImageTextAlternative, ImageToolbar, ImageUpload, Indent, IndentBlock,
             Italic, Link, LinkImage, List, ListProperties, MediaEmbed, Mention,
-            Paragraph, PasteFromOffice, RemoveFormat, SourceEditing, SpecialCharacters,
+            Paragraph, PasteFromOffice, RemoveFormat, ShowBlocks, SourceEditing, SpecialCharacters,
             SpecialCharactersArrows, SpecialCharactersCurrency,
             SpecialCharactersEssentials, SpecialCharactersLatin,
             SpecialCharactersMathematical, SpecialCharactersText, Strikethrough,
             Subscript, Superscript, Table, TableCaption, TableCellProperties,
-            TableColumnResize, TableProperties, TableToolbar,
+            TableColumnResize, TableLayout, TableProperties, TableToolbar,
             TextTransformation, TodoList, Underline, WordCount,
-            customImageUploadPlugin, fileUploadPlugin, markdownPastePlugin, pasteSanitizerPlugin
+            customImageUploadPlugin, fileUploadPlugin, markdownPastePlugin,
+            pasteSanitizerPlugin, htmlSourceEditingButtonPlugin, markdownSourceEditingPlugin
         ],
         fontFamily: { supportAllValues: true },
         fontSize: {

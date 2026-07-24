@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import {ArrowLeftRight, GitBranch, QrCode, Lock, Clock, Braces, ShieldCheck} from 'lucide-react'
+import {ArrowLeftRight, GitBranch, QrCode, Lock, Clock, Braces, ShieldCheck, Network} from 'lucide-react'
 
 const utilities = [
     {
@@ -50,6 +50,13 @@ const utilities = [
         description: 'JavaScript, Java, C#, Python 정규식 패턴을 테스트하고 매칭 결과와 그룹 캡처를 확인합니다.',
         icon: Braces,
         path: '/util/regex-tester'
+    },
+    {
+        id: 'cidr',
+        title: 'CIDR Calculator',
+        description: 'CIDR과 IP 범위를 양방향 변환하고, 넷마스크/호스트 수 계산과 서브넷 분할, IP 포함 여부를 확인합니다.',
+        icon: Network,
+        path: '/util/cidr'
     }
 ]
 

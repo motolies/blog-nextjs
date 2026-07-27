@@ -411,6 +411,35 @@ const SAMPLE_TYPES = [
     {key: 'stateDiagram', label: 'State'},
 ]
 
+// 화면 맞춤(fit) 시 캔버스 가장자리에 남길 여백(px)
+const FIT_PADDING = 16
+
+// 내보내기용 svg 복제본 생성: 프리뷰 줌/팬 스타일을 제거하고 다이어그램 고유 크기를 width/height로 명시
+const createExportSvg = (svgElement: SVGSVGElement): {clone: SVGSVGElement, width: number, height: number} => {
+    const clone = svgElement.cloneNode(true) as SVGSVGElement
+    clone.style.transform = ''
+    clone.style.transformOrigin = ''
+    clone.style.transition = ''
+    clone.style.maxWidth = ''
+
+    const viewBox = svgElement.viewBox?.baseVal
+    let intrinsicWidth = viewBox?.width ?? 0
+    let intrinsicHeight = viewBox?.height ?? 0
+
+    if (intrinsicWidth <= 0 || intrinsicHeight <= 0) {
+        const bbox = svgElement.getBBox()
+        intrinsicWidth = bbox.width
+        intrinsicHeight = bbox.height
+    }
+
+    const width = Math.ceil(intrinsicWidth)
+    const height = Math.ceil(intrinsicHeight)
+    clone.setAttribute('width', String(width))
+    clone.setAttribute('height', String(height))
+
+    return {clone, width, height}
+}
+
 export default function MermaidPage() {
     const router = useRouter()
     const [code, setCode] = useState(SAMPLE_CODES.flowchart[0].code)
@@ -436,6 +465,7 @@ export default function MermaidPage() {
     const fullscreenPreviewRef = useRef<HTMLDivElement>(null)
     const mermaidRef = useRef<any>(null)
     const renderRequestIdRef = useRef(0)
+    const pendingFitRef = useRef(false)
 
     const applyPreviewTransform = useCallback((container: HTMLDivElement | null) => {
         const svg = container?.querySelector('svg')
@@ -448,6 +478,36 @@ export default function MermaidPage() {
         svg.style.transformOrigin = 'center center'
         svg.style.transition = isDragging ? 'none' : 'transform 0.1s ease-out'
     }, [isDragging, panOffset.x, panOffset.y, previewZoom])
+
+    // 다이어그램이 캔버스에 여백 포함 꽉 차도록 zoom을 계산해 적용 (transform 해제 후 동기 측정으로 트랜지션 중간값 오차 방지)
+    const fitToCanvas = useCallback((container: HTMLDivElement | null) => {
+        const svg = container?.querySelector('svg')
+
+        if (!svg || !container) {
+            setPreviewZoom(1)
+            setPanOffset({x: 0, y: 0})
+            return
+        }
+
+        svg.style.transition = 'none'
+        svg.style.transform = 'none'
+        const rect = svg.getBoundingClientRect()
+
+        if (rect.width <= 0 || rect.height <= 0) {
+            setPreviewZoom(1)
+            setPanOffset({x: 0, y: 0})
+            return
+        }
+
+        const availWidth = Math.max(container.clientWidth - FIT_PADDING * 2, 1)
+        const availHeight = Math.max(container.clientHeight - FIT_PADDING * 2, 1)
+        const fitZoom = Math.min(Math.max(Math.min(availWidth / rect.width, availHeight / rect.height), 0.1), 5)
+
+        // state 반영은 페인트 이후라 같은 동기 블록에서 인라인 transform을 먼저 적용해 깜빡임 방지
+        svg.style.transform = `scale(${fitZoom}) translate(0px, 0px)`
+        setPreviewZoom(fitZoom)
+        setPanOffset({x: 0, y: 0})
+    }, [])
 
     useEffect(() => { setIsClient(true) }, [])
 
@@ -493,6 +553,13 @@ export default function MermaidPage() {
 
             container.innerHTML = svg
             applyPreviewTransform(container)
+
+            // 전체화면 전환 등으로 예약된 화면 맞춤을 렌더 완료 시점에 수행
+            if (pendingFitRef.current) {
+                pendingFitRef.current = false
+                fitToCanvas(container)
+            }
+
             setError(null)
         } catch (e: any) {
             if (requestId !== renderRequestIdRef.current || !container.isConnected) {
@@ -507,7 +574,7 @@ export default function MermaidPage() {
             setError(errorMsg.trim() || '문법 오류')
             container.innerHTML = ''
         }
-    }, [applyPreviewTransform, code])
+    }, [applyPreviewTransform, code, fitToCanvas])
 
     useEffect(() => {
         if (!mermaidRef.current || !isMermaidReady) return
@@ -527,32 +594,46 @@ export default function MermaidPage() {
         applyPreviewTransform(target)
     }, [applyPreviewTransform, isFullscreen])
 
+    // 화면 줌/팬과 무관하게 전체 다이어그램을 담기 위해 정규화된 복제본을 화면 밖에 붙여 캡처
     const downloadPng = async () => {
+        let wrapper: HTMLDivElement | null = null
         try {
             const {toPng} = await import('html-to-image')
             const svgElement = (isFullscreen ? fullscreenPreviewRef.current : previewRef.current)?.querySelector('svg')
             if (!svgElement) { toast.warning('다이어그램을 먼저 생성해주세요.'); return }
-            let options: any = {backgroundColor: 'white'}
-            if (scaleMode === 'ratio') {
-                options.pixelRatio = scale
-            } else {
-                const bbox = svgElement.getBoundingClientRect()
-                const scaleX = customWidth / bbox.width
-                const scaleY = customHeight / bbox.height
-                options.pixelRatio = Math.min(scaleX, scaleY)
-            }
-            const dataUrl = await toPng(svgElement as any, options)
+
+            const {clone, width, height} = createExportSvg(svgElement)
+
+            // display/visibility 숨김은 빈 이미지가 되므로 화면 밖 배치로 computed style을 유지
+            wrapper = document.createElement('div')
+            wrapper.style.position = 'fixed'
+            wrapper.style.left = '-99999px'
+            wrapper.style.top = '0'
+            wrapper.setAttribute('aria-hidden', 'true')
+            wrapper.appendChild(clone)
+            document.body.appendChild(wrapper)
+
+            await document.fonts.ready
+
+            const pixelRatio = scaleMode === 'ratio'
+                ? scale
+                : Math.min(customWidth / width, customHeight / height)
+            const dataUrl = await toPng(clone as any, {backgroundColor: 'white', width, height, pixelRatio})
             downloadDataUrl(dataUrl, `mermaid-diagram-${Date.now()}.png`)
             toast.success('PNG 다운로드 완료')
         } catch (e: any) {
             toast.error('다운로드 실패: ' + e.message)
+        } finally {
+            wrapper?.remove()
         }
     }
 
     const downloadSvg = () => {
         const svgElement = (isFullscreen ? fullscreenPreviewRef.current : previewRef.current)?.querySelector('svg')
         if (!svgElement) { toast.warning('다이어그램을 먼저 생성해주세요.'); return }
-        const svgData = new XMLSerializer().serializeToString(svgElement)
+        // 화면 줌/팬 스타일이 제거된 복제본을 직렬화해 파일에 transform이 새어나가지 않도록 함
+        const {clone} = createExportSvg(svgElement)
+        const svgData = new XMLSerializer().serializeToString(clone)
         try {
             downloadBlob(new Blob([svgData], {type: 'image/svg+xml'}), `mermaid-diagram-${Date.now()}.svg`)
             toast.success('SVG 다운로드 완료')
@@ -592,23 +673,22 @@ export default function MermaidPage() {
 
     const handleMouseUp = useCallback(() => { setIsDragging(false) }, [])
 
+    // 현재 활성 프리뷰 컨테이너 기준으로 다이어그램을 캔버스에 꽉 차게 맞춤
     const handleResetZoom = useCallback(() => {
-        setPreviewZoom(1)
-        setPanOffset({x: 0, y: 0})
+        fitToCanvas(isFullscreen ? fullscreenPreviewRef.current : previewRef.current)
+    }, [fitToCanvas, isFullscreen])
+
+    // 전환 시점엔 대상 컨테이너가 아직 없으므로 화면 맞춤을 예약하고 렌더 완료 후 수행 (진입/종료 양방향)
+    const toggleFullscreen = useCallback(() => {
+        pendingFitRef.current = true
+        setIsFullscreen(prev => !prev)
     }, [])
 
-    const toggleFullscreen = useCallback(() => {
-        setIsFullscreen(prev => {
-            if (!prev) handleResetZoom()
-            return !prev
-        })
-    }, [handleResetZoom])
-
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape' && isFullscreen) setIsFullscreen(false) }
+        const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape' && isFullscreen) toggleFullscreen() }
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [isFullscreen])
+    }, [isFullscreen, toggleFullscreen])
 
     if (!isClient) {
         return <div className="p-4 flex justify-center items-center min-h-[50vh]">로딩 중...</div>
@@ -623,7 +703,7 @@ export default function MermaidPage() {
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPreviewZoom(z => Math.min(z * 1.2, 5))}>
                 <ZoomIn className="h-3.5 w-3.5"/>
             </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleResetZoom} title="리셋">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleResetZoom} title="화면 맞춤">
                 <Crosshair className="h-3.5 w-3.5"/>
             </Button>
         </div>

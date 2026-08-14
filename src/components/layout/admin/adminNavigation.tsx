@@ -2,6 +2,7 @@ import type {LucideIcon} from 'lucide-react'
 import {
   Activity,
   BarChart3,
+  BellRing,
   BookOpen,
   BookOpenText,
   Flame,
@@ -93,6 +94,11 @@ export const adminNavigationSections: AdminNavigationSection[] = [
         label: '핫딜 검색',
         icon: Search,
       },
+      {
+        href: '/admin/hot-deal-keywords',
+        label: '알림 키워드',
+        icon: BellRing,
+      },
     ],
   },
   {
@@ -162,6 +168,10 @@ export const adminRouteMeta: Record<string, AdminRouteMeta> = {
   '/admin/hot-deal-items': {
     title: '핫딜 아이템 검색',
     icon: Search,
+  },
+  '/admin/hot-deal-keywords': {
+    title: '핫딜 알림 키워드',
+    icon: BellRing,
   },
   '/admin/system-log': {
     title: '시스템 로그',

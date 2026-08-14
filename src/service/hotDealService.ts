@@ -1,6 +1,6 @@
 import axiosClient from './axiosClient'
 import type { AxiosRequestConfig } from 'axios'
-import type { HotDealItemSearchRequest } from '@/types/hotDeal'
+import type { HotDealItemSearchRequest, HotDealKeywordPayload } from '@/types/hotDeal'
 
 const HOT_DEAL_API_BASE = '/api/hot-deal/admin'
 
@@ -26,6 +26,26 @@ class HotDealService {
 
   triggerScrape = async () => {
     const response = await axiosClient.post(HOT_DEAL_API_BASE)
+    return response.data
+  }
+
+  getKeywords = async (config?: AxiosRequestConfig) => {
+    const response = await axiosClient.get(`${HOT_DEAL_API_BASE}/keywords`, config)
+    return response.data
+  }
+
+  createKeyword = async (data: HotDealKeywordPayload) => {
+    const response = await axiosClient.post(`${HOT_DEAL_API_BASE}/keywords`, data)
+    return response.data
+  }
+
+  updateKeyword = async (keywordId: string | number, data: HotDealKeywordPayload) => {
+    const response = await axiosClient.put(`${HOT_DEAL_API_BASE}/keywords/${keywordId}`, data)
+    return response.data
+  }
+
+  deleteKeyword = async (keywordId: string | number) => {
+    const response = await axiosClient.delete(`${HOT_DEAL_API_BASE}/keywords/${keywordId}`)
     return response.data
   }
 }

@@ -1,5 +1,5 @@
-import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import DynamicSearchFields from './DynamicSearchFields'
+import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import DynamicSearchFields from './DynamicSearchFields';
 import DataTableCore, {
   DATA_TABLE_DENSITY_CONFIG,
   DEFAULT_COLUMN_WIDTH,
@@ -10,8 +10,8 @@ import DataTableCore, {
   type DataTableDensity,
   type DataTableEditableConfig,
   type EditingCell,
-} from './DataTableCore'
-import DataTableToolbar from './DataTableToolbar'
+} from './DataTableCore';
+import DataTableToolbar from './DataTableToolbar';
 import {
   flexRender,
   getCoreRowModel,
@@ -28,7 +28,7 @@ import {
   type SortingState,
   type Table,
   type VisibilityState,
-} from '@tanstack/react-table'
+} from '@tanstack/react-table';
 import {
   ChevronFirst,
   ChevronLast,
@@ -36,9 +36,9 @@ import {
   ChevronRight,
   Loader2,
   Settings2,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -46,38 +46,39 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { cn } from '@/lib/utils'
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 
-export type { DataTableColumn, DataTableEditableConfig } from './DataTableCore'
+export type { DataTableColumn, DataTableEditableConfig } from './DataTableCore';
 
-const HIDDEN_PAGE_SIZE = 100000
-const DESKTOP_PAGINATION_MEDIA_QUERY = '(min-width: 640px)'
-const MOBILE_PAGE_BUTTON_BUDGET = 5
-const MIN_DESKTOP_PAGE_BUTTON_BUDGET = 5
-const MAX_DESKTOP_PAGE_BUTTON_BUDGET = 15
-const PAGINATION_SLOT_WIDTH = 32
-const PAGINATION_RESERVED_SLOT_COUNT = 6
+const HIDDEN_PAGE_SIZE = 100000;
+const DESKTOP_PAGINATION_MEDIA_QUERY = '(min-width: 640px)';
+const MOBILE_PAGE_BUTTON_BUDGET = 5;
+const MIN_DESKTOP_PAGE_BUTTON_BUDGET = 5;
+const MAX_DESKTOP_PAGE_BUTTON_BUDGET = 15;
+const PAGINATION_SLOT_WIDTH = 32;
+const PAGINATION_RESERVED_SLOT_COUNT = 6;
 
 function clampToOddBudget(value: number, min: number, max: number): number {
-  const bounded = Math.max(min, Math.min(max, value))
+  const bounded = Math.max(min, Math.min(max, value));
   if (bounded % 2 === 1) {
-    return bounded
+    return bounded;
   }
-  return Math.max(min, bounded - 1)
+  return Math.max(min, bounded - 1);
 }
 
 function getResponsivePageButtonBudget(containerWidth: number): number {
   if (containerWidth <= 0) {
-    return MIN_DESKTOP_PAGE_BUTTON_BUDGET
+    return MIN_DESKTOP_PAGE_BUTTON_BUDGET;
   }
 
-  const rawBudget = Math.floor(containerWidth / PAGINATION_SLOT_WIDTH) - PAGINATION_RESERVED_SLOT_COUNT
+  const rawBudget =
+    Math.floor(containerWidth / PAGINATION_SLOT_WIDTH) - PAGINATION_RESERVED_SLOT_COUNT;
   return clampToOddBudget(
     rawBudget,
     MIN_DESKTOP_PAGE_BUTTON_BUDGET,
     MAX_DESKTOP_PAGE_BUTTON_BUDGET,
-  )
+  );
 }
 
 function buildPageWindow(
@@ -86,170 +87,168 @@ function buildPageWindow(
   visiblePageButtonBudget: number,
 ): (number | '...')[] {
   if (totalPages <= 1) {
-    return [1]
+    return [1];
   }
 
-  const boundedBudget = Math.max(visiblePageButtonBudget, MOBILE_PAGE_BUTTON_BUDGET)
+  const boundedBudget = Math.max(visiblePageButtonBudget, MOBILE_PAGE_BUTTON_BUDGET);
   if (totalPages <= boundedBudget) {
-    return Array.from({ length: totalPages }, (_, index) => index + 1)
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
   }
 
-  const interiorBudget = boundedBudget - 2
-  let start = Math.max(2, currentPage - Math.floor(interiorBudget / 2))
-  let end = start + interiorBudget - 1
+  const interiorBudget = boundedBudget - 2;
+  let start = Math.max(2, currentPage - Math.floor(interiorBudget / 2));
+  let end = start + interiorBudget - 1;
 
   if (end > totalPages - 1) {
-    end = totalPages - 1
-    start = Math.max(2, end - interiorBudget + 1)
+    end = totalPages - 1;
+    start = Math.max(2, end - interiorBudget + 1);
   }
 
-  const pageWindow: (number | '...')[] = [1]
+  const pageWindow: (number | '...')[] = [1];
 
   if (start > 2) {
-    pageWindow.push('...')
+    pageWindow.push('...');
   }
 
   for (let page = start; page <= end; page += 1) {
-    pageWindow.push(page)
+    pageWindow.push(page);
   }
 
   if (end < totalPages - 1) {
-    pageWindow.push('...')
+    pageWindow.push('...');
   }
 
-  pageWindow.push(totalPages)
+  pageWindow.push(totalPages);
 
-  return pageWindow
+  return pageWindow;
 }
 
 export interface SearchField {
-  name?: string
-  label?: string
-  type?: string
-  pinned?: boolean
-  options?: { value: string | number | boolean; label: string }[]
-  fromName?: string
-  toName?: string
-  fromLabel?: string
-  toLabel?: string
-  defaultValue?: unknown
-  allowNegative?: boolean
-  min?: number
-  max?: number
-  integerOnly?: boolean
+  name?: string;
+  label?: string;
+  type?: string;
+  pinned?: boolean;
+  options?: { value: string | number | boolean; label: string }[];
+  fromName?: string;
+  toName?: string;
+  fromLabel?: string;
+  toLabel?: string;
+  defaultValue?: unknown;
+  allowNegative?: boolean;
+  min?: number;
+  max?: number;
+  integerOnly?: boolean;
 }
 
 function sanitizeSearchParams(
   params: Record<string, unknown>,
   fields: SearchField[],
 ): Record<string, unknown> {
-  const numberRangeMeta = new Map<string, SearchField>()
+  const numberRangeMeta = new Map<string, SearchField>();
   for (const field of fields) {
     if (field.type === 'numberRange' && field.fromName && field.toName) {
-      numberRangeMeta.set(field.fromName, field)
-      numberRangeMeta.set(field.toName, field)
+      numberRangeMeta.set(field.fromName, field);
+      numberRangeMeta.set(field.toName, field);
     }
   }
 
-  const cleaned: Record<string, unknown> = {}
+  const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(params)) {
-    if (value === undefined || value === null || value === '') continue
+    if (value === undefined || value === null || value === '') continue;
 
-    const meta = numberRangeMeta.get(key)
+    const meta = numberRangeMeta.get(key);
     if (meta) {
-      let num = typeof value === 'number' ? value : Number(value)
-      if (!Number.isFinite(num)) continue
+      let num = typeof value === 'number' ? value : Number(value);
+      if (!Number.isFinite(num)) continue;
 
-      if (meta.integerOnly) num = Math.trunc(num)
+      if (meta.integerOnly) num = Math.trunc(num);
 
-      const effectiveMin = meta.allowNegative === false
-        ? Math.max(0, meta.min ?? 0)
-        : meta.min
-      if (typeof effectiveMin === 'number' && num < effectiveMin) num = effectiveMin
-      if (typeof meta.max === 'number' && num > meta.max) num = meta.max
+      const effectiveMin = meta.allowNegative === false ? Math.max(0, meta.min ?? 0) : meta.min;
+      if (typeof effectiveMin === 'number' && num < effectiveMin) num = effectiveMin;
+      if (typeof meta.max === 'number' && num > meta.max) num = meta.max;
 
-      cleaned[key] = num
-      continue
+      cleaned[key] = num;
+      continue;
     }
 
-    cleaned[key] = value
+    cleaned[key] = value;
   }
-  return cleaned
+  return cleaned;
 }
 
 export interface OrderBy {
-  column: string
-  direction: 'ASCENDING' | 'DESCENDING'
+  column: string;
+  direction: 'ASCENDING' | 'DESCENDING';
 }
 
 export interface SearchRequest {
-  page: number
-  pageSize: number
-  orderBy: OrderBy[]
-  [key: string]: unknown
+  page: number;
+  pageSize: number;
+  orderBy: OrderBy[];
+  [key: string]: unknown;
 }
 
 export interface PageResponse<T> {
-  list: T[]
-  totalCount: number
+  list: T[];
+  totalCount: number;
 }
 
 export interface ShadcnDataTableProps<TData extends RowData> {
-  columns: DataTableColumn<TData>[]
-  fetchData?: (params: SearchRequest) => Promise<PageResponse<TData>>
-  searchFields?: SearchField[]
-  defaultSearchParams?: Record<string, unknown>
-  defaultPageSize?: number
-  paginationMode?: 'server' | 'client'
-  clientSideData?: TData[]
-  hidePagination?: boolean
-  summaryRow?: Record<string, unknown> | null
-  onRowClick?: (params: { row: TData; id: string }) => void
-  getRowClassName?: (params: { row: TData; id: string }) => string
-  autoHeight?: boolean
-  density?: DataTableDensity
-  enableRowActions?: boolean
-  renderRowActions?: (props: { row: Row<TData> }) => ReactNode
-  positionActionsColumn?: 'first' | 'last'
-  actionsColumnSize?: number
-  enableDynamicSearch?: boolean
-  mobileCardView?: boolean
+  columns: DataTableColumn<TData>[];
+  fetchData?: (params: SearchRequest) => Promise<PageResponse<TData>>;
+  searchFields?: SearchField[];
+  defaultSearchParams?: Record<string, unknown>;
+  defaultPageSize?: number;
+  paginationMode?: 'server' | 'client';
+  clientSideData?: TData[];
+  hidePagination?: boolean;
+  summaryRow?: Record<string, unknown> | null;
+  onRowClick?: (params: { row: TData; id: string }) => void;
+  getRowClassName?: (params: { row: TData; id: string }) => string;
+  autoHeight?: boolean;
+  density?: DataTableDensity;
+  enableRowActions?: boolean;
+  renderRowActions?: (props: { row: Row<TData> }) => ReactNode;
+  positionActionsColumn?: 'first' | 'last';
+  actionsColumnSize?: number;
+  enableDynamicSearch?: boolean;
+  mobileCardView?: boolean;
   // Column reordering
-  enableColumnReorder?: boolean
+  enableColumnReorder?: boolean;
   // Row selection
-  enableRowSelection?: boolean
-  onRowSelectionChange?: (selectedRows: TData[]) => void
+  enableRowSelection?: boolean;
+  onRowSelectionChange?: (selectedRows: TData[]) => void;
   renderSelectionToolbar?: (props: {
-    selectedRows: TData[]
-    selectedCount: number
-    clearSelection: () => void
-    table: Table<TData>
-  }) => ReactNode
+    selectedRows: TData[];
+    selectedCount: number;
+    clearSelection: () => void;
+    table: Table<TData>;
+  }) => ReactNode;
   // Toolbar
-  enableToolbar?: boolean
-  onAddRow?: () => void
-  onSaveAll?: (data: TData[]) => void | Promise<void>
+  enableToolbar?: boolean;
+  onAddRow?: () => void;
+  onSaveAll?: (data: TData[]) => void | Promise<void>;
   renderToolbar?: (props: {
-    table: Table<TData>
-    data: TData[]
-    addRow: (() => void) | undefined
-    saveAll: (() => void) | undefined
-  }) => ReactNode
-  getRowId?: (row: TData, index: number) => string
-  isRowModified?: (row: TData) => boolean
+    table: Table<TData>;
+    data: TData[];
+    addRow: (() => void) | undefined;
+    saveAll: (() => void) | undefined;
+  }) => ReactNode;
+  getRowId?: (row: TData, index: number) => string;
+  isRowModified?: (row: TData) => boolean;
   // Inline editing
-  onCellEdit?: (params: { rowId: string; columnId: string; value: unknown; row: TData }) => void
+  onCellEdit?: (params: { rowId: string; columnId: string; value: unknown; row: TData }) => void;
 }
 
 interface TableColumnMeta {
-  headerAlign?: 'left' | 'center' | 'right'
-  cellAlign?: 'left' | 'center' | 'right'
-  footerAlign?: 'left' | 'center' | 'right'
-  grow?: boolean
-  mobilePrimary?: boolean
-  mobileHidden?: boolean
-  mobileLabel?: string
-  editable?: DataTableEditableConfig | false
+  headerAlign?: 'left' | 'center' | 'right';
+  cellAlign?: 'left' | 'center' | 'right';
+  footerAlign?: 'left' | 'center' | 'right';
+  grow?: boolean;
+  mobilePrimary?: boolean;
+  mobileHidden?: boolean;
+  mobileLabel?: string;
+  editable?: DataTableEditableConfig | false;
 }
 
 export default function ShadcnDataTable<TData extends RowData>({
@@ -284,155 +283,167 @@ export default function ShadcnDataTable<TData extends RowData>({
   isRowModified,
   onCellEdit,
 }: ShadcnDataTableProps<TData>) {
-  const densityConfig = DATA_TABLE_DENSITY_CONFIG[density]
-  const showMobileCards = mobileCardView
-  const [data, setData] = useState<TData[]>([])
-  const [loading, setLoading] = useState(false)
-  const [rowCount, setRowCount] = useState(0)
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [manualWidths, setManualWidths] = useState<ColumnSizingState>({})
-  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
-  const [editingCell, setEditingCell] = useState<EditingCell | null>(null)
+  const densityConfig = DATA_TABLE_DENSITY_CONFIG[density];
+  const showMobileCards = mobileCardView;
+  const [data, setData] = useState<TData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [rowCount, setRowCount] = useState(0);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [manualWidths, setManualWidths] = useState<ColumnSizingState>({});
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([]);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: hidePagination ? HIDDEN_PAGE_SIZE : defaultPageSize,
-  })
-  const [searchParams, setSearchParams] = useState<Record<string, unknown>>(defaultSearchParams)
-  const [searchInputs, setSearchInputs] = useState<Record<string, unknown>>(defaultSearchParams)
-  const [searchTrigger, setSearchTrigger] = useState(0)
-  const [paginationViewportWidth, setPaginationViewportWidth] = useState(0)
-  const [isDesktopPagination, setIsDesktopPagination] = useState(false)
-  const requestRef = useRef(0)
-  const paginationViewportRef = useRef<HTMLDivElement | null>(null)
+  });
+  const [searchParams, setSearchParams] = useState<Record<string, unknown>>(defaultSearchParams);
+  const [searchInputs, setSearchInputs] = useState<Record<string, unknown>>(defaultSearchParams);
+  const [searchTrigger, setSearchTrigger] = useState(0);
+  const [paginationViewportWidth, setPaginationViewportWidth] = useState(0);
+  const [isDesktopPagination, setIsDesktopPagination] = useState(false);
+  const requestRef = useRef(0);
+  const paginationViewportRef = useRef<HTMLDivElement | null>(null);
 
   const handleSearchInputChange = useCallback((fieldName: string, value: unknown) => {
-    setSearchInputs((previous) => ({ ...previous, [fieldName]: value }))
-  }, [])
+    setSearchInputs((previous) => ({ ...previous, [fieldName]: value }));
+  }, []);
 
   const handleSearch = useCallback(() => {
-    setSearchParams(searchInputs)
-    setPagination((previous) => ({ ...previous, pageIndex: 0 }))
-    setSearchTrigger((t) => t + 1)
-  }, [searchInputs])
+    setSearchParams(searchInputs);
+    setPagination((previous) => ({ ...previous, pageIndex: 0 }));
+    setSearchTrigger((t) => t + 1);
+  }, [searchInputs]);
 
   const handleReset = useCallback(() => {
-    setSearchInputs(defaultSearchParams)
-    setSearchParams(defaultSearchParams)
-    setPagination((previous) => ({ ...previous, pageIndex: 0 }))
-    setSearchTrigger((t) => t + 1)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    setSearchInputs(defaultSearchParams);
+    setSearchParams(defaultSearchParams);
+    setPagination((previous) => ({ ...previous, pageIndex: 0 }));
+    setSearchTrigger((t) => t + 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const handleKeyPress = useCallback((event: React.KeyboardEvent) => {
-    if (event.key === 'Enter') {
-      handleSearch()
-    }
-  }, [handleSearch])
+  const handleKeyPress = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        handleSearch();
+      }
+    },
+    [handleSearch],
+  );
 
   useEffect(() => {
-    if (paginationMode !== 'server' || !fetchData) return
+    if (paginationMode !== 'server' || !fetchData) return;
 
-    const currentRequest = ++requestRef.current
+    const currentRequest = ++requestRef.current;
 
     const loadData = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
         const orderBy: OrderBy[] = sorting.map((sort) => ({
           column: sort.id,
           direction: sort.desc ? 'DESCENDING' : 'ASCENDING',
-        }))
+        }));
 
-        const sanitizedParams = sanitizeSearchParams(searchParams, searchFields)
+        const sanitizedParams = sanitizeSearchParams(searchParams, searchFields);
         const response = await fetchData({
           page: pagination.pageIndex,
           pageSize: pagination.pageSize,
           orderBy,
           ...sanitizedParams,
-        })
+        });
 
         if (currentRequest === requestRef.current) {
-          setData(response.list || [])
-          setRowCount(response.totalCount || 0)
+          setData(response.list || []);
+          setRowCount(response.totalCount || 0);
         }
       } catch (error) {
-        console.error('데이터 로드 실패:', error)
+        console.error('데이터 로드 실패:', error);
         if (currentRequest === requestRef.current) {
-          setData([])
-          setRowCount(0)
+          setData([]);
+          setRowCount(0);
         }
       } finally {
         if (currentRequest === requestRef.current) {
-          setLoading(false)
+          setLoading(false);
         }
       }
-    }
+    };
 
-    loadData()
-  }, [fetchData, pagination.pageIndex, pagination.pageSize, paginationMode, searchFields, searchParams, sorting, searchTrigger])
+    loadData();
+  }, [
+    fetchData,
+    pagination.pageIndex,
+    pagination.pageSize,
+    paginationMode,
+    searchFields,
+    searchParams,
+    sorting,
+    searchTrigger,
+  ]);
 
   useEffect(() => {
-    if (paginationMode !== 'client') return
+    if (paginationMode !== 'client') return;
 
-    const totalPages = Math.max(Math.ceil(clientSideData.length / pagination.pageSize), 1)
+    const totalPages = Math.max(Math.ceil(clientSideData.length / pagination.pageSize), 1);
     if (pagination.pageIndex > totalPages - 1) {
       setPagination((previous) => ({
         ...previous,
         pageIndex: totalPages - 1,
-      }))
+      }));
     }
-  }, [clientSideData.length, pagination.pageIndex, pagination.pageSize, paginationMode])
+  }, [clientSideData.length, pagination.pageIndex, pagination.pageSize, paginationMode]);
 
   useEffect(() => {
-    if (hidePagination || typeof window === 'undefined') return
+    if (hidePagination || typeof window === 'undefined') return;
 
-    const mediaQuery = window.matchMedia(DESKTOP_PAGINATION_MEDIA_QUERY)
+    const mediaQuery = window.matchMedia(DESKTOP_PAGINATION_MEDIA_QUERY);
     const updateDesktopPagination = () => {
-      setIsDesktopPagination((previous) => (
-        previous === mediaQuery.matches ? previous : mediaQuery.matches
-      ))
-    }
+      setIsDesktopPagination((previous) =>
+        previous === mediaQuery.matches ? previous : mediaQuery.matches,
+      );
+    };
 
-    updateDesktopPagination()
+    updateDesktopPagination();
 
     if (typeof mediaQuery.addEventListener === 'function') {
-      mediaQuery.addEventListener('change', updateDesktopPagination)
-      return () => mediaQuery.removeEventListener('change', updateDesktopPagination)
+      mediaQuery.addEventListener('change', updateDesktopPagination);
+      return () => mediaQuery.removeEventListener('change', updateDesktopPagination);
     }
 
-    mediaQuery.addListener(updateDesktopPagination)
-    return () => mediaQuery.removeListener(updateDesktopPagination)
-  }, [hidePagination])
+    mediaQuery.addListener(updateDesktopPagination);
+    return () => mediaQuery.removeListener(updateDesktopPagination);
+  }, [hidePagination]);
 
   useEffect(() => {
-    if (hidePagination) return
+    if (hidePagination) return;
 
-    const viewport = paginationViewportRef.current
-    if (!viewport) return
+    const viewport = paginationViewportRef.current;
+    if (!viewport) return;
 
     const updateViewportWidth = (nextWidth: number) => {
-      const normalizedWidth = Math.max(Math.floor(nextWidth), 0)
-      setPaginationViewportWidth((previous) => (
-        previous === normalizedWidth ? previous : normalizedWidth
-      ))
-    }
+      const normalizedWidth = Math.max(Math.floor(nextWidth), 0);
+      setPaginationViewportWidth((previous) =>
+        previous === normalizedWidth ? previous : normalizedWidth,
+      );
+    };
 
-    updateViewportWidth(viewport.clientWidth)
+    updateViewportWidth(viewport.clientWidth);
 
-    if (typeof ResizeObserver === 'undefined') return
+    if (typeof ResizeObserver === 'undefined') return;
 
     const resizeObserver = new ResizeObserver((entries) => {
-      const nextWidth = entries[0]?.contentRect.width ?? viewport.clientWidth
-      updateViewportWidth(nextWidth)
-    })
+      const nextWidth = entries[0]?.contentRect.width ?? viewport.clientWidth;
+      updateViewportWidth(nextWidth);
+    });
 
-    resizeObserver.observe(viewport)
-    return () => resizeObserver.disconnect()
-  }, [hidePagination])
+    resizeObserver.observe(viewport);
+    return () => resizeObserver.disconnect();
+  }, [hidePagination]);
 
   const columns = useMemo(() => {
-    let adapted = buildDataTableColumns<TData>(columnsProp, summaryRow)
+    let adapted = buildDataTableColumns<TData>(columnsProp, summaryRow);
 
     if (enableRowSelection) {
       const selectColumn: ColumnDef<TData> = {
@@ -445,7 +456,13 @@ export default function ShadcnDataTable<TData extends RowData>({
         enableHiding: false,
         header: ({ table: t }) => (
           <Checkbox
-            checked={t.getIsAllPageRowsSelected() ? true : t.getIsSomePageRowsSelected() ? 'indeterminate' : false}
+            checked={
+              t.getIsAllPageRowsSelected()
+                ? true
+                : t.getIsSomePageRowsSelected()
+                  ? 'indeterminate'
+                  : false
+            }
             onCheckedChange={(value) => t.toggleAllPageRowsSelected(!!value)}
             aria-label="전체 선택"
           />
@@ -466,8 +483,8 @@ export default function ShadcnDataTable<TData extends RowData>({
           mobileHidden: true,
           mobileLabel: '선택',
         } satisfies TableColumnMeta,
-      }
-      adapted = [selectColumn, ...adapted]
+      };
+      adapted = [selectColumn, ...adapted];
     }
 
     if (enableRowActions && renderRowActions) {
@@ -481,9 +498,7 @@ export default function ShadcnDataTable<TData extends RowData>({
         enableResizing: false,
         enableHiding: false,
         cell: ({ row }) => (
-          <div className="flex items-center justify-center gap-1">
-            {renderRowActions({ row })}
-          </div>
+          <div className="flex items-center justify-center gap-1">{renderRowActions({ row })}</div>
         ),
         meta: {
           headerAlign: 'center',
@@ -493,19 +508,26 @@ export default function ShadcnDataTable<TData extends RowData>({
           mobileHidden: true,
           mobileLabel: '작업',
         } satisfies TableColumnMeta,
-      }
+      };
 
       return positionActionsColumn === 'first'
         ? [actionsColumn, ...adapted]
-        : [...adapted, actionsColumn]
+        : [...adapted, actionsColumn];
     }
 
-    return adapted
-  }, [columnsProp, enableRowActions, enableRowSelection, positionActionsColumn, renderRowActions, summaryRow])
+    return adapted;
+  }, [
+    columnsProp,
+    enableRowActions,
+    enableRowSelection,
+    positionActionsColumn,
+    renderRowActions,
+    summaryRow,
+  ]);
 
-  const tableData = paginationMode === 'client' ? clientSideData : data
-  const totalRows = paginationMode === 'server' ? rowCount : clientSideData.length
-  const pageCount = Math.max(Math.ceil(totalRows / pagination.pageSize), 1)
+  const tableData = paginationMode === 'client' ? clientSideData : data;
+  const totalRows = paginationMode === 'server' ? rowCount : clientSideData.length;
+  const pageCount = Math.max(Math.ceil(totalRows / pagination.pageSize), 1);
 
   const table = useReactTable({
     data: tableData,
@@ -536,70 +558,75 @@ export default function ShadcnDataTable<TData extends RowData>({
       maxSize: MAX_COLUMN_WIDTH,
     },
     ...(enableColumnReorder ? { onColumnOrderChange: setColumnOrder } : {}),
-    ...(enableRowSelection ? {
-      enableRowSelection: true,
-      onRowSelectionChange: setRowSelection,
-    } : {}),
+    ...(enableRowSelection
+      ? {
+          enableRowSelection: true,
+          onRowSelectionChange: setRowSelection,
+        }
+      : {}),
     ...(getRowId ? { getRowId } : {}),
-  })
+  });
 
   // columnOrder 초기화
   useEffect(() => {
-    if (!enableColumnReorder) return
-    const ids = columns.map((col) => col.id ?? '').filter(Boolean)
+    if (!enableColumnReorder) return;
+    const ids = columns.map((col) => col.id ?? '').filter(Boolean);
     setColumnOrder((prev) => {
-      if (prev.length > 0 && prev.length === ids.length && prev.every((id, i) => ids.includes(id))) {
-        return prev
+      if (
+        prev.length > 0 &&
+        prev.length === ids.length &&
+        prev.every((id, i) => ids.includes(id))
+      ) {
+        return prev;
       }
-      return ids
-    })
-  }, [columns, enableColumnReorder])
+      return ids;
+    });
+  }, [columns, enableColumnReorder]);
 
   // rowSelection 변경 시 외부 콜백 호출
   useEffect(() => {
-    if (!enableRowSelection || !onRowSelectionChange) return
-    const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original)
-    onRowSelectionChange(selectedRows)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rowSelection])
+    if (!enableRowSelection || !onRowSelectionChange) return;
+    const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
+    onRowSelectionChange(selectedRows);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rowSelection]);
 
   // 페이지 전환 시 편집 모드 해제
   useEffect(() => {
-    setEditingCell(null)
-  }, [pagination.pageIndex])
+    setEditingCell(null);
+  }, [pagination.pageIndex]);
 
-  const handleCellValueChange = useCallback((params: {
-    rowId: string
-    columnId: string
-    value: unknown
-    row: TData
-  }) => {
-    onCellEdit?.(params)
-  }, [onCellEdit])
+  const handleCellValueChange = useCallback(
+    (params: { rowId: string; columnId: string; value: unknown; row: TData }) => {
+      onCellEdit?.(params);
+    },
+    [onCellEdit],
+  );
 
-  const rows = table.getRowModel().rows
-  const currentPage = pagination.pageIndex + 1
-  const totalPages = paginationMode === 'client'
-    ? Math.max(table.getPageCount(), 1)
-    : pageCount
+  const rows = table.getRowModel().rows;
+  const currentPage = pagination.pageIndex + 1;
+  const totalPages = paginationMode === 'client' ? Math.max(table.getPageCount(), 1) : pageCount;
   const visiblePageButtonBudget = useMemo(() => {
     if (!isDesktopPagination) {
-      return MOBILE_PAGE_BUTTON_BUDGET
+      return MOBILE_PAGE_BUTTON_BUDGET;
     }
 
-    return getResponsivePageButtonBudget(paginationViewportWidth)
-  }, [isDesktopPagination, paginationViewportWidth])
+    return getResponsivePageButtonBudget(paginationViewportWidth);
+  }, [isDesktopPagination, paginationViewportWidth]);
 
-  const goToPage = useCallback((page: number) => {
-    setPagination((previous) => ({
-      ...previous,
-      pageIndex: Math.min(Math.max(0, page - 1), totalPages - 1),
-    }))
-  }, [totalPages])
+  const goToPage = useCallback(
+    (page: number) => {
+      setPagination((previous) => ({
+        ...previous,
+        pageIndex: Math.min(Math.max(0, page - 1), totalPages - 1),
+      }));
+    },
+    [totalPages],
+  );
 
   const pageNumbers = useMemo(() => {
-    return buildPageWindow(currentPage, totalPages, visiblePageButtonBudget)
-  }, [currentPage, totalPages, visiblePageButtonBudget])
+    return buildPageWindow(currentPage, totalPages, visiblePageButtonBudget);
+  }, [currentPage, totalPages, visiblePageButtonBudget]);
 
   const searchSpacingConfig = {
     filterPadding: densityConfig.filterPadding,
@@ -612,7 +639,7 @@ export default function ShadcnDataTable<TData extends RowData>({
     defaultDensity: density,
     totalTypographyVariant: densityConfig.totalTypographyVariant,
     buttonSize: densityConfig.buttonSize,
-  }
+  };
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -659,12 +686,14 @@ export default function ShadcnDataTable<TData extends RowData>({
             <DropdownMenuSeparator />
             {table
               .getAllLeafColumns()
-              .filter((column) => column.getCanHide() && column.id !== '__actions__' && column.id !== '__select__')
+              .filter(
+                (column) =>
+                  column.getCanHide() && column.id !== '__actions__' && column.id !== '__select__',
+              )
               .map((column) => {
-                const headerLabel = typeof column.columnDef.header === 'string'
-                  ? column.columnDef.header.trim()
-                  : ''
-                const label = headerLabel || column.id
+                const headerLabel =
+                  typeof column.columnDef.header === 'string' ? column.columnDef.header.trim() : '';
+                const label = headerLabel || column.id;
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -675,7 +704,7 @@ export default function ShadcnDataTable<TData extends RowData>({
                   >
                     {label}
                   </DropdownMenuCheckboxItem>
-                )
+                );
               })}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -694,22 +723,26 @@ export default function ShadcnDataTable<TData extends RowData>({
           ) : (
             <div className="space-y-3">
               {rows.map((row) => {
-                const rowClassName = getRowClassName?.({ row: row.original, id: row.id }) || ''
-                const visibleCells = row.getVisibleCells()
-                const actionCell = visibleCells.find((cell) => cell.column.id === '__actions__')
+                const rowClassName = getRowClassName?.({ row: row.original, id: row.id }) || '';
+                const visibleCells = row.getVisibleCells();
+                const actionCell = visibleCells.find((cell) => cell.column.id === '__actions__');
                 const contentCells = visibleCells.filter((cell) => {
-                  const meta = cell.column.columnDef.meta as TableColumnMeta | undefined
-                  return cell.column.id !== '__actions__' && !meta?.mobileHidden
-                })
+                  const meta = cell.column.columnDef.meta as TableColumnMeta | undefined;
+                  return cell.column.id !== '__actions__' && !meta?.mobileHidden;
+                });
                 const primaryCell =
-                  contentCells.find((cell) => (cell.column.columnDef.meta as TableColumnMeta | undefined)?.mobilePrimary) ||
-                  contentCells[0]
-                const secondaryCells = contentCells.filter((cell) => cell.id !== primaryCell?.id)
+                  contentCells.find(
+                    (cell) =>
+                      (cell.column.columnDef.meta as TableColumnMeta | undefined)?.mobilePrimary,
+                  ) || contentCells[0];
+                const secondaryCells = contentCells.filter((cell) => cell.id !== primaryCell?.id);
 
                 return (
                   <article
                     key={row.id}
-                    onClick={onRowClick ? () => onRowClick({ row: row.original, id: row.id }) : undefined}
+                    onClick={
+                      onRowClick ? () => onRowClick({ row: row.original, id: row.id }) : undefined
+                    }
                     className={cn(
                       'rounded-[1.15rem] border border-[color:var(--admin-border)] bg-white/92 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] dark:bg-[rgba(40,44,52,0.92)] dark:shadow-[0_10px_24px_rgba(0,0,0,0.15)]',
                       onRowClick && 'cursor-pointer',
@@ -721,10 +754,14 @@ export default function ShadcnDataTable<TData extends RowData>({
                         {primaryCell ? (
                           <>
                             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[color:var(--admin-text-faint)]">
-                              {((primaryCell.column.columnDef.meta as TableColumnMeta | undefined)?.mobileLabel) || '항목'}
+                              {(primaryCell.column.columnDef.meta as TableColumnMeta | undefined)
+                                ?.mobileLabel || '항목'}
                             </p>
                             <div className="mt-1 text-sm font-semibold text-[color:var(--admin-text)] [&_div]:text-inherit [&_span]:text-inherit">
-                              {flexRender(primaryCell.column.columnDef.cell, primaryCell.getContext())}
+                              {flexRender(
+                                primaryCell.column.columnDef.cell,
+                                primaryCell.getContext(),
+                              )}
                             </div>
                           </>
                         ) : null}
@@ -740,7 +777,7 @@ export default function ShadcnDataTable<TData extends RowData>({
                     {secondaryCells.length > 0 ? (
                       <dl className="mt-4 space-y-2">
                         {secondaryCells.map((cell) => {
-                          const meta = cell.column.columnDef.meta as TableColumnMeta | undefined
+                          const meta = cell.column.columnDef.meta as TableColumnMeta | undefined;
                           return (
                             <div
                               key={cell.id}
@@ -753,12 +790,12 @@ export default function ShadcnDataTable<TData extends RowData>({
                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
                               </dd>
                             </div>
-                          )
+                          );
                         })}
                       </dl>
                     ) : null}
                   </article>
-                )
+                );
               })}
             </div>
           )}
@@ -811,28 +848,26 @@ export default function ShadcnDataTable<TData extends RowData>({
                 <ChevronLeft className="h-3.5 w-3.5" />
               </Button>
 
-              {pageNumbers.map((page, index) => (
-                page === '...'
-                  ? (
-                      <span
-                        key={`ellipsis-${index}`}
-                        className="px-1 text-xs text-[color:var(--admin-text-faint)]"
-                      >
-                        …
-                      </span>
-                    )
-                  : (
-                      <Button
-                        key={page}
-                        variant={page === currentPage ? 'default' : 'outline'}
-                        size="icon"
-                        className="h-7 w-7 text-xs"
-                        onClick={() => goToPage(page as number)}
-                      >
-                        {page}
-                      </Button>
-                    )
-              ))}
+              {pageNumbers.map((page, index) =>
+                page === '...' ? (
+                  <span
+                    key={`ellipsis-${index}`}
+                    className="px-1 text-xs text-[color:var(--admin-text-faint)]"
+                  >
+                    …
+                  </span>
+                ) : (
+                  <Button
+                    key={page}
+                    variant={page === currentPage ? 'default' : 'outline'}
+                    size="icon"
+                    className="h-7 w-7 text-xs"
+                    onClick={() => goToPage(page as number)}
+                  >
+                    {page}
+                  </Button>
+                ),
+              )}
 
               <Button
                 variant="outline"
@@ -857,5 +892,5 @@ export default function ShadcnDataTable<TData extends RowData>({
         </div>
       )}
     </div>
-  )
+  );
 }

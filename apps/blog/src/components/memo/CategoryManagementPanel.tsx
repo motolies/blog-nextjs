@@ -1,105 +1,123 @@
-import React, {useState, useEffect, useMemo} from 'react'
-import {Plus, Pencil, Trash2} from 'lucide-react'
-import {toast} from 'sonner'
-import ShadcnDataTable from '@/components/common/ShadcnDataTable'
-import {Button} from '@/components/ui/button'
-import {Input} from '@/components/ui/input'
-import {Label} from '@/components/ui/label'
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog'
-import DeleteConfirm from '@/components/confirm/DeleteConfirm'
-import service from '@/service'
+import React, { useState, useEffect, useMemo } from 'react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import ShadcnDataTable from '@/components/common/ShadcnDataTable';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import DeleteConfirm from '@/components/confirm/DeleteConfirm';
+import service from '@/service';
 
 interface MemoCategory {
-  id: string | number
-  name: string
-  seq: number
-  [key: string]: unknown
+  id: string | number;
+  name: string;
+  seq: number;
+  [key: string]: unknown;
 }
 
 export default function CategoryManagementPanel() {
-  const [categories, setCategories] = useState<MemoCategory[]>([])
-  const [dialogOpen, setDialogOpen] = useState<boolean>(false)
-  const [editingCategory, setEditingCategory] = useState<MemoCategory | null>(null)
-  const [formName, setFormName] = useState<string>('')
-  const [formSeq, setFormSeq] = useState<number>(0)
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<boolean>(false)
-  const [deleteTarget, setDeleteTarget] = useState<MemoCategory | null>(null)
+  const [categories, setCategories] = useState<MemoCategory[]>([]);
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [editingCategory, setEditingCategory] = useState<MemoCategory | null>(null);
+  const [formName, setFormName] = useState<string>('');
+  const [formSeq, setFormSeq] = useState<number>(0);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<boolean>(false);
+  const [deleteTarget, setDeleteTarget] = useState<MemoCategory | null>(null);
 
   useEffect(() => {
-    loadCategories()
-  }, [])
+    loadCategories();
+  }, []);
 
   const loadCategories = async () => {
     try {
-      const data = await service.memo.getCategories()
-      setCategories(data || [])
+      const data = await service.memo.getCategories();
+      setCategories(data || []);
     } catch (error) {
-      toast.error('카테고리 목록을 불러오는데 실패했습니다.')
+      toast.error('카테고리 목록을 불러오는데 실패했습니다.');
     }
-  }
+  };
 
-  const columns = useMemo(() => [
-    {accessorKey: 'id', header: 'ID', size: 80, mobileHidden: true},
-    {accessorKey: 'name', header: '이름', grow: true, mobilePrimary: true, mobileLabel: '카테고리'},
-    {accessorKey: 'seq', header: '순서', size: 80, mobileLabel: '정렬'},
-  ], [])
+  const columns = useMemo(
+    () => [
+      { accessorKey: 'id', header: 'ID', size: 80, mobileHidden: true },
+      {
+        accessorKey: 'name',
+        header: '이름',
+        grow: true,
+        mobilePrimary: true,
+        mobileLabel: '카테고리',
+      },
+      { accessorKey: 'seq', header: '순서', size: 80, mobileLabel: '정렬' },
+    ],
+    [],
+  );
 
   const handleAdd = () => {
-    setEditingCategory(null)
-    setFormName('')
-    setFormSeq(0)
-    setDialogOpen(true)
-  }
+    setEditingCategory(null);
+    setFormName('');
+    setFormSeq(0);
+    setDialogOpen(true);
+  };
 
   const handleEdit = (row: MemoCategory) => {
-    setEditingCategory(row)
-    setFormName(row.name)
-    setFormSeq(row.seq)
-    setDialogOpen(true)
-  }
+    setEditingCategory(row);
+    setFormName(row.name);
+    setFormSeq(row.seq);
+    setDialogOpen(true);
+  };
 
   const handleSave = async () => {
     if (!formName.trim()) {
-      toast.warning('카테고리 이름을 입력해주세요.')
-      return
+      toast.warning('카테고리 이름을 입력해주세요.');
+      return;
     }
 
     try {
       if (editingCategory) {
-        await service.memo.updateCategory(editingCategory.id, {name: formName.trim(), seq: formSeq})
-        toast.success('카테고리가 수정되었습니다.')
+        await service.memo.updateCategory(editingCategory.id, {
+          name: formName.trim(),
+          seq: formSeq,
+        });
+        toast.success('카테고리가 수정되었습니다.');
       } else {
-        await service.memo.createCategory({name: formName.trim(), seq: formSeq})
-        toast.success('카테고리가 생성되었습니다.')
+        await service.memo.createCategory({ name: formName.trim(), seq: formSeq });
+        toast.success('카테고리가 생성되었습니다.');
       }
-      setDialogOpen(false)
-      loadCategories()
+      setDialogOpen(false);
+      loadCategories();
     } catch (error) {
-      toast.error('카테고리 저장에 실패했습니다.')
+      toast.error('카테고리 저장에 실패했습니다.');
     }
-  }
+  };
 
   const handleDeleteClick = (row: MemoCategory) => {
-    setDeleteTarget(row)
-    setDeleteConfirmOpen(true)
-  }
+    setDeleteTarget(row);
+    setDeleteConfirmOpen(true);
+  };
 
   const handleDeleteConfirm = async () => {
-    setDeleteConfirmOpen(false)
+    setDeleteConfirmOpen(false);
     try {
-      await service.memo.deleteCategory(deleteTarget!.id)
-      toast.success('카테고리가 삭제되었습니다.')
-      loadCategories()
+      await service.memo.deleteCategory(deleteTarget!.id);
+      toast.success('카테고리가 삭제되었습니다.');
+      loadCategories();
     } catch (error) {
-      toast.error('카테고리 삭제에 실패했습니다. 연결된 메모가 있는지 확인해주세요.')
+      toast.error('카테고리 삭제에 실패했습니다. 연결된 메모가 있는지 확인해주세요.');
     }
-  }
+  };
 
   return (
     <div>
       <div className="mb-2 flex justify-end">
         <Button size="sm" onClick={handleAdd}>
-          <Plus className="h-4 w-4 mr-1"/>
+          <Plus className="h-4 w-4 mr-1" />
           카테고리 추가
         </Button>
       </div>
@@ -111,13 +129,25 @@ export default function CategoryManagementPanel() {
         hidePagination={true}
         enableRowActions={true}
         positionActionsColumn="last"
-        renderRowActions={({row}: {row: {original: MemoCategory}}) => (
+        renderRowActions={({ row }: { row: { original: MemoCategory } }) => (
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => handleEdit(row.original)} title="수정" className="h-7 w-7">
-              <Pencil className="h-4 w-4"/>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleEdit(row.original)}
+              title="수정"
+              className="h-7 w-7"
+            >
+              <Pencil className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(row.original)} title="삭제" className="h-7 w-7 text-red-500 hover:text-red-600">
-              <Trash2 className="h-4 w-4"/>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleDeleteClick(row.original)}
+              title="삭제"
+              className="h-7 w-7 text-red-500 hover:text-red-600"
+            >
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         )}
@@ -136,7 +166,9 @@ export default function CategoryManagementPanel() {
                 autoFocus
                 value={formName}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormName(e.target.value)}
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => { if (e.key === 'Enter') handleSave() }}
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (e.key === 'Enter') handleSave();
+                }}
               />
             </div>
             <div className="space-y-1">
@@ -145,12 +177,16 @@ export default function CategoryManagementPanel() {
                 id="cat-seq"
                 type="number"
                 value={formSeq}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormSeq(parseInt(e.target.value) || 0)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setFormSeq(parseInt(e.target.value) || 0)
+                }
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>취소</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              취소
+            </Button>
             <Button onClick={handleSave}>저장</Button>
           </DialogFooter>
         </DialogContent>
@@ -163,5 +199,5 @@ export default function CategoryManagementPanel() {
         onCancel={() => setDeleteConfirmOpen(false)}
       />
     </div>
-  )
+  );
 }

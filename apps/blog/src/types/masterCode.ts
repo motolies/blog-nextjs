@@ -1,31 +1,31 @@
 export interface MasterCodeNode {
-  id: number
-  code: string
-  name: string
-  sort?: number
-  children?: MasterCodeNode[]
-  attributes?: Record<string, string>
+  id: number;
+  code: string;
+  name: string;
+  sort?: number;
+  children?: MasterCodeNode[];
+  attributes?: Record<string, string>;
 }
 
 export interface MasterCodeCreateRequest {
-  code: string
-  name: string
-  parentId?: number
-  sort?: number
-  attributes?: Record<string, string>
+  code: string;
+  name: string;
+  parentId?: number;
+  sort?: number;
+  attributes?: Record<string, string>;
 }
 
 export interface MasterCodeUpdateRequest {
-  name?: string
-  code?: string
-  sort?: number
-  attributes?: Record<string, string>
+  name?: string;
+  code?: string;
+  sort?: number;
+  attributes?: Record<string, string>;
 }
 
 export interface MasterCodeMoveRequest {
-  newParentId: number
+  newParentId: number;
 }
 
 export interface MasterCodeReorderRequest {
-  sort: number
+  sort: number;
 }

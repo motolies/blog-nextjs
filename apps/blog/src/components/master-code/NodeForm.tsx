@@ -1,46 +1,46 @@
-import React from 'react'
-import {Input} from '@/components/ui/input'
-import {Label} from '@/components/ui/label'
-import {Switch} from '@/components/ui/switch'
-import {Textarea} from '@/components/ui/textarea'
-import {cn} from '@/lib/utils'
-import {AttributeSchemaEditor, AttributeValueEditor} from './AttributeEditor'
+import React from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
+import { AttributeSchemaEditor, AttributeValueEditor } from './AttributeEditor';
 
 interface AttributeSchemaItem {
-  key: string
-  label: string
-  type: string
+  key: string;
+  label: string;
+  type: string;
   // 'true'이면 공개(비관리자) 응답에서 백엔드가 이 속성을 제거한다. 없으면 false(공개)로 간주.
-  sensitive?: string
+  sensitive?: string;
 }
 
 interface NodeFormData {
-  code: string
-  name: string
-  description: string
-  sort: number
-  isActive: boolean
-  isRoot: boolean
-  parentId: number | null
-  attributeSchema: AttributeSchemaItem[]
-  attributes: Record<string, string>
+  code: string;
+  name: string;
+  description: string;
+  sort: number;
+  isActive: boolean;
+  isRoot: boolean;
+  parentId: number | null;
+  attributeSchema: AttributeSchemaItem[];
+  attributes: Record<string, string>;
 }
 
 interface ParentNode {
-  id: number
-  code: string
-  name: string
+  id: number;
+  code: string;
+  name: string;
 }
 
-type DialogMode = 'addRoot' | 'addChild' | 'edit'
+type DialogMode = 'addRoot' | 'addChild' | 'edit';
 
 interface NodeFormProps {
-  formData: NodeFormData
-  setFormData: React.Dispatch<React.SetStateAction<NodeFormData>>
-  dialogMode: DialogMode | null
-  originalCode: string
-  parentNode: ParentNode | null
-  rootAttributeSchema: AttributeSchemaItem[]
+  formData: NodeFormData;
+  setFormData: React.Dispatch<React.SetStateAction<NodeFormData>>;
+  dialogMode: DialogMode | null;
+  originalCode: string;
+  parentNode: ParentNode | null;
+  rootAttributeSchema: AttributeSchemaItem[];
 }
 
 export default function NodeForm({
@@ -51,9 +51,9 @@ export default function NodeForm({
   parentNode,
   rootAttributeSchema,
 }: NodeFormProps) {
-  const isEdit = dialogMode === 'edit'
-  const isRoot = dialogMode === 'addRoot' || (isEdit && formData.isRoot)
-  const codeChanged = isEdit && formData.code !== originalCode
+  const isEdit = dialogMode === 'edit';
+  const isRoot = dialogMode === 'addRoot' || (isEdit && formData.isRoot);
+  const codeChanged = isEdit && formData.code !== originalCode;
 
   return (
     <div className="space-y-4 pt-2">
@@ -61,7 +61,10 @@ export default function NodeForm({
       {dialogMode === 'addChild' && parentNode && (
         <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-3">
           <p className="text-sm text-[color:var(--admin-text-secondary)]">
-            부모 노드: <strong>{parentNode.code} ({parentNode.name})</strong>
+            부모 노드:{' '}
+            <strong>
+              {parentNode.code} ({parentNode.name})
+            </strong>
           </p>
           <p className="mt-0.5 text-xs text-[color:var(--admin-text-faint)]">
             이 노드의 하위에 새 노드가 생성됩니다.
@@ -74,10 +77,17 @@ export default function NodeForm({
         <Label>코드 *</Label>
         <Input
           value={formData.code}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({...prev, code: e.target.value}))}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setFormData((prev) => ({ ...prev, code: e.target.value }))
+          }
           className={cn(codeChanged && 'border-yellow-500 focus-visible:ring-yellow-400')}
         />
-        <p className={cn('text-xs', codeChanged ? 'text-yellow-600' : 'text-[color:var(--admin-text-faint)]')}>
+        <p
+          className={cn(
+            'text-xs',
+            codeChanged ? 'text-yellow-600' : 'text-[color:var(--admin-text-faint)]',
+          )}
+        >
           {codeChanged
             ? `기존 코드(${originalCode})가 변경됩니다.`
             : '영문 대문자와 밑줄(_)만 사용'}
@@ -89,7 +99,9 @@ export default function NodeForm({
         <Label>이름 *</Label>
         <Input
           value={formData.name}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({...prev, name: e.target.value}))}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setFormData((prev) => ({ ...prev, name: e.target.value }))
+          }
         />
       </div>
 
@@ -98,7 +110,9 @@ export default function NodeForm({
         <Label>설명</Label>
         <Textarea
           value={formData.description}
-          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData(prev => ({...prev, description: e.target.value}))}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+            setFormData((prev) => ({ ...prev, description: e.target.value }))
+          }
           rows={3}
         />
       </div>
@@ -109,10 +123,12 @@ export default function NodeForm({
         <Input
           type="number"
           value={formData.sort}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({
-            ...prev,
-            sort: parseInt(e.target.value) || 0
-          }))}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setFormData((prev) => ({
+              ...prev,
+              sort: parseInt(e.target.value) || 0,
+            }))
+          }
         />
       </div>
 
@@ -120,7 +136,9 @@ export default function NodeForm({
       <div className="flex items-center gap-2">
         <Switch
           checked={formData.isActive}
-          onCheckedChange={(checked: boolean) => setFormData(prev => ({...prev, isActive: checked}))}
+          onCheckedChange={(checked: boolean) =>
+            setFormData((prev) => ({ ...prev, isActive: checked }))
+          }
         />
         <Label>활성화</Label>
       </div>
@@ -129,15 +147,19 @@ export default function NodeForm({
       {isRoot ? (
         <AttributeSchemaEditor
           schema={formData.attributeSchema}
-          onChange={(schema: AttributeSchemaItem[]) => setFormData(prev => ({...prev, attributeSchema: schema}))}
+          onChange={(schema: AttributeSchemaItem[]) =>
+            setFormData((prev) => ({ ...prev, attributeSchema: schema }))
+          }
         />
       ) : (
         <AttributeValueEditor
           schema={rootAttributeSchema || []}
           attributes={formData.attributes}
-          onChange={(attributes: Record<string, string>) => setFormData(prev => ({...prev, attributes}))}
+          onChange={(attributes: Record<string, string>) =>
+            setFormData((prev) => ({ ...prev, attributes }))
+          }
         />
       )}
     </div>
-  )
+  );
 }

@@ -1,56 +1,54 @@
-export const isBrowserEnvironment = (): boolean => (
-    typeof window !== 'undefined'
-    && typeof document !== 'undefined'
-)
+export const isBrowserEnvironment = (): boolean =>
+  typeof window !== 'undefined' && typeof document !== 'undefined';
 
 const ensureBrowserEnvironment = (): void => {
-    if (!isBrowserEnvironment()) {
-        throw new Error('브라우저 환경에서만 사용할 수 있습니다.')
-    }
-}
+  if (!isBrowserEnvironment()) {
+    throw new Error('브라우저 환경에서만 사용할 수 있습니다.');
+  }
+};
 
 export const copyTextToClipboard = async (text: string): Promise<void> => {
-    if (!text) {
-        throw new Error('복사할 내용이 없습니다.')
-    }
+  if (!text) {
+    throw new Error('복사할 내용이 없습니다.');
+  }
 
-    ensureBrowserEnvironment()
+  ensureBrowserEnvironment();
 
-    if (!navigator?.clipboard?.writeText) {
-        throw new Error('클립보드 API를 사용할 수 없습니다.')
-    }
+  if (!navigator?.clipboard?.writeText) {
+    throw new Error('클립보드 API를 사용할 수 없습니다.');
+  }
 
-    await navigator.clipboard.writeText(text)
-}
+  await navigator.clipboard.writeText(text);
+};
 
 export const downloadDataUrl = (dataUrl: string, fileName: string): void => {
-    if (!dataUrl) {
-        throw new Error('다운로드할 데이터가 없습니다.')
-    }
+  if (!dataUrl) {
+    throw new Error('다운로드할 데이터가 없습니다.');
+  }
 
-    ensureBrowserEnvironment()
+  ensureBrowserEnvironment();
 
-    const link = document.createElement('a')
-    link.download = fileName
-    link.href = dataUrl
-    link.click()
-}
+  const link = document.createElement('a');
+  link.download = fileName;
+  link.href = dataUrl;
+  link.click();
+};
 
 export const downloadBlob = (blob: Blob, fileName: string): void => {
-    if (!blob) {
-        throw new Error('다운로드할 데이터가 없습니다.')
-    }
+  if (!blob) {
+    throw new Error('다운로드할 데이터가 없습니다.');
+  }
 
-    ensureBrowserEnvironment()
+  ensureBrowserEnvironment();
 
-    const url = URL.createObjectURL(blob)
+  const url = URL.createObjectURL(blob);
 
-    try {
-        const link = document.createElement('a')
-        link.download = fileName
-        link.href = url
-        link.click()
-    } finally {
-        URL.revokeObjectURL(url)
-    }
-}
+  try {
+    const link = document.createElement('a');
+    link.download = fileName;
+    link.href = url;
+    link.click();
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+};

@@ -1,98 +1,98 @@
 interface LanguageFeature {
-  name: string
-  namedGroupPattern: RegExp
-  namedGroupSyntax: string
-  supportedFlags: string[]
-  unsupported: string[]
+  name: string;
+  namedGroupPattern: RegExp;
+  namedGroupSyntax: string;
+  supportedFlags: string[];
+  unsupported: string[];
 }
 
 interface FeaturePattern {
-  pattern: RegExp
-  name: string
-  supportedIn: string[]
-  example: string
+  pattern: RegExp;
+  name: string;
+  supportedIn: string[];
+  example: string;
 }
 
 interface DetectedFeature {
-  name: string
-  matches: { value: string; index: number }[]
-  supportedIn: string[]
-  example: string
+  name: string;
+  matches: { value: string; index: number }[];
+  supportedIn: string[];
+  example: string;
 }
 
 interface CompatibilityWarning {
-  type: string
-  feature: string
-  message: string
-  severity: 'info' | 'warning' | 'error'
+  type: string;
+  feature: string;
+  message: string;
+  severity: 'info' | 'warning' | 'error';
 }
 
 interface CompatibilityResult {
-  isJsCompatible: boolean
-  canRunInBrowser: boolean
-  canConvert: boolean
-  convertedPattern: string
-  warnings: CompatibilityWarning[]
-  detectedFeatures: DetectedFeature[]
+  isJsCompatible: boolean;
+  canRunInBrowser: boolean;
+  canConvert: boolean;
+  convertedPattern: string;
+  warnings: CompatibilityWarning[];
+  detectedFeatures: DetectedFeature[];
 }
 
 interface MatchGroup {
-  index: number
-  value: string | null
-  captured: boolean
+  index: number;
+  value: string | null;
+  captured: boolean;
 }
 
 interface MatchResult {
-  fullMatch: string
-  index: number
-  endIndex: number
-  groups: MatchGroup[]
-  namedGroups: Record<string, string | null>
-  hasNamedGroups: boolean
+  fullMatch: string;
+  index: number;
+  endIndex: number;
+  groups: MatchGroup[];
+  namedGroups: Record<string, string | null>;
+  hasNamedGroups: boolean;
 }
 
 interface RegexTestResult {
-  success: boolean
-  matches: MatchResult[]
-  matchCount?: number
-  pattern?: string
-  flags?: string
-  error: string | null
+  success: boolean;
+  matches: MatchResult[];
+  matchCount?: number;
+  pattern?: string;
+  flags?: string;
+  error: string | null;
 }
 
 interface HighlightSegment {
-  text: string
-  isMatch: boolean
-  matchIndex?: number
-  color?: string
-  groups?: MatchGroup[]
-  namedGroups?: Record<string, string | null>
+  text: string;
+  isMatch: boolean;
+  matchIndex?: number;
+  color?: string;
+  groups?: MatchGroup[];
+  namedGroups?: Record<string, string | null>;
 }
 
 interface SyntaxValidationResult {
-  isValid: boolean
-  errors?: string[]
-  error?: string
+  isValid: boolean;
+  errors?: string[];
+  error?: string;
 }
 
 interface NamedGroup {
-  name: string
-  fullMatch: string
-  index: number
-  position: number
+  name: string;
+  fullMatch: string;
+  index: number;
+  position: number;
 }
 
 interface SupportedLanguage {
-  id: string
-  name: string
-  namedGroupSyntax: string
-  supportedFlags: string[]
+  id: string;
+  name: string;
+  namedGroupSyntax: string;
+  supportedFlags: string[];
 }
 
 interface ExamplePattern {
-  name: string
-  pattern: string
-  testString: string
+  name: string;
+  pattern: string;
+  testString: string;
 }
 
 const LANGUAGE_FEATURES: Record<string, LanguageFeature> = {
@@ -101,63 +101,63 @@ const LANGUAGE_FEATURES: Record<string, LanguageFeature> = {
     namedGroupPattern: /\(\?<([a-zA-Z_][a-zA-Z0-9_]*)>/g,
     namedGroupSyntax: '(?<name>...)',
     supportedFlags: ['g', 'i', 'm', 's', 'u', 'y'],
-    unsupported: ['possessiveQuantifiers', 'atomicGroups', 'balancingGroups', 'inlineModifiers']
+    unsupported: ['possessiveQuantifiers', 'atomicGroups', 'balancingGroups', 'inlineModifiers'],
   },
   java: {
     name: 'Java',
     namedGroupPattern: /\(\?<([a-zA-Z_][a-zA-Z0-9_]*)>/g,
     namedGroupSyntax: '(?<name>...)',
     supportedFlags: ['i', 'm', 's', 'u', 'x', 'd'],
-    unsupported: ['balancingGroups']
+    unsupported: ['balancingGroups'],
   },
   csharp: {
     name: 'C#',
     namedGroupPattern: /\(\?<([a-zA-Z_][a-zA-Z0-9_]*)>/g,
     namedGroupSyntax: '(?<name>...)',
     supportedFlags: ['i', 'm', 's', 'x', 'n'],
-    unsupported: ['possessiveQuantifiers']
+    unsupported: ['possessiveQuantifiers'],
   },
   python: {
     name: 'Python',
     namedGroupPattern: /\(\?P<([a-zA-Z_][a-zA-Z0-9_]*)>/g,
     namedGroupSyntax: '(?P<name>...)',
     supportedFlags: ['i', 'm', 's', 'x', 'a', 'L', 'u'],
-    unsupported: ['possessiveQuantifiers', 'atomicGroups', 'balancingGroups']
-  }
-}
+    unsupported: ['possessiveQuantifiers', 'atomicGroups', 'balancingGroups'],
+  },
+};
 
 const FEATURE_PATTERNS: Record<string, FeaturePattern> = {
   possessiveQuantifiers: {
     pattern: /[*+?]\+/g,
     name: '소유 수량자 (Possessive Quantifiers)',
     supportedIn: ['java'],
-    example: '*+, ++, ?+'
+    example: '*+, ++, ?+',
   },
   atomicGroups: {
     pattern: /\(\?>/g,
     name: '원자 그룹 (Atomic Groups)',
     supportedIn: ['java', 'csharp'],
-    example: '(?>...)'
+    example: '(?>...)',
   },
   balancingGroups: {
     pattern: /\(\?<[a-zA-Z_][a-zA-Z0-9_]*-[a-zA-Z_][a-zA-Z0-9_]*>/g,
     name: '균형 그룹 (Balancing Groups)',
     supportedIn: ['csharp'],
-    example: '(?<a-b>...)'
+    example: '(?<a-b>...)',
   },
   inlineModifiers: {
     pattern: /\(\?[imsx]+\)/g,
     name: '인라인 수정자 (Inline Modifiers)',
     supportedIn: ['java', 'csharp', 'python'],
-    example: '(?i), (?m), (?s)'
+    example: '(?i), (?m), (?s)',
   },
   pythonNamedGroups: {
     pattern: /\(\?P<([a-zA-Z_][a-zA-Z0-9_]*)>/g,
     name: 'Python Named Groups',
     supportedIn: ['python'],
-    example: '(?P<name>...)'
-  }
-}
+    example: '(?P<name>...)',
+  },
+};
 
 export const HIGHLIGHT_COLORS: string[] = [
   '#ffeb3b', // yellow
@@ -167,42 +167,45 @@ export const HIGHLIGHT_COLORS: string[] = [
   '#e91e63', // pink
   '#9c27b0', // purple
   '#00bcd4', // cyan
-  '#8bc34a'  // light green
-]
+  '#8bc34a', // light green
+];
 
 export const getSupportedLanguages = (): SupportedLanguage[] => {
   return Object.entries(LANGUAGE_FEATURES).map(([id, config]) => ({
     id,
     name: config.name,
     namedGroupSyntax: config.namedGroupSyntax,
-    supportedFlags: config.supportedFlags
-  }))
-}
+    supportedFlags: config.supportedFlags,
+  }));
+};
 
 export const detectLanguageFeatures = (pattern: string): Record<string, DetectedFeature> => {
-  if (!pattern) return {}
+  if (!pattern) return {};
 
-  const detected: Record<string, DetectedFeature> = {}
+  const detected: Record<string, DetectedFeature> = {};
 
   Object.entries(FEATURE_PATTERNS).forEach(([featureKey, featureConfig]) => {
-    const matches = [...pattern.matchAll(featureConfig.pattern)]
+    const matches = [...pattern.matchAll(featureConfig.pattern)];
     if (matches.length > 0) {
       detected[featureKey] = {
         name: featureConfig.name,
-        matches: matches.map(m => ({
+        matches: matches.map((m) => ({
           value: m[0],
-          index: m.index!
+          index: m.index!,
         })),
         supportedIn: featureConfig.supportedIn,
-        example: featureConfig.example
-      }
+        example: featureConfig.example,
+      };
     }
-  })
+  });
 
-  return detected
-}
+  return detected;
+};
 
-export const analyzeCompatibility = (pattern: string, targetLanguage: string): CompatibilityResult => {
+export const analyzeCompatibility = (
+  pattern: string,
+  targetLanguage: string,
+): CompatibilityResult => {
   if (!pattern) {
     return {
       isJsCompatible: true,
@@ -210,17 +213,17 @@ export const analyzeCompatibility = (pattern: string, targetLanguage: string): C
       canConvert: false,
       convertedPattern: '',
       warnings: [],
-      detectedFeatures: []
-    }
+      detectedFeatures: [],
+    };
   }
 
-  const detectedFeatures = detectLanguageFeatures(pattern)
-  const warnings: CompatibilityWarning[] = []
-  let canRunInBrowser = true
-  let canConvert = false
-  let convertedPattern = pattern
+  const detectedFeatures = detectLanguageFeatures(pattern);
+  const warnings: CompatibilityWarning[] = [];
+  let canRunInBrowser = true;
+  let canConvert = false;
+  let convertedPattern = pattern;
 
-  const jsUnsupported = LANGUAGE_FEATURES.javascript.unsupported
+  const jsUnsupported = LANGUAGE_FEATURES.javascript.unsupported;
 
   Object.entries(detectedFeatures).forEach(([featureKey, featureData]) => {
     if (featureKey === 'pythonNamedGroups') {
@@ -228,15 +231,15 @@ export const analyzeCompatibility = (pattern: string, targetLanguage: string): C
         type: 'conversion',
         feature: featureData.name,
         message: `${featureData.name}은 JavaScript 형식 (?<name>...)으로 변환되어 브라우저에서 실행됩니다.`,
-        severity: 'info'
-      })
-      convertedPattern = convertPythonToJsPattern(pattern)
-      canConvert = true
-      return
+        severity: 'info',
+      });
+      convertedPattern = convertPythonToJsPattern(pattern);
+      canConvert = true;
+      return;
     }
 
     if (!jsUnsupported.includes(featureKey)) {
-      return
+      return;
     }
 
     if (featureKey === 'inlineModifiers') {
@@ -244,23 +247,23 @@ export const analyzeCompatibility = (pattern: string, targetLanguage: string): C
         type: 'unsupported',
         feature: featureData.name,
         message: `${featureData.name}은 JavaScript에서 직접 실행되지 않습니다. 플래그로 대체하세요.`,
-        severity: 'warning'
-      })
-      canRunInBrowser = false
-      return
+        severity: 'warning',
+      });
+      canRunInBrowser = false;
+      return;
     }
 
     warnings.push({
       type: 'unsupported',
       feature: featureData.name,
       message: `${featureData.name}은 JavaScript에서 지원되지 않습니다. (${featureData.supportedIn.join(', ')}에서만 지원)`,
-      severity: 'error'
-    })
-    canRunInBrowser = false
-  })
+      severity: 'error',
+    });
+    canRunInBrowser = false;
+  });
 
   if (targetLanguage !== 'javascript') {
-    const targetUnsupported = LANGUAGE_FEATURES[targetLanguage]?.unsupported || []
+    const targetUnsupported = LANGUAGE_FEATURES[targetLanguage]?.unsupported || [];
 
     Object.entries(detectedFeatures).forEach(([featureKey, featureData]) => {
       if (targetUnsupported.includes(featureKey)) {
@@ -268,10 +271,10 @@ export const analyzeCompatibility = (pattern: string, targetLanguage: string): C
           type: 'target_unsupported',
           feature: featureData.name,
           message: `${featureData.name}은 ${LANGUAGE_FEATURES[targetLanguage]?.name || targetLanguage}에서 지원되지 않습니다.`,
-          severity: 'warning'
-        })
+          severity: 'warning',
+        });
       }
-    })
+    });
   }
 
   return {
@@ -280,70 +283,78 @@ export const analyzeCompatibility = (pattern: string, targetLanguage: string): C
     canConvert,
     convertedPattern,
     warnings,
-    detectedFeatures: Object.values(detectedFeatures)
-  }
-}
+    detectedFeatures: Object.values(detectedFeatures),
+  };
+};
 
 export const convertPythonToJsPattern = (pattern: string): string => {
-  if (!pattern) return ''
+  if (!pattern) return '';
 
-  return pattern.replace(/\(\?P<([a-zA-Z_][a-zA-Z0-9_]*)>/g, '(?<$1>')
-}
+  return pattern.replace(/\(\?P<([a-zA-Z_][a-zA-Z0-9_]*)>/g, '(?<$1>');
+};
 
-export const parseNamedGroups = (pattern: string, language: string = 'javascript'): NamedGroup[] => {
-  if (!pattern) return []
+export const parseNamedGroups = (
+  pattern: string,
+  language: string = 'javascript',
+): NamedGroup[] => {
+  if (!pattern) return [];
 
-  const langConfig = LANGUAGE_FEATURES[language]
-  if (!langConfig) return []
+  const langConfig = LANGUAGE_FEATURES[language];
+  if (!langConfig) return [];
 
-  const namedGroups: NamedGroup[] = []
-  const regex = new RegExp(langConfig.namedGroupPattern.source, 'g')
-  let match: RegExpExecArray | null
+  const namedGroups: NamedGroup[] = [];
+  const regex = new RegExp(langConfig.namedGroupPattern.source, 'g');
+  let match: RegExpExecArray | null;
 
   while ((match = regex.exec(pattern)) !== null) {
     namedGroups.push({
       name: match[1],
       fullMatch: match[0],
       index: namedGroups.length,
-      position: match.index
-    })
+      position: match.index,
+    });
   }
 
-  return namedGroups
-}
+  return namedGroups;
+};
 
-export const executeRegexTest = (pattern: string, testString: string, flags: Record<string, boolean> = { g: true }, language: string = 'javascript'): RegexTestResult => {
+export const executeRegexTest = (
+  pattern: string,
+  testString: string,
+  flags: Record<string, boolean> = { g: true },
+  language: string = 'javascript',
+): RegexTestResult => {
   if (!pattern) {
-    return { success: false, matches: [], error: '패턴을 입력하세요.' }
+    return { success: false, matches: [], error: '패턴을 입력하세요.' };
   }
 
   try {
-    let jsPattern = pattern
+    let jsPattern = pattern;
     if (language === 'python') {
-      jsPattern = convertPythonToJsPattern(pattern)
+      jsPattern = convertPythonToJsPattern(pattern);
     }
 
     const flagString = Object.entries(flags)
       .filter(([, enabled]) => enabled)
       .map(([flag]) => flag)
-      .join('')
+      .join('');
 
-    const regex = new RegExp(jsPattern, flagString)
+    const regex = new RegExp(jsPattern, flagString);
 
-    const matches: MatchResult[] = []
+    const matches: MatchResult[] = [];
 
     if (flags.g) {
-      let match: RegExpExecArray | null
+      let match: RegExpExecArray | null;
       while ((match = regex.exec(testString)) !== null) {
-        matches.push(formatMatchResult(match))
+        matches.push(formatMatchResult(match));
         if (match[0] === '') {
-          regex.lastIndex++
+          regex.lastIndex++;
         }
       }
     } else {
-      const match = regex.exec(testString)
+      const match = regex.exec(testString);
       if (match) {
-        matches.push(formatMatchResult(match))
+        matches.push(formatMatchResult(match));
       }
     }
 
@@ -353,34 +364,34 @@ export const executeRegexTest = (pattern: string, testString: string, flags: Rec
       matchCount: matches.length,
       pattern: jsPattern,
       flags: flagString,
-      error: null
-    }
+      error: null,
+    };
   } catch (e) {
     return {
       success: false,
       matches: [],
       matchCount: 0,
-      error: (e as Error).message
-    }
+      error: (e as Error).message,
+    };
   }
-}
+};
 
 const formatMatchResult = (match: RegExpExecArray): MatchResult => {
-  const groups: MatchGroup[] = []
+  const groups: MatchGroup[] = [];
 
   for (let i = 1; i < match.length; i++) {
     groups.push({
       index: i,
       value: match[i] !== undefined ? match[i] : null,
-      captured: match[i] !== undefined
-    })
+      captured: match[i] !== undefined,
+    });
   }
 
-  const namedGroups: Record<string, string | null> = {}
+  const namedGroups: Record<string, string | null> = {};
   if (match.groups) {
     Object.entries(match.groups).forEach(([name, value]) => {
-      namedGroups[name] = value !== undefined ? value : null
-    })
+      namedGroups[name] = value !== undefined ? value : null;
+    });
   }
 
   return {
@@ -389,26 +400,29 @@ const formatMatchResult = (match: RegExpExecArray): MatchResult => {
     endIndex: match.index + match[0].length,
     groups,
     namedGroups,
-    hasNamedGroups: Object.keys(namedGroups).length > 0
-  }
-}
+    hasNamedGroups: Object.keys(namedGroups).length > 0,
+  };
+};
 
-export const getHighlightSegments = (testString: string, matches: MatchResult[]): HighlightSegment[] => {
+export const getHighlightSegments = (
+  testString: string,
+  matches: MatchResult[],
+): HighlightSegment[] => {
   if (!testString || !matches || matches.length === 0) {
-    return [{ text: testString || '', isMatch: false }]
+    return [{ text: testString || '', isMatch: false }];
   }
 
-  const segments: HighlightSegment[] = []
-  let lastIndex = 0
+  const segments: HighlightSegment[] = [];
+  let lastIndex = 0;
 
-  const sortedMatches = [...matches].sort((a, b) => a.index - b.index)
+  const sortedMatches = [...matches].sort((a, b) => a.index - b.index);
 
   sortedMatches.forEach((match, matchIndex) => {
     if (match.index > lastIndex) {
       segments.push({
         text: testString.substring(lastIndex, match.index),
-        isMatch: false
-      })
+        isMatch: false,
+      });
     }
 
     segments.push({
@@ -417,102 +431,103 @@ export const getHighlightSegments = (testString: string, matches: MatchResult[])
       matchIndex,
       color: HIGHLIGHT_COLORS[matchIndex % HIGHLIGHT_COLORS.length],
       groups: match.groups,
-      namedGroups: match.namedGroups
-    })
+      namedGroups: match.namedGroups,
+    });
 
-    lastIndex = match.endIndex
-  })
+    lastIndex = match.endIndex;
+  });
 
   if (lastIndex < testString.length) {
     segments.push({
       text: testString.substring(lastIndex),
-      isMatch: false
-    })
+      isMatch: false,
+    });
   }
 
-  return segments
-}
+  return segments;
+};
 
 export const validateBasicSyntax = (pattern: string): SyntaxValidationResult => {
   if (!pattern) {
-    return { isValid: false, error: '패턴을 입력하세요.' }
+    return { isValid: false, error: '패턴을 입력하세요.' };
   }
 
-  const errors: string[] = []
+  const errors: string[] = [];
 
-  let parenCount = 0
-  let bracketCount = 0
-  let braceCount = 0
-  let inCharClass = false
-  let escaped = false
+  let parenCount = 0;
+  let bracketCount = 0;
+  let braceCount = 0;
+  let inCharClass = false;
+  let escaped = false;
 
   for (let i = 0; i < pattern.length; i++) {
-    const char = pattern[i]
+    const char = pattern[i];
 
     if (escaped) {
-      escaped = false
-      continue
+      escaped = false;
+      continue;
     }
 
     if (char === '\\') {
-      escaped = true
-      continue
+      escaped = true;
+      continue;
     }
 
     if (char === '[' && !inCharClass) {
-      inCharClass = true
-      bracketCount++
+      inCharClass = true;
+      bracketCount++;
     } else if (char === ']' && inCharClass) {
-      inCharClass = false
-      bracketCount--
+      inCharClass = false;
+      bracketCount--;
     } else if (!inCharClass) {
-      if (char === '(') parenCount++
-      else if (char === ')') parenCount--
-      else if (char === '{') braceCount++
-      else if (char === '}') braceCount--
+      if (char === '(') parenCount++;
+      else if (char === ')') parenCount--;
+      else if (char === '{') braceCount++;
+      else if (char === '}') braceCount--;
     }
   }
 
   if (parenCount !== 0) {
-    errors.push('괄호가 짝이 맞지 않습니다.')
+    errors.push('괄호가 짝이 맞지 않습니다.');
   }
   if (bracketCount !== 0) {
-    errors.push('대괄호가 짝이 맞지 않습니다.')
+    errors.push('대괄호가 짝이 맞지 않습니다.');
   }
   if (braceCount !== 0) {
-    errors.push('중괄호가 짝이 맞지 않습니다.')
+    errors.push('중괄호가 짝이 맞지 않습니다.');
   }
 
   return {
     isValid: errors.length === 0,
-    errors
-  }
-}
+    errors,
+  };
+};
 
 export const EXAMPLE_PATTERNS: ExamplePattern[] = [
   {
     name: '이메일',
     pattern: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}',
-    testString: 'user@example.com, test.email@domain.co.kr'
+    testString: 'user@example.com, test.email@domain.co.kr',
   },
   {
     name: '날짜 (Named Groups)',
     pattern: '(?<year>\\d{4})-(?<month>\\d{2})-(?<day>\\d{2})',
-    testString: '2024-01-15, 2023-12-25'
+    testString: '2024-01-15, 2023-12-25',
   },
   {
     name: 'URL',
     pattern: 'https?://[\\w.-]+(?:/[\\w./-]*)?',
-    testString: 'https://example.com/path, http://test.org'
+    testString: 'https://example.com/path, http://test.org',
   },
   {
     name: '전화번호 (한국)',
     pattern: '(?<area>0\\d{1,2})-(?<exchange>\\d{3,4})-(?<number>\\d{4})',
-    testString: '02-1234-5678, 010-9876-5432'
+    testString: '02-1234-5678, 010-9876-5432',
   },
   {
     name: 'IPv4 주소',
-    pattern: '(?<octet1>\\d{1,3})\\.(?<octet2>\\d{1,3})\\.(?<octet3>\\d{1,3})\\.(?<octet4>\\d{1,3})',
-    testString: '192.168.0.1, 10.0.0.255'
-  }
-]
+    pattern:
+      '(?<octet1>\\d{1,3})\\.(?<octet2>\\d{1,3})\\.(?<octet3>\\d{1,3})\\.(?<octet4>\\d{1,3})',
+    testString: '192.168.0.1, 10.0.0.255',
+  },
+];

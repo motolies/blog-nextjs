@@ -1,58 +1,63 @@
-import React from 'react'
-import {Plus, Trash2} from 'lucide-react'
-import {Button} from '@/components/ui/button'
-import {Input} from '@/components/ui/input'
-import {Label} from '@/components/ui/label'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
-import {Switch} from '@/components/ui/switch'
+import React from 'react';
+import { Plus, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 
 const ATTRIBUTE_TYPES = [
-  {value: 'text', label: '텍스트'},
-  {value: 'number', label: '숫자'},
-  {value: 'boolean', label: '예/아니오'},
-] as const
+  { value: 'text', label: '텍스트' },
+  { value: 'number', label: '숫자' },
+  { value: 'boolean', label: '예/아니오' },
+] as const;
 
 interface AttributeSchemaItem {
-  key: string
-  label: string
-  type: string
+  key: string;
+  label: string;
+  type: string;
   // 'true'이면 공개(비관리자) 응답에서 백엔드가 이 속성을 제거한다. 없으면 false(공개)로 간주.
-  sensitive?: string
+  sensitive?: string;
 }
 
 interface AttributeSchemaEditorProps {
-  schema: AttributeSchemaItem[]
-  onChange: (schema: AttributeSchemaItem[]) => void
+  schema: AttributeSchemaItem[];
+  onChange: (schema: AttributeSchemaItem[]) => void;
 }
 
 /**
  * 루트 노드용: 속성 스키마 정의 편집기
  * attributeSchema = [{ key, label, type }]
  */
-export function AttributeSchemaEditor({schema, onChange}: AttributeSchemaEditorProps) {
-  const safeSchema = Array.isArray(schema) ? schema : []
+export function AttributeSchemaEditor({ schema, onChange }: AttributeSchemaEditorProps) {
+  const safeSchema = Array.isArray(schema) ? schema : [];
 
   const handleAdd = () => {
-    onChange([...safeSchema, {key: '', label: '', type: 'text', sensitive: 'false'}])
-  }
+    onChange([...safeSchema, { key: '', label: '', type: 'text', sensitive: 'false' }]);
+  };
 
   const handleRemove = (index: number) => {
-    onChange(safeSchema.filter((_, i) => i !== index))
-  }
+    onChange(safeSchema.filter((_, i) => i !== index));
+  };
 
   const handleChange = (index: number, field: keyof AttributeSchemaItem, value: string) => {
-    const updated = safeSchema.map((item, i) =>
-      i === index ? {...item, [field]: value} : item
-    )
-    onChange(updated)
-  }
+    const updated = safeSchema.map((item, i) => (i === index ? { ...item, [field]: value } : item));
+    onChange(updated);
+  };
 
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
         <h4 className="text-sm font-semibold text-[color:var(--admin-text)]">속성 스키마 정의</h4>
         <Button type="button" variant="outline" size="sm" onClick={handleAdd}>
-          <Plus className="h-3.5 w-3.5 mr-1"/>추가
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          추가
         </Button>
       </div>
 
@@ -72,7 +77,9 @@ export function AttributeSchemaEditor({schema, onChange}: AttributeSchemaEditorP
               <Label className="text-xs">키 (영문)</Label>
               <Input
                 value={item.key}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(index, 'key', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleChange(index, 'key', e.target.value)
+                }
                 placeholder="color"
               />
             </div>
@@ -80,19 +87,26 @@ export function AttributeSchemaEditor({schema, onChange}: AttributeSchemaEditorP
               <Label className="text-xs">표시명</Label>
               <Input
                 value={item.label}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange(index, 'label', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleChange(index, 'label', e.target.value)
+                }
                 placeholder="색상"
               />
             </div>
             <div className="w-28 space-y-1">
               <Label className="text-xs">타입</Label>
-              <Select value={item.type} onValueChange={(val: string) => handleChange(index, 'type', val)}>
+              <Select
+                value={item.type}
+                onValueChange={(val: string) => handleChange(index, 'type', val)}
+              >
                 <SelectTrigger>
-                  <SelectValue/>
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {ATTRIBUTE_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -102,7 +116,9 @@ export function AttributeSchemaEditor({schema, onChange}: AttributeSchemaEditorP
               <div className="flex h-9 items-center justify-center">
                 <Switch
                   checked={item.sensitive === 'true'}
-                  onCheckedChange={(checked: boolean) => handleChange(index, 'sensitive', checked ? 'true' : 'false')}
+                  onCheckedChange={(checked: boolean) =>
+                    handleChange(index, 'sensitive', checked ? 'true' : 'false')
+                  }
                   aria-label="민감 속성 여부"
                 />
               </div>
@@ -114,32 +130,32 @@ export function AttributeSchemaEditor({schema, onChange}: AttributeSchemaEditorP
               className="text-red-500 hover:text-red-700 hover:bg-red-500/10 shrink-0"
               onClick={() => handleRemove(index)}
             >
-              <Trash2 className="h-3.5 w-3.5"/>
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 interface AttributeValueEditorProps {
-  schema: AttributeSchemaItem[]
-  attributes: Record<string, string>
-  onChange: (attributes: Record<string, string>) => void
+  schema: AttributeSchemaItem[];
+  attributes: Record<string, string>;
+  onChange: (attributes: Record<string, string>) => void;
 }
 
 /**
  * 자식 노드용: 속성값 입력 편집기
  * 부모(루트)의 attributeSchema를 기반으로 폼 필드를 자동 생성
  */
-export function AttributeValueEditor({schema, attributes, onChange}: AttributeValueEditorProps) {
-  const safeSchema = Array.isArray(schema) ? schema : []
-  const safeAttributes = attributes && typeof attributes === 'object' ? attributes : {}
+export function AttributeValueEditor({ schema, attributes, onChange }: AttributeValueEditorProps) {
+  const safeSchema = Array.isArray(schema) ? schema : [];
+  const safeAttributes = attributes && typeof attributes === 'object' ? attributes : {};
 
   const handleChange = (key: string, value: string) => {
-    onChange({...safeAttributes, [key]: value})
-  }
+    onChange({ ...safeAttributes, [key]: value });
+  };
 
   if (safeSchema.length === 0) {
     return (
@@ -149,7 +165,7 @@ export function AttributeValueEditor({schema, attributes, onChange}: AttributeVa
           루트 노드에 정의된 속성 스키마가 없습니다.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -157,20 +173,26 @@ export function AttributeValueEditor({schema, attributes, onChange}: AttributeVa
       <h4 className="mb-3 text-sm font-semibold text-[color:var(--admin-text)]">속성값</h4>
       <div className="space-y-3">
         {safeSchema.map((schemaDef) => {
-          const currentValue = safeAttributes[schemaDef.key] ?? ''
+          const currentValue = safeAttributes[schemaDef.key] ?? '';
           return (
             <div key={schemaDef.key} className="space-y-1">
               <Label>{schemaDef.label || schemaDef.key}</Label>
-              {renderAttributeInput(schemaDef, currentValue, (val: string) => handleChange(schemaDef.key, val))}
+              {renderAttributeInput(schemaDef, currentValue, (val: string) =>
+                handleChange(schemaDef.key, val),
+              )}
             </div>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }
 
-function renderAttributeInput(schemaDef: AttributeSchemaItem, value: string, onChange: (val: string) => void): React.ReactNode {
+function renderAttributeInput(
+  schemaDef: AttributeSchemaItem,
+  value: string,
+  onChange: (val: string) => void,
+): React.ReactNode {
   switch (schemaDef.type) {
     case 'number':
       return (
@@ -180,19 +202,19 @@ function renderAttributeInput(schemaDef: AttributeSchemaItem, value: string, onC
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
           placeholder={schemaDef.label || schemaDef.key}
         />
-      )
+      );
     case 'boolean':
       return (
         <Select value={value || ''} onValueChange={onChange}>
           <SelectTrigger>
-            <SelectValue placeholder="선택"/>
+            <SelectValue placeholder="선택" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="Y">예 (Y)</SelectItem>
             <SelectItem value="N">아니오 (N)</SelectItem>
           </SelectContent>
         </Select>
-      )
+      );
     case 'text':
     default:
       return (
@@ -201,6 +223,6 @@ function renderAttributeInput(schemaDef: AttributeSchemaItem, value: string, onC
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
           placeholder={schemaDef.label || schemaDef.key}
         />
-      )
+      );
   }
 }

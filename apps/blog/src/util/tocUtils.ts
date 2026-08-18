@@ -5,12 +5,12 @@
  * - maxDepth를 넘는 깊이는 클램프해 목차가 무한정 밀려나지 않게 한다.
  */
 export function normalizeHeadingDepths(levels: number[], maxDepth: number): number[] {
-    if (levels.length === 0) return []
+  if (levels.length === 0) return [];
 
-    const rank = new Map<number, number>()
-    Array.from(new Set(levels))
-        .sort((a, b) => a - b)
-        .forEach((level, index) => rank.set(level, index))
+  const rank = new Map<number, number>();
+  Array.from(new Set(levels))
+    .sort((a, b) => a - b)
+    .forEach((level, index) => rank.set(level, index));
 
-    return levels.map(level => Math.min(rank.get(level) ?? 0, maxDepth))
+  return levels.map((level) => Math.min(rank.get(level) ?? 0, maxDepth));
 }

@@ -1,0 +1,27 @@
+language js
+
+// 브라우저 기본 `confirm()` · `alert()` · `prompt()` 사용 금지.
+//
+// 화면 밖 OS 창이라 배색·문구·버튼 위계를 맞출 수 없다. v3 §ds-02 는 저장·삭제 확인까지
+// 전부 **확인·취소 모달**로 띄우라고 규정한다 — 취소(Tertiary) + 확인(Primary),
+// 파괴적 실행이면 확인을 Danger 로. 네이티브 창은 그 위계를 표현할 방법이 없다.
+//
+// 대안은 `useConfirm()` (packages/ui/src/components/confirm.tsx):
+//   const askConfirm = useConfirm();
+//   if (await askConfirm({ message: '삭제하시겠습니까?', confirmLabel: '삭제', destructive: true })) …
+//
+// ⚠️ 반환 함수를 `confirm` 이라는 이름으로 받지 않는다 — GritQL 은 스코프를 보지 않아
+//    지역 변수 호출도 이 규칙에 걸린다. `askConfirm` 처럼 다른 이름을 쓴다.
+//
+// 구현 주의: span 에는 명명된 변수, regex 에는 캡처 그룹 금지 (no-process-env.grit 참조).
+`$fn($args)` where {
+  $fn <: or {
+    `confirm`,
+    `alert`,
+    `prompt`,
+    `window.confirm`,
+    `window.alert`,
+    `window.prompt`
+  },
+  register_diagnostic(span=$fn, message="브라우저 기본 대화상자 금지 — useConfirm() 으로 확인 모달을 띄우세요")
+}

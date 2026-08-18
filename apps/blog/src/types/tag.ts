@@ -1,9 +1,9 @@
 export interface Tag {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 export interface TagMergeRequest {
-  sourceTagId: string
-  targetTagId: string
+  sourceTagId: string;
+  targetTagId: string;
 }

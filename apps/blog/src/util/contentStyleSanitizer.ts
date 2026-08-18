@@ -9,17 +9,17 @@
  */
 
 export interface CssColor {
-    r: number
-    g: number
-    b: number
-    a: number
+  r: number;
+  g: number;
+  b: number;
+  a: number;
 }
 
 const NAMED_COLORS: Record<string, CssColor> = {
-    black: {r: 0, g: 0, b: 0, a: 1},
-    white: {r: 255, g: 255, b: 255, a: 1},
-    transparent: {r: 0, g: 0, b: 0, a: 0}
-}
+  black: { r: 0, g: 0, b: 0, a: 1 },
+  white: { r: 255, g: 255, b: 255, a: 1 },
+  transparent: { r: 0, g: 0, b: 0, a: 0 },
+};
 
 /**
  * CSS 색상 문자열을 RGBA로 파싱한다.
@@ -27,58 +27,58 @@ const NAMED_COLORS: Record<string, CssColor> = {
  * 그 외(var(), 그라데이션, hsl 등) 파싱 불가 값은 null을 반환한다.
  */
 export function parseCssColor(value: string): CssColor | null {
-    const v = value.trim().toLowerCase()
+  const v = value.trim().toLowerCase();
 
-    if (NAMED_COLORS[v]) {
-        return {...NAMED_COLORS[v]}
+  if (NAMED_COLORS[v]) {
+    return { ...NAMED_COLORS[v] };
+  }
+
+  const hexMatch = v.match(/^#([0-9a-f]{3,8})$/);
+  if (hexMatch) {
+    const hex = hexMatch[1];
+    if (hex.length === 3 || hex.length === 4) {
+      return {
+        r: parseInt(hex[0] + hex[0], 16),
+        g: parseInt(hex[1] + hex[1], 16),
+        b: parseInt(hex[2] + hex[2], 16),
+        a: hex.length === 4 ? parseInt(hex[3] + hex[3], 16) / 255 : 1,
+      };
     }
-
-    const hexMatch = v.match(/^#([0-9a-f]{3,8})$/)
-    if (hexMatch) {
-        const hex = hexMatch[1]
-        if (hex.length === 3 || hex.length === 4) {
-            return {
-                r: parseInt(hex[0] + hex[0], 16),
-                g: parseInt(hex[1] + hex[1], 16),
-                b: parseInt(hex[2] + hex[2], 16),
-                a: hex.length === 4 ? parseInt(hex[3] + hex[3], 16) / 255 : 1
-            }
-        }
-        if (hex.length === 6 || hex.length === 8) {
-            return {
-                r: parseInt(hex.slice(0, 2), 16),
-                g: parseInt(hex.slice(2, 4), 16),
-                b: parseInt(hex.slice(4, 6), 16),
-                a: hex.length === 8 ? parseInt(hex.slice(6, 8), 16) / 255 : 1
-            }
-        }
-        return null
+    if (hex.length === 6 || hex.length === 8) {
+      return {
+        r: parseInt(hex.slice(0, 2), 16),
+        g: parseInt(hex.slice(2, 4), 16),
+        b: parseInt(hex.slice(4, 6), 16),
+        a: hex.length === 8 ? parseInt(hex.slice(6, 8), 16) / 255 : 1,
+      };
     }
+    return null;
+  }
 
-    const fnMatch = v.match(/^rgba?\(([^)]+)\)$/)
-    if (fnMatch) {
-        const parts = fnMatch[1].split(/[\s,/]+/).filter(Boolean)
-        if (parts.length < 3 || parts.length > 4) {
-            return null
-        }
-        const channels = parts.slice(0, 3).map(part => {
-            const n = Number.parseFloat(part)
-            return part.endsWith('%') ? (n * 255) / 100 : n
-        })
-        if (channels.some(n => Number.isNaN(n))) {
-            return null
-        }
-        let a = 1
-        if (parts.length === 4) {
-            a = parts[3].endsWith('%') ? Number.parseFloat(parts[3]) / 100 : Number.parseFloat(parts[3])
-            if (Number.isNaN(a)) {
-                return null
-            }
-        }
-        return {r: channels[0], g: channels[1], b: channels[2], a}
+  const fnMatch = v.match(/^rgba?\(([^)]+)\)$/);
+  if (fnMatch) {
+    const parts = fnMatch[1].split(/[\s,/]+/).filter(Boolean);
+    if (parts.length < 3 || parts.length > 4) {
+      return null;
     }
+    const channels = parts.slice(0, 3).map((part) => {
+      const n = Number.parseFloat(part);
+      return part.endsWith('%') ? (n * 255) / 100 : n;
+    });
+    if (channels.some((n) => Number.isNaN(n))) {
+      return null;
+    }
+    let a = 1;
+    if (parts.length === 4) {
+      a = parts[3].endsWith('%') ? Number.parseFloat(parts[3]) / 100 : Number.parseFloat(parts[3]);
+      if (Number.isNaN(a)) {
+        return null;
+      }
+    }
+    return { r: channels[0], g: channels[1], b: channels[2], a };
+  }
 
-    return null
+  return null;
 }
 
 /**
@@ -88,14 +88,14 @@ export function parseCssColor(value: string): CssColor | null {
  *  임계값 128은 MD 뷰어가 인용문 등에 쓰는 #5c5c5c류 회색까지 포함하도록 실데이터 기준으로 보정한 값)
  */
 export function isNearBlack(color: CssColor): boolean {
-    const max = Math.max(color.r, color.g, color.b)
-    const min = Math.min(color.r, color.g, color.b)
-    return max <= 128 && max - min <= 30
+  const max = Math.max(color.r, color.g, color.b);
+  const min = Math.min(color.r, color.g, color.b);
+  return max <= 128 && max - min <= 30;
 }
 
 /** 흰색에 가까운 밝은 색(라이트 테마 기본 배경, 밝은 회색 구분선 배경 등) 여부 */
 export function isNearWhite(color: CssColor): boolean {
-    return Math.min(color.r, color.g, color.b) >= 200
+  return Math.min(color.r, color.g, color.b) >= 200;
 }
 
 /**
@@ -103,7 +103,7 @@ export function isNearWhite(color: CssColor): boolean {
  * 반투명(알파 0.5 미만)은 실제 배경을 결정하지 못하므로 제외한다.
  */
 export function isDarkBackground(color: CssColor): boolean {
-    return color.a >= 0.5 && Math.max(color.r, color.g, color.b) <= 128
+  return color.a >= 0.5 && Math.max(color.r, color.g, color.b) <= 128;
 }
 
 /**
@@ -114,45 +114,45 @@ export function isDarkBackground(color: CssColor): boolean {
  * - 그 외 속성(font-family, margin, --tw-* 등): 전부 제거.
  */
 export function decideStyle(name: string, value: string, inDarkContainer: boolean): boolean {
-    const prop = name.trim().toLowerCase()
+  const prop = name.trim().toLowerCase();
 
-    if (prop === 'color') {
-        const color = parseCssColor(value)
-        if (!color || color.a === 0) {
-            return false
-        }
-        if (inDarkContainer) {
-            return true
-        }
-        return !isNearBlack(color) && !isNearWhite(color)
+  if (prop === 'color') {
+    const color = parseCssColor(value);
+    if (!color || color.a === 0) {
+      return false;
     }
-
-    if (prop === 'background-color' || prop === 'background') {
-        const color = parseCssColor(value)
-        if (!color || color.a === 0) {
-            return false
-        }
-        return !isNearWhite(color)
+    if (inDarkContainer) {
+      return true;
     }
+    return !isNearBlack(color) && !isNearWhite(color);
+  }
 
-    return false
+  if (prop === 'background-color' || prop === 'background') {
+    const color = parseCssColor(value);
+    if (!color || color.a === 0) {
+      return false;
+    }
+    return !isNearWhite(color);
+  }
+
+  return false;
 }
 
 /** style 속성 문자열을 [속성명, 값] 쌍 목록으로 분해한다 */
 export function splitDeclarations(styleText: string): Array<[string, string]> {
-    const declarations: Array<[string, string]> = []
-    for (const decl of styleText.split(';')) {
-        const idx = decl.indexOf(':')
-        if (idx < 0) {
-            continue
-        }
-        const name = decl.slice(0, idx).trim()
-        const value = decl.slice(idx + 1).trim()
-        if (name && value) {
-            declarations.push([name, value])
-        }
+  const declarations: Array<[string, string]> = [];
+  for (const decl of styleText.split(';')) {
+    const idx = decl.indexOf(':');
+    if (idx < 0) {
+      continue;
     }
-    return declarations
+    const name = decl.slice(0, idx).trim();
+    const value = decl.slice(idx + 1).trim();
+    if (name && value) {
+      declarations.push([name, value]);
+    }
+  }
+  return declarations;
 }
 
 /**
@@ -161,42 +161,43 @@ export function splitDeclarations(styleText: string): Array<[string, string]> {
  * IDE 코드 붙여넣기의 신택스 색상·기본 텍스트 색을 보존한다.
  */
 export function sanitizeThemeHostileStyles(root: Element | DocumentFragment): void {
-    if ('getAttribute' in root) {
-        sanitizeElement(root, false)
-        return
-    }
-    for (const child of Array.from(root.children)) {
-        sanitizeElement(child, false)
-    }
+  if ('getAttribute' in root) {
+    sanitizeElement(root, false);
+    return;
+  }
+  for (const child of Array.from(root.children)) {
+    sanitizeElement(child, false);
+  }
 }
 
 /** 단일 요소의 style 속성을 정화하고 자식으로 재귀한다 */
 function sanitizeElement(element: Element, inDarkContainer: boolean): void {
-    let childContext = inDarkContainer
-    const styleText = element.getAttribute('style')
+  let childContext = inDarkContainer;
+  const styleText = element.getAttribute('style');
 
-    if (styleText !== null) {
-        const kept = splitDeclarations(styleText)
-            .filter(([name, value]) => decideStyle(name, value, inDarkContainer))
+  if (styleText !== null) {
+    const kept = splitDeclarations(styleText).filter(([name, value]) =>
+      decideStyle(name, value, inDarkContainer),
+    );
 
-        if (kept.length === 0) {
-            element.removeAttribute('style')
-        } else {
-            element.setAttribute('style', kept.map(([name, value]) => `${name}:${value}`).join(';'))
-            const background = kept.find(([name]) => {
-                const prop = name.toLowerCase()
-                return prop === 'background-color' || prop === 'background'
-            })
-            if (background) {
-                const color = parseCssColor(background[1])
-                if (color && isDarkBackground(color)) {
-                    childContext = true
-                }
-            }
+    if (kept.length === 0) {
+      element.removeAttribute('style');
+    } else {
+      element.setAttribute('style', kept.map(([name, value]) => `${name}:${value}`).join(';'));
+      const background = kept.find(([name]) => {
+        const prop = name.toLowerCase();
+        return prop === 'background-color' || prop === 'background';
+      });
+      if (background) {
+        const color = parseCssColor(background[1]);
+        if (color && isDarkBackground(color)) {
+          childContext = true;
         }
+      }
     }
+  }
 
-    for (const child of Array.from(element.children)) {
-        sanitizeElement(child, childContext)
-    }
+  for (const child of Array.from(element.children)) {
+    sanitizeElement(child, childContext);
+  }
 }

@@ -1,14 +1,14 @@
 export interface Memo {
-  id: string | number
-  [key: string]: unknown
+  id: string | number;
+  [key: string]: unknown;
 }
 
 export interface MemoCategory {
-  id: string | number
-  name: string
-  [key: string]: unknown
+  id: string | number;
+  name: string;
+  [key: string]: unknown;
 }
 
 export interface MemoSearchRequest {
-  [key: string]: unknown
+  [key: string]: unknown;
 }

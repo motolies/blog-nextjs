@@ -12,6 +12,11 @@
     "build": "pnpm -F blog build",
     "start": "pnpm -F blog start",
     "test": "pnpm -F blog test:util",
-    "typecheck": "pnpm -r --parallel exec tsc --noEmit"
+    "typecheck": "pnpm -r --parallel exec tsc --noEmit",
+    "check": "biome check",
+    "check:fix": "biome check --write"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:"
   }
 }

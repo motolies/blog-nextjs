@@ -1,35 +1,35 @@
-import Header from './Header'
-import {useEffect, useState} from "react"
-import {useRouter} from "next/router"
-import Link from 'next/link'
-import {X} from 'lucide-react'
-import styles from './AdminLayout.module.css'
-import {adminNavigationSections, getAdminRouteMeta, isActiveAdminItem} from './adminNavigation'
+import Header from './Header';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import { X } from 'lucide-react';
+import styles from './AdminLayout.module.css';
+import { adminNavigationSections, getAdminRouteMeta, isActiveAdminItem } from './adminNavigation';
 
 interface AdminLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
-export default function AdminLayout({children}: AdminLayoutProps) {
-  const router = useRouter()
-  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
-  const meta = getAdminRouteMeta(router.pathname)
+export default function AdminLayout({ children }: AdminLayoutProps) {
+  const router = useRouter();
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const meta = getAdminRouteMeta(router.pathname);
 
   useEffect(() => {
-    document.title = `${meta.title} | Blog Admin`
-  }, [meta.title])
+    document.title = `${meta.title} | Blog Admin`;
+  }, [meta.title]);
 
   useEffect(() => {
-    setIsMenuOpen(false)
-  }, [router.pathname])
+    setIsMenuOpen(false);
+  }, [router.pathname]);
 
   const toggleMenu = () => {
-    setIsMenuOpen((prev) => !prev)
-  }
+    setIsMenuOpen((prev) => !prev);
+  };
 
   return (
     <div className={`admin-shell ${styles.layoutWrapper}`}>
-      <Header toggleMenu={toggleMenu} meta={meta}/>
+      <Header toggleMenu={toggleMenu} meta={meta} />
 
       {isMenuOpen ? (
         <button
@@ -51,7 +51,7 @@ export default function AdminLayout({children}: AdminLayoutProps) {
               onClick={() => setIsMenuOpen(false)}
               aria-label="관리자 메뉴 닫기"
             >
-              <X className="h-4 w-4"/>
+              <X className="h-4 w-4" />
             </button>
           </div>
 
@@ -61,8 +61,8 @@ export default function AdminLayout({children}: AdminLayoutProps) {
                 <p className={styles.menuSectionTitle}>{section.title}</p>
                 <ul className={styles.menuList}>
                   {section.items.map((item) => {
-                    const Icon = item.icon
-                    const isActive = isActiveAdminItem(item, router.pathname)
+                    const Icon = item.icon;
+                    const isActive = isActiveAdminItem(item, router.pathname);
 
                     return (
                       <li className={styles.menuItem} key={item.href}>
@@ -71,12 +71,12 @@ export default function AdminLayout({children}: AdminLayoutProps) {
                           className={`${styles.menuLink} ${isActive ? styles.active : ''}`}
                         >
                           <span className={styles.menuIconWrap}>
-                            <Icon className="h-4 w-4"/>
+                            <Icon className="h-4 w-4" />
                           </span>
                           <span className={styles.menuLabel}>{item.label}</span>
                         </Link>
                       </li>
-                    )
+                    );
                   })}
                 </ul>
               </div>
@@ -86,12 +86,10 @@ export default function AdminLayout({children}: AdminLayoutProps) {
 
         <div className={styles.layoutPage}>
           <main className={styles.contentWrapper}>
-            <div className={styles.containerFluid}>
-              {children}
-            </div>
+            <div className={styles.containerFluid}>{children}</div>
           </main>
         </div>
       </div>
     </div>
-  )
+  );
 }

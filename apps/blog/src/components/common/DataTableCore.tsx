@@ -1,4 +1,12 @@
-import React, { type CSSProperties, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  type CSSProperties,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   flexRender,
   type Column,
@@ -7,7 +15,7 @@ import {
   type Row,
   type RowData,
   type Table,
-} from '@tanstack/react-table'
+} from '@tanstack/react-table';
 import {
   DndContext,
   KeyboardSensor,
@@ -17,30 +25,25 @@ import {
   type DragEndEvent,
   useSensor,
   useSensors,
-} from '@dnd-kit/core'
-import { restrictToHorizontalAxis } from '@dnd-kit/modifiers'
+} from '@dnd-kit/core';
+import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
 import {
   arrayMove,
   horizontalListSortingStrategy,
   SortableContext,
   useSortable,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  Loader2,
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
-import EditableCell from './EditableCell'
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { ArrowDown, ArrowUp, ArrowUpDown, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import EditableCell from './EditableCell';
 
-export const DEFAULT_COLUMN_WIDTH = 160
-export const MIN_COLUMN_WIDTH = 60
-export const MAX_COLUMN_WIDTH = 9999
+export const DEFAULT_COLUMN_WIDTH = 160;
+export const MIN_COLUMN_WIDTH = 60;
+export const MAX_COLUMN_WIDTH = 9999;
 
-export type DataTableAlign = 'left' | 'center' | 'right'
-export type DataTableDensity = 'compact' | 'comfortable' | 'spacious'
+export type DataTableAlign = 'left' | 'center' | 'right';
+export type DataTableDensity = 'compact' | 'comfortable' | 'spacious';
 
 export const DATA_TABLE_DENSITY_CONFIG = {
   compact: {
@@ -88,128 +91,135 @@ export const DATA_TABLE_DENSITY_CONFIG = {
     totalTypographyVariant: 'body1',
     buttonSize: 'medium',
   },
-} as const
+} as const;
 
 export interface DataTableCellProps<TData> {
-  value: any
-  row: TData
+  value: any;
+  row: TData;
 }
 
 export interface DataTableFooterProps {
-  value: unknown
-  summaryRow?: Record<string, unknown> | null
+  value: unknown;
+  summaryRow?: Record<string, unknown> | null;
 }
 
 export interface DataTableEditableConfig {
-  type: 'text' | 'number' | 'select'
-  options?: { value: string; label: string }[]
-  placeholder?: string
-  min?: number
-  max?: number
-  step?: number
+  type: 'text' | 'number' | 'select';
+  options?: { value: string; label: string }[];
+  placeholder?: string;
+  min?: number;
+  max?: number;
+  step?: number;
 }
 
 export interface EditingCell {
-  rowId: string
-  columnId: string
+  rowId: string;
+  columnId: string;
 }
 
 export interface DataTableColumn<TData = unknown> {
-  accessorKey?: string
-  id?: string
-  header: ReactNode
-  cell?: (props: DataTableCellProps<TData>) => ReactNode
-  footer?: ReactNode | ((props: DataTableFooterProps) => ReactNode)
+  accessorKey?: string;
+  id?: string;
+  header: ReactNode;
+  cell?: (props: DataTableCellProps<TData>) => ReactNode;
+  footer?: ReactNode | ((props: DataTableFooterProps) => ReactNode);
   // Initial width before any manual resize. Unsized columns start at 160px.
-  size?: number
+  size?: number;
   // Auto-grow columns absorb remaining width until the user resizes them manually.
-  grow?: boolean
-  minSize?: number
-  maxSize?: number
+  grow?: boolean;
+  minSize?: number;
+  maxSize?: number;
   // All columns are resizable by default unless explicitly disabled.
-  resizable?: boolean
-  sortable?: boolean
-  headerAlign?: DataTableAlign
-  cellAlign?: DataTableAlign
-  footerAlign?: DataTableAlign
-  mobilePrimary?: boolean
-  mobileHidden?: boolean
-  mobileLabel?: string
-  editable?: DataTableEditableConfig | boolean
+  resizable?: boolean;
+  sortable?: boolean;
+  headerAlign?: DataTableAlign;
+  cellAlign?: DataTableAlign;
+  footerAlign?: DataTableAlign;
+  mobilePrimary?: boolean;
+  mobileHidden?: boolean;
+  mobileLabel?: string;
+  editable?: DataTableEditableConfig | boolean;
 }
 
 export interface DataTableRowParams<TData> {
-  row: TData
-  id: string
+  row: TData;
+  id: string;
 }
 
 interface TableColumnMeta {
-  headerAlign: DataTableAlign
-  cellAlign: DataTableAlign
-  footerAlign: DataTableAlign
-  grow: boolean
-  mobilePrimary?: boolean
-  mobileHidden?: boolean
-  mobileLabel?: string
-  editable?: DataTableEditableConfig | false
+  headerAlign: DataTableAlign;
+  cellAlign: DataTableAlign;
+  footerAlign: DataTableAlign;
+  grow: boolean;
+  mobilePrimary?: boolean;
+  mobileHidden?: boolean;
+  mobileLabel?: string;
+  editable?: DataTableEditableConfig | false;
 }
 
 interface DesktopTableLayout {
-  widths: Record<string, number>
-  totalWidth: number
+  widths: Record<string, number>;
+  totalWidth: number;
 }
 
 export interface DataTableCoreProps<TData extends RowData> {
-  table: Table<TData>
-  rows: Row<TData>[]
-  loading?: boolean
-  density?: DataTableDensity
-  autoHeight?: boolean
-  onRowClick?: (params: DataTableRowParams<TData>) => void
-  getRowClassName?: (params: DataTableRowParams<TData>) => string
-  className?: string
-  noDataText?: string
-  enableColumnReorder?: boolean
-  columnOrder?: ColumnOrderState
-  onColumnOrderChange?: (order: ColumnOrderState) => void
-  editingCell?: EditingCell | null
-  onEditingCellChange?: (cell: EditingCell | null) => void
-  onCellValueChange?: (params: { rowId: string; columnId: string; value: unknown; row: TData }) => void
+  table: Table<TData>;
+  rows: Row<TData>[];
+  loading?: boolean;
+  density?: DataTableDensity;
+  autoHeight?: boolean;
+  onRowClick?: (params: DataTableRowParams<TData>) => void;
+  getRowClassName?: (params: DataTableRowParams<TData>) => string;
+  className?: string;
+  noDataText?: string;
+  enableColumnReorder?: boolean;
+  columnOrder?: ColumnOrderState;
+  onColumnOrderChange?: (order: ColumnOrderState) => void;
+  editingCell?: EditingCell | null;
+  onEditingCellChange?: (cell: EditingCell | null) => void;
+  onCellValueChange?: (params: {
+    rowId: string;
+    columnId: string;
+    value: unknown;
+    row: TData;
+  }) => void;
 }
 
-const NON_REORDERABLE_COLUMNS = new Set(['__select__', '__actions__'])
+const NON_REORDERABLE_COLUMNS = new Set(['__select__', '__actions__']);
 
 function getValueByAccessorKey(record: unknown, accessorKey?: string): unknown {
-  if (!accessorKey) return undefined
+  if (!accessorKey) return undefined;
   return accessorKey.split('.').reduce<unknown>((value, key) => {
-    if (value === null || value === undefined || typeof value !== 'object') return undefined
-    return (value as Record<string, unknown>)[key]
-  }, record)
+    if (value === null || value === undefined || typeof value !== 'object') return undefined;
+    return (value as Record<string, unknown>)[key];
+  }, record);
 }
 
 function renderDefaultCellValue(value: unknown): ReactNode {
   if (value === null || value === undefined || value === '') {
-    return '-'
+    return '-';
   }
-  return String(value)
+  return String(value);
 }
 
-function resolveHeader<TData extends RowData>(header: DataTableColumn<TData>['header']): ColumnDef<TData>['header'] {
+function resolveHeader<TData extends RowData>(
+  header: DataTableColumn<TData>['header'],
+): ColumnDef<TData>['header'] {
   if (typeof header === 'string' || typeof header === 'function') {
-    return header as ColumnDef<TData>['header']
+    return header as ColumnDef<TData>['header'];
   }
-  return () => header
+  return () => header;
 }
 
 export function getDataTableColumnId<TData>(column: DataTableColumn<TData>): string {
-  return column.id || column.accessorKey || ''
+  return column.id || column.accessorKey || '';
 }
 
 export function getDataTableColumnLabel<TData>(column: DataTableColumn<TData>): string {
   if (typeof column.header === 'string' && column.header.trim()) {
-    return column.header.trim()
+    return column.header.trim();
   }
-  return column.mobileLabel || column.accessorKey || column.id || '컬럼'
+  return column.mobileLabel || column.accessorKey || column.id || '컬럼';
 }
 
 export function buildDataTableColumns<TData extends RowData>(
@@ -217,18 +227,18 @@ export function buildDataTableColumns<TData extends RowData>(
   summaryRow?: Record<string, unknown> | null,
 ): ColumnDef<TData>[] {
   return columns.map((column) => {
-    const accessorKey = column.accessorKey
-    const id = getDataTableColumnId(column)
-    const cellAlign = column.cellAlign || 'left'
-    const footerAlign = column.footerAlign || cellAlign
-    const footerValue = accessorKey ? summaryRow?.[accessorKey] : undefined
+    const accessorKey = column.accessorKey;
+    const id = getDataTableColumnId(column);
+    const cellAlign = column.cellAlign || 'left';
+    const footerAlign = column.footerAlign || cellAlign;
+    const footerValue = accessorKey ? summaryRow?.[accessorKey] : undefined;
 
     const editableConfig: DataTableEditableConfig | false =
       column.editable === true
         ? { type: 'text' }
         : column.editable && typeof column.editable === 'object'
           ? column.editable
-          : false
+          : false;
 
     const sharedColumn = {
       id,
@@ -249,41 +259,43 @@ export function buildDataTableColumns<TData extends RowData>(
         editable: editableConfig,
       } satisfies TableColumnMeta,
       cell: ({ row }) => {
-        const value = getValueByAccessorKey(row.original, accessorKey)
+        const value = getValueByAccessorKey(row.original, accessorKey);
         if (column.cell) {
-          return column.cell({ value, row: row.original })
+          return column.cell({ value, row: row.original });
         }
-        return renderDefaultCellValue(value)
+        return renderDefaultCellValue(value);
       },
       footer: column.footer
         ? () => {
             if (typeof column.footer === 'function') {
-              return column.footer({ value: footerValue, summaryRow })
+              return column.footer({ value: footerValue, summaryRow });
             }
-            return column.footer
+            return column.footer;
           }
         : footerValue !== undefined
           ? () => (
-              <span className={cn(
-                'font-bold',
-                footerAlign === 'right' && 'block text-right',
-                footerAlign === 'center' && 'block text-center',
-              )}>
+              <span
+                className={cn(
+                  'font-bold',
+                  footerAlign === 'right' && 'block text-right',
+                  footerAlign === 'center' && 'block text-center',
+                )}
+              >
                 {renderDefaultCellValue(footerValue)}
               </span>
             )
           : undefined,
-    }
+    };
 
     if (accessorKey) {
       return {
         ...sharedColumn,
         accessorFn: (row: TData) => getValueByAccessorKey(row, accessorKey),
-      } as ColumnDef<TData>
+      } as ColumnDef<TData>;
     }
 
-    return sharedColumn as ColumnDef<TData>
-  })
+    return sharedColumn as ColumnDef<TData>;
+  });
 }
 
 function computeDesktopTableLayout<TData extends RowData>(
@@ -291,63 +303,62 @@ function computeDesktopTableLayout<TData extends RowData>(
   containerWidth: number,
   autoGrowDisabledIds: Set<string>,
 ): DesktopTableLayout {
-  const widths: Record<string, number> = {}
+  const widths: Record<string, number> = {};
 
   if (visibleLeafColumns.length === 0) {
-    return { widths, totalWidth: 0 }
+    return { widths, totalWidth: 0 };
   }
 
   const currentWidths = visibleLeafColumns.map((column) => {
-    const meta = column.columnDef.meta as TableColumnMeta | undefined
+    const meta = column.columnDef.meta as TableColumnMeta | undefined;
     return {
       id: column.id,
       width: Math.max(column.getSize(), 0),
       grow: Boolean(meta?.grow) && !autoGrowDisabledIds.has(column.id),
-    }
-  })
+    };
+  });
 
-  const currentTotalWidth = currentWidths.reduce((sum, column) => sum + column.width, 0)
-  const activeGrowColumns = currentWidths.filter((column) => column.grow)
-  const extraWidth = activeGrowColumns.length > 0
-    ? Math.max(Math.floor(containerWidth) - currentTotalWidth, 0)
-    : 0
-  const totalGrowBaseWidth = activeGrowColumns.reduce((sum, column) => sum + column.width, 0)
+  const currentTotalWidth = currentWidths.reduce((sum, column) => sum + column.width, 0);
+  const activeGrowColumns = currentWidths.filter((column) => column.grow);
+  const extraWidth =
+    activeGrowColumns.length > 0 ? Math.max(Math.floor(containerWidth) - currentTotalWidth, 0) : 0;
+  const totalGrowBaseWidth = activeGrowColumns.reduce((sum, column) => sum + column.width, 0);
 
   currentWidths.forEach((column) => {
-    widths[column.id] = column.width
-  })
+    widths[column.id] = column.width;
+  });
 
-  let allocatedGrowWidth = 0
+  let allocatedGrowWidth = 0;
   activeGrowColumns.forEach((column, index) => {
-    if (extraWidth <= 0) return
+    if (extraWidth <= 0) return;
 
-    const isLastGrowColumn = index === activeGrowColumns.length - 1
+    const isLastGrowColumn = index === activeGrowColumns.length - 1;
     const growShare = isLastGrowColumn
       ? extraWidth - allocatedGrowWidth
       : totalGrowBaseWidth > 0
         ? Math.floor(extraWidth * (column.width / totalGrowBaseWidth))
-        : Math.floor(extraWidth / activeGrowColumns.length)
+        : Math.floor(extraWidth / activeGrowColumns.length);
 
-    widths[column.id] += growShare
-    allocatedGrowWidth += growShare
-  })
+    widths[column.id] += growShare;
+    allocatedGrowWidth += growShare;
+  });
 
   return {
     widths,
     totalWidth: currentTotalWidth + extraWidth,
-  }
+  };
 }
 
 function getHeaderWidth<TData extends RowData>(
   header: ReturnType<Table<TData>['getHeaderGroups']>[number]['headers'][number],
   widths: Record<string, number>,
 ): number {
-  const leafHeaders = header.getLeafHeaders()
-  if (leafHeaders.length === 0) return 0
+  const leafHeaders = header.getLeafHeaders();
+  if (leafHeaders.length === 0) return 0;
 
   return leafHeaders.reduce((sum, leafHeader) => {
-    return sum + (widths[leafHeader.column.id] ?? leafHeader.column.getSize())
-  }, 0)
+    return sum + (widths[leafHeader.column.id] ?? leafHeader.column.getSize());
+  }, 0);
 }
 
 export default function DataTableCore<TData extends RowData>({
@@ -367,124 +378,144 @@ export default function DataTableCore<TData extends RowData>({
   onEditingCellChange,
   onCellValueChange,
 }: DataTableCoreProps<TData>) {
-  const densityConfig = DATA_TABLE_DENSITY_CONFIG[density]
-  const tableContainerRef = useRef<HTMLDivElement | null>(null)
-  const justResizedRef = useRef(false)
-  const [tableContainerWidth, setTableContainerWidth] = useState(0)
-  const [autoGrowDisabledIds, setAutoGrowDisabledIds] = useState<Record<string, true>>({})
+  const densityConfig = DATA_TABLE_DENSITY_CONFIG[density];
+  const tableContainerRef = useRef<HTMLDivElement | null>(null);
+  const justResizedRef = useRef(false);
+  const [tableContainerWidth, setTableContainerWidth] = useState(0);
+  const [autoGrowDisabledIds, setAutoGrowDisabledIds] = useState<Record<string, true>>({});
 
-  const allLeafColumnIdsKey = table.getAllLeafColumns().map((column) => column.id).join('|')
-  const autoGrowDisabledSet = useMemo(() => new Set(Object.keys(autoGrowDisabledIds)), [autoGrowDisabledIds])
-  const visibleLeafColumns = table.getVisibleLeafColumns()
+  const allLeafColumnIdsKey = table
+    .getAllLeafColumns()
+    .map((column) => column.id)
+    .join('|');
+  const autoGrowDisabledSet = useMemo(
+    () => new Set(Object.keys(autoGrowDisabledIds)),
+    [autoGrowDisabledIds],
+  );
+  const visibleLeafColumns = table.getVisibleLeafColumns();
 
   useEffect(() => {
-    const allLeafColumnIds = new Set(table.getAllLeafColumns().map((column) => column.id))
+    const allLeafColumnIds = new Set(table.getAllLeafColumns().map((column) => column.id));
     setAutoGrowDisabledIds((previous) => {
-      const nextEntries = Object.entries(previous).filter(([columnId]) => allLeafColumnIds.has(columnId))
+      const nextEntries = Object.entries(previous).filter(([columnId]) =>
+        allLeafColumnIds.has(columnId),
+      );
       if (nextEntries.length === Object.keys(previous).length) {
-        return previous
+        return previous;
       }
-      return Object.fromEntries(nextEntries)
-    })
-  }, [allLeafColumnIdsKey, table])
+      return Object.fromEntries(nextEntries);
+    });
+  }, [allLeafColumnIdsKey, table]);
 
   useEffect(() => {
-    const container = tableContainerRef.current
-    if (!container) return
+    const container = tableContainerRef.current;
+    if (!container) return;
 
     const updateWidth = (nextWidth: number) => {
-      const normalizedWidth = Math.max(Math.floor(nextWidth), 0)
-      setTableContainerWidth((previous) => (previous === normalizedWidth ? previous : normalizedWidth))
-    }
+      const normalizedWidth = Math.max(Math.floor(nextWidth), 0);
+      setTableContainerWidth((previous) =>
+        previous === normalizedWidth ? previous : normalizedWidth,
+      );
+    };
 
-    updateWidth(container.clientWidth)
+    updateWidth(container.clientWidth);
 
-    if (typeof ResizeObserver === 'undefined') return
+    if (typeof ResizeObserver === 'undefined') return;
 
     const resizeObserver = new ResizeObserver((entries) => {
-      const nextWidth = entries[0]?.contentRect.width ?? container.clientWidth
-      updateWidth(nextWidth)
-    })
+      const nextWidth = entries[0]?.contentRect.width ?? container.clientWidth;
+      updateWidth(nextWidth);
+    });
 
-    resizeObserver.observe(container)
-    return () => resizeObserver.disconnect()
-  }, [])
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, []);
 
   const desktopTableLayout = useMemo(() => {
-    return computeDesktopTableLayout(visibleLeafColumns, tableContainerWidth, autoGrowDisabledSet)
-  }, [autoGrowDisabledSet, table.getState().columnSizing, tableContainerWidth, visibleLeafColumns])
+    return computeDesktopTableLayout(visibleLeafColumns, tableContainerWidth, autoGrowDisabledSet);
+  }, [autoGrowDisabledSet, table.getState().columnSizing, tableContainerWidth, visibleLeafColumns]);
 
   const hasSummaryRow = useMemo(() => {
     return table.getFooterGroups().some((footerGroup) => {
-      return footerGroup.headers.some((header) => !header.isPlaceholder && Boolean(header.column.columnDef.footer))
-    })
-  }, [table])
+      return footerGroup.headers.some(
+        (header) => !header.isPlaceholder && Boolean(header.column.columnDef.footer),
+      );
+    });
+  }, [table]);
 
-  const handleResizeStart = useCallback((
-    header: ReturnType<Table<TData>['getHeaderGroups']>[number]['headers'][number],
-    event: React.MouseEvent | React.TouchEvent,
-  ) => {
-    const meta = header.column.columnDef.meta as TableColumnMeta | undefined
-    if (meta?.grow) {
-      setAutoGrowDisabledIds((previous) => {
-        if (previous[header.column.id]) return previous
-        return { ...previous, [header.column.id]: true }
-      })
-    }
+  const handleResizeStart = useCallback(
+    (
+      header: ReturnType<Table<TData>['getHeaderGroups']>[number]['headers'][number],
+      event: React.MouseEvent | React.TouchEvent,
+    ) => {
+      const meta = header.column.columnDef.meta as TableColumnMeta | undefined;
+      if (meta?.grow) {
+        setAutoGrowDisabledIds((previous) => {
+          if (previous[header.column.id]) return previous;
+          return { ...previous, [header.column.id]: true };
+        });
+      }
 
-    justResizedRef.current = true
-    header.getResizeHandler()(event)
+      justResizedRef.current = true;
+      header.getResizeHandler()(event);
 
-    const reset = () => {
-      setTimeout(() => {
-        justResizedRef.current = false
-      }, 0)
-      document.removeEventListener('mouseup', reset)
-      document.removeEventListener('touchend', reset)
-      document.removeEventListener('touchcancel', reset)
-    }
+      const reset = () => {
+        setTimeout(() => {
+          justResizedRef.current = false;
+        }, 0);
+        document.removeEventListener('mouseup', reset);
+        document.removeEventListener('touchend', reset);
+        document.removeEventListener('touchcancel', reset);
+      };
 
-    document.addEventListener('mouseup', reset, { once: true })
-    document.addEventListener('touchend', reset, { once: true })
-    document.addEventListener('touchcancel', reset, { once: true })
-  }, [])
+      document.addEventListener('mouseup', reset, { once: true });
+      document.addEventListener('touchend', reset, { once: true });
+      document.addEventListener('touchcancel', reset, { once: true });
+    },
+    [],
+  );
 
   const SortIcon = ({ column }: { column: ReturnType<Table<TData>['getAllColumns']>[number] }) => {
-    if (!column.getCanSort()) return null
-    if (column.getIsSorted() === 'asc') return <ArrowUp className="ml-1 h-3 w-3 shrink-0" />
-    if (column.getIsSorted() === 'desc') return <ArrowDown className="ml-1 h-3 w-3 shrink-0" />
-    return <ArrowUpDown className="ml-1 h-3 w-3 shrink-0 opacity-40" />
-  }
+    if (!column.getCanSort()) return null;
+    if (column.getIsSorted() === 'asc') return <ArrowUp className="ml-1 h-3 w-3 shrink-0" />;
+    if (column.getIsSorted() === 'desc') return <ArrowDown className="ml-1 h-3 w-3 shrink-0" />;
+    return <ArrowUpDown className="ml-1 h-3 w-3 shrink-0 opacity-40" />;
+  };
 
   // Editable cell content renderer
-  const renderCellContent = useCallback((
-    cell: ReturnType<Row<TData>['getVisibleCells']>[number],
-    row: Row<TData>,
-  ) => {
-    const meta = cell.column.columnDef.meta as TableColumnMeta | undefined
-    const editableConfig = meta?.editable
+  const renderCellContent = useCallback(
+    (cell: ReturnType<Row<TData>['getVisibleCells']>[number], row: Row<TData>) => {
+      const meta = cell.column.columnDef.meta as TableColumnMeta | undefined;
+      const editableConfig = meta?.editable;
 
-    if (!editableConfig || !onEditingCellChange || !onCellValueChange) {
-      return flexRender(cell.column.columnDef.cell, cell.getContext())
-    }
+      if (!editableConfig || !onEditingCellChange || !onCellValueChange) {
+        return flexRender(cell.column.columnDef.cell, cell.getContext());
+      }
 
-    const isEditing = editingCell?.rowId === row.id && editingCell?.columnId === cell.column.id
+      const isEditing = editingCell?.rowId === row.id && editingCell?.columnId === cell.column.id;
 
-    return (
-      <EditableCell
-        value={getValueByAccessorKey(row.original, cell.column.id)}
-        config={editableConfig}
-        isEditing={isEditing}
-        onStartEdit={() => onEditingCellChange({ rowId: row.id, columnId: cell.column.id })}
-        onCommit={(newValue) => {
-          onCellValueChange({ rowId: row.id, columnId: cell.column.id, value: newValue, row: row.original })
-          onEditingCellChange(null)
-        }}
-        onCancel={() => onEditingCellChange(null)}
-        readContent={flexRender(cell.column.columnDef.cell, cell.getContext())}
-      />
-    )
-  }, [editingCell, onEditingCellChange, onCellValueChange])
+      return (
+        <EditableCell
+          value={getValueByAccessorKey(row.original, cell.column.id)}
+          config={editableConfig}
+          isEditing={isEditing}
+          onStartEdit={() => onEditingCellChange({ rowId: row.id, columnId: cell.column.id })}
+          onCommit={(newValue) => {
+            onCellValueChange({
+              rowId: row.id,
+              columnId: cell.column.id,
+              value: newValue,
+              row: row.original,
+            });
+            onEditingCellChange(null);
+          }}
+          onCancel={() => onEditingCellChange(null)}
+          readContent={flexRender(cell.column.columnDef.cell, cell.getContext())}
+        />
+      );
+    },
+    [editingCell, onEditingCellChange, onCellValueChange],
+  );
 
   // DnD: sensors and handler
   const sensors = useSensors(
@@ -495,151 +526,158 @@ export default function DataTableCore<TData extends RowData>({
       activationConstraint: { delay: 150, tolerance: 5 },
     }),
     useSensor(KeyboardSensor, {}),
-  )
+  );
 
   const reorderableColumnIds = useMemo(() => {
-    return columnOrder.filter((id) => !NON_REORDERABLE_COLUMNS.has(id))
-  }, [columnOrder])
+    return columnOrder.filter((id) => !NON_REORDERABLE_COLUMNS.has(id));
+  }, [columnOrder]);
 
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event
-    if (!active || !over || active.id === over.id || !onColumnOrderChange) return
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!active || !over || active.id === over.id || !onColumnOrderChange) return;
 
-    const oldIndex = columnOrder.indexOf(active.id as string)
-    const newIndex = columnOrder.indexOf(over.id as string)
-    if (oldIndex === -1 || newIndex === -1) return
+      const oldIndex = columnOrder.indexOf(active.id as string);
+      const newIndex = columnOrder.indexOf(over.id as string);
+      if (oldIndex === -1 || newIndex === -1) return;
 
-    onColumnOrderChange(arrayMove(columnOrder, oldIndex, newIndex))
-  }, [columnOrder, onColumnOrderChange])
+      onColumnOrderChange(arrayMove(columnOrder, oldIndex, newIndex));
+    },
+    [columnOrder, onColumnOrderChange],
+  );
 
   // DraggableHeader: inner component with access to closure
-  const DraggableHeader = useCallback(({
-    header,
-    headerWidth,
-  }: {
-    header: ReturnType<Table<TData>['getHeaderGroups']>[number]['headers'][number]
-    headerWidth: number
-  }) => {
-    const isReorderable = enableColumnReorder && !NON_REORDERABLE_COLUMNS.has(header.column.id)
-    // JSX 요소(<DraggableHeader/>)로만 렌더링되는 내부 컴포넌트이므로 훅 호출이 유효함
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { attributes, isDragging, listeners, setNodeRef, transform } = useSortable({
-      id: header.column.id,
-      disabled: !isReorderable,
-    })
-    const meta = header.column.columnDef.meta as TableColumnMeta | undefined
-    const align = meta?.headerAlign || 'left'
+  const DraggableHeader = useCallback(
+    ({
+      header,
+      headerWidth,
+    }: {
+      header: ReturnType<Table<TData>['getHeaderGroups']>[number]['headers'][number];
+      headerWidth: number;
+    }) => {
+      const isReorderable = enableColumnReorder && !NON_REORDERABLE_COLUMNS.has(header.column.id);
+      // JSX 요소(<DraggableHeader/>)로만 렌더링되는 내부 컴포넌트이므로 훅 호출이 유효함
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const { attributes, isDragging, listeners, setNodeRef, transform } = useSortable({
+        id: header.column.id,
+        disabled: !isReorderable,
+      });
+      const meta = header.column.columnDef.meta as TableColumnMeta | undefined;
+      const align = meta?.headerAlign || 'left';
 
-    const style: CSSProperties = {
-      width: headerWidth,
-      minWidth: headerWidth,
-      opacity: isDragging ? 0.8 : 1,
-      position: 'relative',
-      transform: CSS.Translate.toString(transform),
-      transition: 'width transform',
-      whiteSpace: 'nowrap',
-      zIndex: isDragging ? 1 : 0,
-    }
+      const style: CSSProperties = {
+        width: headerWidth,
+        minWidth: headerWidth,
+        opacity: isDragging ? 0.8 : 1,
+        position: 'relative',
+        transform: CSS.Translate.toString(transform),
+        transition: 'width transform',
+        whiteSpace: 'nowrap',
+        zIndex: isDragging ? 1 : 0,
+      };
 
-    return (
-      <th
-        ref={setNodeRef}
-        colSpan={header.colSpan}
-        className={cn(
-          'select-none border-b border-[color:var(--admin-border)] font-bold text-[color:var(--admin-text-secondary)]',
-          densityConfig.headPadding,
-          densityConfig.headerFontSize,
-          align === 'left' && 'text-left',
-          align === 'center' && 'text-center',
-          align === 'right' && 'text-right',
-          header.column.getCanSort() && 'cursor-pointer',
-          isReorderable && !isDragging && 'cursor-grab',
-          isDragging && 'cursor-grabbing',
-        )}
-        style={style}
-        onClick={(event) => {
-          if (justResizedRef.current) return
-          header.column.getToggleSortingHandler()?.(event)
-        }}
-      >
-        <div
+      return (
+        <th
+          ref={setNodeRef}
+          colSpan={header.colSpan}
           className={cn(
-            'flex items-center',
-            align === 'center' && 'justify-center',
-            align === 'right' && 'justify-end',
+            'select-none border-b border-[color:var(--admin-border)] font-bold text-[color:var(--admin-text-secondary)]',
+            densityConfig.headPadding,
+            densityConfig.headerFontSize,
+            align === 'left' && 'text-left',
+            align === 'center' && 'text-center',
+            align === 'right' && 'text-right',
+            header.column.getCanSort() && 'cursor-pointer',
+            isReorderable && !isDragging && 'cursor-grab',
+            isDragging && 'cursor-grabbing',
           )}
-          {...(isReorderable ? { ...attributes, ...listeners } : {})}
+          style={style}
+          onClick={(event) => {
+            if (justResizedRef.current) return;
+            header.column.getToggleSortingHandler()?.(event);
+          }}
         >
-          {header.isPlaceholder
-            ? null
-            : flexRender(header.column.columnDef.header, header.getContext())}
-          <SortIcon column={header.column} />
-        </div>
-
-        {header.column.getCanResize() && (
           <div
-            onMouseDown={(event) => {
-              event.stopPropagation()
-              handleResizeStart(header, event)
-            }}
-            onTouchStart={(event) => {
-              event.stopPropagation()
-              handleResizeStart(header, event)
-            }}
-            onClick={(event) => event.stopPropagation()}
-            onPointerDown={(event) => event.stopPropagation()}
             className={cn(
-              'absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none',
-              'bg-slate-300 hover:bg-sky-500/70 dark:bg-[rgba(99,109,131,0.4)] dark:hover:bg-[rgba(97,175,239,0.7)]',
-              header.column.getIsResizing() && 'bg-sky-500 dark:bg-[#61afef]',
+              'flex items-center',
+              align === 'center' && 'justify-center',
+              align === 'right' && 'justify-end',
             )}
-          />
-        )}
-      </th>
-    )
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [densityConfig, enableColumnReorder, handleResizeStart])
+            {...(isReorderable ? { ...attributes, ...listeners } : {})}
+          >
+            {header.isPlaceholder
+              ? null
+              : flexRender(header.column.columnDef.header, header.getContext())}
+            <SortIcon column={header.column} />
+          </div>
+
+          {header.column.getCanResize() && (
+            <div
+              onMouseDown={(event) => {
+                event.stopPropagation();
+                handleResizeStart(header, event);
+              }}
+              onTouchStart={(event) => {
+                event.stopPropagation();
+                handleResizeStart(header, event);
+              }}
+              onClick={(event) => event.stopPropagation()}
+              onPointerDown={(event) => event.stopPropagation()}
+              className={cn(
+                'absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none',
+                'bg-slate-300 hover:bg-sky-500/70 dark:bg-[rgba(99,109,131,0.4)] dark:hover:bg-[rgba(97,175,239,0.7)]',
+                header.column.getIsResizing() && 'bg-sky-500 dark:bg-[#61afef]',
+              )}
+            />
+          )}
+        </th>
+      );
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [densityConfig, enableColumnReorder, handleResizeStart],
+  );
 
   // DragAlongCell: inner component for body cells during column reorder
-  const DragAlongCell = useCallback(({
-    cell,
-    cellWidth,
-    cellClassName,
-    row,
-  }: {
-    cell: ReturnType<Row<TData>['getVisibleCells']>[number]
-    cellWidth: number
-    cellClassName: string
-    row: Row<TData>
-  }) => {
-    const isEditingThisCell = editingCell?.rowId === row.id && editingCell?.columnId === cell.column.id
-    // JSX 요소(<DragAlongCell/>)로만 렌더링되는 내부 컴포넌트이므로 훅 호출이 유효함
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { isDragging, setNodeRef, transform } = useSortable({
-      id: cell.column.id,
-      disabled: !enableColumnReorder || NON_REORDERABLE_COLUMNS.has(cell.column.id) || isEditingThisCell,
-    })
+  const DragAlongCell = useCallback(
+    ({
+      cell,
+      cellWidth,
+      cellClassName,
+      row,
+    }: {
+      cell: ReturnType<Row<TData>['getVisibleCells']>[number];
+      cellWidth: number;
+      cellClassName: string;
+      row: Row<TData>;
+    }) => {
+      const isEditingThisCell =
+        editingCell?.rowId === row.id && editingCell?.columnId === cell.column.id;
+      // JSX 요소(<DragAlongCell/>)로만 렌더링되는 내부 컴포넌트이므로 훅 호출이 유효함
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const { isDragging, setNodeRef, transform } = useSortable({
+        id: cell.column.id,
+        disabled:
+          !enableColumnReorder || NON_REORDERABLE_COLUMNS.has(cell.column.id) || isEditingThisCell,
+      });
 
-    const style: CSSProperties = {
-      width: cellWidth,
-      minWidth: cellWidth,
-      opacity: isDragging ? 0.8 : 1,
-      position: 'relative',
-      transform: CSS.Translate.toString(transform),
-      transition: 'width transform',
-      zIndex: isDragging ? 1 : 0,
-    }
+      const style: CSSProperties = {
+        width: cellWidth,
+        minWidth: cellWidth,
+        opacity: isDragging ? 0.8 : 1,
+        position: 'relative',
+        transform: CSS.Translate.toString(transform),
+        transition: 'width transform',
+        zIndex: isDragging ? 1 : 0,
+      };
 
-    return (
-      <td
-        ref={setNodeRef}
-        className={cellClassName}
-        style={style}
-      >
-        {renderCellContent(cell, row)}
-      </td>
-    )
-  }, [enableColumnReorder, editingCell, renderCellContent])
+      return (
+        <td ref={setNodeRef} className={cellClassName} style={style}>
+          {renderCellContent(cell, row)}
+        </td>
+      );
+    },
+    [enableColumnReorder, editingCell, renderCellContent],
+  );
 
   const tableContent = (
     <div
@@ -662,8 +700,8 @@ export default function DataTableCore<TData extends RowData>({
       >
         <colgroup>
           {visibleLeafColumns.map((column) => {
-            const width = desktopTableLayout.widths[column.id] ?? column.getSize()
-            return <col key={column.id} style={{ width, minWidth: width }} />
+            const width = desktopTableLayout.widths[column.id] ?? column.getSize();
+            return <col key={column.id} style={{ width, minWidth: width }} />;
           })}
         </colgroup>
 
@@ -671,23 +709,22 @@ export default function DataTableCore<TData extends RowData>({
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {enableColumnReorder ? (
-                <SortableContext items={reorderableColumnIds} strategy={horizontalListSortingStrategy}>
+                <SortableContext
+                  items={reorderableColumnIds}
+                  strategy={horizontalListSortingStrategy}
+                >
                   {headerGroup.headers.map((header) => {
-                    const headerWidth = getHeaderWidth(header, desktopTableLayout.widths)
+                    const headerWidth = getHeaderWidth(header, desktopTableLayout.widths);
                     return (
-                      <DraggableHeader
-                        key={header.id}
-                        header={header}
-                        headerWidth={headerWidth}
-                      />
-                    )
+                      <DraggableHeader key={header.id} header={header} headerWidth={headerWidth} />
+                    );
                   })}
                 </SortableContext>
               ) : (
                 headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta as TableColumnMeta | undefined
-                  const align = meta?.headerAlign || 'left'
-                  const headerWidth = getHeaderWidth(header, desktopTableLayout.widths)
+                  const meta = header.column.columnDef.meta as TableColumnMeta | undefined;
+                  const align = meta?.headerAlign || 'left';
+                  const headerWidth = getHeaderWidth(header, desktopTableLayout.widths);
 
                   return (
                     <th
@@ -707,15 +744,17 @@ export default function DataTableCore<TData extends RowData>({
                         minWidth: headerWidth,
                       }}
                       onClick={(event) => {
-                        if (justResizedRef.current) return
-                        header.column.getToggleSortingHandler()?.(event)
+                        if (justResizedRef.current) return;
+                        header.column.getToggleSortingHandler()?.(event);
                       }}
                     >
-                      <div className={cn(
-                        'flex items-center',
-                        align === 'center' && 'justify-center',
-                        align === 'right' && 'justify-end',
-                      )}>
+                      <div
+                        className={cn(
+                          'flex items-center',
+                          align === 'center' && 'justify-center',
+                          align === 'right' && 'justify-end',
+                        )}
+                      >
                         {header.isPlaceholder
                           ? null
                           : flexRender(header.column.columnDef.header, header.getContext())}
@@ -735,7 +774,7 @@ export default function DataTableCore<TData extends RowData>({
                         )}
                       </div>
                     </th>
-                  )
+                  );
                 })
               )}
             </tr>
@@ -757,24 +796,32 @@ export default function DataTableCore<TData extends RowData>({
             </tr>
           ) : (
             rows.map((row) => {
-              const rowClassName = getRowClassName?.({ row: row.original, id: row.id }) || ''
+              const rowClassName = getRowClassName?.({ row: row.original, id: row.id }) || '';
 
               return (
                 <tr
                   key={row.id}
-                  onClick={onRowClick ? () => onRowClick({ row: row.original, id: row.id }) : undefined}
+                  onClick={
+                    onRowClick ? () => onRowClick({ row: row.original, id: row.id }) : undefined
+                  }
                   className={cn(
                     'border-b border-[color:var(--admin-border)] transition-colors',
-                    onRowClick ? 'cursor-pointer hover:bg-sky-600/6 dark:hover:bg-[rgba(97,175,239,0.06)]' : 'hover:bg-slate-50/70 dark:hover:bg-[rgba(44,49,58,0.5)]',
+                    onRowClick
+                      ? 'cursor-pointer hover:bg-sky-600/6 dark:hover:bg-[rgba(97,175,239,0.06)]'
+                      : 'hover:bg-slate-50/70 dark:hover:bg-[rgba(44,49,58,0.5)]',
                     rowClassName,
                   )}
                 >
                   {enableColumnReorder ? (
-                    <SortableContext items={reorderableColumnIds} strategy={horizontalListSortingStrategy}>
+                    <SortableContext
+                      items={reorderableColumnIds}
+                      strategy={horizontalListSortingStrategy}
+                    >
                       {row.getVisibleCells().map((cell) => {
-                        const meta = cell.column.columnDef.meta as TableColumnMeta | undefined
-                        const align = meta?.cellAlign || 'left'
-                        const cellWidth = desktopTableLayout.widths[cell.column.id] ?? cell.column.getSize()
+                        const meta = cell.column.columnDef.meta as TableColumnMeta | undefined;
+                        const align = meta?.cellAlign || 'left';
+                        const cellWidth =
+                          desktopTableLayout.widths[cell.column.id] ?? cell.column.getSize();
 
                         return (
                           <DragAlongCell
@@ -790,14 +837,15 @@ export default function DataTableCore<TData extends RowData>({
                             )}
                             row={row}
                           />
-                        )
+                        );
                       })}
                     </SortableContext>
                   ) : (
                     row.getVisibleCells().map((cell) => {
-                      const meta = cell.column.columnDef.meta as TableColumnMeta | undefined
-                      const align = meta?.cellAlign || 'left'
-                      const cellWidth = desktopTableLayout.widths[cell.column.id] ?? cell.column.getSize()
+                      const meta = cell.column.columnDef.meta as TableColumnMeta | undefined;
+                      const align = meta?.cellAlign || 'left';
+                      const cellWidth =
+                        desktopTableLayout.widths[cell.column.id] ?? cell.column.getSize();
 
                       return (
                         <td
@@ -816,11 +864,11 @@ export default function DataTableCore<TData extends RowData>({
                         >
                           {renderCellContent(cell, row)}
                         </td>
-                      )
+                      );
                     })
                   )}
                 </tr>
-              )
+              );
             })
           )}
         </tbody>
@@ -830,9 +878,9 @@ export default function DataTableCore<TData extends RowData>({
             {table.getFooterGroups().map((footerGroup) => (
               <tr key={footerGroup.id}>
                 {footerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta as TableColumnMeta | undefined
-                  const align = meta?.footerAlign || meta?.cellAlign || 'left'
-                  const footerWidth = getHeaderWidth(header, desktopTableLayout.widths)
+                  const meta = header.column.columnDef.meta as TableColumnMeta | undefined;
+                  const align = meta?.footerAlign || meta?.cellAlign || 'left';
+                  const footerWidth = getHeaderWidth(header, desktopTableLayout.widths);
 
                   return (
                     <td
@@ -853,7 +901,7 @@ export default function DataTableCore<TData extends RowData>({
                         ? null
                         : flexRender(header.column.columnDef.footer, header.getContext())}
                     </td>
-                  )
+                  );
                 })}
               </tr>
             ))}
@@ -861,7 +909,7 @@ export default function DataTableCore<TData extends RowData>({
         )}
       </table>
     </div>
-  )
+  );
 
   if (enableColumnReorder) {
     return (
@@ -873,8 +921,8 @@ export default function DataTableCore<TData extends RowData>({
       >
         {tableContent}
       </DndContext>
-    )
+    );
   }
 
-  return tableContent
+  return tableContent;
 }

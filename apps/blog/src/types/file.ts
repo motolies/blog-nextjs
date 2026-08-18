@@ -1,5 +1,5 @@
 export interface FileItem {
-  id: string
-  type?: string
-  [key: string]: unknown
+  id: string;
+  type?: string;
+  [key: string]: unknown;
 }

@@ -1,20 +1,29 @@
-import Link from 'next/link'
-import {ArrowRight, Clock3, FolderTree, LayoutTemplate, NotebookPen, Radar, ShieldCheck, Workflow} from 'lucide-react'
-import AdminPageFrame from '@/components/layout/admin/AdminPageFrame'
-import {adminQuickLinks} from '@/components/layout/admin/adminNavigation'
-import type {LucideIcon} from 'lucide-react'
+import Link from 'next/link';
+import {
+  ArrowRight,
+  Clock3,
+  FolderTree,
+  LayoutTemplate,
+  NotebookPen,
+  Radar,
+  ShieldCheck,
+  Workflow,
+} from 'lucide-react';
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
+import { adminQuickLinks } from '@/components/layout/admin/adminNavigation';
+import type { LucideIcon } from 'lucide-react';
 
 interface DashboardStat {
-  label: string
-  value: string
-  meta: string
-  icon: LucideIcon
+  label: string;
+  value: string;
+  meta: string;
+  icon: LucideIcon;
 }
 
 interface StatusCard {
-  title: string
-  description: string
-  icon: LucideIcon
+  title: string;
+  description: string;
+  icon: LucideIcon;
 }
 
 const dashboardStats: DashboardStat[] = [
@@ -36,7 +45,7 @@ const dashboardStats: DashboardStat[] = [
     meta: '스프린트 리포트 영역',
     icon: Workflow,
   },
-]
+];
 
 const statusCards: StatusCard[] = [
   {
@@ -54,27 +63,27 @@ const statusCards: StatusCard[] = [
     description: '에디터와 우측 설정 패널을 분리해 긴 글 작성에도 공간 손실이 적습니다.',
     icon: Clock3,
   },
-]
+];
 
 export default function AdminPage() {
   return (
     <AdminPageFrame
-      actions={(
+      actions={
         <Link
           href="/admin/write"
           className="inline-flex items-center gap-2 rounded-2xl border border-sky-600/15 bg-sky-600/8 px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-600/12"
         >
           새 글 작성
-          <ArrowRight className="h-4 w-4"/>
+          <ArrowRight className="h-4 w-4" />
         </Link>
-      )}
+      }
     >
       <div className="admin-stat-grid">
-        {dashboardStats.map(({label, value, meta, icon: Icon}) => (
+        {dashboardStats.map(({ label, value, meta, icon: Icon }) => (
           <div className="admin-stat-card col-span-12 md:col-span-4" key={label}>
             <div className="flex items-center justify-between gap-3">
               <span className="admin-stat-label">{label}</span>
-              <Icon className="h-5 w-5 text-sky-600"/>
+              <Icon className="h-5 w-5 text-sky-600" />
             </div>
             <strong className="admin-stat-value">{value}</strong>
             <span className="admin-stat-meta">{meta}</span>
@@ -86,29 +95,31 @@ export default function AdminPage() {
         <section className="admin-panel admin-panel-pad">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">Quick Access</p>
-              <h2 className="mt-1 text-xl font-semibold text-[color:var(--admin-text)]">주요 관리 화면</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">
+                Quick Access
+              </p>
+              <h2 className="mt-1 text-xl font-semibold text-[color:var(--admin-text)]">
+                주요 관리 화면
+              </h2>
             </div>
-            <span className="admin-pill">
-              {adminQuickLinks.length} links
-            </span>
+            <span className="admin-pill">{adminQuickLinks.length} links</span>
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
-            {adminQuickLinks.map(({href, label, description, icon: Icon}) => (
-              <Link
-                href={href}
-                key={href}
-                className="admin-link-card group p-4"
-              >
+            {adminQuickLinks.map(({ href, label, description, icon: Icon }) => (
+              <Link href={href} key={href} className="admin-link-card group p-4">
                 <div className="admin-icon-chip mb-4 p-3">
-                  <Icon className="h-5 w-5"/>
+                  <Icon className="h-5 w-5" />
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-base font-semibold text-[color:var(--admin-text)]">{label}</h3>
-                  <ArrowRight className="h-4 w-4 text-[color:var(--admin-text-faint)] transition group-hover:text-sky-700"/>
+                  <h3 className="text-base font-semibold text-[color:var(--admin-text)]">
+                    {label}
+                  </h3>
+                  <ArrowRight className="h-4 w-4 text-[color:var(--admin-text-faint)] transition group-hover:text-sky-700" />
                 </div>
-                <p className="mt-2 text-sm leading-6 text-[color:var(--admin-text-muted)]">{description}</p>
+                <p className="mt-2 text-sm leading-6 text-[color:var(--admin-text-muted)]">
+                  {description}
+                </p>
               </Link>
             ))}
           </div>
@@ -116,31 +127,39 @@ export default function AdminPage() {
 
         <section className="admin-panel admin-panel-pad">
           <div className="mb-4 flex items-center gap-3">
-            <NotebookPen className="h-5 w-5 text-sky-600"/>
+            <NotebookPen className="h-5 w-5 text-sky-600" />
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">Workspace Notes</p>
-              <h2 className="mt-1 text-xl font-semibold text-[color:var(--admin-text)]">이번 셸 방향</h2>
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">
+                Workspace Notes
+              </p>
+              <h2 className="mt-1 text-xl font-semibold text-[color:var(--admin-text)]">
+                이번 셸 방향
+              </h2>
             </div>
           </div>
 
           <div className="space-y-3">
-            {statusCards.map(({title, description, icon: Icon}) => (
+            {statusCards.map(({ title, description, icon: Icon }) => (
               <div
                 className="rounded-[1.1rem] border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)] px-4 py-4"
                 key={title}
               >
                 <div className="mb-2 flex items-center gap-3">
                   <span className="admin-icon-chip rounded-xl p-2">
-                    <Icon className="h-4 w-4"/>
+                    <Icon className="h-4 w-4" />
                   </span>
-                  <strong className="text-sm font-semibold text-[color:var(--admin-text)]">{title}</strong>
+                  <strong className="text-sm font-semibold text-[color:var(--admin-text)]">
+                    {title}
+                  </strong>
                 </div>
-                <p className="text-sm leading-6 text-[color:var(--admin-text-muted)]">{description}</p>
+                <p className="text-sm leading-6 text-[color:var(--admin-text-muted)]">
+                  {description}
+                </p>
               </div>
             ))}
           </div>
         </section>
       </div>
     </AdminPageFrame>
-  )
+  );
 }

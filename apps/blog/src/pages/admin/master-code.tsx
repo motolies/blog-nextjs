@@ -1,5 +1,5 @@
-import MasterCodePage from '@/components/master-code/MasterCodePage'
+import MasterCodePage from '@/components/master-code/MasterCodePage';
 
 export default function MasterCode() {
-  return <MasterCodePage/>
+  return <MasterCodePage />;
 }

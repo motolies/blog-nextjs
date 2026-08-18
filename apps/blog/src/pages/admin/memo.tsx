@@ -1,129 +1,144 @@
-import React, {useState, useEffect, useMemo, useCallback} from 'react'
-import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
-import {toast} from 'sonner'
-import {Plus, Trash2} from 'lucide-react'
-import ShadcnDataTable from '@/components/common/ShadcnDataTable'
-import {Button} from '@/components/ui/button'
-import MemoDialog from '@/components/memo/MemoDialog'
-import CategoryManagementPanel from '@/components/memo/CategoryManagementPanel'
-import DeleteConfirm from '@/components/confirm/DeleteConfirm'
-import service from '@/service'
-import {formatUtcToLocal} from '@/util/dateTimeUtil'
-import AdminPageFrame from '@/components/layout/admin/AdminPageFrame'
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
+import { Plus, Trash2 } from 'lucide-react';
+import ShadcnDataTable from '@/components/common/ShadcnDataTable';
+import { Button } from '@/components/ui/button';
+import MemoDialog from '@/components/memo/MemoDialog';
+import CategoryManagementPanel from '@/components/memo/CategoryManagementPanel';
+import DeleteConfirm from '@/components/confirm/DeleteConfirm';
+import service from '@/service';
+import { formatUtcToLocal } from '@/util/dateTimeUtil';
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 
 export default function MemoPage() {
-  const [memoDialogOpen, setMemoDialogOpen] = useState(false)
-  const [editingMemoId, setEditingMemoId] = useState<string | null>(null)
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
-  const [deleteTarget, setDeleteTarget] = useState<any>(null)
-  const [categories, setCategories] = useState<any[]>([])
-  const [refreshKey, setRefreshKey] = useState(0)
+  const [memoDialogOpen, setMemoDialogOpen] = useState(false);
+  const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    loadCategories()
-  }, [])
+    loadCategories();
+  }, []);
 
   const loadCategories = async () => {
     try {
-      const data = await service.memo.getCategories()
-      setCategories(data || [])
+      const data = await service.memo.getCategories();
+      setCategories(data || []);
     } catch (error) {
-      console.error('카테고리 로드 실패:', error)
+      console.error('카테고리 로드 실패:', error);
     }
-  }
+  };
 
-  const categoryOptions = useMemo(() =>
-    categories.map((c: any) => ({value: c.id, label: c.name})),
-    [categories]
-  )
+  const categoryOptions = useMemo(
+    () => categories.map((c: any) => ({ value: c.id, label: c.name })),
+    [categories],
+  );
 
-  const columns = useMemo(() => [
-    {
-      accessorKey: 'category',
-      header: '카테고리',
-      size: 120,
-      mobileLabel: '카테고리',
-      cell: ({value}: {value: any}) => value?.name || '-',
-    },
-    {
-      accessorKey: 'content',
-      header: '내용',
-      grow: true,
-      mobilePrimary: true,
-      mobileLabel: '메모',
-      cell: ({value, row}: {value: string; row: any}) => {
-        const text = value || ''
-        const display = text.length > 100 ? text.substring(0, 100) + '...' : text
-        return (
-          <div
-            className="cursor-pointer hover:text-sky-700"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleEdit(row)
-            }}
-          >
-            {display}
-          </div>
-        )
-      }
-    },
-    {
-      accessorKey: 'created',
-      header: '작성일',
-      size: 160,
-      mobileLabel: '작성일',
-      cell: ({value}: {value: any}) => {
-        const val = value
-        if (!val?.at) return '-'
-        return formatUtcToLocal(val.at, 'yyyy-MM-dd HH:mm:ss')
-      }
-    },
-  ], [])
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: 'category',
+        header: '카테고리',
+        size: 120,
+        mobileLabel: '카테고리',
+        cell: ({ value }: { value: any }) => value?.name || '-',
+      },
+      {
+        accessorKey: 'content',
+        header: '내용',
+        grow: true,
+        mobilePrimary: true,
+        mobileLabel: '메모',
+        cell: ({ value, row }: { value: string; row: any }) => {
+          const text = value || '';
+          const display = text.length > 100 ? text.substring(0, 100) + '...' : text;
+          return (
+            <div
+              className="cursor-pointer hover:text-sky-700"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(row);
+              }}
+            >
+              {display}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'created',
+        header: '작성일',
+        size: 160,
+        mobileLabel: '작성일',
+        cell: ({ value }: { value: any }) => {
+          const val = value;
+          if (!val?.at) return '-';
+          return formatUtcToLocal(val.at, 'yyyy-MM-dd HH:mm:ss');
+        },
+      },
+    ],
+    [],
+  );
 
-  const searchFields = useMemo(() => [
-    {name: 'keyword', label: '키워드', pinned: true},
-    {name: 'categoryId', label: '카테고리', type: 'select', options: categoryOptions},
-    {name: 'includeDeleted', label: '삭제 여부', type: 'select', defaultValue: true, options: [{value: true, label: '포함'}, {value: false, label: '미포함'}]},
-  ], [categoryOptions])
+  const searchFields = useMemo(
+    () => [
+      { name: 'keyword', label: '키워드', pinned: true },
+      { name: 'categoryId', label: '카테고리', type: 'select', options: categoryOptions },
+      {
+        name: 'includeDeleted',
+        label: '삭제 여부',
+        type: 'select',
+        defaultValue: true,
+        options: [
+          { value: true, label: '포함' },
+          { value: false, label: '미포함' },
+        ],
+      },
+    ],
+    [categoryOptions],
+  );
 
-  const fetchMemos = useCallback((searchRequest: any) =>
-    service.memo.search({searchRequest}),
-    [refreshKey]
-  )
+  const fetchMemos = useCallback(
+    (searchRequest: any) => service.memo.search({ searchRequest }),
+    [refreshKey],
+  );
 
   const handleEdit = (row: any) => {
-    setEditingMemoId(row.id)
-    setMemoDialogOpen(true)
-  }
+    setEditingMemoId(row.id);
+    setMemoDialogOpen(true);
+  };
 
   const handleDeleteClick = (row: any) => {
-    setDeleteTarget(row)
-    setDeleteConfirmOpen(true)
-  }
+    setDeleteTarget(row);
+    setDeleteConfirmOpen(true);
+  };
 
   const handleDeleteConfirm = async () => {
-    setDeleteConfirmOpen(false)
+    setDeleteConfirmOpen(false);
     try {
-      await service.memo.delete(deleteTarget.id)
-      toast.success('메모가 삭제되었습니다.')
-      setRefreshKey(prev => prev + 1)
+      await service.memo.delete(deleteTarget.id);
+      toast.success('메모가 삭제되었습니다.');
+      setRefreshKey((prev) => prev + 1);
     } catch (error) {
-      toast.error('메모 삭제에 실패했습니다.')
+      toast.error('메모 삭제에 실패했습니다.');
     }
-  }
+  };
 
   const handleMemoSaved = () => {
-    setRefreshKey(prev => prev + 1)
-  }
+    setRefreshKey((prev) => prev + 1);
+  };
 
   return (
     <AdminPageFrame
-      actions={(
+      actions={
         <Button onClick={() => setMemoDialogOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4"/>
+          <Plus className="h-4 w-4" />
           메모 추가
         </Button>
-      )}
+      }
     >
       <Tabs defaultValue="memos" className="mb-2">
         <TabsList className="w-full justify-start gap-2 overflow-x-auto rounded-2xl border border-[color:var(--admin-border)] bg-white/70 p-1.5 shadow-sm">
@@ -150,11 +165,17 @@ export default function MemoPage() {
               enableDynamicSearch={true}
               enableRowActions={true}
               positionActionsColumn="last"
-              renderRowActions={({row}: {row: any}) => (
+              renderRowActions={({ row }: { row: any }) => (
                 <div className="flex gap-1">
                   {!row.original.deleted && (
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(row.original)} title="삭제" className="h-7 w-7 text-red-500 hover:text-red-600">
-                      <Trash2 className="h-4 w-4"/>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteClick(row.original)}
+                      title="삭제"
+                      className="h-7 w-7 text-red-500 hover:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -164,7 +185,7 @@ export default function MemoPage() {
         </TabsContent>
         <TabsContent value="categories">
           <div className="admin-panel admin-panel-pad">
-            <CategoryManagementPanel/>
+            <CategoryManagementPanel />
           </div>
         </TabsContent>
       </Tabs>
@@ -172,8 +193,8 @@ export default function MemoPage() {
       <MemoDialog
         open={memoDialogOpen}
         onClose={() => {
-          setMemoDialogOpen(false)
-          setEditingMemoId(null)
+          setMemoDialogOpen(false);
+          setEditingMemoId(null);
         }}
         memoId={editingMemoId}
         onSaved={handleMemoSaved}
@@ -186,5 +207,5 @@ export default function MemoPage() {
         onCancel={() => setDeleteConfirmOpen(false)}
       />
     </AdminPageFrame>
-  )
+  );
 }

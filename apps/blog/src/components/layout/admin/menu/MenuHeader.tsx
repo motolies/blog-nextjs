@@ -1,13 +1,13 @@
-import styles from './Menu.module.css'
+import styles from './Menu.module.css';
 
 interface MenuHeaderProps {
-    title: string
+  title: string;
 }
 
-export default function MenuHeader({title}: MenuHeaderProps) {
-    return (
-        <li className={styles.menuHeader}>
-            <span className={styles.menuHeaderText}>{title}</span>
-        </li>
-    )
+export default function MenuHeader({ title }: MenuHeaderProps) {
+  return (
+    <li className={styles.menuHeader}>
+      <span className={styles.menuHeaderText}>{title}</span>
+    </li>
+  );
 }

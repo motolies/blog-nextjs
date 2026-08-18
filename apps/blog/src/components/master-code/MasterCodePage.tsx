@@ -1,52 +1,58 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react'
-import {Plus, RefreshCw, Save, Search, X} from 'lucide-react'
-import {toast} from 'sonner'
-import {Button} from '@/components/ui/button'
-import {Input} from '@/components/ui/input'
-import {Skeleton} from '@/components/ui/skeleton'
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog'
-import AdminPageFrame from '@/components/layout/admin/AdminPageFrame'
-import service from '@/service'
-import MasterCodeTree from './MasterCodeTree'
-import NodeDetailPanel from './NodeDetailPanel'
-import NodeForm from './NodeForm'
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Plus, RefreshCw, Save, Search, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
+import service from '@/service';
+import MasterCodeTree from './MasterCodeTree';
+import NodeDetailPanel from './NodeDetailPanel';
+import NodeForm from './NodeForm';
 
 interface AttributeSchemaItem {
-  key: string
-  label: string
-  type: string
+  key: string;
+  label: string;
+  type: string;
   // 'true'이면 공개(비관리자) 응답에서 백엔드가 이 속성을 제거한다. 없으면 false(공개)로 간주.
-  sensitive?: string
+  sensitive?: string;
 }
 
 interface MasterCodeNode {
-  id: number
-  code: string
-  name: string
-  description?: string
-  sort?: number
-  isActive: boolean
-  depth: number
-  parentId?: number | null
-  children?: MasterCodeNode[]
-  attributeSchema?: AttributeSchemaItem[]
-  attributes?: Record<string, string>
-  [key: string]: unknown
+  id: number;
+  code: string;
+  name: string;
+  description?: string;
+  sort?: number;
+  isActive: boolean;
+  depth: number;
+  parentId?: number | null;
+  children?: MasterCodeNode[];
+  attributeSchema?: AttributeSchemaItem[];
+  attributes?: Record<string, string>;
+  [key: string]: unknown;
 }
 
 interface FormData {
-  code: string
-  name: string
-  description: string
-  sort: number
-  isActive: boolean
-  isRoot: boolean
-  parentId: number | null
-  attributeSchema: AttributeSchemaItem[]
-  attributes: Record<string, string>
+  code: string;
+  name: string;
+  description: string;
+  sort: number;
+  isActive: boolean;
+  isRoot: boolean;
+  parentId: number | null;
+  attributeSchema: AttributeSchemaItem[];
+  attributes: Record<string, string>;
 }
 
-type DialogMode = 'addRoot' | 'addChild' | 'edit'
+type DialogMode = 'addRoot' | 'addChild' | 'edit';
 
 const INITIAL_FORM_DATA: FormData = {
   code: '',
@@ -58,102 +64,105 @@ const INITIAL_FORM_DATA: FormData = {
   parentId: null,
   attributeSchema: [],
   attributes: {},
-}
+};
 
 export default function MasterCodePage() {
   // 데이터 상태
-  const [treeData, setTreeData] = useState<MasterCodeNode[]>([])
-  const [loading, setLoading] = useState<boolean>(false)
+  const [treeData, setTreeData] = useState<MasterCodeNode[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   // 선택/탐색 상태
-  const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null)
-  const [expandedIds, setExpandedIds] = useState<(string | number)[]>([])
+  const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
+  const [expandedIds, setExpandedIds] = useState<(string | number)[]>([]);
 
   // 검색 상태
-  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   // 다이얼로그 상태
-  const [openDialog, setOpenDialog] = useState<boolean>(false)
-  const [dialogMode, setDialogMode] = useState<DialogMode | null>(null)
-  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA)
-  const [originalCode, setOriginalCode] = useState<string>('')
-  const [dialogParentNode, setDialogParentNode] = useState<MasterCodeNode | null>(null)
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [dialogMode, setDialogMode] = useState<DialogMode | null>(null);
+  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
+  const [originalCode, setOriginalCode] = useState<string>('');
+  const [dialogParentNode, setDialogParentNode] = useState<MasterCodeNode | null>(null);
 
   // 선택된 노드 객체 찾기 (트리에서 재귀 탐색)
   const selectedNode = useMemo(() => {
-    if (selectedNodeId == null) return null
-    return findNodeById(treeData, selectedNodeId)
-  }, [treeData, selectedNodeId])
+    if (selectedNodeId == null) return null;
+    return findNodeById(treeData, selectedNodeId);
+  }, [treeData, selectedNodeId]);
 
   // 선택된 노드의 루트 조상의 attributeSchema (자식 노드 편집 시 필요)
   const rootAttributeSchema = useMemo(() => {
-    if (!selectedNode) return [] as AttributeSchemaItem[]
-    const root = findRootAncestor(treeData, selectedNodeId!)
-    return root?.attributeSchema || []
-  }, [treeData, selectedNode, selectedNodeId])
+    if (!selectedNode) return [] as AttributeSchemaItem[];
+    const root = findRootAncestor(treeData, selectedNodeId!);
+    return root?.attributeSchema || [];
+  }, [treeData, selectedNode, selectedNodeId]);
 
   // 데이터 로드
   const loadData = useCallback(async () => {
     try {
-      setLoading(true)
-      const data = await service.masterCode.getTree()
-      setTreeData(data || [])
+      setLoading(true);
+      const data = await service.masterCode.getTree();
+      setTreeData(data || []);
       // 초기 로드 시 루트 노드 모두 펼침
       if (expandedIds.length === 0 && data?.length > 0) {
-        setExpandedIds(data.map((n: MasterCodeNode) => n.id))
+        setExpandedIds(data.map((n: MasterCodeNode) => n.id));
       }
     } catch (error: any) {
-      toast.error(`데이터 로드 실패: ${error.response?.data?.message || error.message}`)
-      setTreeData([])
+      toast.error(`데이터 로드 실패: ${error.response?.data?.message || error.message}`);
+      setTreeData([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, []) // expandedIds 의존성 제거: 초기 로드에서만 자동 펼침
+  }, []); // expandedIds 의존성 제거: 초기 로드에서만 자동 펼침
 
   useEffect(() => {
-    loadData()
-  }, [loadData])
+    loadData();
+  }, [loadData]);
 
   // 트리 노드 펼침/접힘 토글
   const handleToggle = useCallback((nodeId: string | number) => {
-    setExpandedIds(prev =>
-      prev.includes(nodeId) ? prev.filter(id => id !== nodeId) : [...prev, nodeId]
-    )
-  }, [])
+    setExpandedIds((prev) =>
+      prev.includes(nodeId) ? prev.filter((id) => id !== nodeId) : [...prev, nodeId],
+    );
+  }, []);
 
   // 노드 선택
   const handleNodeSelect = useCallback((node: MasterCodeNode) => {
-    setSelectedNodeId(node.id)
-  }, [])
+    setSelectedNodeId(node.id);
+  }, []);
 
   // 루트 노드 추가
   const handleAddRoot = useCallback(() => {
-    setDialogMode('addRoot')
-    setDialogParentNode(null)
-    setFormData({...INITIAL_FORM_DATA, isRoot: true, attributeSchema: []})
-    setOriginalCode('')
-    setOpenDialog(true)
-  }, [])
+    setDialogMode('addRoot');
+    setDialogParentNode(null);
+    setFormData({ ...INITIAL_FORM_DATA, isRoot: true, attributeSchema: [] });
+    setOriginalCode('');
+    setOpenDialog(true);
+  }, []);
 
   // 하위 노드 추가
-  const handleAddChild = useCallback((parentNode: MasterCodeNode) => {
-    const rootAncestor = findRootAncestor(treeData, parentNode.id)
-    setDialogMode('addChild')
-    setDialogParentNode(parentNode)
-    setFormData({
-      ...INITIAL_FORM_DATA,
-      parentId: parentNode.id,
-      attributes: {},
-    })
-    setOriginalCode('')
-    setOpenDialog(true)
-  }, [treeData])
+  const handleAddChild = useCallback(
+    (parentNode: MasterCodeNode) => {
+      const rootAncestor = findRootAncestor(treeData, parentNode.id);
+      setDialogMode('addChild');
+      setDialogParentNode(parentNode);
+      setFormData({
+        ...INITIAL_FORM_DATA,
+        parentId: parentNode.id,
+        attributes: {},
+      });
+      setOriginalCode('');
+      setOpenDialog(true);
+    },
+    [treeData],
+  );
 
   // 편집
   const handleEdit = useCallback((node: MasterCodeNode) => {
-    const isRoot = node.depth === 0
-    setDialogMode('edit')
-    setDialogParentNode(null)
+    const isRoot = node.depth === 0;
+    setDialogMode('edit');
+    setDialogParentNode(null);
     setFormData({
       code: node.code,
       name: node.name,
@@ -162,50 +171,53 @@ export default function MasterCodePage() {
       isActive: node.isActive,
       isRoot,
       parentId: node.parentId ?? null,
-      attributeSchema: isRoot ? (node.attributeSchema || []) : [],
-      attributes: !isRoot ? (node.attributes || {}) : {},
-    })
-    setOriginalCode(node.code)
-    setOpenDialog(true)
-  }, [])
+      attributeSchema: isRoot ? node.attributeSchema || [] : [],
+      attributes: !isRoot ? node.attributes || {} : {},
+    });
+    setOriginalCode(node.code);
+    setOpenDialog(true);
+  }, []);
 
   // 삭제
-  const handleDelete = useCallback(async (node: MasterCodeNode) => {
-    const hasChildren = Array.isArray(node.children) && node.children.length > 0
-    if (hasChildren) {
-      toast.error('하위 노드가 존재하여 삭제할 수 없습니다. 하위 노드를 먼저 삭제해주세요.')
-      return
-    }
-    if (!confirm(`"${node.name}" (${node.code})을(를) 삭제하시겠습니까?`)) return
-
-    try {
-      setLoading(true)
-      await service.masterCode.deleteNode(node.id)
-      toast.success('노드가 성공적으로 삭제되었습니다.')
-      if (selectedNodeId === node.id) {
-        setSelectedNodeId(null)
+  const handleDelete = useCallback(
+    async (node: MasterCodeNode) => {
+      const hasChildren = Array.isArray(node.children) && node.children.length > 0;
+      if (hasChildren) {
+        toast.error('하위 노드가 존재하여 삭제할 수 없습니다. 하위 노드를 먼저 삭제해주세요.');
+        return;
       }
-      await loadData()
-    } catch (error: any) {
-      toast.error(`삭제 실패: ${error.response?.data?.message || error.message}`)
-    } finally {
-      setLoading(false)
-    }
-  }, [loadData, selectedNodeId])
+      if (!confirm(`"${node.name}" (${node.code})을(를) 삭제하시겠습니까?`)) return;
+
+      try {
+        setLoading(true);
+        await service.masterCode.deleteNode(node.id);
+        toast.success('노드가 성공적으로 삭제되었습니다.');
+        if (selectedNodeId === node.id) {
+          setSelectedNodeId(null);
+        }
+        await loadData();
+      } catch (error: any) {
+        toast.error(`삭제 실패: ${error.response?.data?.message || error.message}`);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loadData, selectedNodeId],
+  );
 
   // 저장
   const handleSave = async () => {
     if (!formData.code?.trim()) {
-      toast.error('코드는 필수 입력입니다.')
-      return
+      toast.error('코드는 필수 입력입니다.');
+      return;
     }
     if (!formData.name?.trim()) {
-      toast.error('이름은 필수 입력입니다.')
-      return
+      toast.error('이름은 필수 입력입니다.');
+      return;
     }
 
     try {
-      setLoading(true)
+      setLoading(true);
 
       // 저장 시 모든 스키마 항목에 sensitive를 'true'/'false'로 명시한다(읽기는 기본 false, 저장 시 명시).
       const normalizedSchema = (formData.attributeSchema || []).map((it: AttributeSchemaItem) => ({
@@ -213,7 +225,7 @@ export default function MasterCodePage() {
         label: it.label,
         type: it.type,
         sensitive: it.sensitive === 'true' ? 'true' : 'false',
-      }))
+      }));
 
       if (dialogMode === 'addRoot') {
         const payload = {
@@ -224,9 +236,9 @@ export default function MasterCodePage() {
           isActive: formData.isActive,
           parentId: null,
           attributeSchema: normalizedSchema,
-        }
-        await service.masterCode.createNode(payload)
-        toast.success('루트 노드가 성공적으로 생성되었습니다.')
+        };
+        await service.masterCode.createNode(payload);
+        toast.success('루트 노드가 성공적으로 생성되었습니다.');
       } else if (dialogMode === 'addChild') {
         const payload = {
           code: formData.code.trim(),
@@ -236,73 +248,75 @@ export default function MasterCodePage() {
           isActive: formData.isActive,
           parentId: formData.parentId,
           attributes: formData.attributes,
-        }
-        await service.masterCode.createNode(payload)
-        toast.success('하위 노드가 성공적으로 생성되었습니다.')
+        };
+        await service.masterCode.createNode(payload);
+        toast.success('하위 노드가 성공적으로 생성되었습니다.');
         // 부모 노드 펼침
         if (formData.parentId && !expandedIds.includes(formData.parentId)) {
-          setExpandedIds(prev => [...prev, formData.parentId!])
+          setExpandedIds((prev) => [...prev, formData.parentId!]);
         }
       } else if (dialogMode === 'edit') {
-        const isRoot = formData.isRoot
+        const isRoot = formData.isRoot;
         const payload = {
           code: formData.code.trim(),
           name: formData.name.trim(),
           description: formData.description?.trim() || null,
           sort: formData.sort,
           isActive: formData.isActive,
-          ...(isRoot
-            ? {attributeSchema: normalizedSchema}
-            : {attributes: formData.attributes}
-          ),
-        }
-        await service.masterCode.updateNode(selectedNode!.id, payload)
-        toast.success('노드가 성공적으로 수정되었습니다.')
+          ...(isRoot ? { attributeSchema: normalizedSchema } : { attributes: formData.attributes }),
+        };
+        await service.masterCode.updateNode(selectedNode!.id, payload);
+        toast.success('노드가 성공적으로 수정되었습니다.');
       }
 
-      setOpenDialog(false)
-      await loadData()
+      setOpenDialog(false);
+      await loadData();
     } catch (error: any) {
-      toast.error(`저장 실패: ${error.response?.data?.message || error.message}`)
+      toast.error(`저장 실패: ${error.response?.data?.message || error.message}`);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // 캐시 삭제
   const handleClearAllCache = async () => {
-    if (!confirm('전체 캐시를 삭제하시겠습니까?\n\n모든 캐시가 삭제되며 시스템 성능에 일시적인 영향을 줄 수 있습니다.')) {
-      return
+    if (
+      !confirm(
+        '전체 캐시를 삭제하시겠습니까?\n\n모든 캐시가 삭제되며 시스템 성능에 일시적인 영향을 줄 수 있습니다.',
+      )
+    ) {
+      return;
     }
     try {
-      setLoading(true)
-      const result = await service.masterCode.evictAllCaches()
-      toast.success(`${result.message} (${result.evictedCacheCount}개 캐시 삭제됨)`)
+      setLoading(true);
+      const result = await service.masterCode.evictAllCaches();
+      toast.success(`${result.message} (${result.evictedCacheCount}개 캐시 삭제됨)`);
     } catch (error: any) {
-      toast.error(`캐시 삭제 실패: ${error.response?.data?.message || error.message}`)
+      toast.error(`캐시 삭제 실패: ${error.response?.data?.message || error.message}`);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // 편집 다이얼로그에서 자식 노드의 루트 schema 결정
   const formRootAttributeSchema = useMemo(() => {
     if (dialogMode === 'addChild' && dialogParentNode) {
-      const root = findRootAncestor(treeData, dialogParentNode.id)
-      return root?.attributeSchema || []
+      const root = findRootAncestor(treeData, dialogParentNode.id);
+      return root?.attributeSchema || [];
     }
     if (dialogMode === 'edit' && selectedNode && !formData.isRoot) {
-      const root = findRootAncestor(treeData, selectedNode.id)
-      return root?.attributeSchema || []
+      const root = findRootAncestor(treeData, selectedNode.id);
+      return root?.attributeSchema || [];
     }
-    return [] as AttributeSchemaItem[]
-  }, [dialogMode, dialogParentNode, selectedNode, treeData, formData.isRoot])
+    return [] as AttributeSchemaItem[];
+  }, [dialogMode, dialogParentNode, selectedNode, treeData, formData.isRoot]);
 
-  const dialogTitle = {
-    addRoot: '루트 노드 추가',
-    addChild: '하위 노드 추가',
-    edit: '노드 편집',
-  }[dialogMode as string] || ''
+  const dialogTitle =
+    {
+      addRoot: '루트 노드 추가',
+      addChild: '하위 노드 추가',
+      edit: '노드 편집',
+    }[dialogMode as string] || '';
 
   return (
     <AdminPageFrame
@@ -310,7 +324,8 @@ export default function MasterCodePage() {
       actions={
         <>
           <Button onClick={handleAddRoot} disabled={loading}>
-            <Plus className="h-4 w-4 mr-1"/>루트 추가
+            <Plus className="h-4 w-4 mr-1" />
+            루트 추가
           </Button>
           <Button
             variant="outline"
@@ -318,7 +333,8 @@ export default function MasterCodePage() {
             onClick={handleClearAllCache}
             disabled={loading}
           >
-            <RefreshCw className="h-4 w-4 mr-1"/>캐시 삭제
+            <RefreshCw className="h-4 w-4 mr-1" />
+            캐시 삭제
           </Button>
         </>
       }
@@ -326,7 +342,7 @@ export default function MasterCodePage() {
       {/* 검색 바 */}
       <div className="admin-panel admin-panel-pad mb-2">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/>
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={searchQuery}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
@@ -338,7 +354,7 @@ export default function MasterCodePage() {
               className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 hover:bg-muted"
               onClick={() => setSearchQuery('')}
             >
-              <X className="h-3.5 w-3.5 text-muted-foreground"/>
+              <X className="h-3.5 w-3.5 text-muted-foreground" />
             </button>
           )}
         </div>
@@ -347,15 +363,12 @@ export default function MasterCodePage() {
       {/* 메인 콘텐츠 */}
       {loading && treeData.length === 0 ? (
         <div className="flex flex-col gap-2 py-4">
-          <Skeleton className="h-8 w-full"/>
-          <Skeleton className="h-8 w-full"/>
-          <Skeleton className="h-8 w-3/4"/>
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-3/4" />
         </div>
       ) : (
-        <div
-          className="admin-split-layout admin-fill"
-          data-size="wide"
-        >
+        <div className="admin-split-layout admin-fill" data-size="wide">
           {/* 좌측: 트리 뷰 */}
           <div className="admin-panel admin-fill min-w-0 overflow-hidden">
             <MasterCodeTree
@@ -400,17 +413,18 @@ export default function MasterCodePage() {
               취소
             </Button>
             <Button onClick={handleSave} disabled={loading}>
-              {loading
-                ? <RefreshCw className="h-4 w-4 mr-1 animate-spin"/>
-                : <Save className="h-4 w-4 mr-1"/>
-              }
+              {loading ? (
+                <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-1" />
+              )}
               {loading ? '저장 중...' : '저장'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </AdminPageFrame>
-  )
+  );
 }
 
 // --- 유틸리티 함수 ---
@@ -419,15 +433,15 @@ export default function MasterCodePage() {
  * 트리에서 ID로 노드 찾기 (재귀)
  */
 function findNodeById(nodes: MasterCodeNode[], id: number): MasterCodeNode | null {
-  if (!nodes) return null
+  if (!nodes) return null;
   for (const node of nodes) {
-    if (node.id === id) return node
+    if (node.id === id) return node;
     if (node.children) {
-      const found = findNodeById(node.children, id)
-      if (found) return found
+      const found = findNodeById(node.children, id);
+      if (found) return found;
     }
   }
-  return null
+  return null;
 }
 
 /**
@@ -435,20 +449,20 @@ function findNodeById(nodes: MasterCodeNode[], id: number): MasterCodeNode | nul
  * 트리를 순회하며 해당 노드를 포함하는 루트 노드를 반환
  */
 function findRootAncestor(treeData: MasterCodeNode[], targetId: number): MasterCodeNode | null {
-  if (!treeData) return null
+  if (!treeData) return null;
   for (const root of treeData) {
-    if (containsNode(root, targetId)) return root
+    if (containsNode(root, targetId)) return root;
   }
-  return null
+  return null;
 }
 
 /**
  * 노드 서브트리에 대상 ID가 포함되어 있는지 확인
  */
 function containsNode(node: MasterCodeNode, targetId: number): boolean {
-  if (node.id === targetId) return true
+  if (node.id === targetId) return true;
   if (node.children) {
-    return node.children.some(child => containsNode(child, targetId))
+    return node.children.some((child) => containsNode(child, targetId));
   }
-  return false
+  return false;
 }

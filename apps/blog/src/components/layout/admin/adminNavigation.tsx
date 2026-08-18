@@ -1,4 +1,4 @@
-import type {LucideIcon} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react';
 import {
   Activity,
   BarChart3,
@@ -15,23 +15,23 @@ import {
   Search,
   Tags,
   Workflow,
-} from 'lucide-react'
+} from 'lucide-react';
 
 export interface AdminNavigationItem {
-  href: string
-  label: string
-  icon: LucideIcon
-  match?: (pathname: string) => boolean
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  match?: (pathname: string) => boolean;
 }
 
 export interface AdminNavigationSection {
-  title: string
-  items: AdminNavigationItem[]
+  title: string;
+  items: AdminNavigationItem[];
 }
 
 export interface AdminRouteMeta {
-  title: string
-  icon: LucideIcon
+  title: string;
+  icon: LucideIcon;
 }
 
 export const adminNavigationSections: AdminNavigationSection[] = [
@@ -52,7 +52,8 @@ export const adminNavigationSections: AdminNavigationSection[] = [
         href: '/admin/write',
         label: '글 작성',
         icon: PencilLine,
-        match: (pathname: string) => pathname === '/admin/write' || pathname.startsWith('/admin/write/'),
+        match: (pathname: string) =>
+          pathname === '/admin/write' || pathname.startsWith('/admin/write/'),
       },
       {
         href: '/admin/categories',
@@ -126,7 +127,7 @@ export const adminNavigationSections: AdminNavigationSection[] = [
       },
     ],
   },
-]
+];
 
 export const adminRouteMeta: Record<string, AdminRouteMeta> = {
   '/admin': {
@@ -189,28 +190,30 @@ export const adminRouteMeta: Record<string, AdminRouteMeta> = {
     title: '블로그 통계',
     icon: BarChart3,
   },
-}
+};
 
 export function getAdminRouteMeta(pathname: string): AdminRouteMeta {
-  return adminRouteMeta[pathname] || {
-    title: '관리자',
-    icon: LayoutDashboard,
-  }
+  return (
+    adminRouteMeta[pathname] || {
+      title: '관리자',
+      icon: LayoutDashboard,
+    }
+  );
 }
 
 export function isActiveAdminItem(item: AdminNavigationItem, pathname: string): boolean {
   if (typeof item.match === 'function') {
-    return item.match(pathname)
+    return item.match(pathname);
   }
 
-  return pathname === item.href
+  return pathname === item.href;
 }
 
 export interface AdminQuickLink {
-  href: string
-  label: string
-  description: string
-  icon: LucideIcon
+  href: string;
+  label: string;
+  description: string;
+  icon: LucideIcon;
 }
 
 export const adminQuickLinks: AdminQuickLink[] = [
@@ -256,4 +259,4 @@ export const adminQuickLinks: AdminQuickLink[] = [
     description: '조회수 추이와 콘텐츠 분포 분석',
     icon: BarChart3,
   },
-]
+];

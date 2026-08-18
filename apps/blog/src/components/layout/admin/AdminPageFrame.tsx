@@ -1,13 +1,13 @@
-import {useRouter} from 'next/router'
-import {getAdminRouteMeta} from './adminNavigation'
-import {cn} from '@/lib/utils'
+import { useRouter } from 'next/router';
+import { getAdminRouteMeta } from './adminNavigation';
+import { cn } from '@/lib/utils';
 
 interface AdminPageFrameProps {
-  title?: string
-  actions?: React.ReactNode
-  className?: string
-  contentClassName?: string
-  children: React.ReactNode
+  title?: string;
+  actions?: React.ReactNode;
+  className?: string;
+  contentClassName?: string;
+  children: React.ReactNode;
 }
 
 export default function AdminPageFrame({
@@ -17,9 +17,9 @@ export default function AdminPageFrame({
   contentClassName,
   children,
 }: AdminPageFrameProps) {
-  const router = useRouter()
-  const meta = getAdminRouteMeta(router.pathname)
-  const Icon = meta.icon
+  const router = useRouter();
+  const meta = getAdminRouteMeta(router.pathname);
+  const Icon = meta.icon;
 
   return (
     <section className={cn('admin-page-frame', className)}>
@@ -30,16 +30,10 @@ export default function AdminPageFrame({
             {title || meta.title}
           </h1>
         </div>
-        {actions ? (
-          <div className="admin-page-actions">
-            {actions}
-          </div>
-        ) : null}
+        {actions ? <div className="admin-page-actions">{actions}</div> : null}
       </div>
 
-      <div className={cn('admin-workspace', contentClassName)}>
-        {children}
-      </div>
+      <div className={cn('admin-workspace', contentClassName)}>{children}</div>
     </section>
-  )
+  );
 }

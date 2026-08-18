@@ -1,110 +1,110 @@
-import React, {useState, useEffect} from 'react'
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogFooter,
   DialogTitle,
-} from '@/components/ui/dialog'
-import {Button} from '@/components/ui/button'
-import {Label} from '@/components/ui/label'
-import {Textarea} from '@/components/ui/textarea'
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import {toast} from 'sonner'
-import service from '@/service'
+} from '@/components/ui/select';
+import { toast } from 'sonner';
+import service from '@/service';
 
 interface MemoCategory {
-  id: string | number
-  name: string
-  seq?: number
+  id: string | number;
+  name: string;
+  seq?: number;
 }
 
 interface MemoDialogProps {
-  open: boolean
-  onClose: () => void
-  memoId?: string | number | null
-  onSaved?: () => void
+  open: boolean;
+  onClose: () => void;
+  memoId?: string | number | null;
+  onSaved?: () => void;
 }
 
-export default function MemoDialog({open, onClose, memoId = null, onSaved}: MemoDialogProps) {
-  const [content, setContent] = useState<string>('')
-  const [categoryId, setCategoryId] = useState<string | null>(null)
-  const [categories, setCategories] = useState<MemoCategory[]>([])
-  const [loading, setLoading] = useState<boolean>(false)
+export default function MemoDialog({ open, onClose, memoId = null, onSaved }: MemoDialogProps) {
+  const [content, setContent] = useState<string>('');
+  const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [categories, setCategories] = useState<MemoCategory[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (open) {
-      loadCategories().then(cats => {
+      loadCategories().then((cats) => {
         if (memoId) {
-          loadMemo(memoId)
+          loadMemo(memoId);
         } else {
-          setContent('')
+          setContent('');
           if (cats.length > 0) {
-            const sorted = [...cats].sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0))
-            setCategoryId(String(sorted[0].id))
+            const sorted = [...cats].sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0));
+            setCategoryId(String(sorted[0].id));
           } else {
-            setCategoryId(null)
+            setCategoryId(null);
           }
         }
-      })
+      });
     }
-  }, [open, memoId])
+  }, [open, memoId]);
 
   const loadCategories = async (): Promise<MemoCategory[]> => {
     try {
-      const data = await service.memo.getCategories()
-      setCategories(data || [])
-      return data || []
+      const data = await service.memo.getCategories();
+      setCategories(data || []);
+      return data || [];
     } catch (error) {
-      console.error('카테고리 로드 실패:', error)
-      return []
+      console.error('카테고리 로드 실패:', error);
+      return [];
     }
-  }
+  };
 
   const loadMemo = async (id: string | number) => {
     try {
-      const data = await service.memo.getById(id)
-      setContent(data.content || '')
+      const data = await service.memo.getById(id);
+      setContent(data.content || '');
       if (data.category) {
-        setCategoryId(String(data.category.id))
+        setCategoryId(String(data.category.id));
       } else {
-        setCategoryId(null)
+        setCategoryId(null);
       }
     } catch (error) {
-      toast.error('메모를 불러오는데 실패했습니다.')
+      toast.error('메모를 불러오는데 실패했습니다.');
     }
-  }
+  };
 
   const handleSave = async () => {
     if (!content.trim()) {
-      toast.warning('메모 내용을 입력해주세요.')
-      return
+      toast.warning('메모 내용을 입력해주세요.');
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const data = {content: content.trim(), categoryId: categoryId ? Number(categoryId) : null}
+      const data = { content: content.trim(), categoryId: categoryId ? Number(categoryId) : null };
       if (memoId) {
-        await service.memo.update(memoId, data)
-        toast.success('메모가 수정되었습니다.')
+        await service.memo.update(memoId, data);
+        toast.success('메모가 수정되었습니다.');
       } else {
-        await service.memo.create(data)
-        toast.success('메모가 저장되었습니다.')
+        await service.memo.create(data);
+        toast.success('메모가 저장되었습니다.');
       }
-      onSaved?.()
-      onClose()
+      onSaved?.();
+      onClose();
     } catch (error) {
-      toast.error('메모 저장에 실패했습니다.')
+      toast.error('메모 저장에 실패했습니다.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={(isOpen: boolean) => !isOpen && onClose()}>
@@ -160,5 +160,5 @@ export default function MemoDialog({open, onClose, memoId = null, onSaved}: Memo
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

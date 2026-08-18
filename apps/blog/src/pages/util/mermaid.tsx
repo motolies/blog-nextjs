@@ -1,28 +1,44 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react'
-import {createPortal} from 'react-dom'
-import {Button} from '@/components/ui/button'
-import {Input} from '@/components/ui/input'
-import {Select, SelectTrigger, SelectValue, SelectContent, SelectItem} from '@/components/ui/select'
-import {Download, ArrowLeft, ZoomIn, ZoomOut, Crosshair, Maximize, Minimize, Eye, EyeOff} from 'lucide-react'
-import {toast} from 'sonner'
-import {useRouter} from 'next/router'
-import {downloadBlob, downloadDataUrl} from '@/util/browserUtils'
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
+import {
+  Download,
+  ArrowLeft,
+  ZoomIn,
+  ZoomOut,
+  Crosshair,
+  Maximize,
+  Minimize,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { useRouter } from 'next/router';
+import { downloadBlob, downloadDataUrl } from '@/util/browserUtils';
 
 const SAMPLE_CODES = {
-    flowchart: [
-        {
-            name: '기본 플로우차트',
-            code: `flowchart TD
+  flowchart: [
+    {
+      name: '기본 플로우차트',
+      code: `flowchart TD
     A[시작] --> B{조건 확인}
     B -->|Yes| C[처리 실행]
     B -->|No| D[대체 처리]
     C --> E[결과 저장]
     D --> E
-    E --> F[완료]`
-        },
-        {
-            name: '의사결정 트리',
-            code: `flowchart TD
+    E --> F[완료]`,
+    },
+    {
+      name: '의사결정 트리',
+      code: `flowchart TD
     A[요청 수신] --> B{인증 확인}
     B -->|실패| C[401 반환]
     B -->|성공| D{권한 확인}
@@ -30,11 +46,11 @@ const SAMPLE_CODES = {
     D -->|있음| F{데이터 유효성}
     F -->|실패| G[400 반환]
     F -->|통과| H[처리 실행]
-    H --> I[200 반환]`
-        },
-        {
-            name: '에러 처리 흐름',
-            code: `flowchart LR
+    H --> I[200 반환]`,
+    },
+    {
+      name: '에러 처리 흐름',
+      code: `flowchart LR
     A[API 호출] --> B{응답 확인}
     B -->|성공| C[데이터 처리]
     B -->|실패| D{재시도 가능?}
@@ -42,13 +58,13 @@ const SAMPLE_CODES = {
     E --> A
     D -->|No| F[에러 로그]
     F --> G[사용자 알림]
-    C --> H[완료]`
-        }
-    ],
-    sequence: [
-        {
-            name: '옵저버 패턴',
-            code: `sequenceDiagram
+    C --> H[완료]`,
+    },
+  ],
+  sequence: [
+    {
+      name: '옵저버 패턴',
+      code: `sequenceDiagram
     participant Subject as Subject<br/>(OrderService)
     participant Observer1 as Observer 1<br/>(EmailService)
     participant Observer2 as Observer 2<br/>(PointService)
@@ -69,11 +85,11 @@ const SAMPLE_CODES = {
 
     Observer1-->>Subject: 이메일 발송 완료
     Observer2-->>Subject: 포인트 적립 완료
-    Observer3-->>Subject: 재고 감소 완료`
-        },
-        {
-            name: 'API 인증 흐름',
-            code: `sequenceDiagram
+    Observer3-->>Subject: 재고 감소 완료`,
+    },
+    {
+      name: 'API 인증 흐름',
+      code: `sequenceDiagram
     participant C as 클라이언트
     participant G as API 게이트웨이
     participant Auth as 인증 서버
@@ -90,11 +106,11 @@ const SAMPLE_CODES = {
         G-->>C: 401 Unauthorized
         C->>Auth: 토큰 갱신 요청
         Auth-->>C: 새 Access Token
-    end`
-        },
-        {
-            name: '주문 처리',
-            code: `sequenceDiagram
+    end`,
+    },
+    {
+      name: '주문 처리',
+      code: `sequenceDiagram
     participant U as 사용자
     participant O as 주문 서비스
     participant P as 결제 서비스
@@ -106,13 +122,13 @@ const SAMPLE_CODES = {
     O->>P: 결제 요청
     P-->>O: 결제 완료
     O->>I: 재고 차감
-    O-->>U: 주문 완료`
-        }
-    ],
-    classDiagram: [
-        {
-            name: '옵저버 패턴',
-            code: `classDiagram
+    O-->>U: 주문 완료`,
+    },
+  ],
+  classDiagram: [
+    {
+      name: '옵저버 패턴',
+      code: `classDiagram
     class Subject {
         <<interface>>
         +registerObserver(Observer): void
@@ -152,11 +168,11 @@ const SAMPLE_CODES = {
     ConcreteSubject --> Observer : "1..*"
 
     note for Subject "상태 변경을 알리는 주제"
-    note for Observer "상태 변경에 반응하는 관찰자"`
-        },
-        {
-            name: '전략 패턴',
-            code: `classDiagram
+    note for Observer "상태 변경에 반응하는 관찰자"`,
+    },
+    {
+      name: '전략 패턴',
+      code: `classDiagram
     class Context {
         -strategy: Strategy
         +setStrategy(Strategy): void
@@ -181,11 +197,11 @@ const SAMPLE_CODES = {
     Strategy <|.. ConcreteStrategyB
 
     note for Context "전략을 사용하는 컨텍스트"
-    note for Strategy "알고리즘 인터페이스"`
-        },
-        {
-            name: '팩토리 패턴',
-            code: `classDiagram
+    note for Strategy "알고리즘 인터페이스"`,
+    },
+    {
+      name: '팩토리 패턴',
+      code: `classDiagram
     class Creator {
         <<abstract>>
         +createProduct(): Product
@@ -218,13 +234,13 @@ const SAMPLE_CODES = {
     ConcreteCreatorA ..> ConcreteProductA : creates
     ConcreteCreatorB ..> ConcreteProductB : creates
     Product <|.. ConcreteProductA
-    Product <|.. ConcreteProductB`
-        }
-    ],
-    erDiagram: [
-        {
-            name: '주문 시스템',
-            code: `erDiagram
+    Product <|.. ConcreteProductB`,
+    },
+  ],
+  erDiagram: [
+    {
+      name: '주문 시스템',
+      code: `erDiagram
     USER ||--o{ ORDER : places
     ORDER ||--|{ LINE_ITEM : contains
     PRODUCT ||--o{ LINE_ITEM : "ordered in"
@@ -249,11 +265,11 @@ const SAMPLE_CODES = {
         int order_id FK
         int product_id FK
         int quantity
-    }`
-        },
-        {
-            name: '블로그 시스템',
-            code: `erDiagram
+    }`,
+    },
+    {
+      name: '블로그 시스템',
+      code: `erDiagram
     USER ||--o{ POST : writes
     POST ||--o{ COMMENT : has
     POST }o--o{ TAG : tagged
@@ -279,11 +295,11 @@ const SAMPLE_CODES = {
     TAG {
         int id PK
         string name
-    }`
-        },
-        {
-            name: '학생 관리',
-            code: `erDiagram
+    }`,
+    },
+    {
+      name: '학생 관리',
+      code: `erDiagram
     STUDENT ||--o{ ENROLLMENT : enrolls
     COURSE ||--o{ ENROLLMENT : includes
     TEACHER ||--o{ COURSE : teaches
@@ -309,13 +325,13 @@ const SAMPLE_CODES = {
         int student_id FK
         int course_id FK
         string grade
-    }`
-        }
-    ],
-    blockDiagram: [
-        {
-            name: '화면 UI 레이아웃',
-            code: `block-beta
+    }`,
+    },
+  ],
+  blockDiagram: [
+    {
+      name: '화면 UI 레이아웃',
+      code: `block-beta
     columns 4
 
     H["헤더 (64px)"]:4
@@ -328,11 +344,11 @@ const SAMPLE_CODES = {
     style H fill:#333,color:#fff
     style N fill:#e1f5fe,stroke:#01579b
     style C fill:#fff,stroke:#333
-    style F fill:#f4f4f4`
-        },
-        {
-            name: '시스템 아키텍처',
-            code: `block-beta
+    style F fill:#f4f4f4`,
+    },
+    {
+      name: '시스템 아키텍처',
+      code: `block-beta
     columns 3
     title["시스템 아키텍처"]:3
     space
@@ -342,23 +358,23 @@ const SAMPLE_CODES = {
     end
     db[("데이터베이스")]
     web --> app
-    app --> db`
-        },
-        {
-            name: 'CI/CD 파이프라인',
-            code: `block-beta
+    app --> db`,
+    },
+    {
+      name: 'CI/CD 파이프라인',
+      code: `block-beta
     columns 5
     A["1. Push"]:1
     B["2. Build"]:1
     C["3. Test"]:1
     D["4. Staging"]:1
-    E["5. Production"]:1`
-        }
-    ],
-    stateDiagram: [
-        {
-            name: '요청 처리',
-            code: `stateDiagram-v2
+    E["5. Production"]:1`,
+    },
+  ],
+  stateDiagram: [
+    {
+      name: '요청 처리',
+      code: `stateDiagram-v2
     [*] --> 대기중
     대기중 --> 처리중 : 요청 접수
     처리중 --> 검토중 : 처리 완료
@@ -372,11 +388,11 @@ const SAMPLE_CODES = {
         데이터검증 --> 비즈니스로직
         비즈니스로직 --> 결과생성
         결과생성 --> [*]
-    }`
-        },
-        {
-            name: '주문 상태',
-            code: `stateDiagram-v2
+    }`,
+    },
+    {
+      name: '주문 상태',
+      code: `stateDiagram-v2
     [*] --> 주문접수
     주문접수 --> 결제대기 : 주문 확인
     결제대기 --> 결제완료 : 결제 성공
@@ -385,11 +401,11 @@ const SAMPLE_CODES = {
     배송준비 --> 배송중 : 배송 시작
     배송중 --> 배송완료 : 배송 완료
     배송완료 --> [*]
-    주문취소 --> [*]`
-        },
-        {
-            name: '인증 상태',
-            code: `stateDiagram-v2
+    주문취소 --> [*]`,
+    },
+    {
+      name: '인증 상태',
+      code: `stateDiagram-v2
     [*] --> 비로그인
     비로그인 --> 로그인중 : 로그인 시도
     로그인중 --> 로그인 : 인증 성공
@@ -397,546 +413,663 @@ const SAMPLE_CODES = {
     로그인 --> 비로그인 : 로그아웃
     로그인 --> 토큰갱신중 : 토큰 만료
     토큰갱신중 --> 로그인 : 갱신 성공
-    토큰갱신중 --> 비로그인 : 갱신 실패`
-        }
-    ]
-}
+    토큰갱신중 --> 비로그인 : 갱신 실패`,
+    },
+  ],
+};
 
 const SAMPLE_TYPES = [
-    {key: 'flowchart', label: 'Flowchart'},
-    {key: 'sequence', label: 'Sequence'},
-    {key: 'classDiagram', label: 'Class'},
-    {key: 'erDiagram', label: 'ER Diagram'},
-    {key: 'blockDiagram', label: 'Block'},
-    {key: 'stateDiagram', label: 'State'},
-]
+  { key: 'flowchart', label: 'Flowchart' },
+  { key: 'sequence', label: 'Sequence' },
+  { key: 'classDiagram', label: 'Class' },
+  { key: 'erDiagram', label: 'ER Diagram' },
+  { key: 'blockDiagram', label: 'Block' },
+  { key: 'stateDiagram', label: 'State' },
+];
 
 // 화면 맞춤(fit) 시 캔버스 가장자리에 남길 여백(px)
-const FIT_PADDING = 16
+const FIT_PADDING = 16;
 
 // 내보내기용 svg 복제본 생성: 프리뷰 줌/팬 스타일을 제거하고 다이어그램 고유 크기를 width/height로 명시
-const createExportSvg = (svgElement: SVGSVGElement): {clone: SVGSVGElement, width: number, height: number} => {
-    const clone = svgElement.cloneNode(true) as SVGSVGElement
-    clone.style.transform = ''
-    clone.style.transformOrigin = ''
-    clone.style.transition = ''
-    clone.style.maxWidth = ''
+const createExportSvg = (
+  svgElement: SVGSVGElement,
+): { clone: SVGSVGElement; width: number; height: number } => {
+  const clone = svgElement.cloneNode(true) as SVGSVGElement;
+  clone.style.transform = '';
+  clone.style.transformOrigin = '';
+  clone.style.transition = '';
+  clone.style.maxWidth = '';
 
-    const viewBox = svgElement.viewBox?.baseVal
-    let intrinsicWidth = viewBox?.width ?? 0
-    let intrinsicHeight = viewBox?.height ?? 0
+  const viewBox = svgElement.viewBox?.baseVal;
+  let intrinsicWidth = viewBox?.width ?? 0;
+  let intrinsicHeight = viewBox?.height ?? 0;
 
-    if (intrinsicWidth <= 0 || intrinsicHeight <= 0) {
-        const bbox = svgElement.getBBox()
-        intrinsicWidth = bbox.width
-        intrinsicHeight = bbox.height
-    }
+  if (intrinsicWidth <= 0 || intrinsicHeight <= 0) {
+    const bbox = svgElement.getBBox();
+    intrinsicWidth = bbox.width;
+    intrinsicHeight = bbox.height;
+  }
 
-    const width = Math.ceil(intrinsicWidth)
-    const height = Math.ceil(intrinsicHeight)
-    clone.setAttribute('width', String(width))
-    clone.setAttribute('height', String(height))
+  const width = Math.ceil(intrinsicWidth);
+  const height = Math.ceil(intrinsicHeight);
+  clone.setAttribute('width', String(width));
+  clone.setAttribute('height', String(height));
 
-    return {clone, width, height}
-}
+  return { clone, width, height };
+};
 
 export default function MermaidPage() {
-    const router = useRouter()
-    const [code, setCode] = useState(SAMPLE_CODES.flowchart[0].code)
-    const [scaleMode, setScaleMode] = useState('ratio')
-    const [scale, setScale] = useState(2)
-    const [customWidth, setCustomWidth] = useState(1920)
-    const [customHeight, setCustomHeight] = useState(1080)
-    const [error, setError] = useState<string | null>(null)
-    const [isClient, setIsClient] = useState(false)
-    const [isMermaidReady, setIsMermaidReady] = useState(false)
-    const [selectedSample, setSelectedSample] = useState('flowchart')
-    const [selectedSampleIndex, setSelectedSampleIndex] = useState(0)
+  const router = useRouter();
+  const [code, setCode] = useState(SAMPLE_CODES.flowchart[0].code);
+  const [scaleMode, setScaleMode] = useState('ratio');
+  const [scale, setScale] = useState(2);
+  const [customWidth, setCustomWidth] = useState(1920);
+  const [customHeight, setCustomHeight] = useState(1080);
+  const [error, setError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  const [isMermaidReady, setIsMermaidReady] = useState(false);
+  const [selectedSample, setSelectedSample] = useState('flowchart');
+  const [selectedSampleIndex, setSelectedSampleIndex] = useState(0);
 
-    const [previewZoom, setPreviewZoom] = useState(1)
-    const [panOffset, setPanOffset] = useState({x: 0, y: 0})
-    const [isDragging, setIsDragging] = useState(false)
-    const [dragStart, setDragStart] = useState({x: 0, y: 0})
-    const [isFullscreen, setIsFullscreen] = useState(false)
-    const [isEditorVisible, setIsEditorVisible] = useState(true)
-    const [activeTab, setActiveTab] = useState('editor')
+  const [previewZoom, setPreviewZoom] = useState(1);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isEditorVisible, setIsEditorVisible] = useState(true);
+  const [activeTab, setActiveTab] = useState('editor');
 
-    const previewRef = useRef<HTMLDivElement>(null)
-    const fullscreenPreviewRef = useRef<HTMLDivElement>(null)
-    const mermaidRef = useRef<any>(null)
-    const renderRequestIdRef = useRef(0)
-    const pendingFitRef = useRef(false)
+  const previewRef = useRef<HTMLDivElement>(null);
+  const fullscreenPreviewRef = useRef<HTMLDivElement>(null);
+  const mermaidRef = useRef<any>(null);
+  const renderRequestIdRef = useRef(0);
+  const pendingFitRef = useRef(false);
 
-    const applyPreviewTransform = useCallback((container: HTMLDivElement | null) => {
-        const svg = container?.querySelector('svg')
+  const applyPreviewTransform = useCallback(
+    (container: HTMLDivElement | null) => {
+      const svg = container?.querySelector('svg');
 
-        if (!svg) {
-            return
-        }
+      if (!svg) {
+        return;
+      }
 
-        svg.style.transform = `scale(${previewZoom}) translate(${panOffset.x / previewZoom}px, ${panOffset.y / previewZoom}px)`
-        svg.style.transformOrigin = 'center center'
-        svg.style.transition = isDragging ? 'none' : 'transform 0.1s ease-out'
-    }, [isDragging, panOffset.x, panOffset.y, previewZoom])
+      svg.style.transform = `scale(${previewZoom}) translate(${panOffset.x / previewZoom}px, ${panOffset.y / previewZoom}px)`;
+      svg.style.transformOrigin = 'center center';
+      svg.style.transition = isDragging ? 'none' : 'transform 0.1s ease-out';
+    },
+    [isDragging, panOffset.x, panOffset.y, previewZoom],
+  );
 
-    // 다이어그램이 캔버스에 여백 포함 꽉 차도록 zoom을 계산해 적용 (transform 해제 후 동기 측정으로 트랜지션 중간값 오차 방지)
-    const fitToCanvas = useCallback((container: HTMLDivElement | null) => {
-        const svg = container?.querySelector('svg')
+  // 다이어그램이 캔버스에 여백 포함 꽉 차도록 zoom을 계산해 적용 (transform 해제 후 동기 측정으로 트랜지션 중간값 오차 방지)
+  const fitToCanvas = useCallback((container: HTMLDivElement | null) => {
+    const svg = container?.querySelector('svg');
 
-        if (!svg || !container) {
-            setPreviewZoom(1)
-            setPanOffset({x: 0, y: 0})
-            return
-        }
-
-        svg.style.transition = 'none'
-        svg.style.transform = 'none'
-        const rect = svg.getBoundingClientRect()
-
-        if (rect.width <= 0 || rect.height <= 0) {
-            setPreviewZoom(1)
-            setPanOffset({x: 0, y: 0})
-            return
-        }
-
-        const availWidth = Math.max(container.clientWidth - FIT_PADDING * 2, 1)
-        const availHeight = Math.max(container.clientHeight - FIT_PADDING * 2, 1)
-        const fitZoom = Math.min(Math.max(Math.min(availWidth / rect.width, availHeight / rect.height), 0.1), 5)
-
-        // state 반영은 페인트 이후라 같은 동기 블록에서 인라인 transform을 먼저 적용해 깜빡임 방지
-        svg.style.transform = `scale(${fitZoom}) translate(0px, 0px)`
-        setPreviewZoom(fitZoom)
-        setPanOffset({x: 0, y: 0})
-    }, [])
-
-    useEffect(() => { setIsClient(true) }, [])
-
-    useEffect(() => {
-        if (!isClient) return
-        const initMermaid = async () => {
-            try {
-                const mermaid = (await import('mermaid')).default
-                mermaidRef.current = mermaid
-                mermaid.initialize({startOnLoad: false, theme: 'default', securityLevel: 'loose', fontFamily: 'D2Coding, monospace'})
-                setIsMermaidReady(true)
-            } catch (e: any) {
-                setError('Mermaid 초기화에 실패했습니다.')
-            }
-        }
-        initMermaid()
-    }, [isClient])
-
-    const renderDiagram = useCallback(async (container: HTMLDivElement | null) => {
-        if (!mermaidRef.current || !container) return
-
-        const requestId = ++renderRequestIdRef.current
-        const trimmedCode = code.trim()
-
-        if (!trimmedCode) {
-            if (container.isConnected) {
-                container.innerHTML = ''
-            }
-            if (requestId === renderRequestIdRef.current) {
-                setError(null)
-            }
-            return
-        }
-
-        try {
-            await mermaidRef.current.parse(trimmedCode)
-            const id = `mermaid-${Date.now()}`
-            const {svg} = await mermaidRef.current.render(id, trimmedCode)
-
-            if (requestId !== renderRequestIdRef.current || !container.isConnected) {
-                return
-            }
-
-            container.innerHTML = svg
-            applyPreviewTransform(container)
-
-            // 전체화면 전환 등으로 예약된 화면 맞춤을 렌더 완료 시점에 수행
-            if (pendingFitRef.current) {
-                pendingFitRef.current = false
-                fitToCanvas(container)
-            }
-
-            setError(null)
-        } catch (e: any) {
-            if (requestId !== renderRequestIdRef.current || !container.isConnected) {
-                return
-            }
-
-            let errorMsg = e.message || 'Mermaid 문법 오류'
-            errorMsg = errorMsg.replace(/💣/g, '').replace(/Syntax error in text\s*/gi, '')
-            if (errorMsg.includes('No diagram type detected')) {
-                errorMsg = '다이어그램 타입을 인식할 수 없습니다. flowchart, sequenceDiagram 등으로 시작해주세요.'
-            }
-            setError(errorMsg.trim() || '문법 오류')
-            container.innerHTML = ''
-        }
-    }, [applyPreviewTransform, code, fitToCanvas])
-
-    useEffect(() => {
-        if (!mermaidRef.current || !isMermaidReady) return
-
-        const target = isFullscreen ? fullscreenPreviewRef.current : previewRef.current
-        if (!target) return
-
-        const timer = setTimeout(() => {
-            void renderDiagram(target)
-        }, isFullscreen ? 80 : 300)
-
-        return () => clearTimeout(timer)
-    }, [code, isFullscreen, isMermaidReady, renderDiagram])
-
-    useEffect(() => {
-        const target = isFullscreen ? fullscreenPreviewRef.current : previewRef.current
-        applyPreviewTransform(target)
-    }, [applyPreviewTransform, isFullscreen])
-
-    // 화면 줌/팬과 무관하게 전체 다이어그램을 담기 위해 정규화된 복제본을 화면 밖에 붙여 캡처
-    const downloadPng = async () => {
-        let wrapper: HTMLDivElement | null = null
-        try {
-            const {toPng} = await import('html-to-image')
-            const svgElement = (isFullscreen ? fullscreenPreviewRef.current : previewRef.current)?.querySelector('svg')
-            if (!svgElement) { toast.warning('다이어그램을 먼저 생성해주세요.'); return }
-
-            const {clone, width, height} = createExportSvg(svgElement)
-
-            // display/visibility 숨김은 빈 이미지가 되므로 화면 밖 배치로 computed style을 유지
-            wrapper = document.createElement('div')
-            wrapper.style.position = 'fixed'
-            wrapper.style.left = '-99999px'
-            wrapper.style.top = '0'
-            wrapper.setAttribute('aria-hidden', 'true')
-            wrapper.appendChild(clone)
-            document.body.appendChild(wrapper)
-
-            await document.fonts.ready
-
-            const pixelRatio = scaleMode === 'ratio'
-                ? scale
-                : Math.min(customWidth / width, customHeight / height)
-            const dataUrl = await toPng(clone as any, {backgroundColor: 'white', width, height, pixelRatio})
-            downloadDataUrl(dataUrl, `mermaid-diagram-${Date.now()}.png`)
-            toast.success('PNG 다운로드 완료')
-        } catch (e: any) {
-            toast.error('다운로드 실패: ' + e.message)
-        } finally {
-            wrapper?.remove()
-        }
+    if (!svg || !container) {
+      setPreviewZoom(1);
+      setPanOffset({ x: 0, y: 0 });
+      return;
     }
 
-    const downloadSvg = () => {
-        const svgElement = (isFullscreen ? fullscreenPreviewRef.current : previewRef.current)?.querySelector('svg')
-        if (!svgElement) { toast.warning('다이어그램을 먼저 생성해주세요.'); return }
-        // 화면 줌/팬 스타일이 제거된 복제본을 직렬화해 파일에 transform이 새어나가지 않도록 함
-        const {clone} = createExportSvg(svgElement)
-        const svgData = new XMLSerializer().serializeToString(clone)
-        try {
-            downloadBlob(new Blob([svgData], {type: 'image/svg+xml'}), `mermaid-diagram-${Date.now()}.svg`)
-            toast.success('SVG 다운로드 완료')
-        } catch (e: any) {
-            toast.error('다운로드 실패: ' + e.message)
+    svg.style.transition = 'none';
+    svg.style.transform = 'none';
+    const rect = svg.getBoundingClientRect();
+
+    if (rect.width <= 0 || rect.height <= 0) {
+      setPreviewZoom(1);
+      setPanOffset({ x: 0, y: 0 });
+      return;
+    }
+
+    const availWidth = Math.max(container.clientWidth - FIT_PADDING * 2, 1);
+    const availHeight = Math.max(container.clientHeight - FIT_PADDING * 2, 1);
+    const fitZoom = Math.min(
+      Math.max(Math.min(availWidth / rect.width, availHeight / rect.height), 0.1),
+      5,
+    );
+
+    // state 반영은 페인트 이후라 같은 동기 블록에서 인라인 transform을 먼저 적용해 깜빡임 방지
+    svg.style.transform = `scale(${fitZoom}) translate(0px, 0px)`;
+    setPreviewZoom(fitZoom);
+    setPanOffset({ x: 0, y: 0 });
+  }, []);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+    const initMermaid = async () => {
+      try {
+        const mermaid = (await import('mermaid')).default;
+        mermaidRef.current = mermaid;
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'default',
+          securityLevel: 'loose',
+          fontFamily: 'D2Coding, monospace',
+        });
+        setIsMermaidReady(true);
+      } catch (e: any) {
+        setError('Mermaid 초기화에 실패했습니다.');
+      }
+    };
+    initMermaid();
+  }, [isClient]);
+
+  const renderDiagram = useCallback(
+    async (container: HTMLDivElement | null) => {
+      if (!mermaidRef.current || !container) return;
+
+      const requestId = ++renderRequestIdRef.current;
+      const trimmedCode = code.trim();
+
+      if (!trimmedCode) {
+        if (container.isConnected) {
+          container.innerHTML = '';
         }
+        if (requestId === renderRequestIdRef.current) {
+          setError(null);
+        }
+        return;
+      }
+
+      try {
+        await mermaidRef.current.parse(trimmedCode);
+        const id = `mermaid-${Date.now()}`;
+        const { svg } = await mermaidRef.current.render(id, trimmedCode);
+
+        if (requestId !== renderRequestIdRef.current || !container.isConnected) {
+          return;
+        }
+
+        container.innerHTML = svg;
+        applyPreviewTransform(container);
+
+        // 전체화면 전환 등으로 예약된 화면 맞춤을 렌더 완료 시점에 수행
+        if (pendingFitRef.current) {
+          pendingFitRef.current = false;
+          fitToCanvas(container);
+        }
+
+        setError(null);
+      } catch (e: any) {
+        if (requestId !== renderRequestIdRef.current || !container.isConnected) {
+          return;
+        }
+
+        let errorMsg = e.message || 'Mermaid 문법 오류';
+        errorMsg = errorMsg.replace(/💣/g, '').replace(/Syntax error in text\s*/gi, '');
+        if (errorMsg.includes('No diagram type detected')) {
+          errorMsg =
+            '다이어그램 타입을 인식할 수 없습니다. flowchart, sequenceDiagram 등으로 시작해주세요.';
+        }
+        setError(errorMsg.trim() || '문법 오류');
+        container.innerHTML = '';
+      }
+    },
+    [applyPreviewTransform, code, fitToCanvas],
+  );
+
+  useEffect(() => {
+    if (!mermaidRef.current || !isMermaidReady) return;
+
+    const target = isFullscreen ? fullscreenPreviewRef.current : previewRef.current;
+    if (!target) return;
+
+    const timer = setTimeout(
+      () => {
+        void renderDiagram(target);
+      },
+      isFullscreen ? 80 : 300,
+    );
+
+    return () => clearTimeout(timer);
+  }, [code, isFullscreen, isMermaidReady, renderDiagram]);
+
+  useEffect(() => {
+    const target = isFullscreen ? fullscreenPreviewRef.current : previewRef.current;
+    applyPreviewTransform(target);
+  }, [applyPreviewTransform, isFullscreen]);
+
+  // 화면 줌/팬과 무관하게 전체 다이어그램을 담기 위해 정규화된 복제본을 화면 밖에 붙여 캡처
+  const downloadPng = async () => {
+    let wrapper: HTMLDivElement | null = null;
+    try {
+      const { toPng } = await import('html-to-image');
+      const svgElement = (
+        isFullscreen ? fullscreenPreviewRef.current : previewRef.current
+      )?.querySelector('svg');
+      if (!svgElement) {
+        toast.warning('다이어그램을 먼저 생성해주세요.');
+        return;
+      }
+
+      const { clone, width, height } = createExportSvg(svgElement);
+
+      // display/visibility 숨김은 빈 이미지가 되므로 화면 밖 배치로 computed style을 유지
+      wrapper = document.createElement('div');
+      wrapper.style.position = 'fixed';
+      wrapper.style.left = '-99999px';
+      wrapper.style.top = '0';
+      wrapper.setAttribute('aria-hidden', 'true');
+      wrapper.appendChild(clone);
+      document.body.appendChild(wrapper);
+
+      await document.fonts.ready;
+
+      const pixelRatio =
+        scaleMode === 'ratio' ? scale : Math.min(customWidth / width, customHeight / height);
+      const dataUrl = await toPng(clone as any, {
+        backgroundColor: 'white',
+        width,
+        height,
+        pixelRatio,
+      });
+      downloadDataUrl(dataUrl, `mermaid-diagram-${Date.now()}.png`);
+      toast.success('PNG 다운로드 완료');
+    } catch (e: any) {
+      toast.error('다운로드 실패: ' + e.message);
+    } finally {
+      wrapper?.remove();
     }
+  };
 
-    const handleSampleChange = (type: string) => {
-        setSelectedSample(type)
-        setSelectedSampleIndex(0)
-        setCode(SAMPLE_CODES[type][0].code)
+  const downloadSvg = () => {
+    const svgElement = (
+      isFullscreen ? fullscreenPreviewRef.current : previewRef.current
+    )?.querySelector('svg');
+    if (!svgElement) {
+      toast.warning('다이어그램을 먼저 생성해주세요.');
+      return;
     }
-
-    const handleSampleIndexChange = (indexStr: string) => {
-        const index = Number(indexStr)
-        setSelectedSampleIndex(index)
-        setCode((SAMPLE_CODES as any)[selectedSample][index].code)
+    // 화면 줌/팬 스타일이 제거된 복제본을 직렬화해 파일에 transform이 새어나가지 않도록 함
+    const { clone } = createExportSvg(svgElement);
+    const svgData = new XMLSerializer().serializeToString(clone);
+    try {
+      downloadBlob(
+        new Blob([svgData], { type: 'image/svg+xml' }),
+        `mermaid-diagram-${Date.now()}.svg`,
+      );
+      toast.success('SVG 다운로드 완료');
+    } catch (e: any) {
+      toast.error('다운로드 실패: ' + e.message);
     }
+  };
 
-    const handleWheel = useCallback((e: React.WheelEvent) => {
-        e.preventDefault()
-        const delta = e.deltaY > 0 ? 0.9 : 1.1
-        setPreviewZoom(prev => Math.min(Math.max(prev * delta, 0.1), 5))
-    }, [])
+  const handleSampleChange = (type: string) => {
+    setSelectedSample(type);
+    setSelectedSampleIndex(0);
+    setCode(SAMPLE_CODES[type][0].code);
+  };
 
-    const handleMouseDown = useCallback((e: React.MouseEvent) => {
-        if (e.button !== 0) return
-        setIsDragging(true)
-        setDragStart({x: e.clientX - panOffset.x, y: e.clientY - panOffset.y})
-    }, [panOffset])
+  const handleSampleIndexChange = (indexStr: string) => {
+    const index = Number(indexStr);
+    setSelectedSampleIndex(index);
+    setCode((SAMPLE_CODES as any)[selectedSample][index].code);
+  };
 
-    const handleMouseMove = useCallback((e: React.MouseEvent) => {
-        if (!isDragging) return
-        setPanOffset({x: e.clientX - dragStart.x, y: e.clientY - dragStart.y})
-    }, [isDragging, dragStart])
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    setPreviewZoom((prev) => Math.min(Math.max(prev * delta, 0.1), 5));
+  }, []);
 
-    const handleMouseUp = useCallback(() => { setIsDragging(false) }, [])
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.button !== 0) return;
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+    },
+    [panOffset],
+  );
 
-    // 현재 활성 프리뷰 컨테이너 기준으로 다이어그램을 캔버스에 꽉 차게 맞춤
-    const handleResetZoom = useCallback(() => {
-        fitToCanvas(isFullscreen ? fullscreenPreviewRef.current : previewRef.current)
-    }, [fitToCanvas, isFullscreen])
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isDragging) return;
+      setPanOffset({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+    },
+    [isDragging, dragStart],
+  );
 
-    // 전환 시점엔 대상 컨테이너가 아직 없으므로 화면 맞춤을 예약하고 렌더 완료 후 수행 (진입/종료 양방향)
-    const toggleFullscreen = useCallback(() => {
-        pendingFitRef.current = true
-        setIsFullscreen(prev => !prev)
-    }, [])
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
 
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape' && isFullscreen) toggleFullscreen() }
-        window.addEventListener('keydown', handleKeyDown)
-        return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [isFullscreen, toggleFullscreen])
+  // 현재 활성 프리뷰 컨테이너 기준으로 다이어그램을 캔버스에 꽉 차게 맞춤
+  const handleResetZoom = useCallback(() => {
+    fitToCanvas(isFullscreen ? fullscreenPreviewRef.current : previewRef.current);
+  }, [fitToCanvas, isFullscreen]);
 
-    if (!isClient) {
-        return <div className="p-4 flex justify-center items-center min-h-[50vh]">로딩 중...</div>
-    }
+  // 전환 시점엔 대상 컨테이너가 아직 없으므로 화면 맞춤을 예약하고 렌더 완료 후 수행 (진입/종료 양방향)
+  const toggleFullscreen = useCallback(() => {
+    pendingFitRef.current = true;
+    setIsFullscreen((prev) => !prev);
+  }, []);
 
-    const ZoomControls = () => (
-        <div className="flex items-center gap-0.5">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPreviewZoom(z => Math.max(z * 0.8, 0.1))}>
-                <ZoomOut className="h-3.5 w-3.5"/>
-            </Button>
-            <span className="text-xs w-11 text-center">{Math.round(previewZoom * 100)}%</span>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPreviewZoom(z => Math.min(z * 1.2, 5))}>
-                <ZoomIn className="h-3.5 w-3.5"/>
-            </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleResetZoom} title="화면 맞춤">
-                <Crosshair className="h-3.5 w-3.5"/>
-            </Button>
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) toggleFullscreen();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen, toggleFullscreen]);
+
+  if (!isClient) {
+    return <div className="p-4 flex justify-center items-center min-h-[50vh]">로딩 중...</div>;
+  }
+
+  const ZoomControls = () => (
+    <div className="flex items-center gap-0.5">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7"
+        onClick={() => setPreviewZoom((z) => Math.max(z * 0.8, 0.1))}
+      >
+        <ZoomOut className="h-3.5 w-3.5" />
+      </Button>
+      <span className="text-xs w-11 text-center">{Math.round(previewZoom * 100)}%</span>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7"
+        onClick={() => setPreviewZoom((z) => Math.min(z * 1.2, 5))}
+      >
+        <ZoomIn className="h-3.5 w-3.5" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7"
+        onClick={handleResetZoom}
+        title="화면 맞춤"
+      >
+        <Crosshair className="h-3.5 w-3.5" />
+      </Button>
+    </div>
+  );
+
+  const DownloadControls = () => (
+    <div className="flex gap-1.5 items-center flex-wrap">
+      <Select value={scaleMode} onValueChange={setScaleMode}>
+        <SelectTrigger className="h-8 w-20 text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="ratio">배율</SelectItem>
+          <SelectItem value="custom">픽셀</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {scaleMode === 'ratio' ? (
+        <Select value={String(scale)} onValueChange={(v) => setScale(Number(v))}>
+          <SelectTrigger className="h-8 w-16 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1">1x</SelectItem>
+            <SelectItem value="2">2x</SelectItem>
+            <SelectItem value="3">3x</SelectItem>
+            <SelectItem value="4">4x</SelectItem>
+          </SelectContent>
+        </Select>
+      ) : (
+        <div className="flex items-center gap-1">
+          <Input
+            type="number"
+            value={customWidth}
+            onChange={(e) => setCustomWidth(Number(e.target.value))}
+            className="h-8 w-16 sm:w-20 text-xs"
+            min={100}
+            max={8000}
+          />
+          <span className="text-xs">×</span>
+          <Input
+            type="number"
+            value={customHeight}
+            onChange={(e) => setCustomHeight(Number(e.target.value))}
+            className="h-8 w-16 sm:w-20 text-xs"
+            min={100}
+            max={8000}
+          />
         </div>
-    )
+      )}
 
-    const DownloadControls = () => (
-        <div className="flex gap-1.5 items-center flex-wrap">
-            <Select value={scaleMode} onValueChange={setScaleMode}>
-                <SelectTrigger className="h-8 w-20 text-xs">
-                    <SelectValue/>
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="ratio">배율</SelectItem>
-                    <SelectItem value="custom">픽셀</SelectItem>
-                </SelectContent>
-            </Select>
+      <div className="flex gap-1">
+        <Button size="sm" onClick={downloadPng}>
+          <Download className="h-3.5 w-3.5 mr-1" />
+          PNG
+        </Button>
+        <Button size="sm" onClick={downloadSvg}>
+          <Download className="h-3.5 w-3.5 mr-1" />
+          SVG
+        </Button>
+      </div>
+    </div>
+  );
 
-            {scaleMode === 'ratio' ? (
-                <Select value={String(scale)} onValueChange={(v) => setScale(Number(v))}>
-                    <SelectTrigger className="h-8 w-16 text-xs">
-                        <SelectValue/>
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="1">1x</SelectItem>
-                        <SelectItem value="2">2x</SelectItem>
-                        <SelectItem value="3">3x</SelectItem>
-                        <SelectItem value="4">4x</SelectItem>
-                    </SelectContent>
-                </Select>
-            ) : (
-                <div className="flex items-center gap-1">
-                    <Input type="number" value={customWidth} onChange={(e) => setCustomWidth(Number(e.target.value))} className="h-8 w-16 sm:w-20 text-xs" min={100} max={8000}/>
-                    <span className="text-xs">×</span>
-                    <Input type="number" value={customHeight} onChange={(e) => setCustomHeight(Number(e.target.value))} className="h-8 w-16 sm:w-20 text-xs" min={100} max={8000}/>
-                </div>
+  const previewInteractionProps = {
+    onWheel: handleWheel,
+    onMouseDown: handleMouseDown,
+    onMouseMove: handleMouseMove,
+    onMouseUp: handleMouseUp,
+    onMouseLeave: handleMouseUp,
+  };
+  const previewAreaClassName = `flex-1 overflow-hidden flex justify-center items-center bg-gray-50 dark:bg-[rgba(33,37,43,0.8)] border ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`;
+
+  // 일반 모드
+  return (
+    <>
+      <div className="p-2 sm:p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl sm:text-3xl font-bold">Mermaid Editor</h1>
+        </div>
+
+        {/* 샘플 선택 */}
+        <div className="border rounded-md p-3 mb-3">
+          <p className="text-sm font-medium mb-2">샘플 다이어그램</p>
+          <div className="flex gap-1.5 mb-2 overflow-x-auto">
+            {SAMPLE_TYPES.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => handleSampleChange(key)}
+                className={`text-sm px-3 py-1 rounded-full border transition-all flex-shrink-0 whitespace-nowrap ${selectedSample === key ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <Select value={String(selectedSampleIndex)} onValueChange={handleSampleIndexChange}>
+            <SelectTrigger className="w-full sm:w-56">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(SAMPLE_CODES as any)[selectedSample].map((sample: any, index: number) => (
+                <SelectItem key={index} value={String(index)}>
+                  {sample.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* 모바일 탭 전환 */}
+        <div className="flex md:hidden border-b mb-3" role="tablist" aria-label="에디터 뷰 전환">
+          <button
+            role="tab"
+            aria-selected={activeTab === 'editor'}
+            aria-controls="panel-editor"
+            id="tab-editor"
+            onClick={() => setActiveTab('editor')}
+            className={`flex-1 py-2.5 text-sm font-medium text-center border-b-2 transition-colors duration-200 ${activeTab === 'editor' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 dark:text-[#636d83] hover:text-gray-700 dark:hover:text-[#abb2bf]'}`}
+          >
+            코드
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === 'preview'}
+            aria-controls="panel-preview"
+            id="tab-preview"
+            onClick={() => setActiveTab('preview')}
+            className={`flex-1 py-2.5 text-sm font-medium text-center border-b-2 transition-colors duration-200 ${activeTab === 'preview' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 dark:text-[#636d83] hover:text-gray-700 dark:hover:text-[#abb2bf]'}`}
+          >
+            미리보기
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-[calc(100dvh-26rem)] min-h-[300px] md:h-[65vh]">
+          {/* 에디터 영역 */}
+          <div
+            role="tabpanel"
+            id="panel-editor"
+            aria-labelledby="tab-editor"
+            className={`border rounded-md p-3 flex-col min-h-0 overflow-hidden ${activeTab !== 'editor' ? 'hidden md:flex' : 'flex'}`}
+          >
+            <p className="font-semibold mb-2 hidden md:block">코드</p>
+            <textarea
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="flex-1 w-full font-mono text-sm resize-none border rounded p-2 outline-none focus:ring-1 focus:ring-blue-400"
+            />
+          </div>
+
+          {/* 프리뷰 영역 */}
+          <div
+            role="tabpanel"
+            id="panel-preview"
+            aria-labelledby="tab-preview"
+            className={`border rounded-md p-3 flex-col min-h-0 overflow-hidden ${activeTab !== 'preview' ? 'hidden md:flex' : 'flex'}`}
+          >
+            {/* 헤더 */}
+            <div className="flex justify-between items-center mb-2 flex-wrap gap-1">
+              <p className="font-semibold hidden md:block">미리보기</p>
+              <div className="flex items-center gap-1">
+                <ZoomControls />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={toggleFullscreen}
+                  title="전체화면"
+                >
+                  <Maximize className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+
+            {/* 다운로드 컨트롤 */}
+            <div className="flex justify-end mb-2">
+              <DownloadControls />
+            </div>
+
+            {error && (
+              <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
+                {error}
+              </div>
             )}
 
-            <div className="flex gap-1">
-                <Button size="sm" onClick={downloadPng}>
-                    <Download className="h-3.5 w-3.5 mr-1"/>PNG
-                </Button>
-                <Button size="sm" onClick={downloadSvg}>
-                    <Download className="h-3.5 w-3.5 mr-1"/>SVG
-                </Button>
-            </div>
+            <div
+              ref={previewRef}
+              {...previewInteractionProps}
+              className={`${previewAreaClassName} rounded`}
+            />
+          </div>
         </div>
-    )
 
-    const previewInteractionProps = {
-        onWheel: handleWheel,
-        onMouseDown: handleMouseDown,
-        onMouseMove: handleMouseMove,
-        onMouseUp: handleMouseUp,
-        onMouseLeave: handleMouseUp
-    }
-    const previewAreaClassName = `flex-1 overflow-hidden flex justify-center items-center bg-gray-50 dark:bg-[rgba(33,37,43,0.8)] border ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`
+        <div className="mt-4 p-3 bg-gray-100 dark:bg-[rgba(44,49,58,0.7)] rounded-md">
+          <p className="text-sm font-semibold mb-1">Mermaid 문법 참고</p>
+          <p className="text-sm text-gray-500 dark:text-[#636d83]">
+            Mermaid는 텍스트 기반으로 다이어그램을 생성하는 도구입니다. Flowchart, Sequence Diagram,
+            Class Diagram, ER Diagram, Block Diagram, State Diagram 등 다양한 다이어그램을
+            지원합니다. 자세한 문법은{' '}
+            <a
+              href="https://mermaid.js.org/syntax/flowchart.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              Mermaid 공식 문서
+            </a>
+            를 참고하세요.
+          </p>
+        </div>
+      </div>
 
-    // 일반 모드
-    return (
-        <>
-            <div className="p-2 sm:p-4">
-                <div className="flex items-center gap-2 mb-4">
-                    <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
-                        <ArrowLeft className="h-5 w-5"/>
-                    </Button>
-                    <h1 className="text-xl sm:text-3xl font-bold">Mermaid Editor</h1>
+      {isFullscreen &&
+        isClient &&
+        createPortal(
+          <div className="fixed inset-0 z-[1200] bg-white dark:bg-[#1e2127] flex flex-col">
+            <div className="p-2 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white dark:bg-[#21252b] shadow-sm">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
+                    <Minimize className="h-5 w-5" />
+                  </Button>
+                  <span className="font-semibold">미리보기</span>
+                  <span className="text-xs text-gray-400 dark:text-[#636d83] hidden sm:inline">
+                    (ESC로 닫기)
+                  </span>
                 </div>
-
-                {/* 샘플 선택 */}
-                <div className="border rounded-md p-3 mb-3">
-                    <p className="text-sm font-medium mb-2">샘플 다이어그램</p>
-                    <div className="flex gap-1.5 mb-2 overflow-x-auto">
-                        {SAMPLE_TYPES.map(({key, label}) => (
-                            <button
-                                key={key}
-                                onClick={() => handleSampleChange(key)}
-                                className={`text-sm px-3 py-1 rounded-full border transition-all flex-shrink-0 whitespace-nowrap ${selectedSample === key ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]'}`}
-                            >
-                                {label}
-                            </button>
-                        ))}
-                    </div>
-                    <Select value={String(selectedSampleIndex)} onValueChange={handleSampleIndexChange}>
-                        <SelectTrigger className="w-full sm:w-56">
-                            <SelectValue/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            {(SAMPLE_CODES as any)[selectedSample].map((sample: any, index: number) => (
-                                <SelectItem key={index} value={String(index)}>{sample.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                <div className="sm:hidden">
+                  <ZoomControls />
                 </div>
-
-                {/* 모바일 탭 전환 */}
-                <div className="flex md:hidden border-b mb-3" role="tablist" aria-label="에디터 뷰 전환">
-                    <button
-                        role="tab"
-                        aria-selected={activeTab === 'editor'}
-                        aria-controls="panel-editor"
-                        id="tab-editor"
-                        onClick={() => setActiveTab('editor')}
-                        className={`flex-1 py-2.5 text-sm font-medium text-center border-b-2 transition-colors duration-200 ${activeTab === 'editor' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 dark:text-[#636d83] hover:text-gray-700 dark:hover:text-[#abb2bf]'}`}
-                    >
-                        코드
-                    </button>
-                    <button
-                        role="tab"
-                        aria-selected={activeTab === 'preview'}
-                        aria-controls="panel-preview"
-                        id="tab-preview"
-                        onClick={() => setActiveTab('preview')}
-                        className={`flex-1 py-2.5 text-sm font-medium text-center border-b-2 transition-colors duration-200 ${activeTab === 'preview' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 dark:text-[#636d83] hover:text-gray-700 dark:hover:text-[#abb2bf]'}`}
-                    >
-                        미리보기
-                    </button>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+                <div className="hidden sm:flex items-center gap-3">
+                  <ZoomControls />
+                  <div className="h-4 border-l" />
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 h-[calc(100dvh-26rem)] min-h-[300px] md:h-[65vh]">
-                    {/* 에디터 영역 */}
-                    <div
-                        role="tabpanel" id="panel-editor" aria-labelledby="tab-editor"
-                        className={`border rounded-md p-3 flex-col min-h-0 overflow-hidden ${activeTab !== 'editor' ? 'hidden md:flex' : 'flex'}`}
-                    >
-                        <p className="font-semibold mb-2 hidden md:block">코드</p>
-                        <textarea
-                            value={code}
-                            onChange={(e) => setCode(e.target.value)}
-                            className="flex-1 w-full font-mono text-sm resize-none border rounded p-2 outline-none focus:ring-1 focus:ring-blue-400"
-                        />
-                    </div>
-
-                    {/* 프리뷰 영역 */}
-                    <div
-                        role="tabpanel" id="panel-preview" aria-labelledby="tab-preview"
-                        className={`border rounded-md p-3 flex-col min-h-0 overflow-hidden ${activeTab !== 'preview' ? 'hidden md:flex' : 'flex'}`}
-                    >
-                        {/* 헤더 */}
-                        <div className="flex justify-between items-center mb-2 flex-wrap gap-1">
-                            <p className="font-semibold hidden md:block">미리보기</p>
-                            <div className="flex items-center gap-1">
-                                <ZoomControls/>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleFullscreen} title="전체화면">
-                                    <Maximize className="h-3.5 w-3.5"/>
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* 다운로드 컨트롤 */}
-                        <div className="flex justify-end mb-2">
-                            <DownloadControls/>
-                        </div>
-
-                        {error && (
-                            <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">{error}</div>
-                        )}
-
-                        <div
-                            ref={previewRef}
-                            {...previewInteractionProps}
-                            className={`${previewAreaClassName} rounded`}
-                        />
-                    </div>
-                </div>
-
-                <div className="mt-4 p-3 bg-gray-100 dark:bg-[rgba(44,49,58,0.7)] rounded-md">
-                    <p className="text-sm font-semibold mb-1">Mermaid 문법 참고</p>
-                    <p className="text-sm text-gray-500 dark:text-[#636d83]">
-                        Mermaid는 텍스트 기반으로 다이어그램을 생성하는 도구입니다.
-                        Flowchart, Sequence Diagram, Class Diagram, ER Diagram, Block Diagram, State Diagram 등 다양한 다이어그램을 지원합니다.
-                        자세한 문법은{' '}
-                        <a href="https://mermaid.js.org/syntax/flowchart.html" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                            Mermaid 공식 문서
-                        </a>
-                        를 참고하세요.
-                    </p>
-                </div>
+                <DownloadControls />
+              </div>
             </div>
 
-            {isFullscreen && isClient && createPortal(
-                <div className="fixed inset-0 z-[1200] bg-white dark:bg-[#1e2127] flex flex-col">
-                    <div className="p-2 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white dark:bg-[#21252b] shadow-sm">
-                        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
-                            <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
-                                    <Minimize className="h-5 w-5"/>
-                                </Button>
-                                <span className="font-semibold">미리보기</span>
-                                <span className="text-xs text-gray-400 dark:text-[#636d83] hidden sm:inline">(ESC로 닫기)</span>
-                            </div>
-                            <div className="sm:hidden"><ZoomControls/></div>
-                        </div>
-                        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
-                            <div className="hidden sm:flex items-center gap-3">
-                                <ZoomControls/>
-                                <div className="h-4 border-l"/>
-                            </div>
-                            <DownloadControls/>
-                        </div>
-                    </div>
-
-                    {error && (
-                        <div className="mx-4 mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">{error}</div>
-                    )}
-
-                    <div
-                        ref={fullscreenPreviewRef}
-                        {...previewInteractionProps}
-                        className={`${previewAreaClassName} border-0 rounded-none`}
-                    />
-
-                    <div
-                        className={`fixed z-[1300] shadow-2xl overflow-hidden border bg-white dark:bg-[#282c34] transition-all duration-300 bottom-0 inset-x-0 rounded-t-xl sm:bottom-5 sm:right-5 sm:left-auto sm:inset-x-auto sm:rounded-lg ${isEditorVisible ? 'sm:w-[420px]' : 'w-auto sm:w-auto'}`}
-                        style={{maxHeight: isEditorVisible ? '45vh' : 'auto'}}
-                    >
-                        <div className="flex items-center px-3 py-2 border-b bg-gray-50 dark:bg-[rgba(33,37,43,0.8)]">
-                            <span className="text-sm font-bold flex-1">코드</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsEditorVisible(!isEditorVisible)}>
-                                {isEditorVisible ? <EyeOff className="h-3.5 w-3.5"/> : <Eye className="h-3.5 w-3.5"/>}
-                            </Button>
-                        </div>
-                        {isEditorVisible && (
-                            <textarea
-                                value={code}
-                                onChange={(e) => setCode(e.target.value)}
-                                className="w-full font-mono text-xs p-3 resize-none border-none outline-none"
-                                style={{height: 'calc(45vh - 40px)'}}
-                            />
-                        )}
-                    </div>
-                </div>,
-                document.body
+            {error && (
+              <div className="mx-4 mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                {error}
+              </div>
             )}
-        </>
-    )
+
+            <div
+              ref={fullscreenPreviewRef}
+              {...previewInteractionProps}
+              className={`${previewAreaClassName} border-0 rounded-none`}
+            />
+
+            <div
+              className={`fixed z-[1300] shadow-2xl overflow-hidden border bg-white dark:bg-[#282c34] transition-all duration-300 bottom-0 inset-x-0 rounded-t-xl sm:bottom-5 sm:right-5 sm:left-auto sm:inset-x-auto sm:rounded-lg ${isEditorVisible ? 'sm:w-[420px]' : 'w-auto sm:w-auto'}`}
+              style={{ maxHeight: isEditorVisible ? '45vh' : 'auto' }}
+            >
+              <div className="flex items-center px-3 py-2 border-b bg-gray-50 dark:bg-[rgba(33,37,43,0.8)]">
+                <span className="text-sm font-bold flex-1">코드</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => setIsEditorVisible(!isEditorVisible)}
+                >
+                  {isEditorVisible ? (
+                    <EyeOff className="h-3.5 w-3.5" />
+                  ) : (
+                    <Eye className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+              </div>
+              {isEditorVisible && (
+                <textarea
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="w-full font-mono text-xs p-3 resize-none border-none outline-none"
+                  style={{ height: 'calc(45vh - 40px)' }}
+                />
+              )}
+            </div>
+          </div>,
+          document.body,
+        )}
+    </>
+  );
 }

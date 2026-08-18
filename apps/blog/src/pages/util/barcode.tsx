@@ -1,18 +1,18 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ArrowLeft, Download } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
-import { Download, ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/router';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { downloadBlob, downloadDataUrl } from '@/util/browserUtils';
 
 const BARCODE_FORMATS = [
@@ -81,7 +81,7 @@ export default function BarcodePage() {
     } catch (e) {
       console.error('Barcode generation error:', e);
       if (barcodeSvgRef.current) barcodeSvgRef.current.innerHTML = '';
-      toast.error('바코드 생성 실패: ' + (e.message || '유효하지 않은 입력값'));
+      toast.error(`바코드 생성 실패: ${e.message || '유효하지 않은 입력값'}`);
     }
   }, [isClient, barcodeText, barcodeFormat, barcodeWidth, barcodeHeight, displayValue]);
 
@@ -105,7 +105,7 @@ export default function BarcodePage() {
       });
     } catch (e) {
       console.error('QR Code generation error:', e);
-      toast.error('QR 코드 생성 실패: ' + (e.message || '유효하지 않은 입력값'));
+      toast.error(`QR 코드 생성 실패: ${e.message || '유효하지 않은 입력값'}`);
     }
   }, [isClient, qrText, qrSize, qrErrorLevel]);
 
@@ -141,7 +141,7 @@ export default function BarcodePage() {
       downloadDataUrl(dataUrl, `barcode-${barcodeFormat}-${Date.now()}.png`);
       toast.success('PNG 다운로드 완료');
     } catch (e) {
-      toast.error('다운로드 실패: ' + e.message);
+      toast.error(`다운로드 실패: ${e.message}`);
     }
   };
 
@@ -159,7 +159,7 @@ export default function BarcodePage() {
       );
       toast.success('SVG 다운로드 완료');
     } catch (e) {
-      toast.error('다운로드 실패: ' + e.message);
+      toast.error(`다운로드 실패: ${e.message}`);
     }
   };
 
@@ -174,7 +174,7 @@ export default function BarcodePage() {
       downloadDataUrl(dataUrl, `qrcode-${Date.now()}.png`);
       toast.success('PNG 다운로드 완료');
     } catch (e) {
-      toast.error('다운로드 실패: ' + e.message);
+      toast.error(`다운로드 실패: ${e.message}`);
     }
   };
 
@@ -191,7 +191,7 @@ export default function BarcodePage() {
       downloadBlob(new Blob([svgString], { type: 'image/svg+xml' }), `qrcode-${Date.now()}.svg`);
       toast.success('SVG 다운로드 완료');
     } catch (e) {
-      toast.error('다운로드 실패: ' + e.message);
+      toast.error(`다운로드 실패: ${e.message}`);
     }
   };
 

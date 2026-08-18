@@ -1,15 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Merge, Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Merge, Pencil, Plus, Save, Search, Tags, Trash2, X } from 'lucide-react';
-import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import ShadcnDataTable from '@/components/common/ShadcnDataTable';
 import DeleteConfirm from '@/components/confirm/DeleteConfirm';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -17,6 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -24,8 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import service from '@/service';
+import { Switch } from '@/components/ui/switch';
 import { searchObjectInit } from '@/model/searchObject';
+import service from '@/service';
 import { base64Encode } from '@/util/base64Util';
 
 interface TagItem {
@@ -227,6 +227,7 @@ export default function TagsPage() {
         cell: ({ value, row }: { value: number; row: any }) =>
           value > 0 ? (
             <button
+              type="button"
               className="cursor-pointer text-sky-600 hover:text-sky-800 hover:underline"
               onClick={(e) => {
                 e.stopPropagation();
@@ -259,6 +260,7 @@ export default function TagsPage() {
             />
             {searchQuery && (
               <button
+                type="button"
                 className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer rounded p-0.5 hover:bg-muted"
                 onClick={() => setSearchQuery('')}
                 aria-label="검색어 지우기"

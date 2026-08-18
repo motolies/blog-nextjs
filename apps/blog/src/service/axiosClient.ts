@@ -1,8 +1,4 @@
-import axios, {
-  type AxiosRequestConfig,
-  type InternalAxiosRequestConfig,
-  type AxiosResponse,
-} from 'axios';
+import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 import { getBackendBaseUrl } from '@/lib/backendUrl';
 
 const CLIENT_TIMEZONE_HEADER = 'X-Client-Timezone';

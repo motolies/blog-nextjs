@@ -1,6 +1,6 @@
+import { Eye } from 'lucide-react';
 import { useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Eye } from 'lucide-react';
 import { sanitizeThemeHostileStyles } from '@/util/contentStyleSanitizer';
 
 interface PostPreviewDialogProps {

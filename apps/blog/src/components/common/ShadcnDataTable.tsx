@@ -1,32 +1,18 @@
-import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import DynamicSearchFields from './DynamicSearchFields';
-import DataTableCore, {
-  DATA_TABLE_DENSITY_CONFIG,
-  DEFAULT_COLUMN_WIDTH,
-  MAX_COLUMN_WIDTH,
-  MIN_COLUMN_WIDTH,
-  buildDataTableColumns,
-  type DataTableColumn,
-  type DataTableDensity,
-  type DataTableEditableConfig,
-  type EditingCell,
-} from './DataTableCore';
-import DataTableToolbar from './DataTableToolbar';
 import {
+  type ColumnDef,
+  type ColumnOrderState,
+  type ColumnSizingState,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-  type ColumnOrderState,
-  type ColumnSizingState,
   type PaginationState,
   type Row,
   type RowData,
   type RowSelectionState,
   type SortingState,
   type Table,
+  useReactTable,
   type VisibilityState,
 } from '@tanstack/react-table';
 import {
@@ -37,6 +23,8 @@ import {
   Loader2,
   Settings2,
 } from 'lucide-react';
+import type React from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -48,6 +36,19 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import DataTableCore, {
+  buildDataTableColumns,
+  DATA_TABLE_DENSITY_CONFIG,
+  type DataTableColumn,
+  type DataTableDensity,
+  type DataTableEditableConfig,
+  DEFAULT_COLUMN_WIDTH,
+  type EditingCell,
+  MAX_COLUMN_WIDTH,
+  MIN_COLUMN_WIDTH,
+} from './DataTableCore';
+import DataTableToolbar from './DataTableToolbar';
+import DynamicSearchFields from './DynamicSearchFields';
 
 export type { DataTableColumn, DataTableEditableConfig } from './DataTableCore';
 

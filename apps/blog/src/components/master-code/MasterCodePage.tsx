@@ -1,9 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, RefreshCw, Save, Search, X } from 'lucide-react';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import ConfirmDialog from '@/components/confirm/ConfirmDialog';
+import DeleteConfirm from '@/components/confirm/DeleteConfirm';
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import service from '@/service';
 import MasterCodeTree from './MasterCodeTree';
 import NodeDetailPanel from './NodeDetailPanel';
@@ -84,6 +87,10 @@ export default function MasterCodePage() {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [originalCode, setOriginalCode] = useState<string>('');
   const [dialogParentNode, setDialogParentNode] = useState<MasterCodeNode | null>(null);
+
+  // 확인 다이얼로그 상태 (네이티브 confirm 대체)
+  const [deleteTarget, setDeleteTarget] = useState<MasterCodeNode | null>(null);
+  const [cacheConfirmOpen, setCacheConfirmOpen] = useState<boolean>(false);
 
   // 선택된 노드 객체 찾기 (트리에서 재귀 탐색)
   const selectedNode = useMemo(() => {
@@ -178,32 +185,35 @@ export default function MasterCodePage() {
     setOpenDialog(true);
   }, []);
 
-  // 삭제
-  const handleDelete = useCallback(
-    async (node: MasterCodeNode) => {
-      const hasChildren = Array.isArray(node.children) && node.children.length > 0;
-      if (hasChildren) {
-        toast.error('하위 노드가 존재하여 삭제할 수 없습니다. 하위 노드를 먼저 삭제해주세요.');
-        return;
-      }
-      if (!confirm(`"${node.name}" (${node.code})을(를) 삭제하시겠습니까?`)) return;
+  // 삭제 요청 — 확인 다이얼로그를 띄운다
+  const handleDelete = useCallback((node: MasterCodeNode) => {
+    const hasChildren = Array.isArray(node.children) && node.children.length > 0;
+    if (hasChildren) {
+      toast.error('하위 노드가 존재하여 삭제할 수 없습니다. 하위 노드를 먼저 삭제해주세요.');
+      return;
+    }
+    setDeleteTarget(node);
+  }, []);
 
-      try {
-        setLoading(true);
-        await service.masterCode.deleteNode(node.id);
-        toast.success('노드가 성공적으로 삭제되었습니다.');
-        if (selectedNodeId === node.id) {
-          setSelectedNodeId(null);
-        }
-        await loadData();
-      } catch (error: any) {
-        toast.error(`삭제 실패: ${error.response?.data?.message || error.message}`);
-      } finally {
-        setLoading(false);
+  // 확인 후 실제 삭제 수행
+  const performDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    const node = deleteTarget;
+    setDeleteTarget(null);
+    try {
+      setLoading(true);
+      await service.masterCode.deleteNode(node.id);
+      toast.success('노드가 성공적으로 삭제되었습니다.');
+      if (selectedNodeId === node.id) {
+        setSelectedNodeId(null);
       }
-    },
-    [loadData, selectedNodeId],
-  );
+      await loadData();
+    } catch (error: any) {
+      toast.error(`삭제 실패: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [deleteTarget, loadData, selectedNodeId]);
 
   // 저장
   const handleSave = async () => {
@@ -278,15 +288,14 @@ export default function MasterCodePage() {
     }
   };
 
-  // 캐시 삭제
-  const handleClearAllCache = async () => {
-    if (
-      !confirm(
-        '전체 캐시를 삭제하시겠습니까?\n\n모든 캐시가 삭제되며 시스템 성능에 일시적인 영향을 줄 수 있습니다.',
-      )
-    ) {
-      return;
-    }
+  // 캐시 삭제 요청 — 확인 다이얼로그를 띄운다
+  const handleClearAllCache = () => {
+    setCacheConfirmOpen(true);
+  };
+
+  // 확인 후 실제 캐시 삭제 수행
+  const performClearAllCache = async () => {
+    setCacheConfirmOpen(false);
     try {
       setLoading(true);
       const result = await service.masterCode.evictAllCaches();
@@ -351,6 +360,7 @@ export default function MasterCodePage() {
           />
           {searchQuery && (
             <button
+              type="button"
               className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 hover:bg-muted"
               onClick={() => setSearchQuery('')}
             >
@@ -423,6 +433,30 @@ export default function MasterCodePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 노드 삭제 확인 */}
+      <DeleteConfirm
+        open={deleteTarget != null}
+        question={
+          deleteTarget
+            ? `"${deleteTarget.name}" (${deleteTarget.code})을(를) 삭제하시겠습니까?`
+            : ''
+        }
+        onConfirm={performDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
+      {/* 전체 캐시 삭제 확인 */}
+      <ConfirmDialog
+        open={cacheConfirmOpen}
+        icon={RefreshCw}
+        iconClassName="text-primary"
+        title="전체 캐시 삭제"
+        question="전체 캐시를 삭제하시겠습니까? 모든 캐시가 삭제되며 시스템 성능에 일시적인 영향을 줄 수 있습니다."
+        confirmText="삭제"
+        onConfirm={performClearAllCache}
+        onCancel={() => setCacheConfirmOpen(false)}
+      />
     </AdminPageFrame>
   );
 }

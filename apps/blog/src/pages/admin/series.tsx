@@ -1,14 +1,11 @@
+import { BookOpen, Plus, Save, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { BookOpen, Plus, Save, Search, X } from 'lucide-react';
+import DeleteConfirm from '@/components/confirm/DeleteConfirm';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import SeriesDetailPanel from '@/components/series/SeriesDetailPanel';
-import DeleteConfirm from '@/components/confirm/DeleteConfirm';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +13,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import service from '@/service';
 import type { Series, SeriesSummary } from '@/types/series';
@@ -197,6 +197,7 @@ export default function SeriesPage() {
           />
           {searchQuery && (
             <button
+              type="button"
               className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 hover:bg-muted"
               onClick={() => setSearchQuery('')}
             >

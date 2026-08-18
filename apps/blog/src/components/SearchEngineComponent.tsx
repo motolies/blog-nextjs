@@ -1,5 +1,7 @@
-import { Input } from '@/components/ui/input';
+import { ArrowUpRight, Search } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -7,8 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useState } from 'react';
-import { ArrowUpRight, Search } from 'lucide-react';
 
 interface SearchEngine {
   id: string | number;

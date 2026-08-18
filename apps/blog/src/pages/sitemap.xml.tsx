@@ -1,6 +1,6 @@
+import type { GetServerSidePropsContext } from 'next';
 import { getBackendBaseUrl } from '@/lib/backendUrl';
 import { buildForwardedHeaders } from '@/lib/forwardedHeaders';
-import type { GetServerSidePropsContext } from 'next';
 
 function generateSiteMap(posts: string[]) {
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -27,7 +27,7 @@ function SiteMap() {
 }
 
 export async function getServerSideProps({ req, res }: GetServerSidePropsContext) {
-  const request = await fetch(getBackendBaseUrl() + '/api/post/public-content', {
+  const request = await fetch(`${getBackendBaseUrl()}/api/post/public-content`, {
     headers: buildForwardedHeaders(req),
   });
   // 백엔드 응답은 {timestamp, path, status, data} 봉투 — raw fetch 라 axios 인터셉터 평탄화가 없다

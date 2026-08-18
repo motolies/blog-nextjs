@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button';
 import { useRef } from 'react';
+import { Button } from '@/components/ui/button';
 
 interface FileUploadComponentProps {
   multiple?: boolean;
@@ -17,7 +17,7 @@ export default function FileUploadComponent({
   return (
     <div>
       <Button
-        className={`w-full${className ? ' ' + className : ''}`}
+        className={`w-full${className ? ` ${className}` : ''}`}
         variant="outline"
         size="lg"
         onClick={() => fileInput.current?.click()}

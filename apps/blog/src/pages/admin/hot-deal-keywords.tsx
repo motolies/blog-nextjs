@@ -1,14 +1,11 @@
+import { Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react';
-import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import ShadcnDataTable, { type DataTableColumn } from '@/components/common/ShadcnDataTable';
 import DeleteConfirm from '@/components/confirm/DeleteConfirm';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +13,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import service from '@/service';
 import type { HotDealKeyword } from '@/types/hotDeal';
 
@@ -197,6 +197,7 @@ export default function HotDealKeywordsPage() {
         mobileLabel: '상태',
         cell: ({ value, row }: { value: boolean; row: any }) => (
           <button
+            type="button"
             className="cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
@@ -228,6 +229,7 @@ export default function HotDealKeywordsPage() {
             />
             {searchQuery && (
               <button
+                type="button"
                 className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer rounded p-0.5 hover:bg-muted"
                 onClick={() => setSearchQuery('')}
                 aria-label="검색어 지우기"

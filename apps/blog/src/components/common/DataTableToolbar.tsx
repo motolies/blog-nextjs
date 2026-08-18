@@ -1,9 +1,9 @@
-import React, { type ReactNode } from 'react';
-import { type RowData, type Table } from '@tanstack/react-table';
+import type { RowData, Table } from '@tanstack/react-table';
 import { Plus, Save, X } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { type DataTableDensity } from './DataTableCore';
+import type { DataTableDensity } from './DataTableCore';
 
 export interface DataTableToolbarProps<TData extends RowData> {
   enableRowSelection?: boolean;

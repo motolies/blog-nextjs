@@ -1,11 +1,11 @@
-import axiosClient from './axiosClient';
 import type { AxiosRequestConfig } from 'axios';
 import type {
   MasterCodeCreateRequest,
-  MasterCodeUpdateRequest,
   MasterCodeMoveRequest,
   MasterCodeReorderRequest,
+  MasterCodeUpdateRequest,
 } from '@/types/masterCode';
+import axiosClient from './axiosClient';
 
 // 공개(비인증) 조회용 base. 응답에서 민감 attribute는 백엔드가 제거한다.
 const MASTER_CODE_PUBLIC_BASE = '/api/codes';

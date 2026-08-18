@@ -1,7 +1,7 @@
-import React from 'react';
-import { Folder, Code, Pencil, Trash2, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Code, Folder, Pencil, Plus, Trash2 } from 'lucide-react';
+import type React from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
 interface AttributeSchemaItem {

@@ -1,14 +1,14 @@
 import { BookOpen, Pencil, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import SortablePostList from './SortablePostList';
-import PostSearchCombobox from './PostSearchCombobox';
-import service from '@/service';
-import { parseServerDate } from '@/util/dateTimeUtil';
-import type { Series } from '@/types/series';
 import type React from 'react';
+import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import service from '@/service';
+import type { Series } from '@/types/series';
+import { parseServerDate } from '@/util/dateTimeUtil';
+import PostSearchCombobox from './PostSearchCombobox';
+import SortablePostList from './SortablePostList';
 
 interface SeriesDetailPanelProps {
   series: Series | null;

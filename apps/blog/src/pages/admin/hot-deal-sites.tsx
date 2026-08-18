@@ -1,13 +1,10 @@
+import { Pencil, Play, Save } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Pencil, Play, Save } from 'lucide-react';
-import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import ShadcnDataTable, { type DataTableColumn } from '@/components/common/ShadcnDataTable';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import service from '@/service';
 
 interface SiteFormData {
@@ -217,7 +217,7 @@ export default function HotDealSitesPage() {
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      minRecommendation: parseInt(e.target.value) || 0,
+                      minRecommendation: parseInt(e.target.value, 10) || 0,
                     }))
                   }
                 />
@@ -232,7 +232,7 @@ export default function HotDealSitesPage() {
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      minViewCount: parseInt(e.target.value) || 0,
+                      minViewCount: parseInt(e.target.value, 10) || 0,
                     }))
                   }
                 />
@@ -247,7 +247,7 @@ export default function HotDealSitesPage() {
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      minCommentCount: parseInt(e.target.value) || 0,
+                      minCommentCount: parseInt(e.target.value, 10) || 0,
                     }))
                   }
                 />

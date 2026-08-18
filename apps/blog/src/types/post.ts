@@ -1,6 +1,6 @@
 import type { Category } from './category';
-import type { Tag } from './tag';
 import type { FileItem } from './file';
+import type { Tag } from './tag';
 
 export type PostStatus = 'TEMP' | 'PUBLISH';
 

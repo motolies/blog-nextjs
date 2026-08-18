@@ -1,6 +1,7 @@
+import { ChevronsUpDown, Loader2, Plus, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { getTsid } from 'tsid-ts';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -9,8 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { Button } from '@/components/ui/button';
-import { ChevronsUpDown, Loader2, Plus, Search } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { COMBOBOX_POPOVER_CONTENT_CLASSNAME } from '@/lib/combobox';
 import service from '@/service';
 

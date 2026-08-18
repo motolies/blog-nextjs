@@ -1,28 +1,10 @@
-import React, {
-  type CSSProperties,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
 import {
-  flexRender,
-  type Column,
-  type ColumnDef,
-  type ColumnOrderState,
-  type Row,
-  type RowData,
-  type Table,
-} from '@tanstack/react-table';
-import {
+  closestCenter,
   DndContext,
+  type DragEndEvent,
   KeyboardSensor,
   MouseSensor,
   TouchSensor,
-  closestCenter,
-  type DragEndEvent,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
@@ -34,7 +16,26 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import {
+  type Column,
+  type ColumnDef,
+  type ColumnOrderState,
+  flexRender,
+  type Row,
+  type RowData,
+  type Table,
+} from '@tanstack/react-table';
 import { ArrowDown, ArrowUp, ArrowUpDown, Loader2 } from 'lucide-react';
+import type React from 'react';
+import {
+  type CSSProperties,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { cn } from '@/lib/utils';
 import EditableCell from './EditableCell';
 

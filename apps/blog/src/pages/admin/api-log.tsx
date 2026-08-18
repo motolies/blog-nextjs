@@ -1,11 +1,11 @@
-import React, { useState, useCallback, useMemo } from 'react';
 import { format } from 'date-fns';
-import ShadcnDataTable, { type DataTableColumn } from '@/components/common/ShadcnDataTable';
-import { Badge } from '@/components/ui/badge';
+import { useCallback, useMemo, useState } from 'react';
 import DetailDialog from '@/components/common/DetailDialog';
+import ShadcnDataTable, { type DataTableColumn } from '@/components/common/ShadcnDataTable';
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
+import { Badge } from '@/components/ui/badge';
 import service from '@/service';
 import { formatUtcToLocal } from '@/util/dateTimeUtil';
-import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 
 export default function ApiLog() {
   // 모듈 로드 시점이 아닌 마운트 시점에 기본 검색일을 계산한다(자정 넘김 stale 방지)
@@ -24,7 +24,7 @@ export default function ApiLog() {
   const truncateText = useCallback((text: string, maxLength = 20) => {
     if (!text) return '-';
     if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+    return `${text.substring(0, maxLength)}...`;
   }, []);
 
   // fetchData 메모이제이션: Dialog 상태 변경 시 재검색 방지
@@ -82,7 +82,7 @@ export default function ApiLog() {
         size: 150,
         mobileLabel: 'Status',
         cell: ({ value }: { value: string }) => {
-          const statusCode = parseInt(value);
+          const statusCode = parseInt(value, 10);
           let variant = 'secondary';
           if (statusCode >= 200 && statusCode < 300) variant = 'success';
           else if (statusCode >= 300 && statusCode < 400) variant = 'info';

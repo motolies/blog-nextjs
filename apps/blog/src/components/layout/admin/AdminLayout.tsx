@@ -1,10 +1,10 @@
-import Header from './Header';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
 import { X } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 import styles from './AdminLayout.module.css';
 import { adminNavigationSections, getAdminRouteMeta, isActiveAdminItem } from './adminNavigation';
+import Header from './Header';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -33,6 +33,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
       {isMenuOpen ? (
         <button
+          type="button"
           className={styles.backdrop}
           onClick={() => setIsMenuOpen(false)}
           aria-label="관리자 메뉴 닫기"
@@ -47,6 +48,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <h2 className={styles.menuTitle}>Workspace</h2>
             </div>
             <button
+              type="button"
               className={styles.closeButton}
               onClick={() => setIsMenuOpen(false)}
               aria-label="관리자 메뉴 닫기"

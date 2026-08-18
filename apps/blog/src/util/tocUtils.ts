@@ -10,7 +10,9 @@ export function normalizeHeadingDepths(levels: number[], maxDepth: number): numb
   const rank = new Map<number, number>();
   Array.from(new Set(levels))
     .sort((a, b) => a - b)
-    .forEach((level, index) => rank.set(level, index));
+    .forEach((level, index) => {
+      rank.set(level, index);
+    });
 
   return levels.map((level) => Math.min(rank.get(level) ?? 0, maxDepth));
 }

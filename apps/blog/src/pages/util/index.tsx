@@ -1,14 +1,14 @@
-import Link from 'next/link';
 import {
   ArrowLeftRight,
-  GitBranch,
-  QrCode,
-  Lock,
-  Clock,
   Braces,
-  ShieldCheck,
+  Clock,
+  GitBranch,
+  Lock,
   Network,
+  QrCode,
+  ShieldCheck,
 } from 'lucide-react';
+import Link from 'next/link';
 
 const utilities = [
   {

@@ -1,9 +1,9 @@
+import { FlaskConical, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { FlaskConical, Trash2 } from 'lucide-react';
 import ShadcnDataTable, { type DataTableColumn } from '@/components/common/ShadcnDataTable';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 const SAMPLE_DATA = [
   { id: 1, name: '김철수', email: 'kim@example.com', role: '관리자', status: 'active', score: 95 },

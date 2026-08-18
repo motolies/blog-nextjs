@@ -1,6 +1,6 @@
-import MetaHeader from './MetaHeader';
-import Header from './Header';
 import Footer from './Footer';
+import Header from './Header';
+import MetaHeader from './MetaHeader';
 import Section from './Section';
 import skipStyles from './SkipNavigation.module.css';
 

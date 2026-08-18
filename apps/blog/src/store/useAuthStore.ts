@@ -1,5 +1,5 @@
-import { create } from 'zustand';
 import forge from 'node-forge';
+import { create } from 'zustand';
 import service from '@/service';
 import type { User } from '@/types/user';
 
@@ -21,7 +21,7 @@ interface AuthActions {
 function encryptPassword(resPublicKey: string, pass: string): string {
   try {
     const publicKey = forge.pki.publicKeyFromPem(
-      '-----BEGIN PUBLIC KEY----- ' + resPublicKey + ' -----END PUBLIC KEY-----',
+      `-----BEGIN PUBLIC KEY----- ${resPublicKey} -----END PUBLIC KEY-----`,
     );
     const encData = publicKey.encrypt(pass, 'RSA-OAEP', {
       md: forge.md.sha256.create(),

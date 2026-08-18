@@ -1,10 +1,10 @@
+import { dehydrate, QueryClient } from '@tanstack/react-query';
+import Head from 'next/head';
 import PostComponent from '@/components/post/PostComponent';
 import ReadingProgressBar from '@/components/post/ReadingProgressBar';
-import service from '@/service';
 import { tagKeys } from '@/hooks/useTags';
-import Head from 'next/head';
 import { buildBackendAuthConfig } from '@/lib/ssrRequestAuth';
-import { dehydrate, QueryClient } from '@tanstack/react-query';
+import service from '@/service';
 
 interface PostMeta {
   title: string | null;
@@ -87,8 +87,8 @@ export const getServerSideProps = async (context: import('next').GetServerSidePr
               .trim()
           : null,
         tags: post?.tags?.map((tag: any) => tag.name).join(', ') ?? null,
-        page: process.env.META_URL + '/post/' + postId,
-        logo: process.env.META_URL + '/images/og-logo.png',
+        page: `${process.env.META_URL}/post/${postId}`,
+        logo: `${process.env.META_URL}/images/og-logo.png`,
       },
     },
   };

@@ -1,7 +1,7 @@
-import { getAuthTokenFromRequest } from '@/lib/authCookie';
-import { getBackendBaseUrl } from '@/lib/backendUrl';
 import { Readable } from 'node:stream';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { getAuthTokenFromRequest } from '@/lib/authCookie';
+import { getBackendBaseUrl } from '@/lib/backendUrl';
 
 export const config = {
   api: {
@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (typeof value === 'string') headers[key] = value;
   }
   if (token) {
-    headers['authorization'] = `Bearer ${token}`;
+    headers.authorization = `Bearer ${token}`;
   }
 
   const hasBody = req.method !== 'GET' && req.method !== 'HEAD';

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import type { LucideIcon } from 'lucide-react';
 import {
   ArrowRight,
   Clock3,
@@ -9,9 +9,9 @@ import {
   ShieldCheck,
   Workflow,
 } from 'lucide-react';
+import Link from 'next/link';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { adminQuickLinks } from '@/components/layout/admin/adminNavigation';
-import type { LucideIcon } from 'lucide-react';
 
 interface DashboardStat {
   label: string;

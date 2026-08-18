@@ -1,8 +1,8 @@
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useCategoryFlat } from '@/hooks/useCategories';
-import { ConditionComponent } from '@/components/ConditionComponent';
 import { toast } from 'sonner';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ConditionComponent } from '@/components/ConditionComponent';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -11,11 +11,10 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { Button } from '@/components/ui/button';
-import { ChevronsUpDown, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useCategoryFlat } from '@/hooks/useCategories';
 import { COMBOBOX_POPOVER_CONTENT_CLASSNAME, isSameEntityId } from '@/lib/combobox';
-import type { Category } from '@/types/category';
+import { cn } from '@/lib/utils';
 
 interface CategoryItem {
   id: string;

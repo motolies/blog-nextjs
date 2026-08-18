@@ -1,5 +1,5 @@
-import axiosClient from './axiosClient';
 import type { Category } from '@/types/category';
+import axiosClient from './axiosClient';
 
 const categoryService = {
   getCategoryFlat: () => {

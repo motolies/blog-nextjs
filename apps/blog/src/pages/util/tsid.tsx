@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { format } from 'date-fns';
 import { ArrowLeft, Copy, RefreshCw } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { getTsid, TSID } from 'tsid-ts';
-import { format } from 'date-fns';
-import { useRouter } from 'next/router';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { copyTextToClipboard } from '@/util/browserUtils';
 
 const TSID_EPOCH = 1577836800000;
@@ -94,6 +94,7 @@ export default function TsidPage() {
 
   const CopyButton = ({ value }) => (
     <button
+      type="button"
       onClick={() => void handleCopy(value)}
       className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]"
       title="복사"

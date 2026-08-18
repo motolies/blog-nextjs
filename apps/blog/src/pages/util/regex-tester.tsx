@@ -1,23 +1,23 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ArrowLeft, Copy, Play, TestTubeDiagonal, X } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useCallback, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Play, X, Copy, TestTubeDiagonal } from 'lucide-react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/router';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { copyTextToClipboard } from '@/util/browserUtils';
 import {
   analyzeCompatibility,
-  executeRegexTest,
   EXAMPLE_PATTERNS,
+  executeRegexTest,
   getHighlightSegments,
   getSupportedLanguages,
   HIGHLIGHT_COLORS,
   parseNamedGroups,
   validateBasicSyntax,
 } from '@/util/regexValidator';
-import { copyTextToClipboard } from '@/util/browserUtils';
 
 export default function RegexTester() {
   const router = useRouter();
@@ -100,7 +100,7 @@ export default function RegexTester() {
   }, []);
 
   const highlightSegments = useMemo(() => {
-    if (!result || !result.matches || result.matches.length === 0) {
+    if (!result?.matches || result.matches.length === 0) {
       return [{ text: testString || '', isMatch: false }];
     }
     return getHighlightSegments(testString, result.matches);
@@ -148,6 +148,7 @@ export default function RegexTester() {
                     <p className="font-medium">정규식 패턴</p>
                     {pattern && (
                       <button
+                        type="button"
                         onClick={() => void handleCopy(pattern, '패턴')}
                         className="p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]"
                       >
@@ -194,6 +195,7 @@ export default function RegexTester() {
                     <p className="font-medium">테스트 문자열</p>
                     {testString && (
                       <button
+                        type="button"
                         onClick={() => void handleCopy(testString, '테스트 문자열')}
                         className="p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]"
                       >
@@ -215,6 +217,7 @@ export default function RegexTester() {
                   <div className="flex flex-wrap gap-1">
                     {EXAMPLE_PATTERNS.map((example, idx) => (
                       <button
+                        type="button"
                         key={idx}
                         onClick={() => handleLoadExample(example)}
                         className="text-xs px-2.5 py-1 border rounded-full hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)] transition-colors"
@@ -303,7 +306,7 @@ export default function RegexTester() {
                   </div>
                 </div>
 
-                {result && result.matches && result.matches.length > 0 && (
+                {result?.matches && result.matches.length > 0 && (
                   <div className="border rounded-md p-4">
                     <p className="font-semibold mb-3">매치 상세</p>
                     <div className="space-y-2">
@@ -327,6 +330,7 @@ export default function RegexTester() {
                               (index: {match.index}~{match.endIndex})
                             </span>
                             <button
+                              type="button"
                               onClick={() => void handleCopy(match.fullMatch, '매치')}
                               className="p-1 rounded hover:bg-gray-200 dark:hover:bg-[rgba(44,49,58,0.7)] ml-auto"
                             >

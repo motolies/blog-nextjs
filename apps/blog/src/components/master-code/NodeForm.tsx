@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -126,7 +126,7 @@ export default function NodeForm({
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setFormData((prev) => ({
               ...prev,
-              sort: parseInt(e.target.value) || 0,
+              sort: parseInt(e.target.value, 10) || 0,
             }))
           }
         />

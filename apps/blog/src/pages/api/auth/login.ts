@@ -1,7 +1,7 @@
 import axios from 'axios';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { buildAuthCookie, extractBackendAuthCookie } from '@/lib/authCookie';
 import { getBackendBaseUrl } from '@/lib/backendUrl';
-import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

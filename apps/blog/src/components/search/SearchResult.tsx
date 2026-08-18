@@ -1,6 +1,6 @@
-import { formatUtcToLocal } from '@/util/dateTimeUtil';
-import Link from 'next/link';
 import { ArrowRight, Clock3, FolderOpen } from 'lucide-react';
+import Link from 'next/link';
+import { formatUtcToLocal } from '@/util/dateTimeUtil';
 
 interface SearchResultPost {
   id: string;

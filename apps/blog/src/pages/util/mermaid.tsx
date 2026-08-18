@@ -1,27 +1,28 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  ArrowLeft,
+  Crosshair,
+  Download,
+  Eye,
+  EyeOff,
+  Maximize,
+  Minimize,
+  ZoomIn,
+  ZoomOut,
+} from 'lucide-react';
+import { useRouter } from 'next/router';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
-import {
-  Download,
-  ArrowLeft,
-  ZoomIn,
-  ZoomOut,
-  Crosshair,
-  Maximize,
-  Minimize,
-  Eye,
-  EyeOff,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/router';
 import { downloadBlob, downloadDataUrl } from '@/util/browserUtils';
 
 const SAMPLE_CODES = {
@@ -669,7 +670,7 @@ export default function MermaidPage() {
       downloadDataUrl(dataUrl, `mermaid-diagram-${Date.now()}.png`);
       toast.success('PNG 다운로드 완료');
     } catch (e: any) {
-      toast.error('다운로드 실패: ' + e.message);
+      toast.error(`다운로드 실패: ${e.message}`);
     } finally {
       wrapper?.remove();
     }
@@ -693,7 +694,7 @@ export default function MermaidPage() {
       );
       toast.success('SVG 다운로드 완료');
     } catch (e: any) {
-      toast.error('다운로드 실패: ' + e.message);
+      toast.error(`다운로드 실패: ${e.message}`);
     }
   };
 
@@ -875,6 +876,7 @@ export default function MermaidPage() {
           <div className="flex gap-1.5 mb-2 overflow-x-auto">
             {SAMPLE_TYPES.map(({ key, label }) => (
               <button
+                type="button"
                 key={key}
                 onClick={() => handleSampleChange(key)}
                 className={`text-sm px-3 py-1 rounded-full border transition-all flex-shrink-0 whitespace-nowrap ${selectedSample === key ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]'}`}
@@ -900,6 +902,7 @@ export default function MermaidPage() {
         {/* 모바일 탭 전환 */}
         <div className="flex md:hidden border-b mb-3" role="tablist" aria-label="에디터 뷰 전환">
           <button
+            type="button"
             role="tab"
             aria-selected={activeTab === 'editor'}
             aria-controls="panel-editor"
@@ -910,6 +913,7 @@ export default function MermaidPage() {
             코드
           </button>
           <button
+            type="button"
             role="tab"
             aria-selected={activeTab === 'preview'}
             aria-controls="panel-preview"

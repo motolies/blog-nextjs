@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
 import { Plus, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import ShadcnDataTable from '@/components/common/ShadcnDataTable';
-import { Button } from '@/components/ui/button';
-import MemoDialog from '@/components/memo/MemoDialog';
-import CategoryManagementPanel from '@/components/memo/CategoryManagementPanel';
 import DeleteConfirm from '@/components/confirm/DeleteConfirm';
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
+import CategoryManagementPanel from '@/components/memo/CategoryManagementPanel';
+import MemoDialog from '@/components/memo/MemoDialog';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import service from '@/service';
 import { formatUtcToLocal } from '@/util/dateTimeUtil';
-import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 
 export default function MemoPage() {
   const [memoDialogOpen, setMemoDialogOpen] = useState(false);
@@ -54,7 +54,7 @@ export default function MemoPage() {
         mobileLabel: '메모',
         cell: ({ value, row }: { value: string; row: any }) => {
           const text = value || '';
-          const display = text.length > 100 ? text.substring(0, 100) + '...' : text;
+          const display = text.length > 100 ? `${text.substring(0, 100)}...` : text;
           return (
             <div
               className="cursor-pointer hover:text-sky-700"

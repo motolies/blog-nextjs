@@ -1,6 +1,6 @@
-import axiosClient from './axiosClient';
 import type { AxiosRequestConfig } from 'axios';
 import type { HotDealItemSearchRequest, HotDealKeywordPayload } from '@/types/hotDeal';
+import axiosClient from './axiosClient';
 
 const HOT_DEAL_API_BASE = '/api/hot-deal/admin';
 

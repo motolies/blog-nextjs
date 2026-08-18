@@ -72,8 +72,12 @@ export function useCodeHighlight(postBody: string) {
     return () => {
       isCancelled = true;
       // 기존 동적 삽입 요소 정리
-      container.querySelectorAll('.code-copy-btn').forEach((btn) => btn.remove());
-      container.querySelectorAll('.code-line-numbers').forEach((el) => el.remove());
+      container.querySelectorAll('.code-copy-btn').forEach((btn) => {
+        btn.remove();
+      });
+      container.querySelectorAll('.code-line-numbers').forEach((el) => {
+        el.remove();
+      });
     };
   }, [postBody]);
 }

@@ -1,10 +1,10 @@
-import service from '@/service';
-import { SearchEngineComponent } from '@/components/SearchEngineComponent';
-import { ArrowUpRight, Link2, Search } from 'lucide-react';
-import { buildBackendAuthConfig } from '@/lib/ssrRequestAuth';
+import { ArrowUpRight, Link2 } from 'lucide-react';
 import type { GetServerSideProps } from 'next';
-import type { SearchEngine } from '@/types/searchEngine';
+import { SearchEngineComponent } from '@/components/SearchEngineComponent';
+import { buildBackendAuthConfig } from '@/lib/ssrRequestAuth';
+import service from '@/service';
 import type { FavoriteCategory } from '@/types/favorite';
+import type { SearchEngine } from '@/types/searchEngine';
 
 interface IndexPageProps {
   engines: SearchEngine[];

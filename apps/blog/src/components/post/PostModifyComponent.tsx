@@ -1,17 +1,12 @@
-import CategoryAutoComplete from '@/components/CategoryAutoComplete';
-import { toast } from 'sonner';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { usePostFormStore } from '@/store/usePostFormStore';
-import { useLoadingStore } from '@/store/useLoadingStore';
-import { getTsid } from 'tsid-ts';
-import DynamicEditor from '@/components/editor/DynamicEditor';
-import service from '@/service';
+import { Eye, LogOut, Save, Send, Undo2 } from 'lucide-react';
 import { useRouter } from 'next/router';
-import TagGroupComponent from './TagGroupComponent';
-import { FileComponent } from './FileComponent';
-import { fileLink } from '@/util/fileLink';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { getTsid } from 'tsid-ts';
+import CategoryAutoComplete from '@/components/CategoryAutoComplete';
+import ConfirmDialog from '@/components/confirm/ConfirmDialog';
+import DynamicEditor from '@/components/editor/DynamicEditor';
 import FileUploadComponent from '@/components/editor/FileUploadComponent';
-import { useFiles, useInvalidateFiles } from '@/hooks/useFiles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -21,12 +16,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import ConfirmDialog from '@/components/confirm/ConfirmDialog';
-import PostPreviewDialog from './PostPreviewDialog';
-import { LogOut, Eye, Save, Send, Undo2 } from 'lucide-react';
-import type { Tag } from '@/types/tag';
-import type { Post, PostStatus } from '@/types/post';
+import { useFiles, useInvalidateFiles } from '@/hooks/useFiles';
+import service from '@/service';
+import { useLoadingStore } from '@/store/useLoadingStore';
+import { usePostFormStore } from '@/store/usePostFormStore';
 import type { Category } from '@/types/category';
+import type { Post, PostStatus } from '@/types/post';
+import type { Tag } from '@/types/tag';
+import { fileLink } from '@/util/fileLink';
+import { FileComponent } from './FileComponent';
+import PostPreviewDialog from './PostPreviewDialog';
+import TagGroupComponent from './TagGroupComponent';
 
 export default function PostModifyComponent() {
   const router = useRouter();

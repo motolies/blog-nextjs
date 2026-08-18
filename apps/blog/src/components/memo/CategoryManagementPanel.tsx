@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import ShadcnDataTable from '@/components/common/ShadcnDataTable';
+import DeleteConfirm from '@/components/confirm/DeleteConfirm';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import DeleteConfirm from '@/components/confirm/DeleteConfirm';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import service from '@/service';
 
 interface MemoCategory {
@@ -178,7 +179,7 @@ export default function CategoryManagementPanel() {
                 type="number"
                 value={formSeq}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setFormSeq(parseInt(e.target.value) || 0)
+                  setFormSeq(parseInt(e.target.value, 10) || 0)
                 }
               />
             </div>

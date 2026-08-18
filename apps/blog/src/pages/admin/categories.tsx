@@ -1,15 +1,12 @@
-import CategoryTreeView from '@/components/CategoryTreeView';
-import CategoryDetailPanel from '@/components/category/CategoryDetailPanel';
-import CategoryAutoComplete from '@/components/CategoryAutoComplete';
-import DeleteConfirm from '@/components/confirm/DeleteConfirm';
 import { Plus, Save, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import service from '@/service';
-import { useCategoryTree, useInvalidateCategories } from '@/hooks/useCategories';
+import CategoryAutoComplete from '@/components/CategoryAutoComplete';
+import CategoryTreeView from '@/components/CategoryTreeView';
+import CategoryDetailPanel from '@/components/category/CategoryDetailPanel';
+import DeleteConfirm from '@/components/confirm/DeleteConfirm';
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -17,9 +14,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useCategoryTree, useInvalidateCategories } from '@/hooks/useCategories';
 import { isSameEntityId } from '@/lib/combobox';
-import type { CategoryTreeNode } from '@/types/category';
+import service from '@/service';
 
 interface CategoryNode {
   id: string;
@@ -182,6 +181,7 @@ export default function CategoriesPage() {
           />
           {searchQuery && (
             <button
+              type="button"
               className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 hover:bg-muted"
               onClick={() => setSearchQuery('')}
             >

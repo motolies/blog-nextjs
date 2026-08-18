@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
-import { List, ChevronDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ChevronDown, List } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 import { normalizeHeadingDepths } from '@/util/tocUtils';
 
 interface TocItem {
@@ -157,7 +157,9 @@ export default function TableOfContents({ postBody }: TableOfContentsProps) {
       },
     );
 
-    headingElements.forEach((el) => observer.observe(el));
+    headingElements.forEach((el) => {
+      observer.observe(el);
+    });
 
     return () => observer.disconnect();
   }, [items]);

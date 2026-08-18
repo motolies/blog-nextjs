@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { ArrowUpDown, ArrowLeft, Copy } from 'lucide-react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/router';
 import { format } from 'date-fns';
+import { ArrowLeft, ArrowUpDown, Copy } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { copyTextToClipboard } from '@/util/browserUtils';
 import {
   decodeBase64Utf8,
@@ -22,6 +22,7 @@ import {
 function CopyButton({ value, onCopy }) {
   return (
     <button
+      type="button"
       onClick={() => void onCopy(value)}
       className="absolute right-2 top-2 p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]"
       title="복사"
@@ -103,7 +104,7 @@ export default function EncodePage() {
       toast.success('Base64 인코딩 완료');
     } catch (e) {
       setOutput('');
-      toast.error('인코딩 실패: ' + e.message);
+      toast.error(`인코딩 실패: ${e.message}`);
     }
   };
 
@@ -123,7 +124,7 @@ export default function EncodePage() {
       toast.success('URL 인코딩 완료');
     } catch (e) {
       setOutput('');
-      toast.error('인코딩 실패: ' + e.message);
+      toast.error(`인코딩 실패: ${e.message}`);
     }
   };
 
@@ -150,7 +151,7 @@ export default function EncodePage() {
       toast.success('HTML 인코딩 완료');
     } catch (e) {
       setOutput('');
-      toast.error('인코딩 실패: ' + e.message);
+      toast.error(`인코딩 실패: ${e.message}`);
     }
   };
 
@@ -168,7 +169,7 @@ export default function EncodePage() {
       toast.success('HTML 디코딩 완료');
     } catch (e) {
       setOutput('');
-      toast.error('디코딩 실패: ' + e.message);
+      toast.error(`디코딩 실패: ${e.message}`);
     }
   };
 
@@ -178,7 +179,7 @@ export default function EncodePage() {
       toast.success('Unicode 인코딩 완료');
     } catch (e) {
       setOutput('');
-      toast.error('인코딩 실패: ' + e.message);
+      toast.error(`인코딩 실패: ${e.message}`);
     }
   };
 
@@ -202,7 +203,7 @@ export default function EncodePage() {
       toast.success('MD5 해시 생성 완료');
     } catch (e) {
       setOutput('');
-      toast.error('해시 생성 실패: ' + e.message);
+      toast.error(`해시 생성 실패: ${e.message}`);
     }
   };
 
@@ -216,7 +217,7 @@ export default function EncodePage() {
       toast.success('SHA-256 해시 생성 완료');
     } catch (e) {
       setOutput('');
-      toast.error('해시 생성 실패: ' + e.message);
+      toast.error(`해시 생성 실패: ${e.message}`);
     }
   };
 
@@ -244,7 +245,7 @@ export default function EncodePage() {
       setJwtPayload('');
       setJwtExpiry(null);
       setOutput('');
-      toast.error('JWT 디코딩 실패: ' + e.message);
+      toast.error(`JWT 디코딩 실패: ${e.message}`);
     }
   };
 
@@ -254,7 +255,7 @@ export default function EncodePage() {
       toast.success('JSON 포맷팅 완료');
     } catch (e) {
       setOutput('');
-      toast.error('JSON 파싱 실패: ' + e.message);
+      toast.error(`JSON 파싱 실패: ${e.message}`);
     }
   };
 
@@ -264,7 +265,7 @@ export default function EncodePage() {
       toast.success('JSON 압축 완료');
     } catch (e) {
       setOutput('');
-      toast.error('JSON 파싱 실패: ' + e.message);
+      toast.error(`JSON 파싱 실패: ${e.message}`);
     }
   };
 

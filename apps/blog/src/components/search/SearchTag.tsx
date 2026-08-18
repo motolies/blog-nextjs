@@ -1,8 +1,8 @@
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useTags } from '@/hooks/useTags';
-import { ConditionComponent } from '@/components/ConditionComponent';
 import { toast } from 'sonner';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ConditionComponent } from '@/components/ConditionComponent';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -11,10 +11,10 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { Button } from '@/components/ui/button';
-import { ChevronsUpDown, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useTags } from '@/hooks/useTags';
 import { COMBOBOX_POPOVER_CONTENT_CLASSNAME, isSameEntityId } from '@/lib/combobox';
+import { cn } from '@/lib/utils';
 import type { Tag } from '@/types/tag';
 
 interface SearchTagProps {

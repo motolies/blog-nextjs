@@ -1,5 +1,13 @@
+import { ArrowLeft, BookOpenText, Copy, Network, ScanSearch, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/router';
 import { useCallback, useMemo, useState } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { toast } from 'sonner';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -9,15 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from '@/components/ui/accordion';
-import { ArrowLeft, BookOpenText, Copy, Network, ScanSearch, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/router';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { copyTextToClipboard } from '@/util/browserUtils';
 import {
   CIDR_PRESETS,
@@ -98,6 +98,7 @@ export default function CidrPage() {
       <div className="flex items-start justify-between gap-2">
         <p className="text-xs text-gray-500 dark:text-[#636d83]">{label}</p>
         <button
+          type="button"
           onClick={() => void handleCopy(value, copyLabel || label)}
           className="p-0.5 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]"
           title="복사"
@@ -121,6 +122,7 @@ export default function CidrPage() {
             className={`pr-8 font-mono ${cidrResult.error ? 'border-red-500' : ''}`}
           />
           <button
+            type="button"
             onClick={() => void handleCopy(cidrInput, 'CIDR이')}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]"
             title="복사"
@@ -141,6 +143,7 @@ export default function CidrPage() {
           <div className="flex flex-wrap gap-1">
             {CIDR_PRESETS.map((preset) => (
               <button
+                type="button"
                 key={preset.cidr}
                 onClick={() => setCidrInput(preset.cidr)}
                 title={preset.description}
@@ -159,6 +162,7 @@ export default function CidrPage() {
             <div className="flex items-start justify-between gap-2">
               <p className="text-xs text-gray-500 dark:text-[#636d83] mb-1">IP 주소 범위</p>
               <button
+                type="button"
                 onClick={() =>
                   void handleCopy(
                     `${cidrResult.info.networkAddress} - ${cidrResult.info.broadcastAddress}`,
@@ -354,6 +358,7 @@ export default function CidrPage() {
                     <td className="py-2 px-3 text-gray-500 dark:text-[#636d83]">{index + 1}</td>
                     <td className="py-2 px-3 font-mono">
                       <button
+                        type="button"
                         onClick={() => void handleCopy(block.cidr, 'CIDR이')}
                         className="hover:underline"
                         title="클릭하면 복사됩니다"
@@ -459,6 +464,7 @@ export default function CidrPage() {
                     <td className="py-2 px-3 text-gray-500 dark:text-[#636d83]">{index + 1}</td>
                     <td className="py-2 px-3 font-mono">
                       <button
+                        type="button"
                         onClick={() => void handleCopy(subnet.cidr, 'CIDR이')}
                         className="hover:underline"
                         title="클릭하면 복사됩니다"

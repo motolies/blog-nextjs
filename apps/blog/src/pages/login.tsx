@@ -1,8 +1,8 @@
-import { useAuthStore } from '@/store/useAuthStore';
-import { useEffect, useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react';
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export default function LoginPage() {
   const { isLoading, error, login, setError, clearError } = useAuthStore();

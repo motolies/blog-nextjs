@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
-import { getAdminRouteMeta } from './adminNavigation';
 import { cn } from '@/lib/utils';
+import { getAdminRouteMeta } from './adminNavigation';
 
 interface AdminPageFrameProps {
   title?: string;

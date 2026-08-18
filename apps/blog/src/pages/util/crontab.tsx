@@ -1,17 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { getDay, parse } from 'date-fns';
+import { ArrowLeft, BookOpenText, Copy, Play, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import {
   Accordion,
+  AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  AccordionContent,
 } from '@/components/ui/accordion';
-import { ArrowLeft, Play, Copy, BookOpenText, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/router';
-import { parse, getDay } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { copyTextToClipboard } from '@/util/browserUtils';
 import { calculateNextRuns, DAY_NAMES, generateKoreanDescription } from '@/util/crontabUtils';
 
@@ -163,6 +163,7 @@ export default function CrontabPage() {
               }}
             />
             <button
+              type="button"
               onClick={() => void handleCopy(expression)}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]"
               title="복사"
@@ -188,6 +189,7 @@ export default function CrontabPage() {
         <div className="flex flex-wrap gap-1">
           {presets.map((preset) => (
             <button
+              type="button"
               key={preset.expression}
               onClick={() => handlePresetClick(preset.expression, isSpring)}
               title={preset.description}

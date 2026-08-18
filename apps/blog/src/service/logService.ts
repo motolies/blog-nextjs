@@ -1,6 +1,6 @@
-import axiosClient from './axiosClient';
 import type { AxiosRequestConfig } from 'axios';
-import type { SystemLogSearchRequest, ApiLogSearchRequest } from '@/types/log';
+import type { ApiLogSearchRequest, SystemLogSearchRequest } from '@/types/log';
+import axiosClient from './axiosClient';
 
 const LOG_API_BASE = '/api/log/admin';
 

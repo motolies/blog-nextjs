@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import service from '@/service';
 import ShadcnDataTable, { type DataTableColumn } from '@/components/common/ShadcnDataTable';
-import { formatLocalDateTime } from '@/util/dateTimeUtil';
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import {
   Select,
   SelectContent,
@@ -12,7 +12,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
+import service from '@/service';
+import { formatLocalDateTime } from '@/util/dateTimeUtil';
 
 export default function SprintPage() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -123,7 +124,7 @@ export default function SprintPage() {
       tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' },
-        formatter: function (params: any) {
+        formatter: (params: any) => {
           let result = `<strong>${params[0].axisValue}</strong><br/>`;
           params.forEach((param: any) => {
             if (param.value > 0) result += `${param.seriesName}: ${param.value} SP<br/>`;

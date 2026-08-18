@@ -12,7 +12,7 @@ interface MenuGroupProps {
 export default function MenuGroup({ title, icon, isExpanded, onToggle, children }: MenuGroupProps) {
   return (
     <li className={`${styles.menuItem} ${isExpanded ? 'open' : ''}`}>
-      <button className={`${styles.menuLink} menu-toggle`} onClick={onToggle}>
+      <button type="button" className={`${styles.menuLink} menu-toggle`} onClick={onToggle}>
         {icon}
         <span className={styles.menuText}>{title}</span>
         {isExpanded ? (

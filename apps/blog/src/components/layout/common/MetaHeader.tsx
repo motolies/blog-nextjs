@@ -6,7 +6,7 @@ interface MetaHeaderProps {
 }
 
 export default function MetaHeader({ children, ...props }: MetaHeaderProps) {
-  const logo = process.env.META_URL + '/images/og-logo.png';
+  const logo = `${process.env.META_URL}/images/og-logo.png`;
   return (
     <>
       <Head>

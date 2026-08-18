@@ -21,9 +21,8 @@ export const usePostNavigationShortcut = (
 
   useEffect(() => {
     const targetNode = node ?? document;
-    targetNode && targetNode.addEventListener('keydown', handleKeyPress as EventListener);
+    targetNode?.addEventListener('keydown', handleKeyPress as EventListener);
 
-    return () =>
-      targetNode && targetNode.removeEventListener('keydown', handleKeyPress as EventListener);
+    return () => targetNode?.removeEventListener('keydown', handleKeyPress as EventListener);
   }, [handleKeyPress, node]);
 };

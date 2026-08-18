@@ -1,6 +1,6 @@
+import { Folder, FolderOpen, FolderTree } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useCategoryTree } from '@/hooks/useCategories';
-import { Folder, FolderOpen, FolderTree } from 'lucide-react';
 import { Badge } from './ui/badge';
 import TreeView, { getExpandedIdsToDepth } from './ui/tree-view';
 
@@ -41,7 +41,7 @@ function CategoryTreeView({
   const searchFields = useCallback((node: TreeNode) => [node.name], []);
 
   const renderIcon = useCallback((node: TreeNode, { isExpanded }: { isExpanded: boolean }) => {
-    const hasChildren = node.children?.length! > 0;
+    const hasChildren = (node.children?.length ?? 0) > 0;
     const Icon = hasChildren ? (isExpanded ? FolderOpen : Folder) : FolderTree;
     return <Icon className="h-4 w-4 text-primary shrink-0" />;
   }, []);

@@ -13,4 +13,4 @@ const base64Decode = (str: string): string => {
   return decodeURIComponent(escape(atob(s)));
 };
 
-export { base64Encode, base64Decode };
+export { base64Decode, base64Encode };

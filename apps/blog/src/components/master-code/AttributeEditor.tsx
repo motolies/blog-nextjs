@@ -1,5 +1,5 @@
-import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import type React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -215,7 +215,6 @@ function renderAttributeInput(
           </SelectContent>
         </Select>
       );
-    case 'text':
     default:
       return (
         <Input

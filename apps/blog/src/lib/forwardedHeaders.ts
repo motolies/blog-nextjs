@@ -1,4 +1,4 @@
-import type { IncomingMessage } from 'http';
+import type { IncomingMessage } from 'node:http';
 
 const FORWARD_HEADER_NAMES = [
   'x-real-ip',

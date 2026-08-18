@@ -1,7 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  ArrowLeft,
+  ArrowUpDown,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Eye,
+  EyeOff,
+  Settings2,
+} from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -10,18 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  ArrowUpDown,
-  ArrowLeft,
-  ChevronDown,
-  ChevronUp,
-  Copy,
-  Eye,
-  EyeOff,
-  Settings2,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/router';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { copyTextToClipboard } from '@/util/browserUtils';
 import {
   DEFAULT_AES_PBKDF2_OPTIONS,
@@ -35,6 +35,7 @@ import {
 function CopyButton({ value, onCopy }) {
   return (
     <button
+      type="button"
       onClick={() => void onCopy(value)}
       className="absolute right-2 top-2 p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]"
       title="복사"
@@ -160,7 +161,7 @@ export default function CryptoPage() {
       toast.success('암호화 완료');
     } catch (e) {
       setOutput('');
-      toast.error('암호화 실패: ' + e.message);
+      toast.error(`암호화 실패: ${e.message}`);
     }
   };
 
@@ -175,7 +176,7 @@ export default function CryptoPage() {
       toast.success('복호화 완료');
     } catch (e) {
       setOutput('');
-      toast.error('복호화 실패: ' + e.message);
+      toast.error(`복호화 실패: ${e.message}`);
     }
   };
 

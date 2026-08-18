@@ -1,6 +1,14 @@
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useCategoryFlat } from '@/hooks/useCategories';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import {
+  COMBOBOX_POPOVER_CONTENT_CLASSNAME,
+  isSameEntityId,
+  isUnsetComboboxValue,
+} from '@/lib/combobox';
+import { cn } from '@/lib/utils';
+import type { Category } from '@/types/category';
+import { Button } from './ui/button';
 import {
   Command,
   CommandEmpty,
@@ -9,15 +17,7 @@ import {
   CommandItem,
   CommandList,
 } from './ui/command';
-import { Button } from './ui/button';
-import { ChevronsUpDown, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import {
-  COMBOBOX_POPOVER_CONTENT_CLASSNAME,
-  isSameEntityId,
-  isUnsetComboboxValue,
-} from '@/lib/combobox';
-import type { Category } from '@/types/category';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 
 interface FlatCategory extends Category {
   label?: string;

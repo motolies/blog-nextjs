@@ -1,5 +1,5 @@
-import axiosClient from './axiosClient';
 import type { StatsOverview } from '@/types/stats';
+import axiosClient from './axiosClient';
 
 const STATS_API_BASE = '/api/stats/admin';
 

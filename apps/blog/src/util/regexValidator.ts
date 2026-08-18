@@ -306,6 +306,7 @@ export const parseNamedGroups = (
   const regex = new RegExp(langConfig.namedGroupPattern.source, 'g');
   let match: RegExpExecArray | null;
 
+  // biome-ignore lint/suspicious/noAssignInExpressions: RegExp.exec 순회의 표준 관용구
   while ((match = regex.exec(pattern)) !== null) {
     namedGroups.push({
       name: match[1],
@@ -345,6 +346,7 @@ export const executeRegexTest = (
 
     if (flags.g) {
       let match: RegExpExecArray | null;
+      // biome-ignore lint/suspicious/noAssignInExpressions: RegExp.exec 순회의 표준 관용구
       while ((match = regex.exec(testString)) !== null) {
         matches.push(formatMatchResult(match));
         if (match[0] === '') {

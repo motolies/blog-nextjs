@@ -1,8 +1,8 @@
+import { Eye, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { Trash2, Eye } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import DeleteConfirm from '@/components/confirm/DeleteConfirm';
 import PreviewDialog from '@/components/PreviewDialog';
+import { Button } from '@/components/ui/button';
 
 interface FileComponentProps {
   file: {

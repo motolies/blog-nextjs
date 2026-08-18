@@ -1,8 +1,9 @@
-import React, { useCallback, useMemo } from 'react';
-import { ChevronDown, ChevronRight, Minus } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './collapsible';
-import { Checkbox } from './checkbox';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import type React from 'react';
+import { useCallback, useMemo } from 'react';
 import { cn } from '@/lib/utils';
+import { Checkbox } from './checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './collapsible';
 
 type NodeId = string | number;
 
@@ -152,7 +153,7 @@ export default function TreeView({
 
   // 검색 매칭 노드 계산
   const matchedNodeIds = useMemo(() => {
-    if (!searchQuery || !searchQuery.trim() || !searchFields) return null;
+    if (!searchQuery?.trim() || !searchFields) return null;
 
     const query = searchQuery.toLowerCase().trim();
     const matched = new Set<NodeId>();
@@ -203,9 +204,13 @@ export default function TreeView({
       const checkedSet = new Set<NodeId>(checkedIds);
 
       if (currentState === 'checked') {
-        allIds.forEach((id) => checkedSet.delete(id));
+        allIds.forEach((id) => {
+          checkedSet.delete(id);
+        });
       } else {
-        allIds.forEach((id) => checkedSet.add(id));
+        allIds.forEach((id) => {
+          checkedSet.add(id);
+        });
       }
       onCheckedChange([...checkedSet]);
     },
@@ -320,6 +325,7 @@ function TreeNodeComponent({
 
   const nodeButton = (
     <button
+      type="button"
       className={cn(
         'flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left transition-all hover:translate-x-0.5 hover:bg-sky-600/8',
         isSelected && 'bg-sky-600/12 ring-1 ring-sky-500/30',
@@ -369,13 +375,13 @@ function TreeNodeComponent({
       )}
 
       {/* 아이콘 */}
-      {renderIcon && renderIcon(node, ctx)}
+      {renderIcon?.(node, ctx)}
 
       {/* 라벨 */}
       {renderLabel(node, ctx)}
 
       {/* 뱃지 */}
-      {renderBadge && renderBadge(node, ctx)}
+      {renderBadge?.(node, ctx)}
     </button>
   );
 

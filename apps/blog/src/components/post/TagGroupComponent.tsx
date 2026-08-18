@@ -1,11 +1,9 @@
+import { ChevronsUpDown } from 'lucide-react';
+import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { useAuthStore } from '@/store/useAuthStore';
-import { useShallow } from 'zustand/react/shallow';
-import { Tag } from './TagComponent';
-import { useTags } from '@/hooks/useTags';
 import { toast } from 'sonner';
-import service from '@/service';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useShallow } from 'zustand/react/shallow';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -14,11 +12,13 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { Button } from '@/components/ui/button';
-import { ChevronsUpDown } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useTags } from '@/hooks/useTags';
 import { COMBOBOX_POPOVER_CONTENT_CLASSNAME, isSameEntityId } from '@/lib/combobox';
+import service from '@/service';
+import { useAuthStore } from '@/store/useAuthStore';
 import type { Tag as TagType } from '@/types/tag';
-import type React from 'react';
+import { Tag } from './TagComponent';
 
 interface TagGroupComponentProps {
   postId: string | null;

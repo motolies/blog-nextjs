@@ -1,5 +1,5 @@
-import axiosClient from './axiosClient';
 import type { AxiosRequestConfig } from 'axios';
+import axiosClient from './axiosClient';
 
 const searchEngineService = {
   getAll: (config?: AxiosRequestConfig) => {

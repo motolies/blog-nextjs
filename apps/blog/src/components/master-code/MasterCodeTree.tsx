@@ -1,8 +1,8 @@
-import React, { useCallback } from 'react';
-import { FolderTree, Code, Folder, FolderOpen } from 'lucide-react';
+import { Code, Folder, FolderOpen, FolderTree } from 'lucide-react';
+import { useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import TreeView from '@/components/ui/tree-view';
+import { cn } from '@/lib/utils';
 
 interface MasterCodeTreeNode {
   id: number;
@@ -41,7 +41,7 @@ export default function MasterCodeTree({
   const renderIcon = useCallback(
     (node: MasterCodeTreeNode, { depth, isExpanded }: RenderContext) => {
       const isRoot = depth === 0;
-      const hasChildren = node.children?.length! > 0;
+      const hasChildren = (node.children?.length ?? 0) > 0;
       const Icon = isRoot ? (isExpanded ? FolderOpen : Folder) : hasChildren ? FolderTree : Code;
       return (
         <Icon className={cn('h-4 w-4 shrink-0', isRoot ? 'text-sky-600' : 'text-fuchsia-600')} />

@@ -1,5 +1,5 @@
+import type { IncomingMessage } from 'node:http';
 import { parse, serialize } from 'cookie';
-import type { IncomingMessage } from 'http';
 
 export const FRONT_AUTH_COOKIE_NAME = 'hvy_access_token';
 const BACKEND_AUTH_COOKIE_NAME = 'Authorization';

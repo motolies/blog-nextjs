@@ -1,17 +1,17 @@
-import userService from './userService';
-import postService from './postService';
-import tagService from './tagService';
 import categoryService from './categoryService';
-import fileService from './fileService';
-import searchEngineService from './searchEngineService';
-import sprintService from './sprintService';
 import favoriteService from './favoriteService';
-import memoService from './memoService';
+import fileService from './fileService';
+import hotDealService from './hotDealService';
 import logService from './logService';
 import masterCodeService from './masterCodeService';
-import hotDealService from './hotDealService';
+import memoService from './memoService';
+import postService from './postService';
+import searchEngineService from './searchEngineService';
 import seriesService from './seriesService';
+import sprintService from './sprintService';
 import statsService from './statsService';
+import tagService from './tagService';
+import userService from './userService';
 
 const service = {
   user: userService,

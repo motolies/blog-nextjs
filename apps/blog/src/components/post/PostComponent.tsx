@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -13,27 +12,27 @@ import {
   Pencil,
   Trash2,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import DeleteConfirm from '@/components/confirm/DeleteConfirm';
-import { useRouter } from 'next/router';
-import { toast } from 'sonner';
-import { useAuthStore } from '@/store/useAuthStore';
-import { useShallow } from 'zustand/react/shallow';
-import PublicConfirm from '@/components/confirm/PublicConfirm';
-import TagGroupComponent from './TagGroupComponent';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { useShallow } from 'zustand/react/shallow';
+import DeleteConfirm from '@/components/confirm/DeleteConfirm';
+import PublicConfirm from '@/components/confirm/PublicConfirm';
+import { Button } from '@/components/ui/button';
+import { useCodeHighlight } from '@/hooks/useCodeHighlight';
 import { searchObjectInit } from '@/model/searchObject';
+import service from '@/service';
+import { useAuthStore } from '@/store/useAuthStore';
+import type { Series } from '@/types/series';
+import type { Tag } from '@/types/tag';
 import { base64Encode } from '@/util/base64Util';
+import { sanitizeThemeHostileStyles } from '@/util/contentStyleSanitizer';
+import { formatLocalDate, formatUtcToLocal } from '@/util/dateTimeUtil';
 import { fileLink } from '@/util/fileLink';
 import { usePostNavigationShortcut } from '@/util/usePostNavigationShortcut';
-import { useCodeHighlight } from '@/hooks/useCodeHighlight';
-import { sanitizeThemeHostileStyles } from '@/util/contentStyleSanitizer';
 import TableOfContents from './TableOfContents';
-import styles from './PostComponent.module.css';
-import { formatLocalDate, formatUtcToLocal } from '@/util/dateTimeUtil';
-import service from '@/service';
-import type { Tag } from '@/types/tag';
-import type { Series } from '@/types/series';
+import TagGroupComponent from './TagGroupComponent';
 
 interface PostData {
   id: number;
@@ -191,11 +190,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
     Array.prototype.slice
       .call(doc.getElementsByTagName('div'), 0)
       .forEach((div: HTMLDivElement) => {
-        if (
-          div.style &&
-          div.style.backgroundColor &&
-          div.style.backgroundColor === 'rgb(30, 30, 30)'
-        ) {
+        if (div.style?.backgroundColor && div.style.backgroundColor === 'rgb(30, 30, 30)') {
           if (getRootElement(div)) {
             div.style.padding = '15px';
             div.style.scrollPadding = '15px';
@@ -209,11 +204,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
     Array.prototype.slice
       .call(doc.getElementsByTagName('div'), 0)
       .forEach((div: HTMLDivElement) => {
-        if (
-          div.style &&
-          div.style.backgroundColor &&
-          div.style.backgroundColor === 'rgb(40, 44, 52)'
-        ) {
+        if (div.style?.backgroundColor && div.style.backgroundColor === 'rgb(40, 44, 52)') {
           if (getRootElement(div)) {
             div.style.padding = '15px';
             div.style.scrollPadding = '15px';
@@ -227,11 +218,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
     Array.prototype.slice
       .call(doc.getElementsByTagName('div'), 0)
       .forEach((div: HTMLDivElement) => {
-        if (
-          div.style &&
-          div.style.backgroundColor &&
-          div.style.backgroundColor === 'rgb(43, 43, 43)'
-        ) {
+        if (div.style?.backgroundColor && div.style.backgroundColor === 'rgb(43, 43, 43)') {
           if (getRootElement(div)) {
             div.style.padding = '15px';
             div.style.scrollPadding = '15px';
@@ -252,11 +239,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
     let current: HTMLElement | null = element;
     while (current?.parentNode) {
       const parent = current.parentNode as HTMLElement;
-      if (
-        parent.style &&
-        parent.style.backgroundColor &&
-        parent.style.backgroundColor === 'rgb(30, 30, 30)'
-      ) {
+      if (parent.style?.backgroundColor && parent.style.backgroundColor === 'rgb(30, 30, 30)') {
         rtn = false;
         break;
       }

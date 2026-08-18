@@ -1,6 +1,6 @@
-import ConfirmDialog from './ConfirmDialog';
-import type { ConfirmDialogProps } from './ConfirmDialog';
 import { CircleAlert } from 'lucide-react';
+import type { ConfirmDialogProps } from './ConfirmDialog';
+import ConfirmDialog from './ConfirmDialog';
 
 type DeleteConfirmProps = Omit<ConfirmDialogProps, 'icon' | 'title' | 'confirmText'> & {
   icon?: ConfirmDialogProps['icon'];

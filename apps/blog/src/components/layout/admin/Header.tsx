@@ -1,5 +1,5 @@
+import { ArrowUpRight, Menu, Moon, Sun } from 'lucide-react';
 import Link from 'next/link';
-import { ArrowUpRight, Menu, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import styles from './Header.module.css';
@@ -26,6 +26,7 @@ export default function Header({ toggleMenu, meta }: HeaderProps) {
       <div className={styles.navbarContent}>
         <div className={styles.navbarStart}>
           <button
+            type="button"
             className={styles.menuToggleBtn}
             onClick={toggleMenu}
             aria-label="관리자 메뉴 열기"
@@ -44,6 +45,7 @@ export default function Header({ toggleMenu, meta }: HeaderProps) {
         <div className={styles.navbarEnd}>
           {mounted && (
             <button
+              type="button"
               className={styles.themeToggleBtn}
               onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
               aria-label={resolvedTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}

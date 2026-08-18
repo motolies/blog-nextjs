@@ -1,8 +1,8 @@
-import { Folder, FolderTree, Pencil, Trash2, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { Folder, FolderTree, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
 interface CategoryNode {
   id: string;

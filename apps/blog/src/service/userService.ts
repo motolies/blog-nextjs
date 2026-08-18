@@ -1,6 +1,6 @@
-import axiosClient from './axiosClient';
 import type { AxiosRequestConfig } from 'axios';
 import type { LoginRequest } from '@/types/user';
+import axiosClient from './axiosClient';
 
 const userService = {
   shake: (config?: AxiosRequestConfig) => {

@@ -1,7 +1,7 @@
-import masterCodeService from './masterCodeService';
 import type { AxiosRequestConfig } from 'axios';
 import type { FavoriteCategory, FavoriteLink } from '@/types/favorite';
 import type { MasterCodeNode } from '@/types/masterCode';
+import masterCodeService from './masterCodeService';
 
 class FavoriteService {
   async getFavorites(config?: AxiosRequestConfig): Promise<FavoriteCategory[]> {

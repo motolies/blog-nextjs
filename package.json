@@ -11,13 +11,16 @@
     "dev": "pnpm -F blog dev",
     "build": "pnpm -F blog build",
     "start": "pnpm -F blog start",
-    "test": "pnpm -F blog test:util",
+    "test": "vitest run",
     "typecheck": "pnpm -r --parallel exec tsc --noEmit",
     "check": "biome check",
     "check:fix": "biome check --write",
-    "verify": "pnpm check && pnpm typecheck && pnpm test && pnpm build"
+    "verify": "pnpm check && pnpm typecheck && pnpm verify:tokens && pnpm test && pnpm test:blog && pnpm build",
+    "test:blog": "pnpm -F blog test:util",
+    "verify:tokens": "node scripts/verify-tokens.mjs"
   },
   "devDependencies": {
-    "@biomejs/biome": "catalog:"
+    "@biomejs/biome": "catalog:",
+    "vitest": "catalog:"
   }
 }

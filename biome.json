@@ -62,6 +62,29 @@
   "plugins": ["./plugins/no-iframe.grit", "./plugins/no-native-dialog.grit"],
   "overrides": [
     {
+      "includes": ["**/packages/ui/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "next": "@hvy/ui 는 프레임워크 중립 — next/* 를 import 하면 다른 앱에 이식할 수 없습니다.",
+                  "next/link": "@hvy/ui 는 프레임워크 중립 — 라우팅 배선은 앱이 합니다.",
+                  "next/router": "@hvy/ui 는 프레임워크 중립 — 라우팅 배선은 앱이 합니다.",
+                  "next/navigation": "@hvy/ui 는 프레임워크 중립 — 라우팅 배선은 앱이 합니다.",
+                  "@tanstack/react-query": "@hvy/ui 는 데이터 계층을 모릅니다 — 배선은 앱이 합니다.",
+                  "axios": "@hvy/ui 는 데이터 계층을 모릅니다 — HTTP 호출은 앱 서비스 계층 소관입니다.",
+                  "server-only": "UI 패키지에 server-only 를 두면 클라이언트 번들이 깨집니다."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       "includes": ["**/*.test.ts", "**/*.test.tsx", "**/test/**", "**/scripts/**", "**/mocks/**"],
       "linter": {
         "rules": {

@@ -1,0 +1,170 @@
+/**
+ * `@theme` 로 표현되지 않는 것 — **조합이 항상 함께 가야 하는 배색·구조**.
+ *
+ * 토큰은 값 하나를 주지만, QA 명세에는 "이 셋은 언제나 같이 간다"가 여럿 있다.
+ * 예를 들어 폼 컨트롤은 기본·hover·focus 보더 3색이 한 세트인데, 유틸리티 클래스로
+ * 나눠 쓰면 언젠가 누가 하나를 빠뜨리고 QA 페이지와 다른 화면이 된다.
+ * 클래스 하나로 묶어 **분리를 불가능하게** 만드는 것이 이 파일의 목적이다.
+ *
+ * `default.css` 가 `@import` 한다 — 별도 export 가 필요 없다.
+ *
+ * ⚠️ 선언 순서가 계약이다: `dl-field` < `dl-field-error` < `dl-field-locked` 는
+ * 알파벳순으로도 이 순서라 Tailwind 의 유틸리티 정렬에서 뒤가 이긴다 —
+ * error·locked 가 기본 hover/focus 보더를 덮는 근거다.
+ */
+
+/**
+ * 폼 컨트롤 껍데기 — input · textarea · 날짜 입력이 공유한다.
+ * md 기준 h42 · 14px · padding 좌우 16 (치수는 `dl-size-*` 로컬 변수로 5단 조절) ·
+ * 보더 #E6E6E6 · radius 6 · placeholder #919191.
+ *
+ * QA 상태 전이: hover 보더 primary → focus/active 보더 primary-hover.
+ * **포커스는 링 없이 보더 색만 바꾼다.** 전역 `:focus-visible` 을 여기서만
+ * 옵트아웃하는 것이고, 대비는 확보된다 — #00A4B8 vs #fff 는 비텍스트 대비 기준을 넘는다.
+ */
+@utility dl-field {
+  height: var(--_dl-ctl-h, var(--spacing-dl-control));
+  width: 100%;
+  border: 1px solid var(--color-dl-field-border);
+  border-radius: var(--radius-dl-control);
+  background-color: var(--color-dl-surface);
+  padding-inline: var(--_dl-ctl-px, var(--spacing-dl-ctl-pad-md));
+  font-family: inherit;
+  font-size: var(--_dl-ctl-fs, var(--text-dl-ctl-md));
+  color: var(--color-dl-field-fg);
+
+  &::placeholder {
+    color: var(--color-dl-field-placeholder);
+  }
+
+  &:hover {
+    border-color: var(--color-dl-primary);
+  }
+
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    border-color: var(--color-dl-primary-hover);
+  }
+}
+
+/**
+ * 컨트롤 사이즈 5단 — `dl-field` 의 치수 로컬 변수만 세팅한다.
+ *
+ * 실프로퍼티를 내지 않으므로 twMerge 가 커스텀 @utility 충돌을 못 잡는 한계와
+ * 무관하고, 위 "선언 순서 계약"(dl-field < dl-field-error < dl-field-locked)에도
+ * 편입되지 않는다. 계약 두 가지:
+ * · 한 요소에 dl-size-* 를 **정확히 1개**만 얹는다 — 겹치면 twMerge 가 중복을
+ *   못 걷어내 CSS 출력 순서가 승자를 정한다. 컴포넌트는 반드시
+ *   `FIELD_SIZE_CLASS` map(lib/controlSize.ts)으로 1개를 산출한다.
+ * · dl-size-md 는 dl-field 의 fallback 과 같은 값이라 생략해도 결과가 같지만
+ *   생략하지 않는다 — "size 를 받는 컨트롤에는 항상 클래스가 붙는다"가 읽는 규칙이다.
+ */
+@utility dl-size-xs {
+  --_dl-ctl-h: var(--spacing-dl-control-xs);
+  --_dl-ctl-px: var(--spacing-dl-ctl-pad-xs);
+  --_dl-ctl-fs: var(--text-dl-ctl-xs);
+}
+
+@utility dl-size-sm {
+  --_dl-ctl-h: var(--spacing-dl-control-sm);
+  --_dl-ctl-px: var(--spacing-dl-ctl-pad-sm);
+  --_dl-ctl-fs: var(--text-dl-ctl-sm);
+}
+
+@utility dl-size-md {
+  --_dl-ctl-h: var(--spacing-dl-control);
+  --_dl-ctl-px: var(--spacing-dl-ctl-pad-md);
+  --_dl-ctl-fs: var(--text-dl-ctl-md);
+}
+
+@utility dl-size-lg {
+  --_dl-ctl-h: var(--spacing-dl-control-lg);
+  --_dl-ctl-px: var(--spacing-dl-ctl-pad-lg);
+  --_dl-ctl-fs: var(--text-dl-ctl-lg);
+}
+
+@utility dl-size-xl {
+  --_dl-ctl-h: var(--spacing-dl-control-xl);
+  --_dl-ctl-px: var(--spacing-dl-ctl-pad-xl);
+  --_dl-ctl-fs: var(--text-dl-ctl-xl);
+}
+
+/**
+ * 저장 시 붙는 오류 배색 — QA 는 **보더만** danger 로 바꾼다(배경·플레이스홀더는 유지).
+ * 옛 v3 의 배경 틴트·붉은 플레이스홀더는 QA 실측에 없어 제거했다.
+ *
+ * 필수값 오류를 모달로 막지 않고 못 채운 칸 전부에 동시에 표시한다.
+ * hover·focus 가 와도 오류 보더를 유지한다 — 고치는 중에도 무엇이 문제인지 보여야 한다.
+ */
+@utility dl-field-error {
+  border-color: var(--color-dl-error);
+
+  &:hover,
+  &:focus,
+  &:focus-visible {
+    border-color: var(--color-dl-error);
+  }
+}
+
+/**
+ * 못 고치는 칸 3종(자동입력 · 읽기전용 · 비활성)의 공통 배색.
+ *
+ * **배색은 하나로 쓰고, 이유는 자물쇠·마스킹·안내문으로 구분한다.**
+ * 잠긴 칸은 플레이스홀더를 감춘다 — 입력하라는 신호가 남아 있으면 안 된다.
+ * hover 에도 보더가 변하지 않는다(QA `:disabled:hover` 실측).
+ */
+@utility dl-field-locked {
+  background-color: var(--color-dl-locked-bg);
+  border-color: var(--color-dl-locked-border);
+  color: var(--color-dl-locked-fg);
+  cursor: not-allowed;
+
+  &:hover {
+    border-color: var(--color-dl-locked-border);
+  }
+
+  &::placeholder {
+    color: transparent;
+  }
+}
+
+/**
+ * 검색 필터 그리드 — 라벨+필드 4쌍, 행 높이 54px(42px 컨트롤 + 상하 6px) 고정.
+ * 카드가 좁아지면 2쌍으로 접힌다. 미디어 쿼리가 아니라 **컨테이너 쿼리**인 이유는
+ * 같은 필터가 화면 폭이 아니라 담긴 카드 폭에 반응해야 하기 때문이다(모달 안에서도 쓰인다).
+ *
+ * 부모에 `@container` 컨텍스트(`container-type: inline-size`)가 있어야 한다.
+ */
+@utility dl-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, var(--spacing-dl-filter-label) minmax(150px, 1fr));
+  grid-auto-rows: var(--spacing-dl-filter-row);
+  align-items: center;
+  column-gap: 0;
+
+  @container (max-width: 1200px) {
+    grid-template-columns: repeat(2, var(--spacing-dl-filter-label) minmax(150px, 1fr));
+  }
+}
+
+/**
+ * 상세 폼 격자 — 라벨이 컨트롤 **위**에 오는 세로 쌍(`Field` · `FieldValue`)을 담는다.
+ * 검색 필터(`dl-filter-grid`)와 나란히 두는 이유는 둘이 갈리면 폼 리듬이 화면마다
+ * 달라지기 때문이다. 규격이 다른 것은 배치가 다르기 때문이지 취향이 아니다.
+ *
+ * **`auto-fit` 이라 컨테이너 쿼리를 쓰지 않는다.** 필터 격자는 `@container` 컨텍스트를
+ * 부모에게 요구하는데, 상세 폼은 카드·모달·전체화면 어디에나 들어가므로 래퍼 없이
+ * 스스로 접히는 편이 옳다. 열 수를 prop 으로 받을 필요도 사라진다.
+ *
+ * `align-items: start` 가 조용한 핵심이다 — 오류 문구가 붙은 칸과 아닌 칸이 한 행에
+ * 섞이는데, 늘이기(stretch)로 두면 메시지가 뜨는 순간 옆 칸이 세로 가운데로 밀려
+ * 라벨 윗선이 어긋난다.
+ */
+@utility dl-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--spacing-dl-form-col), 1fr));
+  column-gap: var(--spacing-dl-gutter);
+  row-gap: var(--spacing-dl-gutter);
+  align-items: start;
+}

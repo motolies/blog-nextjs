@@ -15,7 +15,7 @@ export const iconsDoc: DocEntry = {
   category: 'foundations',
   title: 'Icons',
   description:
-    '아이콘은 lucide-react(peer)에서 직접 import 해 icon prop 으로 전달한다 — 문자열 레지스트리를 두지 않아 트리셰이킹이 유지된다(원본 @deleo/ui 의 자체 스프라이트를 blog 결정으로 lucide 전달형으로 개조). 래퍼가 남는 이유는 크기 토큰(size-dl-ic-*)과 a11y 규약 때문이다. 색은 받지 않는다 — 버튼이 정하고 아이콘은 currentColor 로 따라간다.',
+    '아이콘은 lucide-react(peer)에서 직접 import 해 icon prop 으로 전달한다 — 문자열 레지스트리를 두지 않아 트리셰이킹이 유지된다(원본 @deleo/ui 의 자체 스프라이트를 blog 결정으로 lucide 전달형으로 개조). 래퍼가 남는 이유는 4단 크기 토큰(sm·md·lg·lock)과 a11y 규약 때문이다. 색은 받지 않는다 — 버튼이 정하고 아이콘은 currentColor 로 따라간다.',
   usage: USAGE,
   examples: [
     {

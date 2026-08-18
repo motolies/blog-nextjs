@@ -1,0 +1,67 @@
+packages:
+  - apps/*
+  - packages/*
+
+# pnpm 11 은 postinstall 을 기본 차단한다. 패키지별로 명시적으로 판단한다.
+allowBuilds:
+  # next 이미지 최적화 네이티브 바이너리 — standalone 런타임에 필요하다.
+  sharp: true
+  # postinstall 이 브라우저 서비스워커 자산(mockServiceWorker.js)을 배치한다.
+  # Node 사이드 목만 쓰므로 불필요하다. (shadcn CLI 의존 트리에도 존재 — shadcn 제거 후에도 mock 용도로 유지)
+  msw: false
+
+# 인스턴스가 둘이면 캐시/컨텍스트가 조용히 분리되어 오작동한다.
+# deleo-one-ui 기술스택 결정과 동일 취지 — 루트에서 단일 버전을 강제한다.
+overrides:
+  react: 19.2.8
+  react-dom: 19.2.8
+  '@tanstack/react-query': 5.101.4
+  '@tanstack/react-table': 8.21.3
+  '@tanstack/react-virtual': 3.14.9
+
+# 버전 고정의 단일 진실 소스. deleo-one-ui catalog 와 교집합은 동일 버전 유지.
+# blog 전용 의존성(ckeditor5, echarts, mermaid 등)은 apps/blog 에 남긴다 — 공유 시점에 승격.
+catalog:
+  # 프레임워크 / 코어
+  next: 16.3.0
+  react: 19.2.8
+  react-dom: 19.2.8
+  server-only: 0.0.1
+
+  # 데이터 / 그리드
+  '@tanstack/react-query': 5.101.4
+  '@tanstack/react-table': 8.21.3
+  '@tanstack/react-virtual': 3.14.9
+
+  # UI (shadcn 방식 헤드리스)
+  radix-ui: 1.6.7
+  tailwindcss: 4.3.3
+  '@tailwindcss/postcss': 4.3.3
+  class-variance-authority: 0.7.1
+  clsx: 2.1.1
+  tailwind-merge: 3.6.0
+  tw-animate-css: 1.4.0
+  # deleo 는 자체 스프라이트를 쓰지만 blog 는 lucide 를 아이콘 프레임워크로 유지한다 (계획 확정).
+  lucide-react: 0.576.0
+
+  # 도구
+  typescript: 7.0.2
+  '@biomejs/biome': 2.5.6
+  vitest: 4.1.10
+  msw: 2.15.0
+  '@types/node': 26.1.2
+  '@types/react': 19.2.18
+  '@types/react-dom': 19.2.4
+
+# pnpm minimumReleaseAge 정책 사용 시 next 16.3.0 계열 신선 릴리스 차단 해제 (deleo 목록 그대로)
+minimumReleaseAgeExclude:
+  - '@next/env@16.3.0'
+  - '@next/swc-darwin-arm64@16.3.0'
+  - '@next/swc-darwin-x64@16.3.0'
+  - '@next/swc-linux-arm64-gnu@16.3.0'
+  - '@next/swc-linux-arm64-musl@16.3.0'
+  - '@next/swc-linux-x64-gnu@16.3.0'
+  - '@next/swc-linux-x64-musl@16.3.0'
+  - '@next/swc-win32-arm64-msvc@16.3.0'
+  - '@next/swc-win32-x64-msvc@16.3.0'
+  - next@16.3.0

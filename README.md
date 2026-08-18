@@ -1,6 +1,16 @@
 # blog-nextjs
 
-개인 블로그 Next.js 프론트엔드 애플리케이션
+개인 블로그 Next.js 프론트엔드 — pnpm 모노레포
+
+## 구조
+
+```
+├─ apps/blog        # 블로그 앱 (Next.js 16, Pages Router) — Docker 배포 대상
+├─ apps/ui-docs     # 디자인 시스템 문서 앱 (로컬 전용, 포트 3020) — Gate 2 에서 추가 예정
+├─ packages/ui      # @hvy/ui 디자인 시스템 — Gate 2 에서 추가 예정
+├─ pnpm-workspace.yaml  # catalog = 버전 고정의 단일 진실 소스
+└─ biome.json       # 린트/포맷 (ESLint 대체)
+```
 
 ## 📚 문서
 
@@ -9,9 +19,29 @@
 
 ## 사용법
 
+요구사항: Node ≥ 24, pnpm 11.20.0 (`npm i -g pnpm@11.20.0`)
+
 ```shell
-npm ci
-npm run dev
+pnpm install
+pnpm dev            # apps/blog 개발 서버 (:3000)
+pnpm build          # apps/blog 프로덕션 빌드
+pnpm check          # biome 린트/포맷 검사 (자동수정: pnpm check:fix)
+pnpm typecheck      # 전 워크스페이스 tsc --noEmit
+pnpm test           # apps/blog 유틸 테스트 (node:test)
+pnpm verify         # check + typecheck + test + build 일괄
+```
+
+## 의존성 업데이트
+
+버전은 `pnpm-workspace.yaml`의 `catalog:`가 단일 진실 소스다.
+deleo-one-ui catalog 와 교집합인 패키지(react, next, tailwindcss 등)는 그쪽 버전과 동기화하고,
+blog 전용 의존성(ckeditor5, echarts 등)은 `apps/blog/package.json`에서 관리한다.
+
+```shell
+pnpm outdated -r          # 워크스페이스 전체 구버전 확인
+pnpm audit                # 보안 취약점 확인
+# catalog 버전 수정 후:
+pnpm install && pnpm verify
 ```
 
 ---

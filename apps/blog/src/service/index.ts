@@ -1,0 +1,33 @@
+import categoryService from './categoryService';
+import favoriteService from './favoriteService';
+import fileService from './fileService';
+import hotDealService from './hotDealService';
+import logService from './logService';
+import masterCodeService from './masterCodeService';
+import memoService from './memoService';
+import postService from './postService';
+import searchEngineService from './searchEngineService';
+import seriesService from './seriesService';
+import sprintService from './sprintService';
+import statsService from './statsService';
+import tagService from './tagService';
+import userService from './userService';
+
+const service = {
+  user: userService,
+  post: postService,
+  tag: tagService,
+  category: categoryService,
+  file: fileService,
+  search: searchEngineService,
+  sprint: sprintService,
+  favorite: favoriteService,
+  memo: memoService,
+  log: logService,
+  masterCode: masterCodeService,
+  hotDeal: hotDealService,
+  series: seriesService,
+  stats: statsService,
+};
+
+export default service;

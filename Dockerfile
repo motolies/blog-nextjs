@@ -1,43 +1,37 @@
-FROM node:24-alpine AS deps
-RUN apk update && apk upgrade && \
-    apk add --no-cache libc6-compat python3 cmake g++ && \
-    rm -rf /var/cache/apk/*
-WORKDIR /app
-COPY package.json ./
-COPY package-lock.json ./
-#RUN yarn install --frozen-lockfile
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci
+ARG BASE_IMAGE_NAME=node
+ARG BASE_IMAGE_TAG=24-alpine
 
-FROM node:24-alpine AS builder
+# deps: lockfile 만으로 pnpm 스토어를 캐시한다 — 패키지 추가 시 Dockerfile 수정 불필요
+FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG} AS deps
+# corepack 은 Node 25 부터 제거 예정이라 배제하고 pnpm 을 직접 설치한다 (deleo 관례)
+RUN npm install -g pnpm@11.20.0
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY package*.json ./
-COPY next.config.js ./
-COPY tsconfig.json next-env.d.ts postcss.config.mjs ./
-COPY src ./src
-COPY public ./public
-#RUN yarn build
-RUN npm run build
+COPY pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm fetch
 
-FROM node:24-alpine AS runner
+FROM deps AS build
+COPY . .
+RUN pnpm install --frozen-lockfile --offline
+ENV NEXT_TELEMETRY_DISABLED=1
+# ui-docs 는 로컬 전용 — blog 앱만 빌드한다
+RUN pnpm -F blog build
+
+FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG} AS runner
 WORKDIR /app
 
-# [핵심] 기본값: 외부 설정이 없으면 힙 메모리 256MB로 제한 (보수적 설정)
-# 이렇게 해두면 CMD를 건드리지 않아도 됩니다.
-ENV NODE_OPTIONS="--max-old-space-size=256"
+# 기본값: 외부 설정이 없으면 힙 메모리 256MB로 제한 (보수적 설정)
+ENV NODE_OPTIONS="--max-old-space-size=256" \
+    NODE_ENV=production \
+    PORT=3000 \
+    NEXT_TELEMETRY_DISABLED=1
 
-ENV NODE_ENV=production
+# standalone 산출물의 server.js 경로는 모노레포 기준 apps/blog/server.js 로 바뀐다.
+# public 은 standalone 에 포함되지 않으므로 별도 복사한다.
+COPY --from=build --chown=node:node /app/apps/blog/.next/standalone ./
+COPY --from=build --chown=node:node /app/apps/blog/.next/static ./apps/blog/.next/static
+COPY --from=build --chown=node:node /app/apps/blog/public ./apps/blog/public
 
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
-
-# Standalone 빌드 활용으로 필요한 파일만 복사
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-USER nextjs
+USER node
 
 # BUILD ARGUMENTS
 ARG VERSION
@@ -46,7 +40,5 @@ ARG BUILD_TIMESTAMP
 ENV BUILD_TIMESTAMP=$BUILD_TIMESTAMP
 
 EXPOSE 3000
-ENV PORT=3000
-ENV NEXT_TELEMETRY_DISABLED=1
 
-CMD ["node", "server.js"]
+CMD ["node", "apps/blog/server.js"]

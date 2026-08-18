@@ -1,0 +1,5 @@
+language js
+
+`<iframe $props />` where {
+  register_diagnostic(span=$props, message="iframe 사용 금지 — URL 있는 라우트/모달로 대체한다")
+}

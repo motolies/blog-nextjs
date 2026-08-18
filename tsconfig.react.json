@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.base.json",
+  // DOM: URL/URLSearchParams 같은 웹표준 전역과 react 컴포넌트 양쪽의 근거.
+  // jsx 는 패키지 소스 기준 react-jsx — Next 앱만 preserve 로 덮는다(tsconfig.next.json).
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx"
+  }
+}

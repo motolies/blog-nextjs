@@ -1,0 +1,98 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.6/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": ["**", "!**/.next", "!**/node_modules", "!**/dist", "!**/*.css"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "lineEnding": "lf"
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "jsxQuoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "all",
+      "arrowParentheses": "always",
+      "bracketSpacing": true,
+      "bracketSameLine": false,
+      "quoteProperties": "asNeeded",
+      "attributePosition": "auto"
+    }
+  },
+  "json": {
+    "formatter": {
+      "trailingCommas": "none"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "suspicious": {
+        "noExplicitAny": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off"
+      },
+      "a11y": {
+        "useKeyWithClickEvents": "warn",
+        "noStaticElementInteractions": "warn",
+        "noLabelWithoutControl": "warn"
+      }
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "plugins": ["./plugins/no-iframe.grit", "./plugins/no-native-dialog.grit"],
+  "overrides": [
+    {
+      "includes": ["**/packages/ui/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "next": "@hvy/ui 는 프레임워크 중립 — next/* 를 import 하면 다른 앱에 이식할 수 없습니다.",
+                  "next/link": "@hvy/ui 는 프레임워크 중립 — 라우팅 배선은 앱이 합니다.",
+                  "next/router": "@hvy/ui 는 프레임워크 중립 — 라우팅 배선은 앱이 합니다.",
+                  "next/navigation": "@hvy/ui 는 프레임워크 중립 — 라우팅 배선은 앱이 합니다.",
+                  "@tanstack/react-query": "@hvy/ui 는 데이터 계층을 모릅니다 — 배선은 앱이 합니다.",
+                  "axios": "@hvy/ui 는 데이터 계층을 모릅니다 — HTTP 호출은 앱 서비스 계층 소관입니다.",
+                  "server-only": "UI 패키지에 server-only 를 두면 클라이언트 번들이 깨집니다."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/test/**", "**/scripts/**", "**/mocks/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          }
+        }
+      }
+    }
+  ]
+}

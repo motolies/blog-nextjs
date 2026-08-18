@@ -1,6 +1,5 @@
 {
   "recommendations": [
-
     "ms-vscode.vscode-json",
     "yzhang.markdown-all-in-one",
     "DavidAnson.vscode-markdownlint",
@@ -9,4 +8,3 @@
     "streetsidesoftware.code-spell-checker"
   ]
 }
-

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "../../tsconfig.next.json",
+  "compilerOptions": {
+    "plugins": [{ "name": "next" }],
+    "paths": { "@/*": ["./src/*"] },
+    // 기존 코드가 strict 이전 세대 — 완화 오버라이드. strict 전환은 별도 로드맵.
+    "strict": false,
+    "noUncheckedIndexedAccess": false,
+    "noImplicitOverride": false,
+    // 기존 코드가 import type 을 구분하지 않는다 — 이 옵션 하나로 수백 에러가 나므로 완화.
+    "verbatimModuleSyntax": false
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", ".next"]
+}

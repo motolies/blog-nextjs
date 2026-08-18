@@ -1,0 +1,431 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import './utilities.css';
+
+/**
+ * 베이스 + default 테마 — **토큰 구조(Tier 2)와 default 팔레트의 원본이 여기다.**
+ *
+ * 다른 테마는 `theme/<name>.css` 가 `:root[data-theme='<name>']` 스코프로
+ * Tier 1 전체(색 팔레트 26키 + 컨트롤 스케일 5키 = 31키)를 재정의한다 —
+ * radius·shadow·z-index 와 스케일에서 유도되지 않는 고정 치수는 테마 대상이 아니다.
+ * QA teal 팔레트의 정본은 `oms.css` 로 이동했다.
+ * 중립·의미색 hex 는 QA `deleo-one QA-2(2/24)` 값을 변환 없이 그대로 적는다.
+ * theme/ 아래 CSS 는 hex 금지 규칙(`scripts/verify-tokens.mjs`)의 유일한 예외 지점이고,
+ * 같은 스크립트가 테마 파일 간 키 집합 동일성도 강제한다.
+ *
+ * 앱은 테마 파일을 @import 하고 `<html data-theme="...">` 로 선택한다.
+ * 컴포넌트는 토큰에서 파생된 유틸리티만 참조하므로, 나중에 RSC 가
+ * `<style>:root{--color-dl-primary:...}</style>` 를 인라인해 **회사별 런타임 테마 주입**까지 이어진다.
+ *
+ * ── 구조: 2티어 ──────────────────────────────────────────────────────────────
+ *   Tier 1  원색(`--dl-brand-500`)  — @theme 밖. 유틸리티를 만들지 않는다.
+ *   Tier 2  의미(`--color-dl-primary: var(--dl-brand-500)`) — @theme static. 유틸리티가 된다.
+ *
+ * 같은 브랜드색이 Primary 버튼·활성 탭·체크박스 ON·스위치 ON·셀렉트 hover 보더·
+ * 페이지네이션 활성·Total 숫자에 쓰인다. Tier 1 한 줄이 그 전부를 바꾼다.
+ *
+ * ⚠️ 숫자를 코드에 박지 않는다. 그리드 행 높이처럼 JS 가 숫자로 알아야 하는 값은
+ *    `useTokenPx()` 로 이 파일에서 읽는다 — 안 그러면 테마를 바꿔도 화면이 안 바뀐다.
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Tier 1 — 원색 팔레트
+   유틸리티를 만들지 않는다(@theme 밖). Tier 2 가 참조하는 값의 원본일 뿐이다.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@layer theme {
+  :root {
+    /* 브랜드 — 테마 파일이 갈아끼우는 계열(oms 테마는 QA teal). default 는 violet.
+       500/600/700 은 구 오버라이드 예시 값의 승격, 틴트 3종은 QA teal 틴트의
+       흰색 혼합비(10%/5%/30%)를 동일 적용해 도출했다. */
+    --dl-brand-500: #6c4de6; /* Primary */
+    --dl-brand-600: #5b3fd1; /* hover — 채움 버튼·필드 포커스 보더 전부 */
+    --dl-brand-700: #4f36b8; /* active/pressed */
+    --dl-brand-050: #f0edfd; /* primary-light1 — 배지 배경 */
+    --dl-brand-025: #f8f6fe; /* primary-light2 — 활성 페이지·활성 탭 배경 */
+    --dl-brand-150: #d3caf8; /* 체크박스·스위치 checked+disabled 배경 */
+
+    /* 의미색 — 데이터의 뜻을 나타낼 때만 쓴다 */
+    --dl-green-500: #01a235;
+    --dl-green-050: #e1f4e7;
+    --dl-orange-500: #ff8000; /* QA --warning */
+    --dl-orange-050: #fff0e0;
+
+    /* 빨강 — QA 는 파괴적 액션과 폼 오류가 **한 색**이다(#FF4263).
+       Tier 2 의 danger/error 이름은 소비처가 넓어 유지하고 값만 여기로 모은다. */
+    --dl-red-500: #ff4263;
+    --dl-red-050: #ffe8ec;
+
+    /* 중립 — QA `--gray-*` 8단계 + 상태 전용 2개(150·650).
+       팔레트에 없으면 개발자가 hex 를 쓰고 싶어진다. 항상 토큰이 있게 한다. */
+    --dl-gray-000: #ffffff;
+    --dl-gray-100: #f7f7f7; /* 옵션 hover · 테이블 헤더 배경 */
+    --dl-gray-150: #f2f2f2; /* 체크박스·라디오 disabled(off) 배경 */
+    --dl-gray-200: #f0f0f0; /* 캔버스(회색 본문) · 모달 헤더 하단 보더 */
+    --dl-gray-300: #e6e6e6; /* 표준 보더 · 비활성 배경 */
+    --dl-gray-400: #cccccc; /* 체크박스 보더 · 비활성 버튼 보더 · 구분 막대 */
+    --dl-gray-500: #a7a7a7; /* 보조 텍스트 · 탭 닫기 아이콘 */
+    --dl-gray-600: #919191; /* 플레이스홀더 · 비활성 글자 · 셀렉트 화살표 */
+    --dl-gray-650: #bbbbbb; /* 비활성 체크박스/라디오 라벨 글자 */
+    --dl-gray-700: #6b6b6b; /* 보조 글자 · 테이블 헤더 글자 · outline-black 보더 */
+    --dl-gray-800: #383838; /* outline-gray 글자 */
+    --dl-black: #000000; /* 본문 · 레이블 · 툴팁 배경 */
+
+    --dl-link: #0000ff; /* 그리드 링크. 관습색이라 브랜드 색조로 끌어오지 않는다 */
+    --dl-excel: #217346; /* MS Excel 로고. 아이콘이 아니라 제품 로고라 예외 */
+
+    /* ── 컨트롤 스케일 ──────────────────────────────────────────────────────
+       단계당 무단위 숫자 1개 — "4px 그리드 단계 수". Tier 2 치수·타이포 섹션이
+       이 숫자에서 높이·패딩·폰트·아이콘·그리드 밀도를 calc 로 유도한다.
+       테마가 이 5키만 바꾸면 전 컨트롤이 일괄 축소/확대된다(`compact.css` 가 실례).
+       색 팔레트처럼 **테마 필수 키**다 — verify:tokens 키 집합 동일성 검사 대상. */
+    --dl-scale-xs: 2.5;
+    --dl-scale-sm: 3.5;
+    --dl-scale-md: 5;
+    --dl-scale-lg: 6;
+    --dl-scale-xl: 7.5;
+
+    /* ── z-index ────────────────────────────────────────────────────────────
+       Tailwind v4 에 z-index 네임스페이스가 없어 유틸리티가 생기지 않는다.
+       `z-[var(--dl-z-modal)]` 로 쓴다.
+
+       목업이 실제로 겪은 사고를 물려받지 않으려고 순서를 한 곳에 적는다 —
+       그리드 내부 sticky 헤더가 검색 필터 위로 올라오는 문제. */
+    --dl-z-grid-cell: 1;
+    --dl-z-grid-pinned: 2;
+    --dl-z-grid-header: 3;
+    --dl-z-grid-header-pinned: 4;
+    --dl-z-grid-empty: 5;
+    --dl-z-menu: 120;
+    --dl-z-filter: 200;
+    --dl-z-modal: 9999;
+    --dl-z-toast: 10000;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Tier 2 — 의미 토큰
+   `static` 인 이유: Tailwind v4 는 **사용되지 않은 theme 변수를 출력에서 떨어뜨린다.**
+   그러면 `useTokenPx('--spacing-dl-grid-row')` 가 조용히 fallback 으로 떨어지고,
+   RSC 런타임 테마 주입도 성립하지 않는다(존재하지 않는 변수는 덮어쓸 수 없다).
+   ═══════════════════════════════════════════════════════════════════════════ */
+@theme static {
+  /* ── 브랜드 ───────────────────────────────────────────────────────────── */
+  --color-dl-primary: var(--dl-brand-500);
+  --color-dl-primary-hover: var(--dl-brand-600);
+  --color-dl-primary-active: var(--dl-brand-700);
+  --color-dl-primary-fg: var(--dl-gray-000);
+
+  /** 톤얼(연한 브랜드색) — 개수 배지·미저장 셀 등 면적 강조. */
+  --color-dl-tonal: var(--dl-brand-050);
+  --color-dl-tonal-hover: var(--dl-brand-025);
+  --color-dl-tonal-border: var(--dl-brand-150);
+  --color-dl-tonal-fg: var(--dl-brand-500);
+
+  /* ── 의미색 ───────────────────────────────────────────────────────────── */
+  --color-dl-success: var(--dl-green-500);
+  --color-dl-success-bg: var(--dl-green-050);
+  --color-dl-warning: var(--dl-orange-500);
+  --color-dl-warning-bg: var(--dl-orange-050);
+  --color-dl-warning-fg: var(--dl-orange-500);
+  --color-dl-info: var(--dl-brand-500);
+  --color-dl-info-bg: var(--dl-brand-050);
+
+  /** 파괴적 액션(삭제)과 폼 오류 — QA 부터 **같은 빨강**이다.
+      이름을 합치지 않는 이유: 소비처(FieldError·토스트·outline-red)가 넓게 갈라져
+      있고, 언젠가 다시 갈라질 때 이름이 남아 있어야 값만 바꿔 끝난다. */
+  --color-dl-danger: var(--dl-red-500);
+  --color-dl-danger-bg: var(--dl-red-050);
+  --color-dl-danger-border: var(--dl-red-500);
+
+  /* ── 폼 오류 ──────────────────────────────────────────────────────────── */
+  --color-dl-error: var(--dl-red-500);
+  --color-dl-error-bg: var(--dl-red-050);
+
+  /* ── 표면 ─────────────────────────────────────────────────────────────── */
+  --color-dl-canvas: var(--dl-gray-200);
+  --color-dl-surface: var(--dl-gray-000);
+  --color-dl-border: var(--dl-gray-300);
+  --color-dl-border-soft: var(--dl-gray-300);
+  --color-dl-divider: var(--dl-gray-200);
+  --color-dl-separator: var(--dl-gray-400);
+  /** 모달 딤. QA `.alert-overlay` 의 rgba(0,0,0,.5). */
+  --color-dl-scrim: rgb(0 0 0 / 0.5);
+
+  /* ── 글자 ─────────────────────────────────────────────────────────────── */
+  --color-dl-fg: var(--dl-black);
+  --color-dl-fg-strong: var(--dl-black);
+  --color-dl-fg-muted: var(--dl-gray-700);
+  --color-dl-fg-subtle: var(--dl-gray-500);
+  --color-dl-fg-label: var(--dl-gray-700);
+  /** 마스킹된 값을 시각적으로 구분한다 — 편집 불가임을 색으로도 알린다. */
+  --color-dl-masked: var(--dl-gray-600);
+  /** 비활성 체크박스·라디오의 **라벨 글자**. 필드 값 글자(locked-fg)와 다르다. */
+  --color-dl-label-disabled: var(--dl-gray-650);
+
+  /* ── 폼 컨트롤 ────────────────────────────────────────────────────────── */
+  --color-dl-field-border: var(--dl-gray-300);
+  --color-dl-field-fg: var(--dl-black);
+  --color-dl-field-placeholder: var(--dl-gray-600);
+  --color-dl-field-caret: var(--dl-gray-600);
+
+  /* ── 잠금 — 못 고치는 칸 3종(자동입력·읽기전용·비활성) 공통 배색 ────────
+     배색은 셋 다 같고 구분은 자물쇠·마스킹·안내문이 맡는다.
+     QA disabled: 보더·배경 모두 #e6e6e6, 글자·아이콘 #919191. */
+  --color-dl-locked-bg: var(--dl-gray-300);
+  --color-dl-locked-border: var(--dl-gray-300);
+  --color-dl-locked-fg: var(--dl-gray-600);
+  --color-dl-locked-icon: var(--dl-gray-600);
+
+  /* ── 체크박스 · 라디오 · 스위치 상태 ──────────────────────────────────────
+     QA 는 disabled 를 off(#f2f2f2)와 on(#b2ebf2)으로 갈라 그린다 —
+     잠긴 필드 배색(locked-*)과 다른 전용 값이라 별도 토큰이다. */
+  --color-dl-check-disabled-off-bg: var(--dl-gray-150);
+  --color-dl-check-disabled-on-bg: var(--dl-brand-150);
+
+  /* ── 버튼 위계 ────────────────────────────────────────────────────────────
+     QA 버튼은 primary 채움 1 + outline 4(primary·black·gray·red)다.
+     outline-primary 는 primary 토큰, outline-red 는 danger 토큰을 그대로 쓰고
+     black·gray 두 톤의 글자·보더만 여기서 정한다. */
+  --color-dl-outline-fg: var(--dl-gray-800); /* outline-gray 글자 */
+  --color-dl-outline-border: var(--dl-gray-400); /* outline-gray 보더 · 비활성 버튼 보더 */
+  --color-dl-outline-strong-fg: var(--dl-black); /* outline-black 글자 */
+  --color-dl-outline-strong-border: var(--dl-gray-700); /* outline-black 보더 */
+
+  /* ── 그리드 ───────────────────────────────────────────────────────────── */
+  --color-dl-grid-header: var(--dl-gray-100);
+  --color-dl-grid-header-fg: var(--dl-gray-700);
+  --color-dl-grid-link: var(--dl-link);
+  --color-dl-grid-hover: var(--dl-gray-100);
+  /** 저장 전 수정된 셀 — 미저장 상태를 톤얼로 남긴다. */
+  --color-dl-grid-dirty: var(--dl-brand-050);
+
+  /* ── 드롭다운 옵션 ────────────────────────────────────────────────────── */
+  --color-dl-option-hover: var(--dl-gray-100); /* QA .option-item:hover */
+
+  /* ── 툴팁 — QA custom-tooltip: 검정 말풍선 + 흰 글자 ─────────────────── */
+  --color-dl-tooltip: var(--dl-black);
+  --color-dl-tooltip-fg: var(--dl-gray-000);
+
+  /* ── 아이콘 · 강조 ────────────────────────────────────────────────────── */
+  --color-dl-icon: var(--dl-gray-700);
+  --color-dl-icon-hover: var(--dl-gray-100);
+  --color-dl-excel: var(--dl-excel);
+  --color-dl-accent: var(--dl-orange-500);
+  --color-dl-accent-bg: var(--dl-orange-050);
+  --color-dl-accent-border: var(--dl-orange-500);
+
+  /* ── 사이드바 · 탭 ────────────────────────────────────────────────────── */
+  --color-dl-nav-fg: var(--dl-gray-700);
+  --color-dl-nav-hover: var(--dl-gray-100);
+  --color-dl-subtab: var(--dl-gray-200);
+  --color-dl-subtab-fg: var(--dl-gray-700);
+  --color-dl-subtab-border: var(--dl-gray-200);
+  /* 활성 작업 탭 칩 배경 — QA .tab-menu-btn.active 의 primary-light2. WorkTabsBar 전용. */
+  --color-dl-subtab-active: var(--dl-brand-025);
+
+  /* ── 모양 ─────────────────────────────────────────────────────────────────
+     QA 의 radius 는 **입력 6 / 그 밖의 상자 8** 두 단이다. 셀렉트 트리거가
+     입력과 달리 8 인 것은 QA 실측이 그렇다 — 통일하고 싶어도 명세를 따른다. */
+  --radius-dl-control: 6px; /* 입력 · 날짜 · 체크박스 · 페이지 링크 */
+  --radius-dl-container: 8px; /* 버튼 · 셀렉트 트리거 · 카드 · 모달 · 토스트 */
+  --radius-dl-badge: 4px; /* 상태 배지 · 툴팁 · 드롭다운 항목 */
+  --radius-dl-pill: 999px; /* 알약형 칩 · 스위치 트랙 */
+
+  /* ── 그림자 ───────────────────────────────────────────────────────────── */
+  --shadow-dl-card: 0 1px 4px rgb(0 0 0 / 0.06);
+  --shadow-dl-alert: 0 0 12px rgb(0 0 0 / 0.12); /* QA --shadow-modal 로 통일 */
+  --shadow-dl-modal: 0 0 12px rgb(0 0 0 / 0.12);
+  --shadow-dl-toast: 0 4px 8px rgb(0 0 0 / 0.08); /* QA --shadow-toast */
+  --shadow-dl-menu: 0 0 12px rgb(0 0 0 / 0.12);
+  --shadow-dl-seg: 0 1px 2px rgb(0 0 0 / 0.08); /* 세그먼트 활성 탭 */
+  /** 체크박스·라디오 hover 링(QA --shadow-action). Tier 2 를 참조하는 color-mix 라
+      앱이 primary 를 덮어쓰면 링도 함께 따라온다. */
+  --shadow-dl-action: 0 0 0 4px color-mix(in srgb, var(--color-dl-primary) 20%, transparent);
+
+  /* ── 타이포 ───────────────────────────────────────────────────────────────
+     QA 기준 본문 14px · line-height 1.5 · letter-spacing -0.025em.
+     sm·md·base·lg 네 토큰이 같은 14 인 것은 의도다 — v3(12/12.5/13/13.3) 시절
+     호출부를 바꾸지 않고 값만 접었다. 다시 갈라질 때 이름이 살아 있어야 한다.
+     weight 는 400·500·600·700 네 가지(Pretendard 4 subset). */
+  --text-dl-xs: 12px; /* 오류 문구 · 헬퍼 텍스트 · 배지 · 툴팁 */
+  --text-dl-sm: 14px; /* 본문 기준 — 입력값 · 셀렉트 값 · 그리드 셀 */
+  --text-dl-md: 14px; /* 토스트 본문 · Total 표기 */
+  --text-dl-base: 14px; /* 버튼 라벨 · 모달 본문 */
+  --text-dl-lg: 14px; /* 그리드 헤더 셀 */
+  --text-dl-xl: 16px; /* 카드 제목 · Total 숫자 */
+  --text-dl-subtitle: 18px; /* 모달 서브 타이틀 */
+  --text-dl-title: 20px; /* 모달 타이틀 */
+  --text-dl-heading: 26px; /* 페이지 타이틀 */
+
+  /** 컨트롤 폰트 5단 — **사이즈 축**. 위 의미 축(sm~lg 가 14 로 접힘)과 별개
+      네임스페이스라 이름이 충돌하지 않는다. 공식·결과값 표는 치수 섹션 참조. */
+  --text-dl-ctl-xs: round(nearest, 10px + var(--dl-scale-xs) * 0.8px, 1px);
+  --text-dl-ctl-sm: round(nearest, 10px + var(--dl-scale-sm) * 0.8px, 1px);
+  --text-dl-ctl-md: round(nearest, 10px + var(--dl-scale-md) * 0.8px, 1px); /* QA 본문 14px */
+  --text-dl-ctl-lg: round(nearest, 10px + var(--dl-scale-lg) * 0.8px, 1px);
+  --text-dl-ctl-xl: round(nearest, 10px + var(--dl-scale-xl) * 0.8px, 1px);
+
+  /** 폰트 파일은 앱이 싣는다(apps/*\/public/fonts + @font-face).
+      여기는 이름만 안다 — 폰트를 싣지 않은 앱은 뒤 fallback 으로 자연 강등된다. */
+  --font-dl-sans:
+    'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', Roboto, 'Segoe UI',
+    'Helvetica Neue', sans-serif;
+  --font-dl-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* ── 치수 · 컨트롤 사이즈 5단 ────────────────────────────────────────────
+     Tier 1 스케일(--dl-scale-*, n = 4px 그리드 단계 수)에서 공식으로 유도한다.
+     공식 상수(22px, 4px 등)는 토큰화하지 않는다 — 소비처가 이 파일뿐이고,
+     Tier 1 에 두면 패리티 검사가 모든 테마에 재정의를 강제해 노이즈만 는다.
+     **이 표가 사이즈 공식의 단일 진실 소스다** (default 스케일 2.5/3.5/5/6/7.5 기준):
+
+       축                공식                          xs   sm   md   lg   xl
+       높이              22px + 4px·n                  32   36   42   46   52
+       폰트(타이포 섹션)  round(10px + 0.8px·n, 1)      12   13   14   15   16
+       필드 패딩         6px + 2px·n                   11   13   16   18   21
+       버튼 패딩         4px·n                         10   14   20   24   30
+       컨트롤 아이콘      round(8px + 1.6px·n, 2)       12   14   16   18   20
+       체크박스·라디오    round(12px + 1.6px·n, 2)      16   18   20   22   24
+       스위치 폭         round(체크박스 h × 1.8, 2)     28   32   36   40   44
+       배지 높이         round(11px + 1.6px·n, 1)      15   17   19   21   23
+       탭 높이           28px + 4px·n                  38   42   48   52   58
+
+     1차식은 QA 실측(sm 36 · md 42 · xl 52)이 정확히 보존되도록 역산했다 —
+     md 는 무접미사가 정본이다(기존 소비처 무변경). JS 가 숫자로 알아야 하는 값은
+     calc 여도 된다 — `useTokenPx` 가 프로브로 실측하고 data-theme 전환을 구독한다.
+     CSS round() 는 Baseline 2024 — 미지원 브라우저에서는 해당 선언이 invalid 로
+     강등된다(폰트·아이콘·토글·배지만 해당). 지원선을 낮추려면 스케일 수열을
+     round 없이 정수가 나오게 재조정해야 한다. */
+  --spacing-dl-control-xs: calc(22px + var(--dl-scale-xs) * 4px);
+  --spacing-dl-control-sm: calc(22px + var(--dl-scale-sm) * 4px); /* 버튼 sm · 아이콘 버튼 */
+  --spacing-dl-control: calc(22px + var(--dl-scale-md) * 4px); /* 입력 · 셀렉트 · 버튼 md 공통 높이 */
+  --spacing-dl-control-lg: calc(22px + var(--dl-scale-lg) * 4px);
+  --spacing-dl-control-xl: calc(22px + var(--dl-scale-xl) * 4px); /* 버튼 xl */
+
+  --spacing-dl-ctl-pad-xs: calc(6px + var(--dl-scale-xs) * 2px);
+  --spacing-dl-ctl-pad-sm: calc(6px + var(--dl-scale-sm) * 2px);
+  --spacing-dl-ctl-pad-md: calc(6px + var(--dl-scale-md) * 2px); /* 필드 좌우 패딩 — QA 16px */
+  --spacing-dl-ctl-pad-lg: calc(6px + var(--dl-scale-lg) * 2px);
+  --spacing-dl-ctl-pad-xl: calc(6px + var(--dl-scale-xl) * 2px);
+
+  --spacing-dl-btn-pad-xs: calc(var(--dl-scale-xs) * 4px);
+  --spacing-dl-btn-pad-sm: calc(var(--dl-scale-sm) * 4px);
+  --spacing-dl-btn-pad-md: calc(var(--dl-scale-md) * 4px); /* 버튼 좌우 패딩 — QA 20px */
+  --spacing-dl-btn-pad-lg: calc(var(--dl-scale-lg) * 4px);
+  --spacing-dl-btn-pad-xl: calc(var(--dl-scale-xl) * 4px);
+
+  /** 컨트롤 **안** 아이콘(버튼 라벨 옆 등) — 컨트롤 size 를 따라간다.
+      의미 축 아이콘(--spacing-dl-ic-*: 사이드바·모달 닫기·자물쇠)과 별개다. */
+  --spacing-dl-ctl-ic-xs: round(nearest, 8px + var(--dl-scale-xs) * 1.6px, 2px);
+  --spacing-dl-ctl-ic-sm: round(nearest, 8px + var(--dl-scale-sm) * 1.6px, 2px);
+  --spacing-dl-ctl-ic-md: round(nearest, 8px + var(--dl-scale-md) * 1.6px, 2px); /* QA is-16 */
+  --spacing-dl-ctl-ic-lg: round(nearest, 8px + var(--dl-scale-lg) * 1.6px, 2px);
+  --spacing-dl-ctl-ic-xl: round(nearest, 8px + var(--dl-scale-xl) * 1.6px, 2px); /* QA is-20 */
+
+  --spacing-dl-textarea: 58px; /* QA form-textarea min-height — 사이즈 축과 무관한 고정 하한 */
+
+  --spacing-dl-checkbox-xs: round(nearest, 12px + var(--dl-scale-xs) * 1.6px, 2px);
+  --spacing-dl-checkbox-sm: round(nearest, 12px + var(--dl-scale-sm) * 1.6px, 2px);
+  --spacing-dl-checkbox-md: round(nearest, 12px + var(--dl-scale-md) * 1.6px, 2px); /* QA 20px */
+  --spacing-dl-checkbox-lg: round(nearest, 12px + var(--dl-scale-lg) * 1.6px, 2px);
+  --spacing-dl-checkbox-xl: round(nearest, 12px + var(--dl-scale-xl) * 1.6px, 2px);
+
+  --spacing-dl-badge-xs: round(nearest, 11px + var(--dl-scale-xs) * 1.6px, 1px);
+  --spacing-dl-badge-sm: round(nearest, 11px + var(--dl-scale-sm) * 1.6px, 1px);
+  --spacing-dl-badge-md: round(nearest, 11px + var(--dl-scale-md) * 1.6px, 1px); /* QA 19px */
+  --spacing-dl-badge-lg: round(nearest, 11px + var(--dl-scale-lg) * 1.6px, 1px);
+  --spacing-dl-badge-xl: round(nearest, 11px + var(--dl-scale-xl) * 1.6px, 1px);
+
+  /* 스위치 — 트랙 높이는 체크박스 공식을 재사용하고 폭은 높이 × 1.8 이다(QA 36×20). */
+  --spacing-dl-switch-h-xs: var(--spacing-dl-checkbox-xs);
+  --spacing-dl-switch-h-sm: var(--spacing-dl-checkbox-sm);
+  --spacing-dl-switch-h-md: var(--spacing-dl-checkbox-md);
+  --spacing-dl-switch-h-lg: var(--spacing-dl-checkbox-lg);
+  --spacing-dl-switch-h-xl: var(--spacing-dl-checkbox-xl);
+  --spacing-dl-switch-w-xs: round(nearest, var(--spacing-dl-switch-h-xs) * 1.8, 2px);
+  --spacing-dl-switch-w-sm: round(nearest, var(--spacing-dl-switch-h-sm) * 1.8, 2px);
+  --spacing-dl-switch-w-md: round(nearest, var(--spacing-dl-switch-h-md) * 1.8, 2px);
+  --spacing-dl-switch-w-lg: round(nearest, var(--spacing-dl-switch-h-lg) * 1.8, 2px);
+  --spacing-dl-switch-w-xl: round(nearest, var(--spacing-dl-switch-h-xl) * 1.8, 2px);
+
+  /* 탭 — QA 48px 가 md 다. */
+  --spacing-dl-tab-xs: calc(28px + var(--dl-scale-xs) * 4px);
+  --spacing-dl-tab-sm: calc(28px + var(--dl-scale-sm) * 4px);
+  --spacing-dl-tab-md: calc(28px + var(--dl-scale-md) * 4px);
+  --spacing-dl-tab-lg: calc(28px + var(--dl-scale-lg) * 4px);
+  --spacing-dl-tab-xl: calc(28px + var(--dl-scale-xl) * 4px);
+
+  /* 작업 탭 바(WorkTabs) — QA 헤더 탭 메뉴(.tab-menu-wrapper 62px / .tab-menu-btn ≈38px).
+     그리드 밀도와 같은 근거로 size prop 이 아니라 **테마 md 스케일**을 따른다 —
+     앱 크롬은 화면당 하나라 개별 size 축이 필요 없다. 1차식은 md=5 에서 QA 실측 보존. */
+  --spacing-dl-worktab-bar: calc(42px + var(--dl-scale-md) * 4px); /* QA 62px */
+  --spacing-dl-worktab: calc(18px + var(--dl-scale-md) * 4px); /* 칩 높이 — QA ≈38px */
+  --spacing-dl-menu-max: 232px; /* 드롭다운 패널 최대 높이 */
+  /* 컬럼 설정 목록 — 드롭다운(232px)을 빌려 쓰면 컬럼 14개 중 6개만 보여 드래그로 옮기기 어렵다.
+     모달 자체가 max-h-[90vh] 이고 헤더·안내·푸터가 있어 60vh 면 넘치지 않는다. */
+  --spacing-dl-column-list: 60vh;
+
+  /* 그리드 밀도 — size prop 이 아니라 **테마 md 스케일**을 따라간다(행에 여러
+     컨트롤이 섞이므로 개별 size 로는 정합이 깨진다). default 50 · compact 44. */
+  --spacing-dl-grid-header: calc(30px + var(--dl-scale-md) * 4px); /* QA 테이블 th min-height */
+  --spacing-dl-grid-row: calc(30px + var(--dl-scale-md) * 4px); /* QA 테이블 행 min-height */
+  --spacing-dl-grid-toolbar: calc(var(--spacing-dl-control-sm) + 13px); /* 버튼 sm + 상하 6 + 보더 1 */
+  --spacing-dl-grid-check: 40px; /* 체크박스 선택열 폭 */
+  --spacing-dl-grid-col: 120px; /* 컬럼 폭 기본값 — 컬럼 정의에 width 가 없을 때 */
+  --spacing-dl-grid-col-min: 56px; /* 리사이즈 하한 — 헤더 문구 한 글자 + 정렬 아이콘이 남는 최소치 */
+  --spacing-dl-cell-x: 10px; /* QA 셀 padding */
+
+  --spacing-dl-filter-label: 130px; /* QA form-group-row 라벨 고정폭 */
+  --spacing-dl-filter-row: calc(var(--spacing-dl-control) + 12px); /* md 컨트롤 + 상하 6px */
+  /** 상세 폼 격자의 열 최소 폭 — 이보다 좁아지면 열이 하나 줄어든다(`dl-form-grid`).
+      라벨이 컨트롤 위에 있어 이 값은 **컨트롤**의 하한이다(라벨 길이·다국어와 무관하다).
+      220 인 근거는 담기는 폭들이다 — `auto-fit` 은 `n×col + (n-1)×gutter ≤ 폭` 만큼 열을 만든다:
+      모달 md 본문(492px)에서 2열(460), 폼 카드(854px)에서 3열(700). 260 이면 모달이 1열로
+      떨어져 상세 4줄이 세로로 늘어졌다(실측). 입력 자체는 좌우 패딩 32 를 빼도 188px 이 남아
+      `YYYY-MM-DD`(DatePicker 하한 130) 와 다국어 라벨을 모두 수용한다.
+      기간 선택처럼 한 칸에 입력 두 개가 들어가는 컨트롤은 `col-span-full` 로 뺀다. */
+  --spacing-dl-form-col: 220px;
+  --spacing-dl-gutter: 20px; /* 카드 사이 · 본문 바깥 여백 — QA 리듬 20px */
+
+  --spacing-dl-sidebar: 224px;
+  --spacing-dl-sidebar-mini: 56px;
+  --spacing-dl-app-min: 1600px;
+  --spacing-dl-modal-alert: 500px; /* QA alert-content 고정 폭 */
+  --spacing-dl-modal-pick: 1140px; /* QA modal-content 기본 폭 */
+  --spacing-dl-modal-pick-min: 500px;
+  --spacing-dl-toast-w: 320px; /* QA .toast 고정 폭 */
+
+  /* ── 아이콘 크기 ──────────────────────────────────────────────────────────
+     QA 는 is-16 / is-20 / is-24 세 단이다. 자물쇠(12px)만 상태 표시 예외로 남긴다. */
+  --spacing-dl-ic-sm: 16px; /* 본문 · 버튼 안 · 폼 필드 액션 */
+  --spacing-dl-ic-md: 20px; /* 사이드바 메뉴 · 강조 액션 */
+  --spacing-dl-ic-lg: 24px; /* 모달 닫기 */
+  --spacing-dl-ic-lock: 12px; /* 자물쇠 — 상태 표시라 예외(면으로 그려 12px 에서도 형태가 산다) */
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-dl-canvas);
+    color: var(--color-dl-fg);
+    font-size: var(--text-dl-sm);
+    font-family: var(--font-dl-sans);
+    line-height: 1.5;
+    letter-spacing: -0.025em;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /**
+   * 포커스 표시는 접근성 요건이다. 절대 제거하지 않는다.
+   *
+   * QA 는 폼 컨트롤에 `outline: none` 을 두고 보더 색만 바꾸는데, 그 옵트아웃은
+   * `dl-field` 유틸리티 안에서만 한다. 버튼·링크·그리드 셀까지 전역으로 없애면
+   * 키보드 사용자가 화면에서 길을 잃는다.
+   */
+  :focus-visible {
+    outline: 2px solid var(--color-dl-primary);
+    outline-offset: 1px;
+  }
+}

@@ -3,17 +3,18 @@
 .idea
 
 # dependencies
-/node_modules
-*/node_modules
+**/node_modules
 /.pnp
 .pnp.js
 
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
+# next.js (모노레포 — 앱별 산출물)
+**/.next/
+**/out/
+**/next-env.d.ts
+**/tsconfig.tsbuildinfo
 
 # production
 /build
@@ -29,14 +30,10 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # local env files
-.env
 .env*.local
 
 # vercel
 .vercel
-/ckeditor5/node_modules/
 
-/ckeditor5/build
 html-admin-template
 /docs/
-/tsconfig.tsbuildinfo

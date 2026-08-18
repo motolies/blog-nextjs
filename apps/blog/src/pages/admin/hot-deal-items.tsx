@@ -1,0 +1,190 @@
+import { format } from 'date-fns';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import ShadcnDataTable, { type DataTableColumn } from '@/components/common/ShadcnDataTable';
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
+import { Badge } from '@/components/ui/badge';
+import service from '@/service';
+import { formatUtcToLocal } from '@/util/dateTimeUtil';
+
+interface SiteOption {
+  value: string;
+  label: string;
+}
+
+export default function HotDealItemsPage() {
+  // 모듈 로드 시점이 아닌 마운트 시점에 기본 검색일을 계산한다(자정 넘김 stale 방지)
+  const [today] = useState(() => format(new Date(), 'yyyy-MM-dd'));
+  const [siteOptions, setSiteOptions] = useState<SiteOption[]>([]);
+
+  useEffect(() => {
+    service.hotDeal
+      .getAllSites()
+      .then((sites: any) => {
+        setSiteOptions((sites ?? []).map((s: any) => ({ value: String(s.id), label: s.siteName })));
+      })
+      .catch(() => {});
+  }, []);
+
+  const fetchItems = useCallback(
+    (searchRequest: any) => service.hotDeal.searchItems({ searchRequest }),
+    [],
+  );
+
+  const columns = useMemo<DataTableColumn[]>(
+    () => [
+      {
+        accessorKey: 'siteName',
+        header: '사이트',
+        size: 140,
+        mobileLabel: '사이트',
+      },
+      {
+        accessorKey: 'title',
+        header: '제목',
+        grow: true,
+        mobilePrimary: true,
+        mobileLabel: '제목',
+        cell: ({ value, row }: { value: string; row: any }) => (
+          <a
+            href={row.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sky-600 hover:text-sky-800 hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {value}
+          </a>
+        ),
+      },
+      {
+        accessorKey: 'price',
+        header: '가격',
+        size: 200,
+        mobileLabel: '가격',
+      },
+      {
+        accessorKey: 'recommendationCount',
+        header: '추천',
+        size: 80,
+        // mobileHidden: true,
+        cellAlign: 'right',
+      },
+      {
+        accessorKey: 'unrecommendationCount',
+        header: '비추천',
+        size: 80,
+        mobileHidden: true,
+        cellAlign: 'right',
+      },
+      {
+        accessorKey: 'viewCount',
+        header: '조회',
+        size: 80,
+        // mobileHidden: true,
+        cellAlign: 'right',
+      },
+      {
+        accessorKey: 'commentCount',
+        header: '댓글',
+        size: 80,
+        mobileHidden: true,
+        cellAlign: 'right',
+      },
+      {
+        accessorKey: 'notified',
+        header: '알림',
+        size: 80,
+        mobileLabel: '알림',
+        mobileHidden: true,
+        cell: ({ value }: { value: boolean }) => (
+          <Badge variant={value ? 'success' : 'secondary'}>{value ? '발송' : '미발송'}</Badge>
+        ),
+      },
+      {
+        accessorKey: 'scrapedAt',
+        header: '스크래핑일시',
+        size: 200,
+        // mobileHidden: true,
+        cell: ({ value }: { value: string }) => formatUtcToLocal(value, 'yyyy-MM-dd HH:mm:ss'),
+      },
+    ],
+    [],
+  );
+
+  const searchFields = useMemo(
+    () => [
+      {
+        type: 'dateRange',
+        fromName: 'scrapedAtFrom',
+        toName: 'scrapedAtTo',
+        fromLabel: '시작일',
+        toLabel: '종료일',
+        pinned: true,
+      },
+      {
+        name: 'siteId',
+        label: '사이트',
+        type: 'select',
+        pinned: true,
+        options: siteOptions,
+      },
+      { name: 'title', label: '제목' },
+      // {
+      //   name: 'notified',
+      //   label: '알림 상태',
+      //   type: 'select',
+      //   options: [
+      //     {value: 'true', label: '발송'},
+      //     {value: 'false', label: '미발송'},
+      //   ],
+      // },
+      // {name: 'dealCategory', label: '딜 카테고리'},
+      {
+        type: 'numberRange',
+        fromName: 'minRecommendationCount',
+        toName: 'maxRecommendationCount',
+        fromLabel: '추천 최소',
+        toLabel: '추천 최대',
+        allowNegative: false,
+        min: 0,
+        integerOnly: true,
+      },
+      {
+        type: 'numberRange',
+        fromName: 'minViewCount',
+        toName: 'maxViewCount',
+        fromLabel: '조회 최소',
+        toLabel: '조회 최대',
+        allowNegative: false,
+        min: 0,
+        integerOnly: true,
+      },
+      {
+        type: 'numberRange',
+        fromName: 'minCommentCount',
+        toName: 'maxCommentCount',
+        fromLabel: '댓글 최소',
+        toLabel: '댓글 최대',
+        allowNegative: false,
+        min: 0,
+        integerOnly: true,
+      },
+    ],
+    [siteOptions],
+  );
+
+  return (
+    <AdminPageFrame>
+      <div className="admin-panel admin-table-shell">
+        <ShadcnDataTable
+          columns={columns}
+          fetchData={fetchItems}
+          searchFields={searchFields}
+          defaultSearchParams={{ scrapedAtFrom: today, scrapedAtTo: today }}
+          defaultPageSize={25}
+          enableDynamicSearch={true}
+        />
+      </div>
+    </AdminPageFrame>
+  );
+}

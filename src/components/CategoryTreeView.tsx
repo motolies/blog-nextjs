@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useState} from 'react'
-import {useCategoryTree} from '../hooks/useCategories'
+import {useCategoryTree} from '@/hooks/useCategories'
 import {Folder, FolderOpen, FolderTree} from 'lucide-react'
 import {Badge} from './ui/badge'
 import TreeView, {getExpandedIdsToDepth} from './ui/tree-view'

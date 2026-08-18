@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {toast} from 'sonner'
-import service from '../../service'
+import service from '@/service'
 
 interface MemoCategory {
   id: string | number

@@ -1,5 +1,5 @@
-import {getAuthTokenFromRequest} from '../../lib/authCookie'
-import {getBackendBaseUrl} from '../../lib/backendUrl'
+import {getAuthTokenFromRequest} from '@/lib/authCookie'
+import {getBackendBaseUrl} from '@/lib/backendUrl'
 import {Readable} from 'node:stream'
 import type {NextApiRequest, NextApiResponse} from 'next'
 

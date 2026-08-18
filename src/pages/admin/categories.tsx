@@ -1,18 +1,18 @@
-import CategoryTreeView from "../../components/CategoryTreeView"
-import CategoryDetailPanel from "../../components/category/CategoryDetailPanel"
-import CategoryAutoComplete from "../../components/CategoryAutoComplete"
-import DeleteConfirm from "../../components/confirm/DeleteConfirm"
+import CategoryTreeView from "@/components/CategoryTreeView"
+import CategoryDetailPanel from "@/components/category/CategoryDetailPanel"
+import CategoryAutoComplete from "@/components/CategoryAutoComplete"
+import DeleteConfirm from "@/components/confirm/DeleteConfirm"
 import {Plus, Save, Search, X} from 'lucide-react'
 import {useMemo, useState} from "react"
 import {toast} from 'sonner'
-import service from "../../service"
-import {useCategoryTree, useInvalidateCategories} from "../../hooks/useCategories"
-import {Button} from "../../components/ui/button"
-import {Input} from "../../components/ui/input"
-import {Label} from "../../components/ui/label"
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "../../components/ui/dialog"
-import AdminPageFrame from "../../components/layout/admin/AdminPageFrame"
-import {isSameEntityId} from "../../lib/combobox"
+import service from "@/service"
+import {useCategoryTree, useInvalidateCategories} from "@/hooks/useCategories"
+import {Button} from "@/components/ui/button"
+import {Input} from "@/components/ui/input"
+import {Label} from "@/components/ui/label"
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog"
+import AdminPageFrame from "@/components/layout/admin/AdminPageFrame"
+import {isSameEntityId} from "@/lib/combobox"
 import type {CategoryTreeNode} from '@/types/category'
 
 interface CategoryNode {

@@ -1,8 +1,8 @@
 import {useEffect, useState, useCallback} from 'react'
 import {List, ChevronDown} from 'lucide-react'
 import {cn} from '@/lib/utils'
-import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '../ui/collapsible'
-import {normalizeHeadingDepths} from '../../util/tocUtils'
+import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '@/components/ui/collapsible'
+import {normalizeHeadingDepths} from '@/util/tocUtils'
 
 interface TocItem {
     id: string

@@ -1,11 +1,11 @@
 import {useEffect, useRef, useState} from 'react'
 import {getTsid} from 'tsid-ts'
-import {Popover, PopoverContent, PopoverTrigger} from '../ui/popover'
-import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from '../ui/command'
-import {Button} from '../ui/button'
+import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from '@/components/ui/command'
+import {Button} from '@/components/ui/button'
 import {ChevronsUpDown, Loader2, Plus, Search} from 'lucide-react'
-import {COMBOBOX_POPOVER_CONTENT_CLASSNAME} from '../../lib/combobox'
-import service from '../../service'
+import {COMBOBOX_POPOVER_CONTENT_CLASSNAME} from '@/lib/combobox'
+import service from '@/service'
 
 interface PostSearchResult {
   id: number

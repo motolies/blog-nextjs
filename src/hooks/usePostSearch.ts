@@ -1,5 +1,5 @@
 import {useQuery} from '@tanstack/react-query'
-import service from '../service'
+import service from '@/service'
 import type {SearchAllParam} from '@/types/post'
 
 interface PostSearchResponse {

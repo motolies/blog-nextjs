@@ -1,7 +1,7 @@
-import {useAuthStore} from '../store/useAuthStore'
+import {useAuthStore} from '@/store/useAuthStore'
 import {useEffect, useState} from "react"
-import {Input} from '../components/ui/input'
-import {Button} from '../components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Button} from '@/components/ui/button'
 import type {ChangeEvent, FormEvent, KeyboardEvent} from 'react'
 
 export default function LoginPage() {

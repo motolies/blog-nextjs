@@ -3,11 +3,11 @@ import ReactECharts from 'echarts-for-react'
 import {toast} from 'sonner'
 import {Eye, FileText, FolderTree, Tags, TrendingUp} from 'lucide-react'
 import type {LucideIcon} from 'lucide-react'
-import service from '../../service'
-import type {StatsOverview} from '../../types/stats'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../../components/ui/select'
-import {Skeleton} from '../../components/ui/skeleton'
-import AdminPageFrame from '../../components/layout/admin/AdminPageFrame'
+import service from '@/service'
+import type {StatsOverview} from '@/types/stats'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
+import {Skeleton} from '@/components/ui/skeleton'
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame'
 
 interface StatCardProps {
   icon: LucideIcon

@@ -1,9 +1,9 @@
 import { useRef, useCallback } from "react"
-import { useLoadingStore } from "../../store/useLoadingStore"
-import { useInvalidateFiles } from "../../hooks/useFiles"
-import service from "../../service"
+import { useLoadingStore } from "@/store/useLoadingStore"
+import { useInvalidateFiles } from "@/hooks/useFiles"
+import service from "@/service"
 import { toast } from 'sonner'
-import { fileLink } from "../../util/fileLink"
+import { fileLink } from "@/util/fileLink"
 import dynamic from 'next/dynamic'
 
 function EditorLoadErrorFallback() {

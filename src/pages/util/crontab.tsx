@@ -1,14 +1,14 @@
 import {useState, useEffect, useCallback} from 'react'
-import {Tabs, TabsList, TabsTrigger, TabsContent} from '../../components/ui/tabs'
-import {Button} from '../../components/ui/button'
-import {Input} from '../../components/ui/input'
-import {Accordion, AccordionItem, AccordionTrigger, AccordionContent} from '../../components/ui/accordion'
+import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Accordion, AccordionItem, AccordionTrigger, AccordionContent} from '@/components/ui/accordion'
 import {ArrowLeft, Play, Copy, BookOpenText, Sparkles} from 'lucide-react'
 import {toast} from 'sonner'
 import {useRouter} from 'next/router'
 import {parse, getDay} from 'date-fns'
-import {copyTextToClipboard} from '../../util/browserUtils'
-import {calculateNextRuns, DAY_NAMES, generateKoreanDescription} from '../../util/crontabUtils'
+import {copyTextToClipboard} from '@/util/browserUtils'
+import {calculateNextRuns, DAY_NAMES, generateKoreanDescription} from '@/util/crontabUtils'
 
 const UNIX_PRESETS = [
     {label: '매분', expression: '* * * * *', description: '1분마다 실행'},

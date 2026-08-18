@@ -1,15 +1,15 @@
 import {useEffect, useState} from "react"
 import {toast} from 'sonner'
-import {ConditionComponent} from "../ConditionComponent"
+import {ConditionComponent} from "@/components/ConditionComponent"
 import {getTsid} from 'tsid-ts'
 import SearchCategory from "./SearchCategory"
 import SearchTag from "./SearchTag"
-import {searchObjectInit} from "../../model/searchObject"
-import {base64Encode} from "../../util/base64Util"
+import {searchObjectInit} from "@/model/searchObject"
+import {base64Encode} from "@/util/base64Util"
 import {useRouter} from "next/router"
-import {Button} from "../ui/button"
-import {Input} from "../ui/input"
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../ui/select"
+import {Button} from "@/components/ui/button"
+import {Input} from "@/components/ui/input"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Search} from "lucide-react"
 import type {Tag} from '@/types/tag'
 

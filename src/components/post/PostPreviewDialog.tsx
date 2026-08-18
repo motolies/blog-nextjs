@@ -6,7 +6,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import {Eye} from 'lucide-react'
-import {sanitizeThemeHostileStyles} from '../../util/contentStyleSanitizer'
+import {sanitizeThemeHostileStyles} from '@/util/contentStyleSanitizer'
 
 interface PostPreviewDialogProps {
     open: boolean

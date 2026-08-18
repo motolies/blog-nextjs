@@ -1,12 +1,12 @@
 import React, {useState, useEffect, useCallback, useMemo} from 'react'
 import ReactECharts from 'echarts-for-react'
 import {toast} from 'sonner'
-import service from '../../service'
-import ShadcnDataTable, {type DataTableColumn} from '../../components/common/ShadcnDataTable'
-import {formatLocalDateTime} from '../../util/dateTimeUtil'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../../components/ui/select'
-import {Skeleton} from '../../components/ui/skeleton'
-import AdminPageFrame from '../../components/layout/admin/AdminPageFrame'
+import service from '@/service'
+import ShadcnDataTable, {type DataTableColumn} from '@/components/common/ShadcnDataTable'
+import {formatLocalDateTime} from '@/util/dateTimeUtil'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
+import {Skeleton} from '@/components/ui/skeleton'
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame'
 
 export default function SprintPage() {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())

@@ -1,9 +1,9 @@
-import PostComponent from "../../components/post/PostComponent"
-import ReadingProgressBar from "../../components/post/ReadingProgressBar"
-import service from "../../service"
-import {tagKeys} from "../../hooks/useTags"
+import PostComponent from "@/components/post/PostComponent"
+import ReadingProgressBar from "@/components/post/ReadingProgressBar"
+import service from "@/service"
+import {tagKeys} from "@/hooks/useTags"
 import Head from "next/head"
-import {buildBackendAuthConfig} from "../../lib/ssrRequestAuth"
+import {buildBackendAuthConfig} from "@/lib/ssrRequestAuth"
 import {dehydrate, QueryClient} from '@tanstack/react-query'
 
 interface PostMeta {

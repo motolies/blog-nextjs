@@ -1,5 +1,5 @@
 import axiosClient from './axiosClient'
-import {base64Encode} from "../util/base64Util"
+import {base64Encode} from "@/util/base64Util"
 import type { AxiosRequestConfig } from 'axios'
 import type { Post, SearchAllParam } from '@/types/post'
 

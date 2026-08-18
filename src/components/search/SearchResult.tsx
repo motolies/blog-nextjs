@@ -1,4 +1,4 @@
-import {formatUtcToLocal} from "../../util/dateTimeUtil"
+import {formatUtcToLocal} from "@/util/dateTimeUtil"
 import Link from "next/link"
 import {ArrowRight, Clock3, FolderOpen} from "lucide-react"
 

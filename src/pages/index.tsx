@@ -1,7 +1,7 @@
-import service from "../service"
-import {SearchEngineComponent} from "../components/SearchEngineComponent"
+import service from "@/service"
+import {SearchEngineComponent} from "@/components/SearchEngineComponent"
 import {ArrowUpRight, Link2, Search} from 'lucide-react'
-import {buildBackendAuthConfig} from "../lib/ssrRequestAuth"
+import {buildBackendAuthConfig} from "@/lib/ssrRequestAuth"
 import type {GetServerSideProps} from 'next'
 import type {SearchEngine} from '@/types/searchEngine'
 import type {FavoriteCategory} from '@/types/favorite'

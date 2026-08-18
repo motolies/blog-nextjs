@@ -1,13 +1,13 @@
 import {useEffect, useState} from "react"
-import {useCategoryFlat} from "../../hooks/useCategories"
-import {ConditionComponent} from "../ConditionComponent"
+import {useCategoryFlat} from "@/hooks/useCategories"
+import {ConditionComponent} from "@/components/ConditionComponent"
 import {toast} from 'sonner'
-import {Popover, PopoverContent, PopoverTrigger} from "../ui/popover"
-import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "../ui/command"
-import {Button} from "../ui/button"
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command"
+import {Button} from "@/components/ui/button"
 import {ChevronsUpDown, Check} from "lucide-react"
-import {cn} from "../../lib/utils"
-import {COMBOBOX_POPOVER_CONTENT_CLASSNAME, isSameEntityId} from "../../lib/combobox"
+import {cn} from "@/lib/utils"
+import {COMBOBOX_POPOVER_CONTENT_CLASSNAME, isSameEntityId} from "@/lib/combobox"
 import type {Category} from '@/types/category'
 
 interface CategoryItem {

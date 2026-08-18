@@ -1,18 +1,18 @@
 import {useEffect, useMemo, useState} from "react"
-import {useAuthStore} from "../../store/useAuthStore"
+import {useAuthStore} from "@/store/useAuthStore"
 import {useShallow} from 'zustand/react/shallow'
 import {Tag} from "./TagComponent"
-import {useTags} from "../../hooks/useTags"
+import {useTags} from "@/hooks/useTags"
 import {toast} from 'sonner'
-import service from "../../service"
-import {Popover, PopoverContent, PopoverTrigger} from "../ui/popover"
-import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "../ui/command"
-import {Button} from "../ui/button"
+import service from "@/service"
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command"
+import {Button} from "@/components/ui/button"
 import {ChevronsUpDown} from "lucide-react"
 import {
     COMBOBOX_POPOVER_CONTENT_CLASSNAME,
     isSameEntityId,
-} from "../../lib/combobox"
+} from "@/lib/combobox"
 import type {Tag as TagType} from "@/types/tag"
 import type React from "react"
 

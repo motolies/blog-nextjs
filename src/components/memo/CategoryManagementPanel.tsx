@@ -1,13 +1,13 @@
 import React, {useState, useEffect, useMemo} from 'react'
 import {Plus, Pencil, Trash2} from 'lucide-react'
 import {toast} from 'sonner'
-import ShadcnDataTable from '../common/ShadcnDataTable'
-import {Button} from '../ui/button'
-import {Input} from '../ui/input'
-import {Label} from '../ui/label'
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '../ui/dialog'
-import DeleteConfirm from '../confirm/DeleteConfirm'
-import service from '../../service'
+import ShadcnDataTable from '@/components/common/ShadcnDataTable'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog'
+import DeleteConfirm from '@/components/confirm/DeleteConfirm'
+import service from '@/service'
 
 interface MemoCategory {
   id: string | number

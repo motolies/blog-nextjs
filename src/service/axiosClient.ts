@@ -1,5 +1,5 @@
 import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig, type AxiosResponse } from 'axios'
-import {getBackendBaseUrl} from '../lib/backendUrl'
+import {getBackendBaseUrl} from '@/lib/backendUrl'
 
 const CLIENT_TIMEZONE_HEADER = 'X-Client-Timezone'
 const CLIENT_UTC_OFFSET_HEADER = 'X-Client-Utc-Offset-Minutes'

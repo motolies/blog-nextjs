@@ -18,9 +18,9 @@ import {
 import {CSS} from '@dnd-kit/utilities'
 import {GripVertical, X} from 'lucide-react'
 import {toast} from 'sonner'
-import {Button} from '../ui/button'
-import {cn} from '../../lib/utils'
-import service from '../../service'
+import {Button} from '@/components/ui/button'
+import {cn} from '@/lib/utils'
+import service from '@/service'
 import type {SeriesPost} from '@/types/series'
 
 interface SortablePostListProps {

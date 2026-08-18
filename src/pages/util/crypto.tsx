@@ -1,13 +1,13 @@
 import {useState, useEffect} from 'react'
-import {Tabs, TabsList, TabsTrigger, TabsContent} from '../../components/ui/tabs'
-import {Button} from '../../components/ui/button'
-import {Textarea} from '../../components/ui/textarea'
-import {Input} from '../../components/ui/input'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../../components/ui/select'
+import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs'
+import {Button} from '@/components/ui/button'
+import {Textarea} from '@/components/ui/textarea'
+import {Input} from '@/components/ui/input'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
 import {ArrowUpDown, ArrowLeft, ChevronDown, ChevronUp, Copy, Eye, EyeOff, Settings2} from 'lucide-react'
 import {toast} from 'sonner'
 import {useRouter} from 'next/router'
-import {copyTextToClipboard} from '../../util/browserUtils'
+import {copyTextToClipboard} from '@/util/browserUtils'
 import {
     DEFAULT_AES_PBKDF2_OPTIONS,
     decryptAesPbkdf2,
@@ -15,7 +15,7 @@ import {
     encryptAesPbkdf2,
     encryptAesRawKey,
     utf8ByteLength
-} from '../../util/cryptoUtils'
+} from '@/util/cryptoUtils'
 
 function CopyButton({value, onCopy}) {
     return (

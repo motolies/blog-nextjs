@@ -1,10 +1,10 @@
 import {useCallback, useEffect, useMemo, useState} from 'react'
 import {format} from 'date-fns'
-import AdminPageFrame from '../../components/layout/admin/AdminPageFrame'
-import ShadcnDataTable, {type DataTableColumn} from '../../components/common/ShadcnDataTable'
-import {Badge} from '../../components/ui/badge'
-import service from '../../service'
-import {formatUtcToLocal} from '../../util/dateTimeUtil'
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame'
+import ShadcnDataTable, {type DataTableColumn} from '@/components/common/ShadcnDataTable'
+import {Badge} from '@/components/ui/badge'
+import service from '@/service'
+import {formatUtcToLocal} from '@/util/dateTimeUtil'
 
 interface SiteOption {
   value: string

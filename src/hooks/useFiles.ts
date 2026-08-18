@@ -1,5 +1,5 @@
 import {useQuery, useQueryClient} from '@tanstack/react-query'
-import service from '../service'
+import service from '@/service'
 import type {FileItem} from '@/types/file'
 
 export const fileKeys = {

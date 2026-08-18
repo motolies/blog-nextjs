@@ -1,13 +1,13 @@
 import {useState, useEffect, useRef, useCallback} from 'react'
-import {Tabs, TabsList, TabsTrigger, TabsContent} from '../../components/ui/tabs'
-import {Button} from '../../components/ui/button'
-import {Input} from '../../components/ui/input'
-import {Textarea} from '../../components/ui/textarea'
-import {Select, SelectTrigger, SelectValue, SelectContent, SelectItem} from '../../components/ui/select'
+import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Textarea} from '@/components/ui/textarea'
+import {Select, SelectTrigger, SelectValue, SelectContent, SelectItem} from '@/components/ui/select'
 import {Download, ArrowLeft} from 'lucide-react'
 import {toast} from 'sonner'
 import {useRouter} from 'next/router'
-import {downloadBlob, downloadDataUrl} from '../../util/browserUtils'
+import {downloadBlob, downloadDataUrl} from '@/util/browserUtils'
 
 const BARCODE_FORMATS = [
     {value: 'CODE128', label: 'CODE128', description: '모든 ASCII 문자 지원', example: 'ABC-12345'},

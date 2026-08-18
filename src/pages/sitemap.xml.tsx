@@ -1,5 +1,5 @@
-import {getBackendBaseUrl} from "../lib/backendUrl"
-import {buildForwardedHeaders} from "../lib/forwardedHeaders"
+import {getBackendBaseUrl} from "@/lib/backendUrl"
+import {buildForwardedHeaders} from "@/lib/forwardedHeaders"
 import type { GetServerSidePropsContext } from 'next'
 
 function generateSiteMap(posts: string[]) {

@@ -1,12 +1,12 @@
 import React, {useState, useEffect, useRef, useCallback} from 'react'
 import {createPortal} from 'react-dom'
-import {Button} from '../../components/ui/button'
-import {Input} from '../../components/ui/input'
-import {Select, SelectTrigger, SelectValue, SelectContent, SelectItem} from '../../components/ui/select'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Select, SelectTrigger, SelectValue, SelectContent, SelectItem} from '@/components/ui/select'
 import {Download, ArrowLeft, ZoomIn, ZoomOut, Crosshair, Maximize, Minimize, Eye, EyeOff} from 'lucide-react'
 import {toast} from 'sonner'
 import {useRouter} from 'next/router'
-import {downloadBlob, downloadDataUrl} from '../../util/browserUtils'
+import {downloadBlob, downloadDataUrl} from '@/util/browserUtils'
 
 const SAMPLE_CODES = {
     flowchart: [

@@ -1,12 +1,12 @@
 import {useRouter} from "next/router"
 import {useMemo} from "react"
-import {usePostSearch} from "../hooks/usePostSearch"
-import SearchResult from "../components/search/SearchResult"
-import {base64Decode, base64Encode} from "../util/base64Util"
-import SearchFilter from "../components/search/SearchFilter"
-import {searchObjectInit} from "../model/searchObject"
+import {usePostSearch} from "@/hooks/usePostSearch"
+import SearchResult from "@/components/search/SearchResult"
+import {base64Decode, base64Encode} from "@/util/base64Util"
+import SearchFilter from "@/components/search/SearchFilter"
+import {searchObjectInit} from "@/model/searchObject"
 import {getTsid} from 'tsid-ts'
-import {Button} from '../components/ui/button'
+import {Button} from '@/components/ui/button'
 import {ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight} from 'lucide-react'
 
 const SEARCH_PAGE_SIZE = 10

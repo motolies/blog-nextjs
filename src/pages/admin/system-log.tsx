@@ -1,11 +1,11 @@
 import React, {useCallback, useMemo, useState} from 'react'
 import {format} from 'date-fns'
-import ShadcnDataTable, {type DataTableColumn} from '../../components/common/ShadcnDataTable'
-import {Badge} from '../../components/ui/badge'
-import DetailDialog from '../../components/common/DetailDialog'
-import service from '../../service'
-import {formatUtcToLocal} from '../../util/dateTimeUtil'
-import AdminPageFrame from '../../components/layout/admin/AdminPageFrame'
+import ShadcnDataTable, {type DataTableColumn} from '@/components/common/ShadcnDataTable'
+import {Badge} from '@/components/ui/badge'
+import DetailDialog from '@/components/common/DetailDialog'
+import service from '@/service'
+import {formatUtcToLocal} from '@/util/dateTimeUtil'
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame'
 
 export default function SystemLog() {
   // 모듈 로드 시점이 아닌 마운트 시점에 기본 검색일을 계산한다(자정 넘김 stale 방지)

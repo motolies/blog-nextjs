@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import {ArrowRight, Clock3, FolderTree, LayoutTemplate, NotebookPen, Radar, ShieldCheck, Workflow} from 'lucide-react'
-import AdminPageFrame from '../components/layout/admin/AdminPageFrame'
-import {adminQuickLinks} from '../components/layout/admin/adminNavigation'
+import AdminPageFrame from '@/components/layout/admin/AdminPageFrame'
+import {adminQuickLinks} from '@/components/layout/admin/adminNavigation'
 import type {LucideIcon} from 'lucide-react'
 
 interface DashboardStat {

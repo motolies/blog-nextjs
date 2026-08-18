@@ -1,10 +1,10 @@
 import React from 'react'
 import {Plus, Trash2} from 'lucide-react'
-import {Button} from '../ui/button'
-import {Input} from '../ui/input'
-import {Label} from '../ui/label'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../ui/select'
-import {Switch} from '../ui/switch'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
+import {Switch} from '@/components/ui/switch'
 
 const ATTRIBUTE_TYPES = [
   {value: 'text', label: '텍스트'},

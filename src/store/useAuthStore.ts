@@ -1,6 +1,6 @@
 import {create} from 'zustand'
 import forge from 'node-forge'
-import service from '../service'
+import service from '@/service'
 import type {User} from '@/types/user'
 
 interface AuthState {

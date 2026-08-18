@@ -1,14 +1,14 @@
 import {useState, useEffect} from 'react'
-import {Tabs, TabsList, TabsTrigger, TabsContent} from '../../components/ui/tabs'
-import {Button} from '../../components/ui/button'
-import {Textarea} from '../../components/ui/textarea'
-import {Input} from '../../components/ui/input'
-import {Badge} from '../../components/ui/badge'
+import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs'
+import {Button} from '@/components/ui/button'
+import {Textarea} from '@/components/ui/textarea'
+import {Input} from '@/components/ui/input'
+import {Badge} from '@/components/ui/badge'
 import {ArrowUpDown, ArrowLeft, Copy} from 'lucide-react'
 import {toast} from 'sonner'
 import {useRouter} from 'next/router'
 import {format} from 'date-fns'
-import {copyTextToClipboard} from '../../util/browserUtils'
+import {copyTextToClipboard} from '@/util/browserUtils'
 import {
     decodeBase64Utf8,
     decodeJwtToken,
@@ -17,7 +17,7 @@ import {
     encodeUnicodeEscapes,
     formatJsonText,
     minifyJsonText
-} from '../../util/encodeUtils'
+} from '@/util/encodeUtils'
 
 function CopyButton({value, onCopy}) {
     return (

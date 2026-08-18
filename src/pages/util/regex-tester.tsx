@@ -1,9 +1,9 @@
 import React, {useCallback, useMemo, useState} from 'react'
-import {Tabs, TabsList, TabsTrigger, TabsContent} from '../../components/ui/tabs'
-import {Button} from '../../components/ui/button'
-import {Textarea} from '../../components/ui/textarea'
-import {Input} from '../../components/ui/input'
-import {Switch} from '../../components/ui/switch'
+import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs'
+import {Button} from '@/components/ui/button'
+import {Textarea} from '@/components/ui/textarea'
+import {Input} from '@/components/ui/input'
+import {Switch} from '@/components/ui/switch'
 import {ArrowLeft, Play, X, Copy, TestTubeDiagonal} from 'lucide-react'
 import {toast} from 'sonner'
 import {useRouter} from 'next/router'
@@ -16,8 +16,8 @@ import {
     HIGHLIGHT_COLORS,
     parseNamedGroups,
     validateBasicSyntax
-} from '../../util/regexValidator'
-import {copyTextToClipboard} from '../../util/browserUtils'
+} from '@/util/regexValidator'
+import {copyTextToClipboard} from '@/util/browserUtils'
 
 export default function RegexTester() {
     const router = useRouter()

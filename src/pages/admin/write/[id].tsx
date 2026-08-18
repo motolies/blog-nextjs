@@ -1,8 +1,8 @@
-import PostModifyComponent from "../../../components/post/PostModifyComponent"
+import PostModifyComponent from "@/components/post/PostModifyComponent"
 import {useEffect} from "react"
-import {usePostFormStore} from "../../../store/usePostFormStore"
+import {usePostFormStore} from "@/store/usePostFormStore"
 import {useRouter} from "next/router"
-import AdminPageFrame from "../../../components/layout/admin/AdminPageFrame"
+import AdminPageFrame from "@/components/layout/admin/AdminPageFrame"
 
 export default function ModifyPostPage() {
     const router = useRouter()

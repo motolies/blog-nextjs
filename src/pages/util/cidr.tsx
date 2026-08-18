@@ -1,14 +1,14 @@
 import {useCallback, useMemo, useState} from 'react'
-import {Tabs, TabsList, TabsTrigger, TabsContent} from '../../components/ui/tabs'
-import {Button} from '../../components/ui/button'
-import {Input} from '../../components/ui/input'
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../../components/ui/select'
-import {Accordion, AccordionItem, AccordionTrigger, AccordionContent} from '../../components/ui/accordion'
+import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
+import {Accordion, AccordionItem, AccordionTrigger, AccordionContent} from '@/components/ui/accordion'
 import {ArrowLeft, BookOpenText, Copy, Network, ScanSearch, Sparkles} from 'lucide-react'
 import {toast} from 'sonner'
 import {useRouter} from 'next/router'
-import {copyTextToClipboard} from '../../util/browserUtils'
-import {CIDR_PRESETS, CIDR_TABLE, isIpInCidr, parseCidr, rangeToCidrBlocks, splitSubnet} from '../../util/cidrUtils'
+import {copyTextToClipboard} from '@/util/browserUtils'
+import {CIDR_PRESETS, CIDR_TABLE, isIpInCidr, parseCidr, rangeToCidrBlocks, splitSubnet} from '@/util/cidrUtils'
 
 const SPLIT_LIMIT = 1024
 

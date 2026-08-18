@@ -1,11 +1,11 @@
 import {useState} from "react"
-import {useAuthStore} from "../../store/useAuthStore"
+import {useAuthStore} from "@/store/useAuthStore"
 import {useShallow} from 'zustand/react/shallow'
 import {Trash2} from "lucide-react"
-import {Button} from "../ui/button"
-import DeleteConfirm from "../confirm/DeleteConfirm"
-import {searchObjectInit} from "../../model/searchObject"
-import {base64Encode} from "../../util/base64Util"
+import {Button} from "@/components/ui/button"
+import DeleteConfirm from "@/components/confirm/DeleteConfirm"
+import {searchObjectInit} from "@/model/searchObject"
+import {base64Encode} from "@/util/base64Util"
 import {useRouter} from "next/router"
 
 interface TagProps {

@@ -13,25 +13,25 @@ import {
     Pencil,
     Trash2
 } from "lucide-react"
-import {Button} from "../ui/button"
-import DeleteConfirm from "../confirm/DeleteConfirm"
+import {Button} from "@/components/ui/button"
+import DeleteConfirm from "@/components/confirm/DeleteConfirm"
 import {useRouter} from "next/router"
 import {toast} from 'sonner'
-import {useAuthStore} from "../../store/useAuthStore"
+import {useAuthStore} from "@/store/useAuthStore"
 import {useShallow} from 'zustand/react/shallow'
-import PublicConfirm from "../confirm/PublicConfirm"
+import PublicConfirm from "@/components/confirm/PublicConfirm"
 import TagGroupComponent from "./TagGroupComponent"
 import Link from "next/link"
-import {searchObjectInit} from "../../model/searchObject"
-import {base64Encode} from "../../util/base64Util"
-import {fileLink} from "../../util/fileLink"
-import {usePostNavigationShortcut} from "../../util/usePostNavigationShortcut"
-import {useCodeHighlight} from "../../hooks/useCodeHighlight"
-import {sanitizeThemeHostileStyles} from "../../util/contentStyleSanitizer"
+import {searchObjectInit} from "@/model/searchObject"
+import {base64Encode} from "@/util/base64Util"
+import {fileLink} from "@/util/fileLink"
+import {usePostNavigationShortcut} from "@/util/usePostNavigationShortcut"
+import {useCodeHighlight} from "@/hooks/useCodeHighlight"
+import {sanitizeThemeHostileStyles} from "@/util/contentStyleSanitizer"
 import TableOfContents from "./TableOfContents"
 import styles from './PostComponent.module.css'
-import {formatLocalDate, formatUtcToLocal} from "../../util/dateTimeUtil"
-import service from "../../service"
+import {formatLocalDate, formatUtcToLocal} from "@/util/dateTimeUtil"
+import service from "@/service"
 import type {Tag} from "@/types/tag"
 import type {Series} from "@/types/series"
 

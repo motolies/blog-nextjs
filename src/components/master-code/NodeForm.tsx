@@ -1,9 +1,9 @@
 import React from 'react'
-import {Input} from '../ui/input'
-import {Label} from '../ui/label'
-import {Switch} from '../ui/switch'
-import {Textarea} from '../ui/textarea'
-import {cn} from '../../lib/utils'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Switch} from '@/components/ui/switch'
+import {Textarea} from '@/components/ui/textarea'
+import {cn} from '@/lib/utils'
 import {AttributeSchemaEditor, AttributeValueEditor} from './AttributeEditor'
 
 interface AttributeSchemaItem {

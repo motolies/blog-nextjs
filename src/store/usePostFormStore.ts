@@ -1,5 +1,5 @@
 import {create} from 'zustand'
-import service from '../service'
+import service from '@/service'
 import type {Post} from '@/types/post'
 
 const modifyPostInit: Post = {

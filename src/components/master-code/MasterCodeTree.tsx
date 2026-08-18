@@ -1,8 +1,8 @@
 import React, {useCallback} from 'react'
 import {FolderTree, Code, Folder, FolderOpen} from 'lucide-react'
-import {Badge} from '../ui/badge'
+import {Badge} from '@/components/ui/badge'
 import {cn} from '@/lib/utils'
-import TreeView from '../ui/tree-view'
+import TreeView from '@/components/ui/tree-view'
 
 interface MasterCodeTreeNode {
   id: number

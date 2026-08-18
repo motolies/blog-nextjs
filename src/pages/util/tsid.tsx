@@ -1,13 +1,13 @@
 import {useState} from 'react'
-import {Tabs, TabsList, TabsTrigger, TabsContent} from '../../components/ui/tabs'
-import {Button} from '../../components/ui/button'
-import {Input} from '../../components/ui/input'
+import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs'
+import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
 import {ArrowLeft, Copy, RefreshCw} from 'lucide-react'
 import {toast} from 'sonner'
 import {getTsid, TSID} from 'tsid-ts'
 import {format} from 'date-fns'
 import {useRouter} from 'next/router'
-import {copyTextToClipboard} from '../../util/browserUtils'
+import {copyTextToClipboard} from '@/util/browserUtils'
 
 const TSID_EPOCH = 1577836800000
 

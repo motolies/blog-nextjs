@@ -4,10 +4,11 @@ import { LabelTooltipDemo } from '../../client/ui-test/docs/demos/tooltip/label-
 import { type DocEntry, definePropRows } from './types';
 
 const USAGE = `import { Icon, Tooltip } from '@hvy/ui';
+import { CircleHelp } from 'lucide-react';
 
 <Tooltip content="검색 가능 기준값 안내">
   <button type="button" aria-label="도움말">
-    <Icon name="question" size="sm" />
+    <Icon icon={CircleHelp} size="sm" />
   </button>
 </Tooltip>`;
 

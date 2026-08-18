@@ -4,10 +4,11 @@ import { TabsBasicDemo } from '../../client/ui-test/docs/demos/tabs/basic';
 import { type DocEntry, definePropRows } from './types';
 
 const USAGE = `import { Tab, TabList, TabPanel, Tabs } from '@hvy/ui';
+import { Box } from 'lucide-react';
 
 <Tabs value={tab} onValueChange={setTab}>   // URL 연동은 useSearchParams 로 앱이 배선
   <TabList label="주문 상세 탭">
-    <Tab value="summary" icon="cube">요약</Tab>
+    <Tab value="summary" icon={Box}>요약</Tab>
     <Tab value="history">이력</Tab>
   </TabList>
   <TabPanel value="summary">…</TabPanel>
@@ -79,7 +80,7 @@ export const tabsDoc: DocEntry = {
         },
         {
           name: 'icon',
-          type: 'IconName',
+          type: 'LucideIcon',
           description: '라벨 왼쪽 아이콘 — 활성이면 primary 색.',
         },
         {

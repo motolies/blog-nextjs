@@ -5,9 +5,10 @@ import { ButtonPlaygroundDemo } from '../../client/ui-test/docs/demos/button/pla
 import { type DocEntry, definePropRows } from './types';
 
 const USAGE = `import { Button, IconButton } from '@hvy/ui';
+import { Save, Trash2 } from 'lucide-react';
 
-<Button variant="primary" icon="save" onClick={save}>저장</Button>
-<IconButton tone="danger" icon="delete" label="삭제" onClick={remove} />`;
+<Button variant="primary" icon={Save} onClick={save}>저장</Button>
+<IconButton tone="danger" icon={Trash2} label="삭제" onClick={remove} />`;
 
 /** Button · IconButton 문서 — variant 5종 × size 5단(테마 스케일 유도). */
 export const buttonDoc: DocEntry = {
@@ -60,7 +61,7 @@ export const buttonDoc: DocEntry = {
         },
         {
           name: 'icon',
-          type: 'IconName',
+          type: 'LucideIcon',
           description: '라벨 왼쪽 아이콘 — 크기는 버튼 size 를 따라간다(md 16 = QA is-16).',
         },
         {
@@ -81,7 +82,7 @@ export const buttonDoc: DocEntry = {
       rows: definePropRows<IconButtonProps>()([
         {
           name: 'icon',
-          type: 'IconName',
+          type: 'LucideIcon',
           required: true,
           description: '표시할 아이콘.',
         },

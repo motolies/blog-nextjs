@@ -36,4 +36,7 @@ yarn-error.log*
 .vercel
 
 html-admin-template
-/docs/
+
+# 로컬 PDCA/bkit 산출물 — biome(vcs.useIgnoreFile)이 함께 무시한다
+docs/.pdca-*
+docs/.bkit-memory.json

@@ -28,15 +28,23 @@ src/server/ui-test/demo-source.ts  데모 원문을 fs로 읽어 Code 탭에 공
 ## 실행
 
 ```shell
-pnpm -F ui-docs dev        # :3020
+pnpm dev:docs              # = pnpm -F ui-docs dev, :3020
 pnpm -F ui-docs typecheck
 ```
 
-테마 전환은 `?theme=` 쿼리 (default/compact — blog 테마는 Gate 3에서 추가).
+테마 전환은 우상단 셀렉트 또는 `?theme=` 쿼리 — `default` · `compact` · `blog` · `blog-dark`
+(목록의 진실 소스는 `src/shared/theme.ts` 의 `THEMES`).
+
+로컬 개발 절차 전반은 [로컬 개발 가이드](../../docs/local-development.md) 참고.
 
 ## 원본과의 차이 (deleo-one-ui apps/ui-docs 에서 분기)
 
-- 패키지명 `@deleo/ui` → `@hvy/ui`, oms 테마 제거
-- 아이콘 문서·데모를 lucide 전달형 `<Icon icon={X}>` 기준으로 재작성
-- work-tabs 문서 제거 (worktabs 미이식)
+- 패키지명 `@deleo/ui` → `@hvy/ui`, oms 테마 제거 (blog·blog-dark 테마 추가)
+- 아이콘 문서·데모를 lucide 전달형 `<Icon icon={X}>` 기준으로 재작성 — 데모의 QA 아이콘
+  이름도 lucide 로 치환(save→Save, delete→Trash2, question→CircleHelp 등)
+- blog 추가 문서 2종: accordion·combobox (원본에 없음)
+- 원본 문서 37종 전체 동기화(2026-08 HEAD) — work-tabs 포함(worktabs 이식 완료),
+  number-input·file-upload·기간 피커 2종·checkbox-group·stat-tile·form-section·
+  dropdown-menu·inline-notice·table 신규 유입
+- Dockerfile·docker-compose 미이식 (blog 는 ui-docs 를 배포하지 않는다 — 로컬 전용)
 - 데모 샘플 데이터의 주문 도메인 어휘는 동작 무관이라 유지 — 블로그 도메인 교체는 후속 과제

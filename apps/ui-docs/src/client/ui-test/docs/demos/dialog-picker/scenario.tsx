@@ -80,7 +80,12 @@ export function DialogPickerScenario() {
           help="시스템이 채우는 칸 — 직접 입력할 수 없다"
           className="w-64"
         >
-          <Input id="dpk-picked" lock="readonly" value={picked?.orderId ?? ''} />
+          <Input
+            id="dpk-picked"
+            lock
+            placeholder="자동 / 찾아보기로 선택"
+            value={picked?.orderId ?? ''}
+          />
         </Field>
 
         <Button variant="outline-primary" onClick={() => setPickerOpen(true)}>

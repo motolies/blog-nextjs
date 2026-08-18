@@ -1,6 +1,5 @@
-import { Eye } from 'lucide-react';
+import { ContentDialog } from '@hvy/ui';
 import { useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { sanitizeThemeHostileStyles } from '@/util/contentStyleSanitizer';
 
 interface PostPreviewDialogProps {
@@ -27,29 +26,24 @@ export default function PostPreviewDialog({
   }, [body]);
 
   return (
-    <Dialog
+    <ContentDialog
       open={open}
       onOpenChange={(isOpen: boolean) => {
         if (!isOpen) onClose();
       }}
+      title="미리보기"
+      size="xl"
     >
-      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-5xl max-h-[calc(100vh-6rem)] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Eye size={20} />
-            미리보기
-          </DialogTitle>
-        </DialogHeader>
-        <div className="mt-2">
-          <div className="surface-panel-strong rounded-[1.5rem] px-6 py-8 sm:px-8">
-            {subject && <h1 className="text-2xl font-bold mb-6">{subject}</h1>}
-            <div
-              className="content break-words"
-              dangerouslySetInnerHTML={{ __html: sanitizedBody }}
-            />
-          </div>
+      <div className="max-h-[calc(100vh-14rem)] overflow-y-auto">
+        <div className="surface-panel-strong rounded-[1.5rem] px-6 py-8 sm:px-8">
+          {subject && <h1 className="mb-6 font-bold text-2xl">{subject}</h1>}
+          <div
+            className="content break-words"
+            // 본문은 자체 작성 콘텐츠이며 sanitizeThemeHostileStyles 를 거친다.
+            dangerouslySetInnerHTML={{ __html: sanitizedBody }}
+          />
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </ContentDialog>
   );
 }

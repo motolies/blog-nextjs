@@ -1,23 +1,8 @@
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Combobox } from '@hvy/ui';
 import { useEffect, useState } from 'react';
 import { useCategoryFlat } from '@/hooks/useCategories';
-import {
-  COMBOBOX_POPOVER_CONTENT_CLASSNAME,
-  isSameEntityId,
-  isUnsetComboboxValue,
-} from '@/lib/combobox';
-import { cn } from '@/lib/utils';
+import { isSameEntityId, isUnsetComboboxValue } from '@/lib/combobox';
 import type { Category } from '@/types/category';
-import { Button } from './ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from './ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 
 interface FlatCategory extends Category {
   label?: string;
@@ -27,17 +12,19 @@ interface CategoryAutoCompleteProps {
   onChangeCategory: (category: FlatCategory) => void;
   setCategoryId: string | null | undefined;
   label?: string;
+  /** 바깥 `<Label htmlFor>` 과 연결할 트리거 id. */
+  id?: string;
 }
 
 export default function CategoryAutoComplete({
   onChangeCategory,
   setCategoryId,
   label,
+  id,
 }: CategoryAutoCompleteProps) {
   const { data: categoryData } = useCategoryFlat();
   const categoryState = (categoryData ?? []) as FlatCategory[];
   const [selectedCategory, setSelectedCategory] = useState<FlatCategory | null>(null);
-  const [open, setOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (isUnsetComboboxValue(setCategoryId)) {
@@ -51,57 +38,28 @@ export default function CategoryAutoComplete({
     setSelectedCategory(cat || null);
   }, [setCategoryId, categoryState]);
 
-  const onSelectCategory = (category: FlatCategory) => {
+  const onPickCategory = (value: string) => {
+    const category = categoryState.find((c) => isSameEntityId(c.id, value));
+    if (!category) return;
     setSelectedCategory(category);
     onChangeCategory?.(category);
-    setOpen(false);
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-        >
-          {selectedCategory ? selectedCategory.label || selectedCategory.name : label || 'Category'}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className={COMBOBOX_POPOVER_CONTENT_CLASSNAME}>
-        <Command
-          filter={(value: string, search: string) => {
-            if (value.toLowerCase().includes(search.toLowerCase())) return 1;
-            return 0;
-          }}
-        >
-          <CommandInput placeholder="카테고리 검색..." />
-          <CommandList>
-            <CommandEmpty>카테고리를 찾을 수 없습니다.</CommandEmpty>
-            <CommandGroup>
-              {categoryState.map((category) => (
-                <CommandItem
-                  key={category.id}
-                  value={category.label || category.name}
-                  onSelect={() => onSelectCategory(category)}
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      isSameEntityId(selectedCategory?.id, category.id)
-                        ? 'opacity-100'
-                        : 'opacity-0',
-                    )}
-                  />
-                  {category.label || category.name}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Combobox
+      id={id}
+      options={categoryState.map((category) => ({
+        value: String(category.id),
+        label: category.label || category.name,
+      }))}
+      pickedValues={selectedCategory ? [String(selectedCategory.id)] : []}
+      onPick={onPickCategory}
+      triggerLabel={
+        selectedCategory ? selectedCategory.label || selectedCategory.name : label || 'Category'
+      }
+      searchPlaceholder="카테고리 검색..."
+      emptyLabel="카테고리를 찾을 수 없습니다."
+      className="w-full"
+    />
   );
 }

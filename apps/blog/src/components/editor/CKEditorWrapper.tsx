@@ -1,5 +1,5 @@
 import { CKEditor } from '@ckeditor/ckeditor5-react';
-
+import { showToast } from '@hvy/ui';
 // MarkdownGfm* 은 통합 ckeditor5 패키지가 재수출한다 — 단독 @ckeditor/ckeditor5-markdown-gfm 을
 // 따로 의존하면 코어 버전이 갈라져 ckeditor-duplicated-modules 가 난다(pnpm 격리에서 실제 발생).
 import {
@@ -78,7 +78,6 @@ import {
 } from 'ckeditor5';
 import translations from 'ckeditor5/translations/ko.js';
 import { useEffect, useRef, useState } from 'react';
-import { toast } from 'sonner';
 import 'ckeditor5/ckeditor5.css';
 import { sanitizeThemeHostileStyles } from '@/util/contentStyleSanitizer';
 
@@ -89,11 +88,11 @@ interface EditorInitErrorProps {
 function EditorInitError({ message }: EditorInitErrorProps) {
   return (
     <div
-      className="rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100"
+      className="rounded-lg border border-dl-danger-border bg-dl-danger-bg px-4 py-3 text-sm text-dl-danger-ink"
       role="alert"
     >
       <p className="font-semibold">에디터 초기화에 실패했습니다.</p>
-      <p className="mt-1 text-red-100/80">{message}</p>
+      <p className="mt-1 text-dl-danger-ink">{message}</p>
     </div>
   );
 }
@@ -193,7 +192,7 @@ function createEditorConfig({
         );
       buttonView.on('execute', () => {
         if (!sourceEditing.isSourceEditingMode && hasPendingUploads(editor)) {
-          toast.warning('파일 업로드가 진행 중입니다. 업로드 완료 후 다시 시도해주세요.');
+          showToast('파일 업로드가 진행 중입니다. 업로드 완료 후 다시 시도해주세요.', 'warning');
           return;
         }
         sourceEditing.isSourceEditingMode = !sourceEditing.isSourceEditingMode;
@@ -238,7 +237,7 @@ function createEditorConfig({
         return;
       }
       if (hasPendingUploads(editor)) {
-        toast.warning('파일 업로드가 진행 중입니다. 업로드 완료 후 다시 시도해주세요.');
+        showToast('파일 업로드가 진행 중입니다. 업로드 완료 후 다시 시도해주세요.', 'warning');
         return;
       }
       snapshot = htmlToMd.parse(editor.getData());

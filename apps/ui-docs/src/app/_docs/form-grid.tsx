@@ -27,18 +27,18 @@ const USAGE = `import { Field, FieldValue, FormGrid, Input, Textarea } from '@hv
 </FormGrid>`;
 
 /**
- * 폼 본문 — 읽기 전용 3축과 폼 모드 계약의 결정표.
- * 규칙 정본은 packages/ui/README.md "폼 컨트롤 3모드"다 — 여기는 화면용 요약이다.
+ * 폼 본문 — 읽기 전용 4축과 폼 모드 계약의 결정표.
+ * 규칙 정본은 packages/ui/README.md "폼 컨트롤 상태 계약 (mode · lock · masking)"다 — 여기는 화면용 요약이다.
  */
 function FormGridModesBody() {
   return (
     <section className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
-        <h2 className="text-dl-xl font-bold text-dl-fg-strong">읽기 전용 축은 셋이다</h2>
+        <h2 className="text-dl-xl font-bold text-dl-fg-strong">읽기 전용 축은 넷이다</h2>
         <p className="text-dl-sm text-dl-fg-muted">
-          "이 칸은 왜 못 고치는가"의 답이 셋으로 갈린다 — 답이 다르면 쓰는 도구도 다르다. 같은 격자
-          안에서 셋이 섞이는 것이 상세 폼의 일반적인 모습이고, 값 칸 최소 높이 파리티(VALUE_MIN_H ↔
-          FIELD_SIZE_CLASS) 덕에 어떤 조합이든 행이 맞는다.
+          "이 칸은 왜 못 고치는가"의 답이 넷으로 갈린다 — 답이 다르면 쓰는 도구도 다르다. 같은 격자
+          안에서 여럿이 섞이는 것이 상세 폼의 일반적인 모습이고, 값 칸 최소 높이 파리티(VALUE_MIN_H
+          ↔ FIELD_SIZE_CLASS) 덕에 어떤 조합이든 행이 맞는다.
         </p>
         <div className="overflow-x-auto rounded-dl-container border border-dl-border bg-dl-surface">
           <table className="w-full text-dl-sm">
@@ -59,9 +59,18 @@ function FormGridModesBody() {
               </tr>
               <tr>
                 <td>잠금</td>
-                <td>지금은 못 고친다 — 마스킹·자동입력·조건부. 칸 수준</td>
                 <td>
-                  <code className="font-dl-mono">lock="auto | readonly | disabled"</code>
+                  시스템이 채워 영구 불변 — 모든 mode 를 이긴다. 값은 전송된다(readOnly). 칸 수준
+                </td>
+                <td>
+                  <code className="font-dl-mono">lock</code>
+                </td>
+              </tr>
+              <tr>
+                <td>마스킹</td>
+                <td>서버가 마스킹한 개인정보 — name 미전달로 전송 제외. Input·Textarea, 칸 수준</td>
+                <td>
+                  <code className="font-dl-mono">masking</code>
                 </td>
               </tr>
               <tr>
@@ -77,9 +86,9 @@ function FormGridModesBody() {
         </div>
         <p className="text-dl-sm text-dl-fg-muted">
           판정은 한 문장이다 —{' '}
-          <strong>모드를 오가는 화면이면 FieldValue 가 아니라 Field mode="view"</strong> 를 쓴다. 세
-          축은 직교한다: mode≠edit 이어도 lock 은 지워지지 않고 잠복하며, edit 복귀 시 그대로
-          복원된다(OR 합성).
+          <strong>모드를 오가는 화면이면 FieldValue 가 아니라 Field mode="view"</strong> 를 쓴다. 네
+          축은 직교한다: mode≠edit 이어도 lock·masking 은 지워지지 않고, lock 은 edit 로 돌아와도
+          잠겨 있다(모든 mode 를 이긴다).
         </p>
       </div>
 
@@ -133,7 +142,7 @@ function FormGridModesBody() {
           조회 화면에서 특정 칸만 여는 예외가 같은 prop 으로 표현된다.
           켜짐/꺼짐형(Checkbox·Switch)은 viewLabels 를 주입받고, 표시값 ≠ 편집값 칸은 Field 의 view
           가 덮는다. FormMode 는 폼에만 감는다 — 그리드 크롬(DataGrid 등)은 내부에서 edit 로 핀되어
-          있다. 규칙 정본은 packages/ui/README.md "폼 컨트롤 3모드".
+          있다. 규칙 정본은 packages/ui/README.md "폼 컨트롤 상태 계약 (mode · lock · masking)".
         </p>
       </div>
     </section>
@@ -146,13 +155,13 @@ export const formGridDoc: DocEntry = {
   category: 'components',
   title: 'FormGrid',
   description:
-    '상세 폼 격자 — div + CSS Grid 다. 라벨은 컨트롤 위에 오고 열 수는 카드 폭이 정한다(auto-fit). 한 줄을 다 쓰는 칸만 col-span-full 로 표시한다. 조회↔수정 전환은 격자가 아니라 모드 축(FormMode / Field mode)이 맡는다 — FormGrid 는 레이아웃 상자라 무변경(RSC 유지)이고, 아래 본문의 "읽기 전용 3축" 결정표를 먼저 본다. 구 FormTable(<table> + 회색 라벨 칸)을 대체한다 — rowSpan 사용처가 하나도 없어 표 구조를 쓸 근거가 없었고, 그리드 헤더와 같은 회색 배경은 "이건 표의 머리다"라는 뜻이라 상세 폼에 맞지 않았다.',
+    '상세 폼 격자 — div + CSS Grid 다. 라벨은 컨트롤 위에 오고 열 수는 카드 폭이 정한다(auto-fit). 한 줄을 다 쓰는 칸만 col-span-full 로 표시한다. 조회↔수정 전환은 격자가 아니라 모드 축(FormMode / Field mode)이 맡는다 — FormGrid 는 레이아웃 상자라 무변경(RSC 유지)이고, 아래 본문의 "읽기 전용 4축" 결정표를 먼저 본다. 구 FormTable(<table> + 회색 라벨 칸)을 대체한다 — rowSpan 사용처가 하나도 없어 표 구조를 쓸 근거가 없었고, 그리드 헤더와 같은 회색 배경은 "이건 표의 머리다"라는 뜻이라 상세 폼에 맞지 않았다.',
   usage: USAGE,
   examples: [
     {
       id: 'basic',
       title: '상세 폼',
-      note: '카드 + 격자 + Field(라벨 위). 배송지·메모는 col-span-full, 주문번호는 lock=auto 다. 카드 폭이 좁아지면 열이 스스로 줄어든다 — 컨테이너 쿼리 래퍼가 필요 없다. 저장을 누르면 필수 네 칸과 형식(연락처·금액)을 검사한다: 타이핑은 막지 않고 칸을 벗어날 때 정리하며(연락처는 숫자와 -, 금액은 천단위 콤마), 소수 자릿수를 넘긴 금액은 값을 자르지 않고 오류로 알린다 — 돈이 조용히 바뀌면 잘려나간 사실이 화면에 남지 않는다. 금액은 표시값과 전송값이 달라 hidden 입력이 콤마 없는 값을 싣는다(폼 아래 전송값 표시 참조).',
+      note: '카드 + 격자 + Field(라벨 위). 배송지·메모는 col-span-full, 주문번호는 lock(시스템 채움 영구 불변)이다. 카드 폭이 좁아지면 열이 스스로 줄어든다 — 컨테이너 쿼리 래퍼가 필요 없다. 저장을 누르면 필수 네 칸과 형식(연락처·금액)을 검사한다: 타이핑은 막지 않고 칸을 벗어날 때 정리하며(연락처는 숫자와 -, 금액은 천단위 콤마), 소수 자릿수를 넘긴 금액은 값을 자르지 않고 오류로 알린다 — 돈이 조용히 바뀌면 잘려나간 사실이 화면에 남지 않는다. 금액은 표시값과 전송값이 달라 hidden 입력이 콤마 없는 값을 싣는다(폼 아래 전송값 표시 참조).',
       file: 'src/client/ui-test/docs/demos/form-grid/basic.tsx',
       Component: FormGridBasicDemo,
     },
@@ -173,7 +182,7 @@ export const formGridDoc: DocEntry = {
     {
       id: 'readonly',
       title: '읽기 전용 — FieldValue',
-      note: 'FieldValue 는 Field 와 같은 세로 리듬을 쓰되 오류·필수 표시가 없다. 읽기 전용 축은 셋이고 이건 그중 "영구 조회"다 — lock 은 "지금은 못 고친다"(칸 수준), FieldValue 는 "애초에 고칠 대상이 아니다"(시간 개념 없음), mode 는 "지금은 조회 중이고 모드를 바꾸면 편집"(폼 수준). 조회↔수정을 오가는 화면이면 FieldValue 가 아니라 Field mode="view" 를 쓴다 — 아래 상세 폼 조회↔수정 예제가 그 대비다.',
+      note: 'FieldValue 는 Field 와 같은 세로 리듬을 쓰되 오류·필수 표시가 없다. 읽기 전용 축은 넷이고 이건 그중 "영구 조회"다 — lock 은 "시스템이 채워 영구 불변"(칸 수준, 모든 mode 를 이긴다), masking 은 "서버가 마스킹한 개인정보"(칸 수준, 전송 제외), FieldValue 는 "애초에 고칠 대상이 아니다"(시간 개념 없음), mode 는 "지금은 조회 중이고 모드를 바꾸면 편집"(폼 수준). 조회↔수정을 오가는 화면이면 FieldValue 가 아니라 Field mode="view" 를 쓴다 — 아래 상세 폼 조회↔수정 예제가 그 대비다.',
       file: 'src/client/ui-test/docs/demos/form-grid/readonly.tsx',
       Component: FormGridReadonlyDemo,
     },

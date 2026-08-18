@@ -1,26 +1,23 @@
+import {
+  Badge,
+  Button,
+  ContentDialog,
+  cn,
+  Input,
+  Label,
+  showToast,
+  Textarea,
+  useConfirm,
+} from '@hvy/ui';
 import { BookOpen, Plus, Save, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import DeleteConfirm from '@/components/confirm/DeleteConfirm';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import SeriesDetailPanel from '@/components/series/SeriesDetailPanel';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
 import service from '@/service';
 import type { Series, SeriesSummary } from '@/types/series';
 
 export default function SeriesPage() {
+  const askConfirm = useConfirm();
   // 목록 상태
   const [seriesList, setSeriesList] = useState<SeriesSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,17 +33,13 @@ export default function SeriesPage() {
   const [dialogMode, setDialogMode] = useState<'create' | 'edit' | null>(null);
   const [formData, setFormData] = useState({ title: '', description: '' });
 
-  // 삭제 확인 상태
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<Series | SeriesSummary | null>(null);
-
   // 데이터 로드
   const loadSeriesList = useCallback(async () => {
     try {
       const res = await service.series.getAll();
       setSeriesList(res.data ?? []);
     } catch {
-      toast.error('시리즈 목록을 불러오지 못했습니다.');
+      showToast('시리즈 목록을 불러오지 못했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -58,7 +51,7 @@ export default function SeriesPage() {
       const res = await service.series.getDetail({ seriesId: String(id) });
       setSelectedSeries(res.data);
     } catch {
-      toast.error('시리즈 상세를 불러오지 못했습니다.');
+      showToast('시리즈 상세를 불러오지 못했습니다.', 'error');
       setSelectedSeries(null);
     } finally {
       setDetailLoading(false);
@@ -108,7 +101,7 @@ export default function SeriesPage() {
   // 저장 (생성/수정)
   const handleSave = async () => {
     if (!formData.title.trim()) {
-      toast.error('시리즈 제목은 필수입니다.');
+      showToast('시리즈 제목은 필수입니다.', 'error');
       return;
     }
     try {
@@ -117,7 +110,7 @@ export default function SeriesPage() {
           title: formData.title.trim(),
           description: formData.description.trim() || undefined,
         });
-        toast.success('시리즈가 생성되었습니다.');
+        showToast('시리즈가 생성되었습니다.');
         setOpenDialog(false);
         await loadSeriesList();
         // 생성된 시리즈 자동 선택
@@ -132,55 +125,48 @@ export default function SeriesPage() {
           title: formData.title.trim(),
           description: formData.description.trim() || undefined,
         });
-        toast.success('시리즈가 수정되었습니다.');
+        showToast('시리즈가 수정되었습니다.');
         setOpenDialog(false);
         await Promise.all([loadSeriesList(), loadSeriesDetail(selectedSeries!.id)]);
       }
     } catch {
-      toast.error(
+      showToast(
         dialogMode === 'create' ? '시리즈 생성에 실패했습니다.' : '시리즈 수정에 실패했습니다.',
+        'error',
       );
     }
   };
 
   // 삭제
-  const handleDelete = (series: Series | SeriesSummary) => {
-    setDeleteTarget(series);
-    setShowDeleteConfirm(true);
-  };
-
-  const confirmDelete = async () => {
-    setShowDeleteConfirm(false);
+  const handleDelete = async (series: Series | SeriesSummary) => {
+    const postCount =
+      'postCount' in series ? series.postCount : 'posts' in series ? series.posts?.length : 0;
+    const ok = await askConfirm({
+      message:
+        `"${series.title}" 시리즈를 삭제하시겠습니까?` +
+        ((postCount ?? 0) > 0 ? ' 포함된 포스트의 시리즈 연결이 해제됩니다.' : ''),
+      confirmLabel: '삭제',
+      destructive: true,
+    });
+    if (!ok) return;
     try {
-      await service.series.delete({ seriesId: String(deleteTarget!.id) });
-      toast.success('시리즈가 삭제되었습니다.');
-      if (selectedSeriesId === deleteTarget!.id) {
+      await service.series.delete({ seriesId: String(series.id) });
+      showToast('시리즈가 삭제되었습니다.');
+      if (selectedSeriesId === series.id) {
         setSelectedSeriesId(null);
         setSelectedSeries(null);
       }
       await loadSeriesList();
     } catch {
-      toast.error('시리즈 삭제에 실패했습니다.');
+      showToast('시리즈 삭제에 실패했습니다.', 'error');
     }
-    setDeleteTarget(null);
   };
-
-  const deleteQuestion = deleteTarget
-    ? `"${deleteTarget.title}" 시리즈를 삭제하시겠습니까?` +
-      (('postCount' in deleteTarget
-        ? deleteTarget.postCount
-        : 'posts' in deleteTarget
-          ? deleteTarget.posts?.length
-          : 0) > 0
-        ? ' 포함된 포스트의 시리즈 연결이 해제됩니다.'
-        : '')
-    : '';
 
   return (
     <AdminPageFrame
       className="admin-page-frame--fixed"
       actions={
-        <Button onClick={handleCreate}>
+        <Button variant="primary" onClick={handleCreate}>
           <Plus className="h-4 w-4 mr-1" />새 시리즈
         </Button>
       }
@@ -188,7 +174,7 @@ export default function SeriesPage() {
       {/* 검색 바 */}
       <div className="admin-panel admin-panel-pad mb-2">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-dl-fg-muted" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -198,10 +184,10 @@ export default function SeriesPage() {
           {searchQuery && (
             <button
               type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 hover:bg-muted"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 hover:bg-dl-option-hover"
               onClick={() => setSearchQuery('')}
             >
-              <X className="h-3.5 w-3.5 text-muted-foreground" />
+              <X className="h-3.5 w-3.5 text-dl-fg-muted" />
             </button>
           )}
         </div>
@@ -224,7 +210,7 @@ export default function SeriesPage() {
                     {searchQuery ? '검색 결과가 없습니다.' : '시리즈가 없습니다.'}
                   </p>
                   {!searchQuery && (
-                    <Button size="sm" onClick={handleCreate}>
+                    <Button variant="primary" size="sm" onClick={handleCreate}>
                       <Plus className="h-4 w-4 mr-1" />첫 시리즈 만들기
                     </Button>
                   )}
@@ -240,7 +226,7 @@ export default function SeriesPage() {
                     className={cn(
                       'w-full text-left rounded-lg px-3 py-2.5 transition-colors duration-150',
                       'hover:bg-[color:var(--admin-canvas-strong)]',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dl-primary focus-visible:ring-offset-1',
                       selectedSeriesId === s.id &&
                         'bg-[color:var(--admin-canvas-strong)] ring-1 ring-[color:var(--admin-border-strong)]',
                     )}
@@ -250,7 +236,7 @@ export default function SeriesPage() {
                       <span className="truncate text-sm font-semibold text-[color:var(--admin-text)]">
                         {s.title}
                       </span>
-                      <Badge variant="secondary" className="shrink-0 text-xs">
+                      <Badge tone="neutral" className="shrink-0 text-xs">
                         {s.postCount}
                       </Badge>
                     </div>
@@ -279,59 +265,50 @@ export default function SeriesPage() {
       </div>
 
       {/* 생성/수정 다이얼로그 */}
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{dialogMode === 'create' ? '시리즈 추가' : '시리즈 수정'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div className="space-y-1">
-              <Label htmlFor="series-title">제목 *</Label>
-              <Input
-                id="series-title"
-                value={formData.title}
-                onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                placeholder="시리즈 제목"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSave();
-                }}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="series-description">설명</Label>
-              <Textarea
-                id="series-description"
-                value={formData.description}
-                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                placeholder="시리즈에 대한 간단한 설명 (선택사항)"
-                rows={3}
-                className="resize-none"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenDialog(false)}>
+      <ContentDialog
+        open={openDialog}
+        onOpenChange={setOpenDialog}
+        title={dialogMode === 'create' ? '시리즈 추가' : '시리즈 수정'}
+        size="md"
+        footer={
+          <>
+            <Button variant="outline-gray" onClick={() => setOpenDialog(false)}>
               취소
             </Button>
-            <Button onClick={handleSave}>
+            <Button variant="primary" onClick={handleSave}>
               <Save className="h-4 w-4 mr-1" />
               저장
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* 삭제 확인 */}
-      <DeleteConfirm
-        open={showDeleteConfirm}
-        question={deleteQuestion}
-        onConfirm={confirmDelete}
-        onCancel={() => {
-          setShowDeleteConfirm(false);
-          setDeleteTarget(null);
-        }}
-      />
+          </>
+        }
+      >
+        <div className="space-y-4 pt-2">
+          <div className="space-y-1">
+            <Label htmlFor="series-title">제목 *</Label>
+            <Input
+              id="series-title"
+              value={formData.title}
+              onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+              placeholder="시리즈 제목"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSave();
+              }}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="series-description">설명</Label>
+            <Textarea
+              id="series-description"
+              value={formData.description}
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              placeholder="시리즈에 대한 간단한 설명 (선택사항)"
+              rows={3}
+              className="resize-none"
+            />
+          </div>
+        </div>
+      </ContentDialog>
     </AdminPageFrame>
   );
 }

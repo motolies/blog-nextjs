@@ -1,10 +1,10 @@
 import type { Tooltip } from '@hvy/ui';
+import { CircleHelp } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { LabelTooltipDemo } from '../../client/ui-test/docs/demos/tooltip/label-tooltip';
 import { type DocEntry, definePropRows } from './types';
 
 const USAGE = `import { Icon, Tooltip } from '@hvy/ui';
-import { CircleHelp } from 'lucide-react';
 
 <Tooltip content="검색 가능 기준값 안내">
   <button type="button" aria-label="도움말">

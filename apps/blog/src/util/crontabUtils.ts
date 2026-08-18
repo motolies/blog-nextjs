@@ -189,7 +189,7 @@ export const generateKoreanDescription = (
     }
 
     return `${descriptions.join(' ')} 실행`.replace(/\s+/g, ' ').trim();
-  } catch (e) {
+  } catch {
     return '표현식을 분석할 수 없습니다.';
   }
 };

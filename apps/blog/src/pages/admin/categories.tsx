@@ -1,22 +1,17 @@
-import { Plus, Save, Search, X } from 'lucide-react';
+import { Button, ContentDialog, Input, Label, showToast, useConfirm } from '@hvy/ui';
+import { Plus, Save } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
 import CategoryAutoComplete from '@/components/CategoryAutoComplete';
-import CategoryTreeView from '@/components/CategoryTreeView';
+import CategoryTreeView, {
+  type CategoryTreeNodeView,
+  categorySearchFields,
+  getCategoryRowId,
+} from '@/components/CategoryTreeView';
 import CategoryDetailPanel from '@/components/category/CategoryDetailPanel';
-import DeleteConfirm from '@/components/confirm/DeleteConfirm';
+import TreeSearchBar from '@/components/common/tree/TreeSearchBar';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useCategoryTree, useInvalidateCategories } from '@/hooks/useCategories';
+import { useTreeSearch } from '@/hooks/useTreeSearch';
 import { isSameEntityId } from '@/lib/combobox';
 import service from '@/service';
 
@@ -28,15 +23,25 @@ interface CategoryNode {
 }
 
 export default function CategoriesPage() {
+  const askConfirm = useConfirm();
   const { data: categoryTree } = useCategoryTree();
   const invalidateCategories = useInvalidateCategories();
 
-  const [selectedNode, setSelectedNode] = useState<CategoryNode | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  // 선택은 id 로만 들고 원본 트리에서 되찾는다. 노드 객체를 그대로 저장하면 검색 필터가
+  // 만든 클론(자식이 걸러진)이 들어와 상세 패널의 "하위 카테고리 N개" 가 틀어진다.
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
-  // 삭제 확인
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<CategoryNode | null>(null);
+  // 트리 검색 — 검색어와 펼침 상태를 함께 소유한다.
+  const nodes = useMemo(
+    () => (categoryTree ? [categoryTree as unknown as CategoryTreeNodeView] : []),
+    [categoryTree],
+  );
+  const search = useTreeSearch(nodes, getCategoryRowId, categorySearchFields);
+
+  const selectedNode = useMemo<CategoryNode | null>(
+    () => (selectedNodeId ? findNodeById(categoryTree as any, selectedNodeId) : null),
+    [categoryTree, selectedNodeId],
+  );
 
   // 다이얼로그
   const [openDialog, setOpenDialog] = useState(false);
@@ -53,11 +58,6 @@ export default function CategoriesPage() {
 
   const refresh = () => {
     invalidateCategories();
-  };
-
-  // 노드 선택
-  const handleNodeSelect = (node: any) => {
-    setSelectedNode(node as CategoryNode);
   };
 
   // 최상위 카테고리 추가
@@ -85,30 +85,29 @@ export default function CategoriesPage() {
   };
 
   // 삭제
-  const handleDelete = (node: CategoryNode) => {
-    setDeleteTarget(node);
-    setShowDeleteConfirm(true);
-  };
-
-  const confirmDelete = async () => {
-    setShowDeleteConfirm(false);
+  const handleDelete = async (node: CategoryNode) => {
+    const ok = await askConfirm({
+      message: `${node.name} 카테고리를 삭제하시겠습니까?`,
+      confirmLabel: '삭제',
+      destructive: true,
+    });
+    if (!ok) return;
     try {
-      await service.category.delete({ id: deleteTarget!.id });
-      toast.success('카테고리가 삭제되었습니다.');
-      if (selectedNode?.id === deleteTarget!.id) {
-        setSelectedNode(null);
+      await service.category.delete({ id: node.id });
+      showToast('카테고리가 삭제되었습니다.');
+      if (selectedNodeId === node.id) {
+        setSelectedNodeId(null);
       }
       refresh();
     } catch {
-      toast.error('카테고리 삭제에 실패하였습니다.');
+      showToast('카테고리 삭제에 실패하였습니다.', 'error');
     }
-    setDeleteTarget(null);
   };
 
   // 부모 카테고리 변경 (편집 모드)
   const onChangeParentCategory = (parentCategory: any) => {
     if (isSameEntityId(parentCategory?.id, selectedNode?.id)) {
-      toast.error('동일 카테고리는 부모 카테고리에 설정할 수 없습니다.');
+      showToast('동일 카테고리는 부모 카테고리에 설정할 수 없습니다.', 'error');
       return;
     }
     if (parentCategory !== null) {
@@ -119,7 +118,7 @@ export default function CategoriesPage() {
   // 저장
   const handleSave = async () => {
     if (!formData.name?.trim()) {
-      toast.error('카테고리 이름은 필수입니다.');
+      showToast('카테고리 이름은 필수입니다.', 'error');
       return;
     }
 
@@ -131,7 +130,7 @@ export default function CategoriesPage() {
           parentId: formData.parentId,
         };
         await service.category.save({ category });
-        toast.success('카테고리가 저장되었습니다.');
+        showToast('카테고리가 저장되었습니다.');
       } else if (dialogMode === 'edit') {
         const category = {
           ...selectedNode,
@@ -139,15 +138,19 @@ export default function CategoriesPage() {
           parentId: formData.parentId,
         };
         await service.category.update({ category });
-        toast.success('카테고리가 수정되었습니다.');
+        showToast('카테고리가 수정되었습니다.');
       }
+      // 방금 만든 카테고리가 검색어와 맞지 않으면 화면에 나타나지 않는다 — 생성일 때만 필터를 푼다.
+      if (dialogMode !== 'edit') search.clearQuery();
+
       setOpenDialog(false);
       refresh();
     } catch {
-      toast.error(
+      showToast(
         dialogMode === 'edit'
           ? '카테고리 수정에 실패하였습니다.'
           : '카테고리 저장에 실패하였습니다.',
+        'error',
       );
     }
   };
@@ -163,44 +166,37 @@ export default function CategoriesPage() {
     <AdminPageFrame
       className="admin-page-frame--fixed"
       actions={
-        <Button onClick={handleAddRoot}>
+        <Button variant="primary" onClick={handleAddRoot}>
           <Plus className="h-4 w-4 mr-1" />
           카테고리 추가
         </Button>
       }
     >
       {/* 검색 바 */}
-      <div className="admin-panel admin-panel-pad mb-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="카테고리 이름으로 검색..."
-            className="pl-9 pr-8"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 hover:bg-muted"
-              onClick={() => setSearchQuery('')}
-            >
-              <X className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
-          )}
-        </div>
-      </div>
+      <TreeSearchBar
+        value={search.query}
+        onChange={search.setQuery}
+        onClear={search.clearQuery}
+        placeholder="카테고리 이름으로 검색..."
+        label="카테고리 검색"
+        resultCount={search.isSearching ? search.matchCount : null}
+      />
 
       {/* 메인 콘텐츠 */}
       <div className="admin-split-layout admin-fill" data-size="wide">
         {/* 좌측: 트리 뷰 */}
         <div className="admin-panel admin-fill min-w-0 overflow-hidden">
-          <CategoryTreeView
-            onChangeCategory={handleNodeSelect}
-            selectedNodeId={selectedNode?.id}
-            searchQuery={searchQuery}
-            collapsible={false}
-          />
+          <div className="h-full overflow-y-auto p-2">
+            <CategoryTreeView
+              nodes={search.nodes}
+              selectedNodeId={selectedNodeId}
+              onSelectNode={setSelectedNodeId}
+              expanded={search.expanded}
+              onToggle={search.toggle}
+              query={search.query}
+              isSearching={search.isSearching}
+            />
+          </div>
         </div>
 
         {/* 우측: 상세 패널 */}
@@ -216,59 +212,53 @@ export default function CategoriesPage() {
       </div>
 
       {/* 추가/편집 다이얼로그 */}
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{dialogTitle}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            {dialogMode === 'addChild' && dialogParentNode && (
-              <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-3 text-sm">
-                <span className="text-[color:var(--admin-text-faint)]">부모 카테고리: </span>
-                <strong className="text-[color:var(--admin-text)]">{dialogParentNode.name}</strong>
-              </div>
-            )}
-            <div className="space-y-1">
-              <Label>이름 *</Label>
-              <Input
-                value={formData.name}
-                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                placeholder="카테고리 이름"
-                autoFocus
-              />
-            </div>
-            {dialogMode === 'edit' && (
-              <div className="space-y-1">
-                <Label>부모 카테고리</Label>
-                <CategoryAutoComplete
-                  onChangeCategory={onChangeParentCategory}
-                  setCategoryId={formData.parentId}
-                  label="부모 카테고리"
-                />
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenDialog(false)}>
+      <ContentDialog
+        open={openDialog}
+        onOpenChange={setOpenDialog}
+        title={dialogTitle}
+        size="md"
+        footer={
+          <>
+            <Button variant="outline-gray" onClick={() => setOpenDialog(false)}>
               취소
             </Button>
-            <Button onClick={handleSave}>
+            <Button variant="primary" onClick={handleSave}>
               <Save className="h-4 w-4 mr-1" />
               저장
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <DeleteConfirm
-        open={showDeleteConfirm}
-        question={`${deleteTarget?.name} 카테고리를 삭제하시겠습니까?`}
-        onConfirm={confirmDelete}
-        onCancel={() => {
-          setShowDeleteConfirm(false);
-          setDeleteTarget(null);
-        }}
-      />
+          </>
+        }
+      >
+        <div className="space-y-4 pt-2">
+          {dialogMode === 'addChild' && dialogParentNode && (
+            <div className="rounded-lg border border-dl-tonal-border bg-dl-tonal p-3 text-sm">
+              <span className="text-[color:var(--admin-text-faint)]">부모 카테고리: </span>
+              <strong className="text-[color:var(--admin-text)]">{dialogParentNode.name}</strong>
+            </div>
+          )}
+          <div className="space-y-1">
+            <Label htmlFor="category-name">이름 *</Label>
+            <Input
+              id="category-name"
+              value={formData.name}
+              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+              placeholder="카테고리 이름"
+              autoFocus
+            />
+          </div>
+          {dialogMode === 'edit' && (
+            <div className="space-y-1">
+              <Label htmlFor="category-parent">부모 카테고리</Label>
+              <CategoryAutoComplete
+                id="category-parent"
+                onChangeCategory={onChangeParentCategory}
+                setCategoryId={formData.parentId}
+                label="부모 카테고리"
+              />
+            </div>
+          )}
+        </div>
+      </ContentDialog>
     </AdminPageFrame>
   );
 }

@@ -1,17 +1,6 @@
-import { ChevronsUpDown, Loader2, Plus, Search } from 'lucide-react';
+import { Combobox } from '@hvy/ui';
 import { useEffect, useRef, useState } from 'react';
 import { getTsid } from 'tsid-ts';
-import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { COMBOBOX_POPOVER_CONTENT_CLASSNAME } from '@/lib/combobox';
 import service from '@/service';
 
 interface PostSearchResult {
@@ -24,12 +13,23 @@ interface PostSearchComboboxProps {
   onSelect: (post: { postId: number; subject: string }) => void;
 }
 
+/**
+ * 시리즈에 넣을 포스트 검색 피커 — Combobox 의 서버 검색 모드(controlled query).
+ * 디바운스(300ms)와 API 호출은 앱 몫이고, Combobox 는 목록·키보드·표시만 맡는다.
+ */
 export default function PostSearchCombobox({ excludePostIds, onSelect }: PostSearchComboboxProps) {
-  const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState<PostSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /**
+   * 배열이 아니라 **내용**으로 effect 를 건다.
+   * 호출부는 `series.posts.map(...)` 처럼 렌더마다 새 배열을 만드는 것이 자연스럽고,
+   * 그걸 그대로 의존성에 두면 디바운스 타이머가 매 렌더 되감겨 검색이 영영 실행되지 않는다.
+   * 신원 안정화를 호출부에 요구하는 대신 여기서 흡수한다 — 요구는 언젠가 잊힌다.
+   */
+  const excludeKey = excludePostIds.join(',');
 
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -60,7 +60,8 @@ export default function PostSearchCombobox({ excludePostIds, onSelect }: PostSea
           id: Number(p.id),
           subject: p.subject,
         }));
-        setResults(posts.filter((p) => !excludePostIds.includes(p.id)));
+        const excluded = new Set(excludeKey === '' ? [] : excludeKey.split(',').map(Number));
+        setResults(posts.filter((p) => !excluded.has(p.id)));
       } catch {
         setResults([]);
       } finally {
@@ -71,64 +72,28 @@ export default function PostSearchCombobox({ excludePostIds, onSelect }: PostSea
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [searchQuery, excludePostIds]);
+    // excludePostIds 가 아니라 excludeKey 를 거는 것이 핵심이다(위 주석 참조).
+  }, [searchQuery, excludeKey]);
 
-  const handleSelect = (post: PostSearchResult) => {
+  const handlePick = (value: string) => {
+    const post = results.find((p) => p.id === Number(value));
+    if (!post) return;
     onSelect({ postId: post.id, subject: post.subject });
     setSearchQuery('');
     setResults([]);
-    setOpen(false);
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between text-[color:var(--admin-text-muted)]"
-        >
-          <span className="flex items-center gap-2">
-            <Search className="h-4 w-4" />
-            포스트 검색하여 추가...
-          </span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className={COMBOBOX_POPOVER_CONTENT_CLASSNAME}>
-        <Command shouldFilter={false}>
-          <CommandInput
-            placeholder="포스트 제목으로 검색..."
-            value={searchQuery}
-            onValueChange={setSearchQuery}
-          />
-          <CommandList>
-            {loading && (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-4 w-4 animate-spin text-[color:var(--admin-text-faint)]" />
-              </div>
-            )}
-            {!loading && searchQuery.trim() && results.length === 0 && (
-              <CommandEmpty>검색 결과가 없습니다.</CommandEmpty>
-            )}
-            {!loading && results.length > 0 && (
-              <CommandGroup>
-                {results.map((post) => (
-                  <CommandItem
-                    key={post.id}
-                    value={String(post.id)}
-                    onSelect={() => handleSelect(post)}
-                  >
-                    <Plus className="mr-2 h-4 w-4 text-[color:var(--admin-text-faint)]" />
-                    <span className="truncate">{post.subject}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Combobox
+      options={results.map((post) => ({ value: String(post.id), label: post.subject }))}
+      onPick={handlePick}
+      triggerLabel="포스트 검색하여 추가..."
+      searchPlaceholder="포스트 제목으로 검색..."
+      emptyLabel={searchQuery.trim() ? '검색 결과가 없습니다.' : '제목을 입력해 검색하세요.'}
+      query={searchQuery}
+      onQueryChange={setSearchQuery}
+      loading={loading}
+      className="w-full text-[color:var(--admin-text-muted)]"
+    />
   );
 }

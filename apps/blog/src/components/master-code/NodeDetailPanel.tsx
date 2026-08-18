@@ -1,8 +1,6 @@
+import { Badge, Button, EmptyState, FieldValue, FormGrid } from '@hvy/ui';
 import { Code, Folder, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 
 interface AttributeSchemaItem {
   key: string;
@@ -42,37 +40,23 @@ export default function NodeDetailPanel({
   if (!selectedNode) {
     return (
       <div className="flex h-full items-center justify-center rounded-[1.1rem] border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)]">
-        <p className="text-sm text-[color:var(--admin-text-faint)]">항목을 선택하세요</p>
+        <EmptyState message="항목을 선택하세요" />
       </div>
     );
   }
 
   const isRoot = selectedNode.depth === 0;
 
-  const renderTable = (rows: ([string, React.ReactNode] | false | null | undefined)[]) => (
-    <table className="w-full text-sm">
-      <tbody>
-        {(rows.filter(Boolean) as [string, React.ReactNode][]).map(([label, value], i) =>
-          label === '__separator' ? (
-            <tr key={i}>
-              <td
-                colSpan={2}
-                className="pt-5 pb-1 text-sm font-semibold text-[color:var(--admin-text-faint)]"
-              >
-                {value}
-              </td>
-            </tr>
-          ) : (
-            <tr key={i} className="border-b border-[color:var(--admin-border)] last:border-0">
-              <td className="w-28 py-1.5 pr-3 align-top font-semibold text-[color:var(--admin-text-faint)]">
-                {label}
-              </td>
-              <td className="py-1.5 text-[color:var(--admin-text)]">{value}</td>
-            </tr>
-          ),
-        )}
-      </tbody>
-    </table>
+  // 라벨·값 쌍은 표가 아니라 상세 폼이다 — FormGrid + FieldValue 계약을 따른다.
+  // 구 구현의 `__separator` 센티널 행은 섹션을 FormGrid 두 벌로 나누어 대체했다.
+  const renderDetails = (rows: ([string, React.ReactNode] | false | null | undefined)[]) => (
+    <FormGrid>
+      {(rows.filter(Boolean) as [string, React.ReactNode][]).map(([label, value]) => (
+        <FieldValue key={label} label={label} size="sm">
+          {value}
+        </FieldValue>
+      ))}
+    </FormGrid>
   );
 
   // 기본 정보 행
@@ -83,11 +67,7 @@ export default function NodeDetailPanel({
     ['정렬순서', selectedNode.sort ?? 0],
     [
       '상태',
-      <Badge
-        key="status"
-        variant={selectedNode.isActive ? 'success' : 'secondary'}
-        className="text-xs"
-      >
+      <Badge key="status" tone={selectedNode.isActive ? 'success' : 'neutral'} className="text-xs">
         {selectedNode.isActive ? '활성' : '비활성'}
       </Badge>,
     ],
@@ -99,9 +79,11 @@ export default function NodeDetailPanel({
       ? selectedNode.attributeSchema.map((s, idx) => [
           `속성${idx + 1}`,
           <span key={idx}>
-            <code className="rounded bg-muted px-1 py-0.5 text-xs font-mono">{s.key}</code>
-            <span className="ml-1.5 text-[color:var(--admin-text-secondary)]">{s.label}</span>
-            <Badge variant="outline" className="ml-1.5 text-[10px]">
+            <code className="rounded bg-dl-option-hover px-1 py-0.5 text-xs font-mono">
+              {s.key}
+            </code>
+            <span className="ml-1.5 text-dl-fg-muted">{s.label}</span>
+            <Badge tone="neutral" className="ml-1.5 text-[10px]">
               {s.type}
             </Badge>
           </span>,
@@ -125,15 +107,10 @@ export default function NodeDetailPanel({
       ? [['하위 노드', `${selectedNode.children.length}개`]]
       : [];
 
-  // 속성값이 있으면 구분용 빈 행 추가
-  const attrSection: [string, React.ReactNode][] =
-    attrRows.length > 0 ? [['__separator', '속성값'], ...attrRows] : [];
-
-  const allRows: ([string, React.ReactNode] | false | null | undefined)[] = [
+  const infoRows: ([string, React.ReactNode] | false | null | undefined)[] = [
     ...baseRows,
     ...childCountRow,
     ...schemaRows,
-    ...attrSection,
   ];
 
   return (
@@ -141,39 +118,42 @@ export default function NodeDetailPanel({
       {/* 헤더 */}
       <div className="flex items-center gap-2 px-3 py-3">
         {isRoot ? (
-          <Folder className="h-4 w-4 text-sky-700" />
+          <Folder className="h-4 w-4 text-dl-primary-ink" />
         ) : (
-          <Code className="h-4 w-4 text-fuchsia-700" />
+          <Code className="h-4 w-4 text-dl-fg-muted" />
         )}
         <span className="flex-1 text-sm font-semibold text-[color:var(--admin-text)]">
           {isRoot ? '루트 노드' : '노드'} 상세
         </span>
-        <Badge variant={isRoot ? 'default' : 'secondary'} className="text-xs">
+        <Badge tone={isRoot ? 'primary' : 'neutral'} className="text-xs">
           {selectedNode.code}
         </Badge>
       </div>
-      <Separator />
+      <div aria-hidden className="h-px w-full shrink-0 bg-dl-border" />
 
       {/* 상세 정보 */}
-      <div className="flex-1 overflow-auto p-2">{renderTable(allRows)}</div>
+      <div className="flex-1 space-y-4 overflow-auto p-2">
+        {renderDetails(infoRows)}
+        {attrRows.length > 0 ? (
+          <section className="space-y-1.5">
+            <h3 className="text-dl-sm font-semibold text-dl-fg">속성값</h3>
+            {renderDetails(attrRows)}
+          </section>
+        ) : null}
+      </div>
 
       {/* 액션 버튼 */}
-      <Separator />
+      <div aria-hidden className="h-px w-full shrink-0 bg-dl-border" />
       <div className="flex flex-wrap gap-1.5 p-3">
-        <Button size="sm" variant="outline" onClick={() => onEdit(selectedNode)}>
+        <Button size="sm" variant="outline-gray" onClick={() => onEdit(selectedNode)}>
           <Pencil className="h-3.5 w-3.5 mr-1" />
           편집
         </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="border-red-500/20 text-red-600 hover:bg-red-500/8 hover:text-red-700"
-          onClick={() => onDelete(selectedNode)}
-        >
+        <Button size="sm" variant="outline-red" onClick={() => onDelete(selectedNode)}>
           <Trash2 className="h-3.5 w-3.5 mr-1" />
           삭제
         </Button>
-        <Button size="sm" variant="outline" onClick={() => onAddChild(selectedNode)}>
+        <Button size="sm" variant="outline-gray" onClick={() => onAddChild(selectedNode)}>
           <Plus className="h-3.5 w-3.5 mr-1" />
           하위 노드 추가
         </Button>

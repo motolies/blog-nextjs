@@ -4,7 +4,7 @@ import { Field, NativeSelect, Select } from '@hvy/ui';
 
 /**
  * Select 상태 3열(기본 · 비활성 · 오류) + NativeSelect.
- * 트리거 radius 는 8 — 입력(6)과 의도적으로 다르다(QA 실측).
+ * 트리거 radius 는 8 — 입력(6)과 의도적으로 다르다(QA 실측). 비활성은 mode="disabled" 하나다.
  * NativeSelect 는 OS 팝업을 쓰는 가벼운 대안이다 — 플레이그라운드 컨트롤(EnumControl)도 이걸로 만들어져 있다.
  */
 const PRODUCT_OPTIONS = [
@@ -23,7 +23,7 @@ export function SelectStatesDemo() {
           <Select id="mx-s1" placeholder="아이템1" options={PRODUCT_OPTIONS} />
         </Field>
         <Field label="레이블" htmlFor="mx-s2">
-          <Select id="mx-s2" placeholder="아이템1" options={PRODUCT_OPTIONS} disabled />
+          <Select id="mx-s2" placeholder="아이템1" options={PRODUCT_OPTIONS} mode="disabled" />
         </Field>
         <Field label="레이블" htmlFor="mx-s3" error="헬퍼 텍스트">
           <Select id="mx-s3" placeholder="아이템1" options={PRODUCT_OPTIONS} />

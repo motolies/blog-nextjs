@@ -20,7 +20,7 @@ export default function CommonLayout({ children }: CommonLayoutProps) {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
         >
-          <div className="absolute inset-0 dark:bg-[linear-gradient(180deg,rgba(26,30,36,0.28),rgba(30,33,39,0.12))]" />
+          <div className="absolute inset-0" />
         </div>
         <div className="relative z-10 flex min-h-screen flex-col">
           <Header />

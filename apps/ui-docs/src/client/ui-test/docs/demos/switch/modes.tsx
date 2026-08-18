@@ -8,8 +8,9 @@ import { useState } from 'react';
  * 누락 시 콘솔 경고 + 빈칸(Checkbox 와 같은 규칙 — `ui` 는 사전을 모른다).
  *
  * Switch 는 `<button role="switch">` 라 **어느 모드에서도 FormData 에 없다** —
- * 전송이 필요하면 호출부가 값을 폼 상태로 든다. 상태는 세 열이 공유한다(controlled 전용
- * 컨트롤이라 이 데모에서는 edit 열을 켜고 끄면 view 열의 문구가 함께 바뀐다).
+ * 전송이 필요하면 호출부가 값을 폼 상태로 든다. 이 데모는 세 열이 한 상태를 공유하도록
+ * controlled 로 묶었다 — edit 열을 켜고 끄면 view 열의 문구가 함께 바뀐다
+ * (관리형이라 비제어 defaultChecked 도 되지만, 그러면 열마다 상태가 따로 논다).
  */
 const MODES = ['edit', 'view', 'disabled'] as const;
 

@@ -88,6 +88,7 @@ export function TabList({
 export function Tab({
   value,
   icon,
+  badge,
   disabled,
   size: sizeProp,
   className,
@@ -95,6 +96,11 @@ export function Tab({
 }: {
   readonly value: string;
   readonly icon?: LucideIcon;
+  /**
+   * 라벨 뒤 건수 표시 — 「목록 (32)」 관례. 숫자·짧은 문자열 전용이고 포맷(천단위 등)은
+   * 앱이 한다. 닫기 버튼은 여기 없다 — 닫히는 탭은 WorkTabsBar 소관(시각 언어가 다르다).
+   */
+  readonly badge?: ReactNode;
   readonly disabled?: boolean;
   /** 5단 사이즈. 생략하면 묶음(TabList)의 size 를 따른다. */
   readonly size?: ControlSize;
@@ -110,20 +116,32 @@ export function Tab({
       className={cn(
         'group relative flex shrink-0 items-center gap-2.5 text-dl-sm font-medium text-dl-fg-muted',
         TAB_H_CLASS[size],
-        'data-[state=active]:text-dl-fg',
+        // 활성이어도 weight 를 올리지 않는다 — 밑줄형은 한 줄에 붙어 있어 굵기가 변하면 옆 탭이 밀린다.
+        'hover:text-dl-fg data-[state=active]:text-dl-fg',
         // 활성 하단 3px primary 라인 — 베이스라인(1px) 을 덮도록 -bottom-px
         'after:absolute after:inset-x-0 after:-bottom-px after:h-[3px] after:bg-transparent',
-        'data-[state=active]:after:bg-dl-primary',
-        'disabled:cursor-not-allowed disabled:text-dl-label-disabled',
+        'hover:after:bg-dl-border data-[state=active]:after:bg-dl-primary',
+        // 포커스 — 전역 사각 outline 은 h48 트리거를 통째로 감싸 밑줄형 언어를 깬다.
+        // Radix 는 클릭 때도 Trigger 에 focus() 를 걸어 마우스 조작에서도 뜬다.
+        // 밑줄이 포커스 표시를 겸하되, **활성 탭에 포커스가 와도 구별되도록** 배경 틴트를 함께 준다.
+        'focus-visible:bg-dl-option-hover focus-visible:outline-none focus-visible:after:bg-dl-primary',
+        // hover 규칙이 disabled 탭에도 걸리므로 여기서 되돌린다.
+        'disabled:cursor-not-allowed disabled:text-dl-label-disabled disabled:hover:text-dl-label-disabled disabled:hover:after:bg-transparent',
         className,
       )}
     >
       {icon ? (
-        <span className="text-dl-fg-muted group-data-[state=active]:text-dl-primary">
+        <span className="text-dl-fg-muted group-data-[state=active]:text-dl-primary-ink">
           <Icon icon={icon} className={TAB_ICON_CLASS[size]} />
         </span>
       ) : null}
       {children}
+      {badge != null ? (
+        // 톤얼 칩 — 활성이어도 weight 를 올리지 않는 규칙과 같은 이유로 배지도 폭이 변하지 않는다.
+        <span className="rounded-dl-badge bg-dl-tonal px-1.5 text-dl-tonal-fg text-dl-xs group-disabled:bg-dl-locked-bg group-disabled:text-dl-locked-ink">
+          {badge}
+        </span>
+      ) : null}
     </RadixTabs.Trigger>
   );
 }

@@ -54,7 +54,7 @@ export function FormGridSectionsDemo() {
 
   return (
     <form onSubmit={submit}>
-      {/* 앱 셸 재현(app-shell 의 main 이 같은 값이다) — 흰 카드끼리는 배경이 갈려야
+      {/* 앱 셸 재현(app-chrome 의 main 이 같은 값이다) — 흰 카드끼리는 배경이 갈려야
           세 덩어리로 읽힌다. 폭도 여기 한 곳에서만 정한다. */}
       <div className="flex max-w-4xl flex-col gap-dl-gutter rounded-dl-container bg-dl-canvas p-dl-gutter">
         <Card>

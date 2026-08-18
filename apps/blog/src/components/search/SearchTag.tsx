@@ -1,20 +1,8 @@
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Combobox, showToast } from '@hvy/ui';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { ConditionComponent } from '@/components/ConditionComponent';
-import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useTags } from '@/hooks/useTags';
-import { COMBOBOX_POPOVER_CONTENT_CLASSNAME, isSameEntityId } from '@/lib/combobox';
-import { cn } from '@/lib/utils';
+import { isSameEntityId } from '@/lib/combobox';
 import type { Tag } from '@/types/tag';
 
 interface SearchTagProps {
@@ -32,7 +20,6 @@ export default function SearchTag({
   const tags = tagData ?? [];
 
   const [selectTags, setSelectTags] = useState<Tag[]>([]);
-  const [open, setOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (defaultTag !== undefined) {
@@ -44,59 +31,27 @@ export default function SearchTag({
     onChangeDeleteTag(deleteTagId);
   };
 
-  const onSelectTag = (tag: Tag) => {
+  const onPickTag = (value: string) => {
+    const tag = tags.find((t) => isSameEntityId(t.id, value));
+    if (!tag) return;
     if (selectTags.some((selectedTag) => isSameEntityId(selectedTag.id, tag.id))) {
-      toast.warning('동일 태그는 한 번만 추가할 수 있습니다.');
-      setOpen(false);
+      showToast('동일 태그는 한 번만 추가할 수 있습니다.', 'warning');
       return;
     }
     onChangeAddTag(tag);
-    setOpen(false);
   };
 
   return (
     <div className="space-y-2">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="public-control-surface public-muted-text h-11 w-full justify-between rounded-[1.15rem] border px-4"
-          >
-            태그 선택(태그끼리 AND 조건)
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent align="start" className={COMBOBOX_POPOVER_CONTENT_CLASSNAME}>
-          <Command
-            filter={(value: string, search: string) => {
-              if (value.toLowerCase().includes(search.toLowerCase())) return 1;
-              return 0;
-            }}
-          >
-            <CommandInput placeholder="태그 검색..." />
-            <CommandList>
-              <CommandEmpty>태그를 찾을 수 없습니다.</CommandEmpty>
-              <CommandGroup>
-                {tags.map((tag) => (
-                  <CommandItem key={tag.id} value={tag.name} onSelect={() => onSelectTag(tag)}>
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        selectTags.some((selectedTag) => isSameEntityId(selectedTag.id, tag.id))
-                          ? 'opacity-100'
-                          : 'opacity-0',
-                      )}
-                    />
-                    {tag.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+      <Combobox
+        options={tags.map((tag) => ({ value: String(tag.id), label: tag.name }))}
+        pickedValues={selectTags.map((tag) => String(tag.id))}
+        onPick={onPickTag}
+        triggerLabel="태그 선택(태그끼리 AND 조건)"
+        searchPlaceholder="태그 검색..."
+        emptyLabel="태그를 찾을 수 없습니다."
+        className="public-control-surface public-muted-text h-11 w-full rounded-[1.15rem] px-4"
+      />
       {selectTags.length > 0 ? (
         <div className="public-muted-panel rounded-[1.5rem] border border-dashed p-3.5">
           <p className="public-label-text mb-2 text-xs font-semibold uppercase tracking-[0.18em]">

@@ -1,8 +1,6 @@
+import { Button, ContentDialog, useConfirm } from '@hvy/ui';
 import { Eye, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import DeleteConfirm from '@/components/confirm/DeleteConfirm';
-import PreviewDialog from '@/components/PreviewDialog';
-import { Button } from '@/components/ui/button';
 
 interface FileComponentProps {
   file: {
@@ -16,22 +14,18 @@ interface FileComponentProps {
 }
 
 export const FileComponent = (props: FileComponentProps) => {
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
+  const askConfirm = useConfirm();
   const [showPreview, setShowPreview] = useState<boolean>(false);
-  const [question, setQuestion] = useState<string>('');
 
-  const showDeleteConfirmDialog = (e: React.MouseEvent) => {
+  const showDeleteConfirmDialog = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setQuestion(`${props.file.originName} 파일을 삭제하시겠습니까?`);
-    setShowDeleteConfirm(true);
-  };
-
-  const deleteFile = async () => {
+    const ok = await askConfirm({
+      message: `${props.file.originName} 파일을 삭제하시겠습니까?`,
+      confirmLabel: '삭제',
+      destructive: true,
+    });
+    if (!ok) return;
     await props.onDeleteFile(props.file);
-    setShowDeleteConfirm(false);
-  };
-  const deleteFileCancel = () => {
-    setShowDeleteConfirm(false);
   };
 
   const insertFileLink = () => {
@@ -42,15 +36,14 @@ export const FileComponent = (props: FileComponentProps) => {
 
   return (
     <div
-      className={`flex items-center mb-1 px-2 rounded cursor-pointer transition-colors ${isImage ? 'bg-yellow-100 hover:bg-yellow-300' : 'bg-teal-100 hover:bg-teal-300'}`}
+      className={`flex items-center mb-1 px-2 rounded cursor-pointer transition-colors ${isImage ? 'bg-dl-warning-bg hover:bg-dl-warning-bg' : 'bg-dl-tonal hover:bg-dl-tonal-hover'}`}
       onClick={insertFileLink}
     >
       <span className="flex-1 truncate text-sm">{props.file.originName}</span>
       {isImage && (
         <Button
           variant="ghost"
-          size="icon"
-          className="h-6 w-6 ml-auto"
+          className="aspect-square p-0 h-6 w-6 ml-auto"
           aria-label="preview"
           onClick={(e: React.MouseEvent) => {
             e.stopPropagation();
@@ -62,24 +55,36 @@ export const FileComponent = (props: FileComponentProps) => {
       )}
       <Button
         variant="ghost"
-        size="icon"
-        className={`h-6 w-6 ${isImage ? '' : 'ml-auto'}`}
+        className={`aspect-square p-0 h-6 w-6 ${isImage ? '' : 'ml-auto'}`}
         aria-label="delete"
         onClick={showDeleteConfirmDialog}
       >
         <Trash2 className="h-4 w-4" />
       </Button>
-      <DeleteConfirm
-        open={showDeleteConfirm}
-        question={question}
-        onConfirm={deleteFile}
-        onCancel={deleteFileCancel}
-      />
-      <PreviewDialog
+      <ContentDialog
         open={showPreview}
-        imageSrc={props.file.resourceUri}
-        onClose={() => setShowPreview(false)}
-      />
+        onOpenChange={(isOpen: boolean) => {
+          if (!isOpen) setShowPreview(false);
+        }}
+        title="Preview Image"
+        size="xl"
+      >
+        {/* biome-ignore lint/a11y/useKeyWithClickEvents: 클릭 닫기는 보조 경로 — Esc·닫기 버튼이 기본 경로다 */}
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: 위와 동일 */}
+        <div
+          className="m-3 cursor-pointer text-center"
+          onClick={(e: React.MouseEvent) => {
+            e.stopPropagation();
+            setShowPreview(false);
+          }}
+        >
+          <img
+            src={window.location.origin + props.file.resourceUri}
+            alt="미리보기 이미지"
+            style={{ maxWidth: '90%' }}
+          />
+        </div>
+      </ContentDialog>
     </div>
   );
 };

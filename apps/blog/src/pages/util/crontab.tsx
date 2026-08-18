@@ -1,17 +1,20 @@
-import { getDay, parse } from 'date-fns';
-import { ArrowLeft, BookOpenText, Copy, Play, Sparkles } from 'lucide-react';
-import { useRouter } from 'next/router';
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+  Button,
+  Input,
+  showToast,
+  Tab,
+  TabList,
+  TabPanel,
+  Tabs,
+} from '@hvy/ui';
+import { getDay, parse } from 'date-fns';
+import { ArrowLeft, BookOpenText, Copy, Play, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useCallback, useEffect, useState } from 'react';
 import { copyTextToClipboard } from '@/util/browserUtils';
 import { calculateNextRuns, DAY_NAMES, generateKoreanDescription } from '@/util/crontabUtils';
 
@@ -73,12 +76,12 @@ export default function CrontabPage() {
       setUnixError(error);
       setUnixNextRuns([]);
       setUnixDescription('');
-      toast.error('유효하지 않은 표현식입니다.');
+      showToast('유효하지 않은 표현식입니다.', 'error');
     } else {
       setUnixError('');
       setUnixNextRuns(runs);
       setUnixDescription(generateKoreanDescription(unixExpression, false));
-      toast.success('계산 완료');
+      showToast('계산 완료');
     }
   }, [unixExpression, runCount]);
 
@@ -88,21 +91,21 @@ export default function CrontabPage() {
       setSpringError(error);
       setSpringNextRuns([]);
       setSpringDescription('');
-      toast.error('유효하지 않은 표현식입니다.');
+      showToast('유효하지 않은 표현식입니다.', 'error');
     } else {
       setSpringError('');
       setSpringNextRuns(runs);
       setSpringDescription(generateKoreanDescription(springExpression, true));
-      toast.success('계산 완료');
+      showToast('계산 완료');
     }
   }, [springExpression, runCount]);
 
   const handleCopy = useCallback(async (text) => {
     try {
       await copyTextToClipboard(text);
-      toast.success('클립보드에 복사되었습니다.');
+      showToast('클립보드에 복사되었습니다.');
     } catch (e) {
-      toast.error(e.message || '클립보드 복사에 실패했습니다.');
+      showToast(e.message || '클립보드 복사에 실패했습니다.', 'error');
     }
   }, []);
 
@@ -157,7 +160,7 @@ export default function CrontabPage() {
               value={expression}
               onChange={(e) => setExpression(e.target.value)}
               placeholder={isSpring ? '초 분 시 일 월 요일' : '분 시 일 월 요일'}
-              className={`pr-8 font-mono ${error ? 'border-red-500' : ''}`}
+              className={`pr-8 font-mono ${error ? 'border-dl-error' : ''}`}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleCalculate();
               }}
@@ -165,27 +168,27 @@ export default function CrontabPage() {
             <button
               type="button"
               onClick={() => void handleCopy(expression)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-dl-option-hover"
               title="복사"
             >
-              <Copy className="h-4 w-4 text-gray-500 dark:text-[#636d83]" />
+              <Copy className="h-4 w-4 text-dl-fg-muted" />
             </button>
           </div>
           {error ? (
-            <p className="text-xs text-red-500 mt-1">{error}</p>
+            <p className="text-xs text-dl-error mt-1">{error}</p>
           ) : (
-            <p className="text-xs text-gray-500 dark:text-[#636d83] mt-1">
+            <p className="text-xs text-dl-fg-muted mt-1">
               {isSpring ? '예: 0 0 0 * * * (매일 자정)' : '예: 0 0 * * * (매일 자정)'}
             </p>
           )}
         </div>
-        <Button onClick={handleCalculate} className="shrink-0">
+        <Button variant="primary" onClick={handleCalculate} className="shrink-0">
           <Play className="h-4 w-4 mr-1" />
           계산
         </Button>
       </div>
       <div className="mt-3">
-        <p className="text-xs text-gray-500 dark:text-[#636d83] mb-2">빠른 입력:</p>
+        <p className="text-xs text-dl-fg-muted mb-2">빠른 입력:</p>
         <div className="flex flex-wrap gap-1">
           {presets.map((preset) => (
             <button
@@ -193,7 +196,7 @@ export default function CrontabPage() {
               key={preset.expression}
               onClick={() => handlePresetClick(preset.expression, isSpring)}
               title={preset.description}
-              className="text-xs px-2 py-0.5 border rounded-full hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)] transition-colors"
+              className="text-xs px-2 py-0.5 border rounded-full hover:bg-dl-option-hover transition-colors"
             >
               {preset.label}
             </button>
@@ -205,8 +208,8 @@ export default function CrontabPage() {
 
   const renderDescription = (description) =>
     description && (
-      <div className="border rounded-md p-4 mb-4 bg-blue-50 dark:bg-[rgba(97,175,239,0.08)]">
-        <p className="text-xs text-gray-500 dark:text-[#636d83] mb-1">한국어 설명</p>
+      <div className="border rounded-md p-4 mb-4 bg-dl-info-bg">
+        <p className="text-xs text-dl-fg-muted mb-1">한국어 설명</p>
         <p className="text-lg font-medium">{description}</p>
       </div>
     );
@@ -215,14 +218,14 @@ export default function CrontabPage() {
     <div className="border rounded-md p-4 mb-4">
       <p className="font-medium mb-3">설정</p>
       <div>
-        <p className="text-sm text-gray-500 dark:text-[#636d83] mb-2">표시 개수: {runCount}개</p>
+        <p className="text-sm text-dl-fg-muted mb-2">표시 개수: {runCount}개</p>
         <input
           type="range"
           min={1}
           max={50}
           value={runCount}
           onChange={(e) => setRunCount(Number(e.target.value))}
-          className="w-full accent-blue-600"
+          className="w-full accent-[color:var(--color-dl-primary)]"
         />
       </div>
     </div>
@@ -236,26 +239,17 @@ export default function CrontabPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b">
-                <th className="text-left py-2 px-3 w-12 font-medium text-gray-600 dark:text-[#7c8496]">
-                  #
-                </th>
-                <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-[#7c8496]">
-                  실행 시간
-                </th>
-                <th className="text-left py-2 px-3 w-24 font-medium text-gray-600 dark:text-[#7c8496]">
-                  요일
-                </th>
+                <th className="text-left py-2 px-3 w-12 font-medium text-dl-fg-muted">#</th>
+                <th className="text-left py-2 px-3 font-medium text-dl-fg-muted">실행 시간</th>
+                <th className="text-left py-2 px-3 w-24 font-medium text-dl-fg-muted">요일</th>
               </tr>
             </thead>
             <tbody>
               {nextRuns.map((run, index) => {
                 const d = parse(run, 'yyyy-MM-dd HH:mm:ss', new Date());
                 return (
-                  <tr
-                    key={index}
-                    className="border-b last:border-0 hover:bg-gray-50 dark:hover:bg-[rgba(44,49,58,0.5)]"
-                  >
-                    <td className="py-2 px-3 text-gray-500 dark:text-[#636d83]">{index + 1}</td>
+                  <tr key={index} className="border-b last:border-0 hover:bg-dl-option-hover">
+                    <td className="py-2 px-3 text-dl-fg-muted">{index + 1}</td>
                     <td className="py-2 px-3 font-mono">{run}</td>
                     <td className="py-2 px-3">{DAY_NAMES[getDay(d)]}요일</td>
                   </tr>
@@ -271,32 +265,32 @@ export default function CrontabPage() {
     <Accordion type="single" collapsible>
       <AccordionItem
         value="guide"
-        className="mb-4 overflow-hidden rounded-[1.25rem] border border-sky-200/80 bg-[linear-gradient(135deg,rgba(239,246,255,0.92),rgba(248,250,252,0.94))] shadow-[0_14px_34px_rgba(14,116,228,0.08)] dark:border-[rgba(97,175,239,0.2)] dark:bg-[linear-gradient(135deg,rgba(40,44,52,0.92),rgba(37,41,48,0.94))] dark:shadow-[0_14px_34px_rgba(0,0,0,0.15)]"
+        className="mb-4 overflow-hidden rounded-[1.25rem] border border-dl-border bg-dl-surface shadow-dl-card"
       >
         <AccordionTrigger className="px-4 py-4 font-medium no-underline hover:no-underline">
           <div className="flex min-w-0 items-start gap-3">
-            <span className="mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-[0_12px_30px_rgba(14,116,228,0.22)]">
+            <span className="mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-2xl bg-dl-primary text-dl-primary-fg shadow-[0_12px_30px_rgba(14,116,228,0.22)]">
               <BookOpenText className="h-5 w-5" />
             </span>
             <span className="min-w-0">
-              <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-600">
+              <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-dl-primary-ink">
                 <Sparkles className="h-3.5 w-3.5" />
                 눌러서 펼치기
               </span>
-              <span className="mt-1 block text-base font-semibold tracking-[-0.02em] text-slate-900 dark:text-[#d7dae0]">
+              <span className="mt-1 block text-base font-semibold tracking-[-0.02em] text-dl-fg">
                 Cron 표현식 가이드
               </span>
-              <span className="mt-1 block text-sm leading-6 text-slate-600 dark:text-[#abb2bf]">
+              <span className="mt-1 block text-sm leading-6 text-dl-fg-muted">
                 필드 구조, 특수 문자, 자주 쓰는 예시를 한 번에 확인할 수 있습니다.
               </span>
             </span>
           </div>
         </AccordionTrigger>
         <AccordionContent>
-          <div className="border-t border-sky-100/90 bg-white/70 dark:bg-[rgba(33,37,43,0.7)] px-4 pt-4">
+          <div className="border-t border-dl-divider bg-dl-surface px-4 pt-4">
             <div className="mb-4">
               <p className="text-sm font-medium mb-2">필드 구조</p>
-              <div className="bg-gray-100 dark:bg-[rgba(44,49,58,0.7)] rounded p-3 font-mono overflow-x-auto">
+              <div className="bg-dl-option-hover rounded p-3 font-mono overflow-x-auto">
                 {isSpring ? (
                   <pre className="text-xs m-0">{`┌───────────── 초 (0-59)
 │ ┌───────────── 분 (0-59)
@@ -326,15 +320,13 @@ export default function CrontabPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-2 px-3 w-16 font-medium text-gray-600 dark:text-[#7c8496]">
+                      <th className="text-left py-2 px-3 w-16 font-medium text-dl-fg-muted">
                         문자
                       </th>
-                      <th className="text-left py-2 px-3 w-32 font-medium text-gray-600 dark:text-[#7c8496]">
+                      <th className="text-left py-2 px-3 w-32 font-medium text-dl-fg-muted">
                         의미
                       </th>
-                      <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-[#7c8496]">
-                        예시
-                      </th>
+                      <th className="text-left py-2 px-3 font-medium text-dl-fg-muted">예시</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -358,19 +350,15 @@ export default function CrontabPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-[#7c8496]">
-                        표현식
-                      </th>
-                      <th className="text-left py-2 px-3 font-medium text-gray-600 dark:text-[#7c8496]">
-                        설명
-                      </th>
+                      <th className="text-left py-2 px-3 font-medium text-dl-fg-muted">표현식</th>
+                      <th className="text-left py-2 px-3 font-medium text-dl-fg-muted">설명</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(isSpring ? SPRING_PRESETS : UNIX_PRESETS).map((preset) => (
                       <tr
                         key={preset.expression}
-                        className="border-b last:border-0 hover:bg-gray-50 dark:hover:bg-[rgba(44,49,58,0.5)] cursor-pointer"
+                        className="border-b last:border-0 hover:bg-dl-option-hover cursor-pointer"
                         onClick={() => handlePresetClick(preset.expression, isSpring)}
                       >
                         <td className="py-2 px-3 font-mono">{preset.expression}</td>
@@ -390,7 +378,7 @@ export default function CrontabPage() {
   return (
     <div className="p-2 sm:p-4">
       <div className="flex items-center gap-2 mb-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
+        <Button className="aspect-square p-0" variant="ghost" onClick={() => router.push('/util')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-xl sm:text-3xl font-bold">Crontab Calculator</h1>
@@ -398,19 +386,19 @@ export default function CrontabPage() {
 
       <div className="border rounded-md">
         <Tabs value={tabValue} onValueChange={setTabValue}>
-          <TabsList className="w-full grid grid-cols-2 rounded-none border-b">
-            <TabsTrigger value="unix">
+          <TabList className="w-full grid grid-cols-2 rounded-none border-b">
+            <Tab value="unix">
               <span className="sm:hidden">Unix (5필드)</span>
               <span className="hidden sm:inline">Unix Crontab (5필드)</span>
-            </TabsTrigger>
-            <TabsTrigger value="spring">
+            </Tab>
+            <Tab value="spring">
               <span className="sm:hidden">Spring (6필드)</span>
               <span className="hidden sm:inline">Spring Scheduler (6필드)</span>
-            </TabsTrigger>
-          </TabsList>
+            </Tab>
+          </TabList>
 
           <div className="p-2 sm:p-4">
-            <TabsContent value="unix">
+            <TabPanel value="unix">
               {renderExpressionInput(
                 unixExpression,
                 setUnixExpression,
@@ -423,9 +411,9 @@ export default function CrontabPage() {
               {renderSettings()}
               {renderNextRuns(unixNextRuns)}
               {renderGuide(false)}
-            </TabsContent>
+            </TabPanel>
 
-            <TabsContent value="spring">
+            <TabPanel value="spring">
               {renderExpressionInput(
                 springExpression,
                 setSpringExpression,
@@ -438,14 +426,14 @@ export default function CrontabPage() {
               {renderSettings()}
               {renderNextRuns(springNextRuns)}
               {renderGuide(true)}
-            </TabsContent>
+            </TabPanel>
           </div>
         </Tabs>
       </div>
 
-      <div className="mt-4 p-3 bg-gray-100 dark:bg-[rgba(44,49,58,0.7)] rounded-md">
+      <div className="mt-4 p-3 bg-dl-option-hover rounded-md">
         <p className="text-sm font-semibold mb-1">Crontab이란?</p>
-        <p className="text-sm text-gray-500 dark:text-[#636d83]">
+        <p className="text-sm text-dl-fg-muted">
           Crontab은 Unix 계열 운영체제에서 주기적인 작업을 예약하기 위한 스케줄링 시스템입니다. 표준
           Unix crontab은 5개 필드(분, 시, 일, 월, 요일)를 사용하고, Spring Framework의 @Scheduled
           어노테이션은 초 단위까지 지정할 수 있는 6개 필드를 사용합니다.

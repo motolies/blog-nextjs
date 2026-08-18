@@ -1,3 +1,4 @@
+import { Button, Input, Select, showToast, Tab, TabList, TabPanel, Tabs, Textarea } from '@hvy/ui';
 import {
   ArrowLeft,
   ArrowUpDown,
@@ -10,18 +11,6 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
 import { copyTextToClipboard } from '@/util/browserUtils';
 import {
   DEFAULT_AES_PBKDF2_OPTIONS,
@@ -37,10 +26,10 @@ function CopyButton({ value, onCopy }) {
     <button
       type="button"
       onClick={() => void onCopy(value)}
-      className="absolute right-2 top-2 p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]"
+      className="absolute right-2 top-2 p-1 rounded hover:bg-dl-option-hover"
       title="복사"
     >
-      <Copy className="h-4 w-4 text-gray-500 dark:text-[#636d83]" />
+      <Copy className="h-4 w-4 text-dl-fg-muted" />
     </button>
   );
 }
@@ -119,15 +108,15 @@ export default function CryptoPage() {
 
   const handleCopy = async (text) => {
     if (!text) {
-      toast.warning('복사할 내용이 없습니다.');
+      showToast('복사할 내용이 없습니다.', 'warning');
       return;
     }
 
     try {
       await copyTextToClipboard(text);
-      toast.success('클립보드에 복사되었습니다.');
+      showToast('클립보드에 복사되었습니다.');
     } catch (e) {
-      toast.error(e.message || '클립보드 복사에 실패했습니다.');
+      showToast(e.message || '클립보드 복사에 실패했습니다.', 'error');
     }
   };
 
@@ -140,11 +129,11 @@ export default function CryptoPage() {
   // 암복호화 실행 전 키/입력값 존재 여부를 검증한다.
   const validateInputs = () => {
     if (!secretKey) {
-      toast.warning('키를 입력하세요.');
+      showToast('키를 입력하세요.', 'warning');
       return false;
     }
     if (!input) {
-      toast.warning('입력값을 입력하세요.');
+      showToast('입력값을 입력하세요.', 'warning');
       return false;
     }
     return true;
@@ -158,10 +147,10 @@ export default function CryptoPage() {
           ? await encryptAesPbkdf2(input, secretKey, parsePbkdf2Options())
           : await encryptAesRawKey(input, secretKey);
       setOutput(result);
-      toast.success('암호화 완료');
+      showToast('암호화 완료');
     } catch (e) {
       setOutput('');
-      toast.error(`암호화 실패: ${e.message}`);
+      showToast(`암호화 실패: ${e.message}`, 'error');
     }
   };
 
@@ -173,10 +162,10 @@ export default function CryptoPage() {
           ? await decryptAesPbkdf2(input, secretKey, parsePbkdf2Options())
           : await decryptAesRawKey(input, secretKey);
       setOutput(result);
-      toast.success('복호화 완료');
+      showToast('복호화 완료');
     } catch (e) {
       setOutput('');
-      toast.error(`복호화 실패: ${e.message}`);
+      showToast(`복호화 실패: ${e.message}`, 'error');
     }
   };
 
@@ -187,7 +176,7 @@ export default function CryptoPage() {
   return (
     <div className="p-2 sm:p-4">
       <div className="flex items-center gap-2 mb-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
+        <Button className="aspect-square p-0" variant="ghost" onClick={() => router.push('/util')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-xl sm:text-3xl font-bold">암호화 도구</h1>
@@ -195,27 +184,22 @@ export default function CryptoPage() {
 
       <div className="border rounded-md">
         <Tabs value={tabValue} onValueChange={setTabValue}>
-          <TabsList className="w-full flex h-auto border-b rounded-none justify-start px-2 py-1 gap-1 overflow-x-auto">
-            <TabsTrigger value="aes" className="flex-none">
+          <TabList className="w-full flex h-auto border-b rounded-none justify-start px-2 py-1 gap-1 overflow-x-auto">
+            <Tab value="aes" className="flex-none">
               AES
-            </TabsTrigger>
-          </TabsList>
+            </Tab>
+          </TabList>
 
           <div className="p-2 sm:p-4">
-            <TabsContent value="aes">
+            <TabPanel value="aes">
               <div className="space-y-3">
-                <Select value={aesMode} onValueChange={setAesMode}>
-                  <SelectTrigger className="w-full sm:w-96">
-                    <SelectValue placeholder="암호화 모드 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AES_MODES.map((mode) => (
-                      <SelectItem key={mode.id} value={mode.id}>
-                        {mode.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Select
+                  value={aesMode}
+                  onValueChange={setAesMode}
+                  placeholder="암호화 모드 선택"
+                  options={AES_MODES.map((mode) => ({ value: mode.id, label: mode.label }))}
+                  className="w-full sm:w-96"
+                />
 
                 <div>
                   <div className="relative">
@@ -229,20 +213,20 @@ export default function CryptoPage() {
                     />
                     <button
                       onClick={() => setShowKey(!showKey)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-dl-option-hover"
                       title={showKey ? '키 숨기기' : '키 보기'}
                       type="button"
                     >
                       {showKey ? (
-                        <EyeOff className="h-4 w-4 text-gray-500 dark:text-[#636d83]" />
+                        <EyeOff className="h-4 w-4 text-dl-fg-muted" />
                       ) : (
-                        <Eye className="h-4 w-4 text-gray-500 dark:text-[#636d83]" />
+                        <Eye className="h-4 w-4 text-dl-fg-muted" />
                       )}
                     </button>
                   </div>
                   {aesMode === 'rawkey' && secretKey && (
                     <p
-                      className={`mt-1 text-xs ${[16, 24, 32].includes(keyByteLength) ? 'text-gray-500 dark:text-[#636d83]' : 'text-red-500'}`}
+                      className={`mt-1 text-xs ${[16, 24, 32].includes(keyByteLength) ? 'text-dl-fg-muted' : 'text-dl-error'}`}
                     >
                       현재 {keyByteLength}바이트{' '}
                       {[16, 24, 32].includes(keyByteLength)
@@ -256,7 +240,7 @@ export default function CryptoPage() {
                   <div>
                     <button
                       onClick={() => setShowAdvanced(!showAdvanced)}
-                      className="flex items-center gap-1 text-sm text-gray-500 dark:text-[#636d83] hover:text-gray-700 dark:hover:text-gray-300"
+                      className="flex items-center gap-1 text-sm text-dl-fg-muted hover:text-dl-fg"
                       type="button"
                     >
                       <Settings2 className="h-4 w-4" />
@@ -272,25 +256,23 @@ export default function CryptoPage() {
                       <div className="mt-2 p-3 border rounded-md space-y-3">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
-                            <label className="text-xs text-gray-500 dark:text-[#636d83] mb-1 block">
+                            <label className="text-xs text-dl-fg-muted mb-1 block">
                               키 길이 (bit)
                             </label>
                             <Select
                               value={optionInputs.keyLength}
                               onValueChange={(value) => updateOption('keyLength', value)}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="128">128</SelectItem>
-                                <SelectItem value="192">192</SelectItem>
-                                <SelectItem value="256">256</SelectItem>
-                              </SelectContent>
-                            </Select>
+                              placeholder="키 길이"
+                              options={[
+                                { value: '128', label: '128' },
+                                { value: '192', label: '192' },
+                                { value: '256', label: '256' },
+                              ]}
+                              className="w-full"
+                            />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500 dark:text-[#636d83] mb-1 block">
+                            <label className="text-xs text-dl-fg-muted mb-1 block">
                               반복 횟수 (PBKDF2)
                             </label>
                             <Input
@@ -301,7 +283,7 @@ export default function CryptoPage() {
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500 dark:text-[#636d83] mb-1 block">
+                            <label className="text-xs text-dl-fg-muted mb-1 block">
                               Salt 길이 (byte)
                             </label>
                             <Input
@@ -313,7 +295,7 @@ export default function CryptoPage() {
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500 dark:text-[#636d83] mb-1 block">
+                            <label className="text-xs text-dl-fg-muted mb-1 block">
                               IV 길이 (byte)
                             </label>
                             <Input
@@ -322,14 +304,14 @@ export default function CryptoPage() {
                               onChange={(e) => updateOption('ivLength', e.target.value)}
                             />
                             {optionInputs.ivLength !== '16' && (
-                              <p className="mt-1 text-xs text-red-500">
+                              <p className="mt-1 text-xs text-dl-error">
                                 AES-CBC의 IV는 16바이트여야 합니다.
                               </p>
                             )}
                           </div>
                         </div>
                         <Button
-                          variant="outline"
+                          variant="outline-gray"
                           size="sm"
                           onClick={() => setOptionInputs(DEFAULT_OPTION_INPUTS)}
                         >
@@ -349,34 +331,49 @@ export default function CryptoPage() {
                 />
 
                 <div className="flex gap-2 justify-center items-center">
-                  <Button onClick={handleEncrypt}>암호화</Button>
-                  <Button onClick={handleDecrypt}>복호화</Button>
-                  <Button variant="ghost" size="icon" onClick={handleSwap} title="입력/출력 스왑">
+                  <Button variant="primary" onClick={handleEncrypt}>
+                    암호화
+                  </Button>
+                  <Button variant="primary" onClick={handleDecrypt}>
+                    복호화
+                  </Button>
+                  <Button
+                    className="aspect-square p-0"
+                    variant="ghost"
+                    onClick={handleSwap}
+                    title="입력/출력 스왑"
+                  >
                     <ArrowUpDown className="h-4 w-4" />
                   </Button>
                 </div>
 
-                <div className="relative">
-                  <Textarea
-                    value={output}
-                    readOnly
-                    rows={10}
-                    className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 font-mono text-sm`}
-                    placeholder="출력"
-                  />
-                  <CopyButton value={output} onCopy={handleCopy} />
+                <div>
+                  {/* 잠긴 칸은 placeholder 가 감춰진다(dl-field-locked) — 라벨을 밖으로 올린다 */}
+                  <label htmlFor="crypto-output" className="text-xs text-dl-fg-muted mb-1 block">
+                    출력
+                  </label>
+                  <div className="relative">
+                    <Textarea
+                      id="crypto-output"
+                      value={output}
+                      lock
+                      rows={10}
+                      className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 font-mono text-sm`}
+                    />
+                    <CopyButton value={output} onCopy={handleCopy} />
+                  </div>
                 </div>
 
-                <p className="text-xs text-gray-500 dark:text-[#636d83]">{formatNote}</p>
+                <p className="text-xs text-dl-fg-muted">{formatNote}</p>
               </div>
-            </TabsContent>
+            </TabPanel>
           </div>
         </Tabs>
       </div>
 
-      <div className="mt-4 p-3 bg-gray-100 dark:bg-[rgba(44,49,58,0.7)] rounded-md">
+      <div className="mt-4 p-3 bg-dl-option-hover rounded-md">
         <p className="text-sm font-semibold mb-1">암호화 모드 안내</p>
-        <ul className="text-sm text-gray-500 dark:text-[#636d83] list-disc ml-5 space-y-0.5">
+        <ul className="text-sm text-dl-fg-muted list-disc ml-5 space-y-0.5">
           <li>
             <strong>PBKDF2 + AES-CBC</strong>: 패스프레이즈에서 PBKDF2(SHA-256)로 키를 유도. 키
             길이/반복 횟수/salt·IV 길이는 고급 설정에서 변경 가능 (기본 256bit/8192회/16/16, enc:v1:

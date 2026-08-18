@@ -232,6 +232,14 @@ export function postSearchItem(post: MockPost): Record<string, unknown> {
   };
 }
 
+// ── 검색 엔진 (퀵서치) ────────────────────────────────────────────────────────
+
+/** SearchEngineResponse — 실물 키: {id, name, url, order}. 메인 SSR 이 기동 시 반드시 호출한다. */
+export const SEARCH_ENGINES = [
+  { id: 1, name: 'Naver', url: 'https://search.naver.com/search.naver?query=%s', order: 0 },
+  { id: 2, name: 'Google', url: 'https://www.google.com/search?q=%s', order: 1 },
+];
+
 // ── 시리즈 ────────────────────────────────────────────────────────────────────
 
 export const SERIES = [{ id: 1, title: '모노레포 전환기', postCount: 3 }];

@@ -212,7 +212,7 @@ export function FormGridBasicDemo() {
             </Field>
 
             <Field label="주문번호" htmlFor="fg-orderNo">
-              <Input id="fg-orderNo" lock="auto" placeholder="자동 / 저장 시 발급" />
+              <Input id="fg-orderNo" lock placeholder="자동 / 저장 시 발급" />
             </Field>
 
             <Field

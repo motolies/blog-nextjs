@@ -15,10 +15,14 @@ import { Button } from './button';
  *              알림형(alert)       콘텐츠형(modal)      선택형(modal)
  *   헤더       없음                흰 바 + 20px 제목    흰 바 + 20px 제목
  *   라운드     8                   8                    8
- *   너비       500 고정            size 축(~1140·full)  1140 · 리사이즈
- *   본문       16px 가운데정렬     회색 캔버스          회색 캔버스 위 흰 카드
+ *   너비       500 고정            size 축(sm~full)     1140 · 리사이즈
+ *   높이       내용만큼            height 축(3단)       80vh · 리사이즈
+ *   본문       16px 가운데정렬     흰 표면              흰 표면 위 카드
  *   Esc        닫힘                닫힘                 **받지 않는다**
  *   버튼       가득(flex-1)        가운데 · 폭 220      가운데 · 폭 220
+ *
+ * 콘텐츠형의 **폭과 높이는 직교한다** — 어느 조합이든 `max-h-[calc(100vh-20px)]` 가
+ * 화면 밖으로 나가는 것을 막는다.
  *
  * 포커스 트랩·스크롤 잠금·aria 는 **틀리면 조용히 위험한 코드**라 Radix 에 맡긴다.
  *
@@ -83,7 +87,11 @@ export function ConfirmDialog({
   readonly onOpenChange: (open: boolean) => void;
   readonly message: ReactNode;
   readonly confirmLabel: string;
-  /** 없으면 단일 버튼(알림형)이 된다 — 읽고 닫으면 끝인 창이다. */
+  /**
+   * 없으면 단일 버튼(알림형)이 된다 — 읽고 닫으면 끝인 창이다.
+   * **이 컴포넌트를 직접 쓸 때의 이야기다** — `useConfirm()` 은 provider 가 기본 취소
+   * 문구를 채우므로 늘 두 버튼이고, 단일 버튼은 `useAlert()` 로 만든다.
+   */
   readonly cancelLabel?: string;
   /** 파괴적 실행이면 확인 버튼이 Danger 가 된다. */
   readonly destructive?: boolean;
@@ -128,7 +136,7 @@ export function ConfirmDialog({
 
 /**
  * 콘텐츠 모달 — 무언가를 **보는** 창.
- * QA modal: 흰 헤더(20px bold 제목 + 24px 닫기) · 회색 캔버스 본문 · 흰 푸터(가운데 · 폭 220).
+ * QA modal: 흰 헤더(20px bold 제목 + 24px 닫기) · 흰 본문 · 흰 푸터(가운데 · 폭 220).
  */
 export function ContentDialog({
   open,
@@ -138,6 +146,7 @@ export function ContentDialog({
   children,
   footer,
   size = 'md',
+  height = 'auto',
   closeLabel = '닫기',
 }: {
   readonly open: boolean;
@@ -146,17 +155,28 @@ export function ContentDialog({
   readonly description?: ReactNode;
   readonly children: ReactNode;
   readonly footer?: ReactNode;
-  /** `xl` 이 QA 기본 폭(1140) · `full` 은 화면 가득(QA modal-content-full). */
-  readonly size?: 'md' | 'lg' | 'xl' | 'full';
+  /** 폭. `xl` 이 QA 기본(1140) · `full` 은 좌우 10px 만 남긴다. */
+  readonly size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  /**
+   * 높이. 기본 `auto` 는 내용만큼(현행 동작) · `tall` 은 80vh 고정 · `full` 은 화면 가득.
+   * 폭과 직교한다 — "넓고 짧은 창"과 "좁고 긴 창"이 둘 다 필요하다.
+   */
+  readonly height?: 'auto' | 'tall' | 'full';
   readonly closeLabel?: string;
 }) {
   useTrackOpen(open, 'content');
+  /**
+   * base 에 있던 `w-[92vw]` 를 여기로 내렸다 — 거기 남겨 두면 `full` 의 폭 지정을
+   * 무력화한다(1440 뷰포트에서 `size="full"` 이 1325px 로 잘리던 실제 원인이다).
+   */
   const width = {
-    md: 'max-w-lg',
-    lg: 'max-w-3xl',
-    xl: 'max-w-dl-modal-pick',
-    full: 'h-[calc(100vh-20px)] max-w-[calc(100vw-20px)]',
+    sm: 'w-[92vw] max-w-sm',
+    md: 'w-[92vw] max-w-lg',
+    lg: 'w-[92vw] max-w-3xl',
+    xl: 'w-[92vw] max-w-dl-modal-pick',
+    full: 'w-[calc(100vw-20px)]',
   }[size];
+  const heightClass = { auto: '', tall: 'h-[80vh]', full: 'h-[calc(100vh-20px)]' }[height];
 
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
@@ -164,14 +184,18 @@ export function ContentDialog({
         <Scrim />
         <RadixDialog.Content
           className={cn(
-            'fixed top-1/2 left-1/2 z-[var(--dl-z-modal)] flex max-h-[calc(100vh-20px)] w-[92vw] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-dl-container bg-dl-surface shadow-dl-modal',
+            'fixed top-1/2 left-1/2 z-[var(--dl-z-modal)] flex max-h-[calc(100vh-20px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-dl-container bg-dl-surface shadow-dl-modal',
             width,
+            heightClass,
           )}
         >
           <DialogHeader title={title} description={description} closeLabel={closeLabel} />
 
-          {/* 회색 캔버스 — 넘치면 **본문만** 스크롤한다(QA modal-body) */}
-          <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-auto bg-dl-canvas p-2.5">
+          {/* 헤더·푸터와 같은 흰 표면. QA 는 회색 캔버스였지만 실사용에서 잠금 배경
+            (locked-bg #e6e6e6)과 한 단 차이라 "비활성"으로 읽혔다. 안쪽 카드는
+            보더·그림자로 이미 구분되므로 캔버스가 담당하던 역할이 없다.
+            넘치면 **본문만** 스크롤한다(QA modal-body). */}
+          <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-auto bg-dl-surface p-2.5">
             {children}
           </div>
 
@@ -231,7 +255,7 @@ function DialogFooter({ children }: { readonly children: ReactNode }) {
  *
  * 두 가지가 콘텐츠 모달과 다르다:
  *   · **Esc 를 받지 않는다** — 실수로 누르면 체크해 둔 건이 한 번에 사라진다.
- *   · 본문이 회색 캔버스다 — 흰 배경은 안쪽의 필터·그리드 카드가 갖는다.
+ *   · 폭·높이 축이 없다 — 리사이즈가 정체성이라 크기는 사용자가 정한다.
  *
  * 창 크기 조절·드래그 이동은 브라우저 기본(`resize: both`)으로 둔다. 드래그 이동까지
  * 직접 구현하면 포커스 트랩·키보드 이동을 다시 만들게 되어 Radix 를 쓰는 의미가 없어진다.
@@ -266,8 +290,10 @@ export function PickerDialog({
         >
           <DialogHeader title={title} closeLabel={closeLabel} />
 
-          {/* 회색 캔버스 — 상세 화면과 같은 기준. 흰 배경은 필터·그리드 카드가 갖는다 */}
-          <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-auto bg-dl-canvas p-2.5">
+          {/* 헤더·푸터와 같은 흰 표면 — ContentDialog 와 같은 근거다(잠금 배경 #e6e6e6 과
+            한 단 차이라 "비활성"으로 읽혔다). 안쪽 필터·그리드 카드는 보더·그림자로
+            이미 구분되므로 캔버스가 담당하던 역할이 없다. */}
+          <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-auto bg-dl-surface p-2.5">
             {children}
           </div>
 

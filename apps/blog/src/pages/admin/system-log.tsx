@@ -1,11 +1,41 @@
+import { Badge, Button, ContentDialog, DataGrid, defineColumns } from '@hvy/ui';
 import { format } from 'date-fns';
 import { useCallback, useMemo, useState } from 'react';
-import DetailDialog from '@/components/common/DetailDialog';
-import ShadcnDataTable, { type DataTableColumn } from '@/components/common/ShadcnDataTable';
+import DynamicSearchFields from '@/components/common/DynamicSearchFields';
+import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
+import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
+import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
-import { Badge } from '@/components/ui/badge';
+import { useServerGrid } from '@/hooks/useServerGrid';
+import type { SearchField, SearchRequest } from '@/lib/gridSearch';
 import service from '@/service';
 import { formatUtcToLocal } from '@/util/dateTimeUtil';
+
+/**
+ * 검색 필드 정의 — **모듈 스코프에 둔다.**
+ * 컴포넌트 안에 두면 렌더마다 새 배열이 되고, useServerGrid 의 서버 조회 effect 가
+ * 이 배열을 의존성으로 갖기 때문에 매 렌더 재조회가 돈다.
+ */
+const searchFields: SearchField[] = [
+  {
+    type: 'dateRange',
+    fromName: 'createdAtFrom',
+    toName: 'createdAtTo',
+    fromLabel: '시작일',
+    toLabel: '종료일',
+    pinned: true,
+  },
+  { name: 'traceId', label: 'Trace ID' },
+  { name: 'spanId', label: 'Span ID' },
+  { name: 'requestUri', label: 'Request URI' },
+  { name: 'controllerName', label: 'Controller' },
+  { name: 'methodName', label: 'Method' },
+  { name: 'httpMethodType', label: 'HTTP Method' },
+  { name: 'paramData', label: 'Param Data' },
+  { name: 'responseBody', label: 'Response Body' },
+  { name: 'stackTrace', label: 'Stack Trace' },
+  { name: 'remoteAddr', label: 'Remote IP' },
+];
 
 export default function SystemLog() {
   // 모듈 로드 시점이 아닌 마운트 시점에 기본 검색일을 계산한다(자정 넘김 stale 방지)
@@ -33,174 +63,139 @@ export default function SystemLog() {
 
   // fetchData 메모이제이션: Dialog 상태 변경 시 재검색 방지
   const fetchSystemLogs = useCallback(
-    (searchRequest: any) => service.log.searchSystemLogs({ searchRequest }),
+    (searchRequest: SearchRequest) => service.log.searchSystemLogs({ searchRequest }),
     [],
   );
 
-  // 테이블 컬럼 정의
-  const columns = useMemo<DataTableColumn[]>(
-    () => [
+  const defaultSearchParams = useMemo(
+    () => ({ createdAtFrom: today, createdAtTo: today }),
+    [today],
+  );
+
+  const grid = useServerGrid<Record<string, unknown>>({
+    fetchData: fetchSystemLogs,
+    searchFields,
+    defaultSearchParams,
+    defaultPageSize: 25,
+  });
+
+  // 컬럼 정의 — 상세 클릭 컬럼이 handleDetailClick 클로저를 쓰므로 컴포넌트 안 useMemo 로 유지
+  const columns = useMemo(() => {
+    const detailColumn = (id: string, headerWord: string, width: number, grow?: number) => ({
+      id,
+      headerWord,
+      width,
+      grow,
+      align: 'left' as const,
+      format: (value: unknown) => (
+        // biome-ignore lint/a11y/useKeyWithClickEvents: 셀 상세 열람은 보조 경로 — 검색 필드로 같은 값을 직접 조회할 수 있다
+        // biome-ignore lint/a11y/noStaticElementInteractions: 위와 동일
+        <div
+          className="cursor-pointer text-dl-primary-ink hover:text-dl-primary-ink"
+          onClick={() => handleDetailClick(headerWord, String(value ?? ''))}
+        >
+          {truncateText(String(value ?? ''))}
+        </div>
+      ),
+    });
+
+    return defineColumns<Record<string, unknown>>([
+      { id: 'id', headerWord: 'ID', width: 130, align: 'left' },
+      { id: 'traceId', headerWord: 'Trace ID', width: 260, align: 'left' },
+      { id: 'requestUri', headerWord: 'Request URI', width: 300, align: 'left' },
+      { id: 'methodName', headerWord: 'Method', width: 200, align: 'left' },
       {
-        accessorKey: 'id',
-        header: 'ID',
-        size: 130,
-        mobileHidden: true,
-      },
-      {
-        accessorKey: 'traceId',
-        header: 'Trace ID',
-        size: 260,
-        mobileHidden: true,
-      },
-      {
-        accessorKey: 'requestUri',
-        header: 'Request URI',
-        size: 300,
-        mobilePrimary: true,
-        mobileLabel: 'Request',
-      },
-      {
-        accessorKey: 'methodName',
-        header: 'Method',
-        size: 200,
-        mobileLabel: 'Method',
-      },
-      {
-        accessorKey: 'httpMethodType',
-        header: 'HTTP Method',
-        size: 120,
-        mobileLabel: 'HTTP',
-        cell: ({ value }: { value: string }) => {
-          const method = value;
+        id: 'httpMethodType',
+        headerWord: 'HTTP Method',
+        width: 120,
+        format: (value) => {
+          const method = String(value ?? '');
           const variant =
             method === 'GET'
-              ? 'info'
+              ? 'primary'
               : method === 'POST'
                 ? 'success'
                 : method === 'PUT'
                   ? 'warning'
                   : method === 'DELETE'
-                    ? 'error'
-                    : 'secondary';
-          return <Badge variant={variant as any}>{method}</Badge>;
+                    ? 'danger'
+                    : 'neutral';
+          return <Badge tone={variant as never}>{method}</Badge>;
         },
       },
       {
-        accessorKey: 'status',
-        header: 'Status',
-        size: 80,
-        mobileLabel: 'Status',
-        cell: ({ value }: { value: string }) => (
-          <Badge variant={value === 'SUCC' ? 'success' : 'error'}>{value}</Badge>
+        id: 'status',
+        headerWord: 'Status',
+        width: 80,
+        format: (value) => (
+          <Badge tone={value === 'SUCC' ? 'success' : 'danger'}>{String(value)}</Badge>
         ),
       },
+      detailColumn('paramData', 'Param Data', 300, 1),
+      detailColumn('responseBody', 'Response Body', 300),
+      detailColumn('stackTrace', 'Stack Trace', 300),
+      { id: 'processTime', headerWord: 'Process Time (ms)', width: 160, align: 'right' },
+      { id: 'remoteAddr', headerWord: 'Remote IP', width: 120 },
       {
-        accessorKey: 'paramData',
-        header: 'Param Data',
-        grow: true,
-        size: 300,
-        mobileLabel: 'Params',
-        cell: ({ value }: { value: string }) => (
-          <div
-            className="cursor-pointer text-sky-700 hover:text-sky-800"
-            onClick={() => handleDetailClick('Param Data', value)}
-          >
-            {truncateText(value)}
-          </div>
-        ),
+        id: 'createdAt',
+        headerWord: 'Created At',
+        width: 200,
+        align: 'left',
+        format: (value) => formatUtcToLocal(String(value)),
       },
-      {
-        accessorKey: 'responseBody',
-        header: 'Response Body',
-        size: 300,
-        mobileLabel: 'Response',
-        cell: ({ value }: { value: string }) => (
-          <div
-            className="cursor-pointer text-sky-700 hover:text-sky-800"
-            onClick={() => handleDetailClick('Response Body', value)}
-          >
-            {truncateText(value)}
-          </div>
-        ),
-      },
-      {
-        accessorKey: 'stackTrace',
-        header: 'Stack Trace',
-        size: 300,
-        mobileLabel: 'Stack',
-        cell: ({ value }: { value: string }) => (
-          <div
-            className="cursor-pointer text-sky-700 hover:text-sky-800"
-            onClick={() => handleDetailClick('Stack Trace', value)}
-          >
-            {truncateText(value)}
-          </div>
-        ),
-      },
-      {
-        accessorKey: 'processTime',
-        header: 'Process Time (ms)',
-        size: 160,
-        mobileLabel: 'Time',
-        cellAlign: 'right',
-      },
-      {
-        accessorKey: 'remoteAddr',
-        header: 'Remote IP',
-        size: 120,
-        mobileLabel: 'IP',
-      },
-      {
-        accessorKey: 'createdAt',
-        header: 'Created At',
-        size: 200,
-        mobileLabel: 'Created',
-        cell: ({ value }: { value: string }) => formatUtcToLocal(value),
-      },
-    ],
-    [handleDetailClick, truncateText],
-  );
+    ]);
+  }, [handleDetailClick, truncateText]);
 
-  // 검색 필드 정의
-  const searchFields = [
-    {
-      type: 'dateRange',
-      fromName: 'createdAtFrom',
-      toName: 'createdAtTo',
-      fromLabel: '시작일',
-      toLabel: '종료일',
-      pinned: true,
-    },
-    { name: 'traceId', label: 'Trace ID' },
-    { name: 'spanId', label: 'Span ID' },
-    { name: 'requestUri', label: 'Request URI' },
-    { name: 'controllerName', label: 'Controller' },
-    { name: 'methodName', label: 'Method' },
-    { name: 'httpMethodType', label: 'HTTP Method' },
-    { name: 'paramData', label: 'Param Data' },
-    { name: 'responseBody', label: 'Response Body' },
-    { name: 'stackTrace', label: 'Stack Trace' },
-    { name: 'remoteAddr', label: 'Remote IP' },
-  ];
+  const { visibleColumns, openSettings, dialog } = useColumnSettings(columns);
 
   return (
     <AdminPageFrame>
       <div className="admin-panel admin-table-shell">
-        <ShadcnDataTable
-          columns={columns}
-          fetchData={fetchSystemLogs}
-          searchFields={searchFields}
-          defaultSearchParams={{ createdAtFrom: today, createdAtTo: today }}
-          defaultPageSize={25}
-          enableDynamicSearch={true}
-        />
+        <div className="flex flex-col gap-2">
+          <DynamicSearchFields
+            searchFields={searchFields as Parameters<typeof DynamicSearchFields>[0]['searchFields']}
+            defaultSearchParams={defaultSearchParams}
+            enableDynamic
+            {...grid.search}
+          />
+          <DataGrid<Record<string, unknown>>
+            columns={visibleColumns}
+            rows={grid.rows}
+            getRowId={(row) => String(row.id)}
+            isFetching={grid.loading}
+            empty={GRID_EMPTY}
+            sortOf={grid.sortOf}
+            onToggleSort={grid.toggleSort}
+            attachedToolbar
+          />
+          <GridPagingBar
+            pageIndex={grid.pageIndex}
+            pageCount={grid.pageCount}
+            onPageChange={grid.setPageIndex}
+            total={grid.totalCount}
+            pageSize={grid.pageSize}
+            onPageSizeChange={grid.setPageSize}
+            onColumnSettings={openSettings}
+          />
+          {dialog}
+        </div>
       </div>
-      <DetailDialog
+      <ContentDialog
         open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
+        onOpenChange={setDialogOpen}
         title={dialogTitle}
-        content={dialogContent}
-      />
+        size="xl"
+        // 본문이 길어 아래까지 스크롤한 뒤 닫는 흐름이라, 헤더 × 만으로는 되돌아가는 길이 멀다.
+        footer={
+          <Button variant="primary" onClick={() => setDialogOpen(false)}>
+            닫기
+          </Button>
+        }
+      >
+        <pre className="m-0 max-h-[65vh] overflow-auto whitespace-pre-wrap break-all rounded-dl-container bg-dl-surface p-4 font-dl-mono text-dl-fg text-sm">
+          {dialogContent || '-'}
+        </pre>
+      </ContentDialog>
     </AdminPageFrame>
   );
 }

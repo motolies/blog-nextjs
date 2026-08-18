@@ -1,15 +1,19 @@
 'use client';
 
+import { Lock, X } from 'lucide-react';
 import { Popover as RadixPopover } from 'radix-ui';
 import { useEffect, useRef, useState } from 'react';
+import { Icon } from '../icons';
 import { cn } from '../lib/cn';
 import { type ControlSize, FIELD_SIZE_CLASS } from '../lib/controlSize';
 import { useControllableState } from '../lib/useControllableState';
 import { Calendar } from './calendar';
-import { CalendarButton, type DateRange, normalizeDateText, PANEL_CLASS } from './date-picker';
+import { CalendarButton, normalizeDateText, PANEL_CLASS } from './date-picker';
+import { type DateRangePreset, PresetRow } from './date-range-picker';
+import { toDateTimeRange } from './datePresets';
 import { FieldViewText, useFieldControl } from './field';
 import type { FieldMode } from './form-mode';
-import type { FieldLock } from './input';
+import { type DateRange, orderRange } from './rangeOrder';
 
 /**
  * 날짜+시간 선택 — DatePicker 와 **별도 컴포넌트**다.
@@ -221,11 +225,18 @@ export type DateTimePickerProps = {
   /** ISO **날짜** 경계(포함) — 달력의 날짜 비활성용. 시간 단위 경계는 지원하지 않는다. */
   readonly min?: string;
   readonly max?: string;
-  readonly lock?: FieldLock;
+  /** 폼 모드. 생략하면 감싼 `Field`/`FormMode` 를 따른다 — 명시하면 폼이 view 여도 이긴다. */
+  readonly mode?: FieldMode;
+  /** 시스템 채움 영구 불변 — readOnly + 자물쇠(선택 버튼 대신). 모든 mode 를 이긴다. */
+  readonly lock?: boolean;
   readonly invalid?: boolean;
   /** 5단 사이즈. 생략하면 감싼 `Field` 의 size, 그것도 없으면 `md`(42). */
   readonly size?: ControlSize;
   readonly id?: string;
+  /** 값 지우기(×) — 값이 있으면 선택 버튼 왼쪽에 뜬다. */
+  readonly clearable?: boolean;
+  /** × 버튼의 접근성 이름. `ui` 는 사전을 모른다 — 필요하면 번역을 주입한다. */
+  readonly clearLabel?: string;
   readonly className?: string;
 };
 
@@ -243,24 +254,28 @@ export function DateTimePicker({
   precision = 'second',
   min,
   max,
+  mode,
   lock,
   invalid,
   size,
   id,
+  clearable,
+  clearLabel = '지우기',
   className,
 }: DateTimePickerProps) {
-  const field = useFieldControl({ id, invalid, size });
+  const field = useFieldControl({ id, invalid, size, mode, lock });
   const [value, setValue] = useControllableState(valueProp, defaultValue, onValueChange);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<string | null>(null);
 
-  if (field.mode === 'view') {
+  if (field.state.view) {
     // 값 계약이 datetime 문자열 그대로라 그대로가 표시값이다. 빈값이면 빈칸.
     return <FieldViewText size={field.size}>{value || null}</FieldViewText>;
   }
 
-  const locked = lock !== undefined;
-  const modeDisabled = field.mode === 'disabled';
+  // 지우기는 편집 가능한 상태에서만 뜬다 — 잠긴 값은 지울 수 있는 값이 아니다.
+  const showClear =
+    clearable === true && !field.state.readOnly && !field.state.disabled && value !== '';
 
   /** 값이 바뀐 지점마다 dirty 를 통지한다 — 근거는 `DatePicker.commitText` 주석. */
   const commitText = (text: string) => {
@@ -287,7 +302,8 @@ export function DateTimePicker({
               'dl-field min-w-[190px] pr-10',
               FIELD_SIZE_CLASS[field.size],
               field.invalid && 'dl-field-error',
-              (locked || modeDisabled) && 'dl-field-locked',
+              field.state.lockClass,
+              showClear && 'pr-16',
             )}
             id={field.id}
             name={name}
@@ -295,17 +311,40 @@ export function DateTimePicker({
             placeholder={placeholder ?? defaultPlaceholder(precision)}
             aria-invalid={field['aria-invalid']}
             aria-describedby={field['aria-describedby']}
-            readOnly={lock === 'auto' || lock === 'readonly'}
-            disabled={lock === 'disabled' || modeDisabled}
+            aria-required={field.required || undefined}
+            readOnly={field.state.readOnly}
+            disabled={field.state.disabled}
+            {...field.state.dataProps}
             onChange={(event) => setDraft(event.target.value)}
             onBlur={(event) => commitText(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === 'Enter') commitText(event.currentTarget.value);
             }}
           />
-          <RadixPopover.Trigger asChild>
-            <CalendarButton label="날짜·시간 선택 열기" locked={locked || modeDisabled} />
-          </RadixPopover.Trigger>
+          {showClear ? (
+            <button
+              type="button"
+              aria-label={clearLabel}
+              onClick={() => {
+                setDraft(null);
+                setValue('');
+                field.notifyDirty();
+              }}
+              className="absolute inset-y-0 right-10 my-auto flex size-5 items-center justify-center rounded-dl-badge text-dl-field-caret hover:bg-dl-option-hover hover:text-dl-fg"
+            >
+              <Icon icon={X} className="size-3" />
+            </button>
+          ) : null}
+          {lock ? (
+            // 잠긴 칸은 비활성 버튼 대신 자물쇠 표식 — 거짓 어포던스를 남기지 않는다.
+            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-dl-locked-icon">
+              <Icon icon={Lock} size="lock" />
+            </span>
+          ) : (
+            <RadixPopover.Trigger asChild>
+              <CalendarButton label="날짜·시간 선택 열기" locked={field.state.disabled} />
+            </RadixPopover.Trigger>
+          )}
         </span>
       </RadixPopover.Anchor>
 
@@ -342,7 +381,15 @@ export type DateTimeRangePickerProps = {
   readonly precision?: DateTimePrecision;
   readonly min?: string;
   readonly max?: string;
-  readonly lock?: FieldLock;
+  /**
+   * 기간 프리셋 — 양쪽 팝오버 상단에 같은 행이 뜨고, 클릭하면 양끝을 한 번에 채운다.
+   * 날짜만 있는 프리셋(`presetRange` 산출물)은 하루 전체(00:00~23:59)로 넓힌다.
+   */
+  readonly presets?: readonly DateRangePreset[];
+  /** 폼 모드. 생략하면 감싼 `Field`/`FormMode` 를 따른다 — 명시하면 폼이 view 여도 이긴다. */
+  readonly mode?: FieldMode;
+  /** 시스템 채움 영구 불변 — readOnly + 자물쇠(선택 버튼 대신). 모든 mode 를 이긴다. */
+  readonly lock?: boolean;
   readonly invalid?: boolean;
   /** 5단 사이즈 — 시작·종료 입력 둘 다에 적용된다. */
   readonly size?: ControlSize;
@@ -353,8 +400,8 @@ export type DateTimeRangePickerProps = {
  * 날짜+시간 기간 — DateRangePicker(공유 달력 1개)와 달리 **끝마다 자기 팝오버**를 가진다.
  * datetime 은 끝마다 날짜+시간 2차원이라 공유 팝업 하나에 시간 리스트 2벌을 담으면
  * 과밀하다 — QA 의 기준일자 검색 변형도 입력별 달력 형태다.
- * 순서가 뒤집히면(시작 > 종료) 맞바꾸는 규칙은 동일하다 — 공백 구분 동일 포맷이라
- * 문자열 비교가 그대로 성립한다.
+ * 순서가 뒤집히면(시작 > 종료) 맞바꾸는 규칙은 `orderRange`(rangeOrder.ts) 를
+ * DateRangePicker 와 공유한다 — 공백 구분 동일 포맷이라 문자열 비교가 그대로 성립한다.
  */
 export function DateTimeRangePicker({
   start: startProp,
@@ -367,6 +414,8 @@ export function DateTimeRangePicker({
   precision = 'second',
   min,
   max,
+  presets,
+  mode,
   lock,
   invalid,
   size,
@@ -380,9 +429,9 @@ export function DateTimeRangePicker({
     onRangeChange,
   );
   /** view 분기용 mode·size 만 쓴다 — id·invalid·dirty 는 양끝 `SideDateTime` 이 각자 배선한다. */
-  const field = useFieldControl({ invalid, size });
+  const field = useFieldControl({ invalid, size, mode, lock });
 
-  if (field.mode === 'view') {
+  if (field.state.view) {
     // 한쪽만 있으면 그쪽만 그린다 — `~` 는 양쪽 값이 있을 때만 뜻이 있다. 둘 다 빈값이면 빈칸.
     const display =
       range.start && range.end ? `${range.start} ~ ${range.end}` : range.start || range.end;
@@ -390,12 +439,16 @@ export function DateTimeRangePicker({
   }
 
   const commitSide = (side: 'start' | 'end', nextValue: string) => {
-    const next = { ...range, [side]: nextValue };
-    if (next.start && next.end && next.start > next.end) {
-      setRange({ start: next.end, end: next.start });
-      return;
-    }
-    setRange(next);
+    setRange(orderRange({ ...range, [side]: nextValue }));
+  };
+
+  /**
+   * 프리셋 클릭 — 양끝을 한 번에 채운다. 날짜만 온 프리셋(`presetRange` 산출물)은
+   * `toDateTimeRange` 가 하루 전체로 넓힌다. dirty 통지는 누른 쪽 `SideDateTime` 이 한다.
+   */
+  const applyPreset = (preset: DateRangePreset) => {
+    const resolved = typeof preset.range === 'function' ? preset.range(new Date()) : preset.range;
+    setRange(orderRange(toDateTimeRange(resolved, precision)));
   };
 
   return (
@@ -408,6 +461,8 @@ export function DateTimeRangePicker({
         precision={precision}
         min={min}
         max={max}
+        presets={presets}
+        onPreset={applyPreset}
         lock={lock}
         invalid={invalid}
         size={size}
@@ -424,6 +479,8 @@ export function DateTimeRangePicker({
         precision={precision}
         min={min}
         max={max}
+        presets={presets}
+        onPreset={applyPreset}
         lock={lock}
         invalid={invalid}
         size={size}
@@ -445,6 +502,8 @@ function SideDateTime({
   precision,
   min,
   max,
+  presets,
+  onPreset,
   lock,
   invalid,
   size,
@@ -457,18 +516,18 @@ function SideDateTime({
   readonly precision: DateTimePrecision;
   readonly min?: string;
   readonly max?: string;
-  readonly lock?: FieldLock;
+  readonly presets?: readonly DateRangePreset[];
+  readonly onPreset?: (preset: DateRangePreset) => void;
+  readonly lock?: boolean;
   readonly invalid?: boolean;
   readonly size?: ControlSize;
   readonly mode: FieldMode;
   readonly onCommit: (side: 'start' | 'end', value: string) => void;
 }) {
-  const field = useFieldControl({ invalid, size, mode });
+  const field = useFieldControl({ invalid, size, mode, lock });
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<string | null>(null);
 
-  const locked = lock !== undefined;
-  const modeDisabled = field.mode === 'disabled';
   const label = side === 'start' ? '시작' : '종료';
 
   /**
@@ -499,7 +558,7 @@ function SideDateTime({
               'dl-field min-w-[190px] pr-10',
               FIELD_SIZE_CLASS[field.size],
               field.invalid && 'dl-field-error',
-              (locked || modeDisabled) && 'dl-field-locked',
+              field.state.lockClass,
             )}
             name={name}
             value={draft ?? value}
@@ -507,22 +566,42 @@ function SideDateTime({
             aria-label={`${label}일시`}
             aria-invalid={field['aria-invalid']}
             aria-describedby={field['aria-describedby']}
-            readOnly={lock === 'auto' || lock === 'readonly'}
-            disabled={lock === 'disabled' || modeDisabled}
+            aria-required={field.required || undefined}
+            readOnly={field.state.readOnly}
+            disabled={field.state.disabled}
+            {...field.state.dataProps}
             onChange={(event) => setDraft(event.target.value)}
             onBlur={(event) => commitText(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === 'Enter') commitText(event.currentTarget.value);
             }}
           />
-          <RadixPopover.Trigger asChild>
-            <CalendarButton label={`${label}일시 선택 열기`} locked={locked || modeDisabled} />
-          </RadixPopover.Trigger>
+          {lock ? (
+            // 잠긴 칸은 비활성 버튼 대신 자물쇠 표식 — 거짓 어포던스를 남기지 않는다.
+            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-dl-locked-icon">
+              <Icon icon={Lock} size="lock" />
+            </span>
+          ) : (
+            <RadixPopover.Trigger asChild>
+              <CalendarButton label={`${label}일시 선택 열기`} locked={field.state.disabled} />
+            </RadixPopover.Trigger>
+          )}
         </span>
       </RadixPopover.Anchor>
 
       <RadixPopover.Portal>
         <RadixPopover.Content sideOffset={4} align="start" className={PANEL_CLASS}>
+          {presets && onPreset ? (
+            <PresetRow
+              presets={presets}
+              onApply={(preset) => {
+                onPreset(preset);
+                // 부모 applyPreset 은 값만 바꾼다 — dirty 통지·닫기는 누른 쪽이 한다.
+                field.notifyDirty();
+                setOpen(false);
+              }}
+            />
+          ) : null}
           <DateTimePanel
             value={value}
             min={min}

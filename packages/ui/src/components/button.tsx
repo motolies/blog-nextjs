@@ -12,9 +12,11 @@ import { warnOnce } from '../lib/warnOnce';
  * 버튼 — QA `_button.css`.
  *
  * variant 는 QA 의 5종(primary 채움 + outline 4색)을 그대로 쓴다.
- * **모든 variant 가 hover 에서 primary-hover 채움 + 흰 글자**로 수렴하고,
- * active 는 primary-active 로 한 단계 더 눌린다 — QA `.btn:hover/:active` 실측.
+ * **삭제(`outline-red`)를 뺀 전 variant 가 hover 에서 primary-hover 채움 + 흰 글자**로
+ * 수렴하고, active 는 primary-active 로 한 단계 더 눌린다 — QA `.btn:hover/:active` 실측.
  * 아이콘은 currentColor 라 글자와 함께 흰색으로 따라온다.
+ * **예외는 삭제 하나뿐이다** — 공통 규칙대로 brand 로 채우면 손을 올리는 순간 위험
+ * 신호가 사라지므로 자기 색(danger)으로 채운다. 근거는 그 variant 주석에 있다.
  *
  * 기본값은 `outline-gray` 다 — 보조 액션 기본형. Primary 는 **한 화면에 하나**이므로
  * 기본값이 될 수 없다.
@@ -27,7 +29,7 @@ const buttonVariants = cva(
   [
     'inline-flex items-center justify-center whitespace-nowrap',
     'gap-1.5 rounded-dl-container border font-semibold transition-colors',
-    // hover·active 는 variant 공통 — 전부 primary 채움으로 수렴한다(QA).
+    // hover·active 는 variant 공통 — 삭제(outline-red)를 뺀 전부가 primary 채움으로 수렴한다(QA).
     'hover:border-dl-primary-hover hover:bg-dl-primary-hover hover:text-dl-primary-fg',
     'active:border-dl-primary-active active:bg-dl-primary-active active:text-dl-primary-fg',
     // 비활성은 **톤보다 우선한다** — 글자 #919191 · 보더 #ccc · 배경 #e6e6e6 (QA .btn:disabled).
@@ -43,7 +45,7 @@ const buttonVariants = cva(
         /** 주 실행 — 검색 · 저장 · 확정. 한 화면에 하나. */
         primary: 'border-dl-primary bg-dl-primary text-dl-primary-fg',
         /** 지금 해야 할 중요 보조 — 업로드 · 조정. (v3 의 secondary 자리를 승계) */
-        'outline-primary': 'border-dl-primary bg-dl-surface text-dl-primary',
+        'outline-primary': 'border-dl-primary bg-dl-surface text-dl-primary-ink',
         /** 강조 보조 — 취소 · 다운로드. (QA `btn-outline-black`. 'black' 이라는 이름은
             기본 팔레트 금지 규칙(`outline-black`)과 문자열이 겹쳐 strong 으로 바꿨다) */
         'outline-strong': 'border-dl-outline-strong-border bg-dl-surface text-dl-outline-strong-fg',
@@ -52,8 +54,23 @@ const buttonVariants = cva(
         /**
          * 삭제 — 흰 배경 + 빨강 아웃라인. **채움이 아니다.**
          * 오클릭 비용이 커서 주 실행과 같은 무게로 보이면 안 된다.
+         *
+         * hover 만 **QA 에서 의도적으로 이탈한다** — 전 variant 공통 규칙대로 primary 로
+         * 채우면 손을 올리는 순간 위험 신호가 사라진다. 자기 색으로 채우되 원색이 아니라
+         * danger-hover(한 단 짙은 빨강)를 쓰는 이유는 흰 글자 대비다(theme/default.css 참조).
          */
-        'outline-red': 'border-dl-danger-border bg-dl-surface text-dl-danger',
+        'outline-red': [
+          'border-dl-danger-border bg-dl-surface text-dl-danger',
+          'hover:border-dl-danger-hover hover:bg-dl-danger-hover hover:text-dl-danger-fg',
+          'active:border-dl-danger-hover active:bg-dl-danger-hover active:text-dl-danger-fg',
+        ].join(' '),
+        /**
+         * 투명 — 보더·배경 없이 글자만. 원본 @deleo/ui 에는 없던 blog 추가 variant.
+         * 툴바 안 보조 액션·인라인 텍스트 버튼처럼 시각 무게가 없어야 하는 자리 전용.
+         * hover 는 공통 규칙(primary 채움 수렴)을 따르지 않고 은은한 면만 깔린다.
+         */
+        ghost:
+          'border-transparent bg-transparent text-dl-fg-muted hover:border-transparent hover:bg-dl-option-hover hover:text-dl-fg active:border-transparent active:bg-dl-option-hover active:text-dl-fg',
       },
       size: {
         xs: 'h-dl-control-xs gap-1 px-dl-btn-pad-xs text-dl-ctl-xs',
@@ -147,6 +164,7 @@ const iconButtonVariants = cva(
     'inline-flex items-center justify-center shrink-0',
     'rounded-dl-container transition-colors',
     // hover 는 텍스트 버튼과 같은 규칙 — primary 채움 + 흰 아이콘(QA form-group-append).
+    // 삭제(tone=danger)만 자기 색으로 덮는다 — 근거는 그 tone 주석.
     'hover:bg-dl-primary-hover hover:text-dl-primary-fg',
     // **아이콘 단독 버튼만 비활성 규칙이 다르다**:
     // 텍스트 버튼은 회색 칩이 되지만 여기는 배경을 두지 않고 아이콘만 흐리게 한다.
@@ -159,9 +177,9 @@ const iconButtonVariants = cva(
         /** 표시 컨트롤 — 행 높이 · 정렬 · 목록 · 컬럼. 액션과 분리 배치한다. */
         neutral: 'text-dl-icon',
         /** 등록 등 액션. */
-        primary: 'text-dl-primary',
-        /** 삭제. */
-        danger: 'text-dl-danger',
+        primary: 'text-dl-primary-ink',
+        /** 삭제. hover 는 outline-red 와 같은 근거로 자기 색이다. */
+        danger: 'text-dl-danger hover:bg-dl-danger-hover hover:text-dl-danger-fg',
         /** 엑셀 다운로드 — 아이콘이 아니라 제품 로고라 색이 고정이다. */
         excel: 'text-dl-excel',
       },

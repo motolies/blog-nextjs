@@ -9,6 +9,7 @@ import {
   POSTS,
   postResponse,
   postSearchItem,
+  SEARCH_ENGINES,
   SERIES,
   SERIES_POST_IDS,
   TAGS,
@@ -145,6 +146,12 @@ export const handlers = [
     const pageSize = search.pageSize ?? 10;
     const slice = filtered.slice((page - 1) * pageSize, page * pageSize);
     return ok(request, pageOf(slice.map(postSearchItem), page, pageSize, filtered.length));
+  }),
+
+  // ⚠️ 반드시 :postId 보다 위 — 한 세그먼트라 :postId 가 삼킨다 (실측: 메인 SSR 500)
+  http.get('*/api/post/search-engine', ({ request }) => {
+    count('post');
+    return ok(request, SEARCH_ENGINES);
   }),
 
   http.get('*/api/post/prev-next/:postId', ({ request, params }) => {

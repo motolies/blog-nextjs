@@ -73,9 +73,10 @@ function GridGuideBody() {
         </table>
       </div>
       <p className="text-dl-sm text-dl-fg-muted">
-        페이지 최소 폭은 <code className="font-dl-mono">--spacing-dl-app-min</code>(1600px), 여백
-        리듬은 <code className="font-dl-mono">--spacing-dl-gutter</code>(20px)다 — 숫자를 직접 박지
-        말고 <code className="font-dl-mono">p-dl-gutter</code>·
+        페이지 최소 폭은 <code className="font-dl-mono">--spacing-dl-app-min</code>(1430px — 기준
+        뷰포트 맥북에어 13&quot; 1440×900), 여백 리듬은{' '}
+        <code className="font-dl-mono">--spacing-dl-gutter</code>(20px)다 — 숫자를 직접 박지 말고{' '}
+        <code className="font-dl-mono">p-dl-gutter</code>·
         <code className="font-dl-mono">gap-dl-gutter</code> 유틸리티를 쓴다.
       </p>
     </section>

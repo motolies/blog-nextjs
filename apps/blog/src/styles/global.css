@@ -1,36 +1,35 @@
 @charset "UTF-8";
 
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+/* @hvy/ui 테마 체계 — default.css 가 tailwindcss·tw-animate-css·utilities.css 를 문다(이중 import 금지).
+   테마 선택은 <html data-theme> (next-themes 가 light→blog / dark→blog-dark 매핑). */
+@import "@hvy/ui/theme/default.css";
+@import "@hvy/ui/theme/blog.css";
+@import "@hvy/ui/theme/blog-dark.css";
 @import "./content-typography.css";
 @import "./code-highlight.css";
 
-@custom-variant dark (&:is(.dark *));
+/* 워크스페이스 패키지(@hvy/ui)의 클래스도 Tailwind 가 스캔하도록 알려준다 */
+@source "../../../../packages/ui/src";
+
+/* Tailwind dark: variant 를 next-themes 의 data-theme 스탬프에 연결한다 (.dark 클래스 불사용) */
+@custom-variant dark (&:is([data-theme='blog-dark'] *));
+
+/* D2Coding — @hvy/ui 토큰의 폰트 축을 blog 폰트로 재선언(deleo 폰트 패턴:
+   패키지는 이름만 알고, 파일·@font-face 는 앱이 소유한다). */
+@theme {
+  --font-dl-sans: "D2Coding", monospace;
+  --font-dl-mono: "D2Coding", monospace;
+  --font-mono: "D2Coding", monospace;
+
+  /* 구 shadcn --radius(1rem) 파생 스케일의 리터럴 고정 — rounded-md/lg/xl/2xl 사용처의 모서리 유지 */
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.375rem;
+  --radius-2xl: 1.75rem;
+}
 
 @layer base {
   :root {
-    --background: 210 50% 98%;
-    --foreground: 216 30% 14%;
-    --card: 0 0% 100%;
-    --card-foreground: 216 30% 14%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 216 30% 14%;
-    --primary: 208 83% 52%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 43% 96%;
-    --secondary-foreground: 216 30% 14%;
-    --muted: 210 35% 95%;
-    --muted-foreground: 215 16% 39%;
-    --accent: 206 67% 94%;
-    --accent-foreground: 216 30% 14%;
-    --destructive: 0 74% 54%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214 32% 88%;
-    --input: 214 32% 88%;
-    --ring: 208 83% 52%;
-    --radius: 1rem;
-
     /* 고정 헤더(.top, 4.5rem + 보더 1px) 아래로 헤딩이 안착하도록 하는 스크롤 여백.
        TableOfContents의 IntersectionObserver rootMargin 상단값(-80px)보다 커야
        목차 클릭으로 이동한 헤딩이 활성 항목으로 잡힌다. */
@@ -44,7 +43,9 @@
     --line-soft: rgba(148, 163, 184, 0.2);
     --shadow-soft: 0 22px 70px rgba(15, 23, 42, 0.08);
     --shadow-card: 0 18px 50px rgba(15, 23, 42, 0.08);
-    --public-text-subtle: #7b8a9e;
+    /* 대비 하한 유지 — 가장 밝은 표면(#f9fbfd)에서도 4.5:1(AA).
+       낮추면 빈 상태 문구·섹션 라벨이 먼저 무너진다. */
+    --public-text-subtle: #667488;
     --public-text-muted: #58677c;
     --public-control-bg: rgba(255, 255, 255, 0.9);
     --public-control-hover-bg: rgba(248, 250, 252, 0.96);
@@ -60,32 +61,27 @@
     --public-header-bg: rgba(248, 251, 253, 0.84);
     --public-header-border: rgba(148, 163, 184, 0.16);
     --public-max-width: 120rem;
+
+    /* 정규식 매치 하이라이트 — 브랜드색이 아니라 **서로 구분되는 것**이 목적인 기능색이다.
+       그래서 dl 팔레트로 대체할 수 없고, @hvy/ui 테마(Tier 1 색 33키)에도 넣지 않는다 —
+       `--admin-*`·`--public-*` 와 같은 앱 소유 팔레트 층이 제자리다.
+       라이트/다크 공통으로 밝게 두고, 그 위 글자는 항상 어두운 `-fg` 로 못 박는다
+       (배경만 지정하고 글자색을 상속시키면 다크에서 밝은 배경 위 밝은 글자가 된다). */
+    --regex-hl-1: #ffeb3b;
+    --regex-hl-2: #4caf50;
+    --regex-hl-3: #2196f3;
+    --regex-hl-4: #ff9800;
+    --regex-hl-5: #e91e63;
+    --regex-hl-6: #9c27b0;
+    --regex-hl-7: #00bcd4;
+    --regex-hl-8: #8bc34a;
+    --regex-hl-fg: #14181d;
     --font-display: "D2Coding", monospace;
     --font-body: "D2Coding", monospace;
     --font-code: "D2Coding", monospace;
   }
 
-  .dark {
-    --background: 220 13% 13%;
-    --foreground: 220 14% 71%;
-    --card: 220 13% 18%;
-    --card-foreground: 220 14% 71%;
-    --popover: 220 13% 16%;
-    --popover-foreground: 220 14% 71%;
-    --primary: 207 82% 66%;
-    --primary-foreground: 220 13% 13%;
-    --secondary: 220 10% 22%;
-    --secondary-foreground: 220 14% 71%;
-    --muted: 220 10% 20%;
-    --muted-foreground: 220 9% 46%;
-    --accent: 220 10% 24%;
-    --accent-foreground: 220 14% 84%;
-    --destructive: 355 65% 65%;
-    --destructive-foreground: 220 13% 95%;
-    --border: 220 10% 26%;
-    --input: 220 10% 26%;
-    --ring: 207 82% 66%;
-
+  [data-theme='blog-dark'] {
     --surface-hero: #1a1e24;
     --surface-panel: rgba(40, 44, 52, 0.82);
     --surface-panel-strong: rgba(40, 44, 52, 0.96);
@@ -94,7 +90,9 @@
     --line-soft: rgba(99, 109, 131, 0.18);
     --shadow-soft: 0 28px 90px rgba(0, 0, 0, 0.35);
     --shadow-card: 0 24px 64px rgba(0, 0, 0, 0.3);
-    --public-text-subtle: #636d83;
+    /* 다크 표면 위 AA — 가장 어두운 글자가 얹히는 표면(#2c3039)까지 4.5:1 을 넘긴다.
+       구 #636d83 은 2.5:1 로 크게 미달이었다. */
+    --public-text-subtle: #8f98ad;
     --public-text-muted: #abb2bf;
     --public-control-bg: rgba(40, 44, 52, 0.92);
     --public-control-hover-bg: rgba(50, 55, 65, 0.96);
@@ -112,7 +110,9 @@
   }
 
   * {
-    @apply border-border outline-ring/50;
+    /* 색 없는 `border` 유틸리티의 기본색 — 없으면 Tailwind 4 기본값 currentColor 로 검게 변한다.
+       포커스 outline 은 default.css 의 :focus-visible 규칙이 담당한다. */
+    border-color: var(--color-dl-border);
     box-sizing: border-box;
   }
 
@@ -123,7 +123,7 @@
 
   body {
     margin: 0;
-    color: hsl(var(--foreground));
+    color: var(--color-dl-fg);
     background:
       radial-gradient(ellipse 130% 70% at 15% 6%, rgba(56, 189, 248, 0.07) 0%, transparent 60%),
       radial-gradient(ellipse 100% 60% at 85% 8%, rgba(59, 130, 246, 0.06) 0%, transparent 55%),
@@ -135,8 +135,7 @@
   }
 
 
-  body.dark,
-  .dark body {
+  [data-theme='blog-dark'] body {
     background:
       radial-gradient(circle at 15% 10%, rgba(97, 175, 239, 0.12), transparent 26%),
       radial-gradient(circle at 82% 16%, rgba(198, 120, 221, 0.07), transparent 24%),
@@ -179,7 +178,7 @@
     background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.5), transparent);
   }
 
-  .dark hr {
+  [data-theme='blog-dark'] hr {
     background: linear-gradient(90deg, transparent, rgba(99, 109, 131, 0.3), transparent);
   }
 
@@ -189,35 +188,6 @@
   samp {
     font-family: var(--font-code);
   }
-}
-
-@theme inline {
-  --radius-sm: calc(var(--radius) - 8px);
-  --radius-md: calc(var(--radius) - 4px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 6px);
-  --radius-2xl: calc(var(--radius) + 12px);
-  --radius-3xl: calc(var(--radius) + 20px);
-  --radius-4xl: calc(var(--radius) + 28px);
-  --font-mono: "D2Coding", monospace;
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-destructive: hsl(var(--destructive));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
 }
 
 .back-color {
@@ -263,11 +233,11 @@ a.file-link {
   box-shadow: var(--shadow-card);
 }
 
-.dark .surface-panel {
+[data-theme='blog-dark'] .surface-panel {
   border-color: rgba(99, 109, 131, 0.22);
 }
 
-.dark .surface-panel-strong {
+[data-theme='blog-dark'] .surface-panel-strong {
   border-color: rgba(99, 109, 131, 0.2);
 }
 
@@ -286,7 +256,7 @@ a.file-link {
   text-transform: uppercase;
 }
 
-.dark .section-eyebrow {
+[data-theme='blog-dark'] .section-eyebrow {
   border-color: rgba(97, 175, 239, 0.2);
   background: rgba(97, 175, 239, 0.1);
   color: rgb(97 175 239);
@@ -318,7 +288,7 @@ a.file-link {
 .public-control-surface {
   border-color: var(--public-control-border);
   background: var(--public-control-bg);
-  color: hsl(var(--foreground));
+  color: var(--color-dl-fg);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
@@ -327,24 +297,24 @@ a.file-link {
   background: var(--public-control-hover-bg);
 }
 
-.dark .public-control-surface {
+[data-theme='blog-dark'] .public-control-surface {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 .public-chip-surface {
   border-color: var(--public-chip-border);
   background: var(--public-chip-bg);
-  color: hsl(var(--foreground));
+  color: var(--color-dl-fg);
 }
 
 .public-chip-surface-strong {
   border-color: var(--public-chip-border);
   background: var(--public-chip-bg-strong);
-  color: hsl(var(--foreground));
+  color: var(--color-dl-fg);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
-.dark .public-chip-surface-strong {
+[data-theme='blog-dark'] .public-chip-surface-strong {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
@@ -367,32 +337,13 @@ html[data-admin-ui="admin"] {
   color-scheme: light;
 }
 
-html.dark[data-admin-ui="admin"] {
+html[data-theme='blog-dark'][data-admin-ui="admin"] {
   color-scheme: dark;
 }
 
 body[data-admin-ui="admin"] {
   --admin-header-height: 4.5rem;
   --admin-sidebar-width: 17rem;
-  --background: 210 44% 98%;
-  --foreground: 220 39% 16%;
-  --card: 0 0% 100%;
-  --card-foreground: 220 39% 16%;
-  --popover: 210 50% 99%;
-  --popover-foreground: 220 39% 16%;
-  --primary: 209 91% 46%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 36% 96%;
-  --secondary-foreground: 221 39% 19%;
-  --muted: 210 30% 95%;
-  --muted-foreground: 215 18% 42%;
-  --accent: 206 89% 95%;
-  --accent-foreground: 217 44% 22%;
-  --destructive: 0 72% 54%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214 30% 86%;
-  --input: 214 30% 90%;
-  --ring: 209 91% 46%;
   --admin-canvas: #f6f8fb;
   --admin-canvas-strong: #eef3f8;
   --admin-grid: rgba(148, 163, 184, 0.16);
@@ -404,7 +355,8 @@ body[data-admin-ui="admin"] {
   --admin-text: #18212f;
   --admin-text-secondary: #3a475b;
   --admin-text-muted: #637289;
-  --admin-text-faint: #7b8799;
+  /* 대비 하한 유지 — 흰 패널 위 4.5:1(AA). 구 #7b8799 는 3.6:1 이었다. */
+  --admin-text-faint: #6b7789;
   --admin-accent: #1570ef;
   --admin-accent-soft: rgba(21, 112, 239, 0.1);
   --admin-accent-soft-strong: rgba(21, 112, 239, 0.16);
@@ -639,87 +591,6 @@ body[data-admin-ui="admin"]::before {
   padding: 1.6rem;
 }
 
-body[data-admin-ui="admin"] [data-slot="button"][data-variant="outline"] {
-  border-color: rgba(148, 163, 184, 0.26);
-  background: rgba(255, 255, 255, 0.82);
-  color: var(--admin-text-secondary);
-  box-shadow: none;
-}
-
-body[data-admin-ui="admin"] [data-slot="button"][data-variant="outline"]:hover {
-  background: rgba(245, 249, 253, 0.98);
-  color: var(--admin-text);
-}
-
-body[data-admin-ui="admin"] [data-slot="button"][data-variant="ghost"] {
-  color: var(--admin-text-muted);
-}
-
-body[data-admin-ui="admin"] [data-slot="button"][data-variant="ghost"]:hover {
-  background: rgba(21, 112, 239, 0.08);
-  color: var(--admin-text);
-}
-
-body[data-admin-ui="admin"] [data-slot="input"],
-body[data-admin-ui="admin"] [data-slot="textarea"],
-body[data-admin-ui="admin"] [data-slot="select-trigger"] {
-  border-color: rgba(148, 163, 184, 0.28);
-  background: rgba(255, 255, 255, 0.88);
-  color: var(--admin-text);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
-}
-
-body[data-admin-ui="admin"] [data-slot="input"]::placeholder,
-body[data-admin-ui="admin"] [data-slot="textarea"]::placeholder {
-  color: var(--admin-text-faint);
-}
-
-body[data-admin-ui="admin"] [data-slot="tabs-list"] {
-  border: 1px solid rgba(148, 163, 184, 0.24);
-  background: rgba(245, 248, 252, 0.85);
-}
-
-body[data-admin-ui="admin"] [data-slot="tabs-trigger"] {
-  color: var(--admin-text-muted);
-}
-
-body[data-admin-ui="admin"] [data-slot="tabs-trigger"][data-state="active"] {
-  border-color: rgba(148, 163, 184, 0.26);
-  background: rgba(255, 255, 255, 0.96);
-  color: var(--admin-text);
-}
-
-body[data-admin-ui="admin"] [data-slot="popover-content"],
-body[data-admin-ui="admin"] [data-slot="select-content"],
-body[data-admin-ui="admin"] [data-slot="dropdown-menu-content"],
-body[data-admin-ui="admin"] [data-slot="dialog-content"],
-body[data-admin-ui="admin"] [data-slot="alert-dialog-content"],
-body[data-admin-ui="admin"] [data-slot="command"] {
-  border-color: rgba(148, 163, 184, 0.28);
-  background: rgba(255, 255, 255, 0.98);
-  color: var(--admin-text);
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.12);
-}
-
-body[data-admin-ui="admin"] [data-slot="dialog-overlay"],
-body[data-admin-ui="admin"] [data-slot="alert-dialog-overlay"] {
-  background: rgba(15, 23, 42, 0.28);
-  backdrop-filter: blur(3px);
-}
-
-body[data-admin-ui="admin"] [data-slot="command-input-wrapper"] {
-  border-color: rgba(148, 163, 184, 0.22);
-}
-
-body[data-admin-ui="admin"] [data-slot="command-item"][data-selected="true"],
-body[data-admin-ui="admin"] [data-slot="dropdown-menu-item"]:focus,
-body[data-admin-ui="admin"] [data-slot="dropdown-menu-checkbox-item"]:focus,
-body[data-admin-ui="admin"] [data-slot="dropdown-menu-radio-item"]:focus,
-body[data-admin-ui="admin"] [data-slot="select-item"][data-highlighted] {
-  background: rgba(21, 112, 239, 0.08);
-  color: var(--admin-text);
-}
-
 .admin-shell ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -727,6 +598,14 @@ body[data-admin-ui="admin"] [data-slot="select-item"][data-highlighted] {
 
 .admin-shell ::-webkit-scrollbar-track {
   background: rgba(226, 232, 240, 0.92);
+}
+
+/* 가로·세로 스크롤바가 만나는 코너. 지정하지 않으면 UA 기본값(흰색)이 남아
+   다크 테마에서 흰 사각형으로 튄다 — ::-webkit-scrollbar 에 치수를 준 순간
+   color-scheme 기반 네이티브 다크 렌더링이 꺼지기 때문이다.
+   투명으로 두면 그리드의 bg-dl-surface 가 비쳐 라이트·다크 모두 맞는다. */
+.admin-shell ::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .admin-shell ::-webkit-scrollbar-thumb {
@@ -763,27 +642,7 @@ body[data-admin-ui="admin"] [data-slot="select-item"][data-highlighted] {
 
 /* ── Admin Dark Mode (OneDark) ── */
 
-.dark body[data-admin-ui="admin"] {
-  --background: 220 13% 13%;
-  --foreground: 220 14% 71%;
-  --card: 220 13% 18%;
-  --card-foreground: 220 14% 71%;
-  --popover: 220 13% 16%;
-  --popover-foreground: 220 14% 71%;
-  --primary: 207 82% 66%;
-  --primary-foreground: 220 13% 13%;
-  --secondary: 220 10% 22%;
-  --secondary-foreground: 220 14% 71%;
-  --muted: 220 10% 20%;
-  --muted-foreground: 220 9% 46%;
-  --accent: 220 10% 24%;
-  --accent-foreground: 220 14% 84%;
-  --destructive: 355 65% 65%;
-  --destructive-foreground: 220 13% 95%;
-  --border: 220 10% 26%;
-  --input: 220 10% 28%;
-  --ring: 207 82% 66%;
-
+[data-theme='blog-dark'] body[data-admin-ui="admin"] {
   --admin-canvas: #1a1e24;
   --admin-canvas-strong: #21252b;
   --admin-grid: rgba(99, 109, 131, 0.08);
@@ -794,8 +653,9 @@ body[data-admin-ui="admin"] [data-slot="select-item"][data-highlighted] {
   --admin-border-strong: rgba(99, 109, 131, 0.36);
   --admin-text: #d7dae0;
   --admin-text-secondary: #abb2bf;
-  --admin-text-muted: #7c8496;
-  --admin-text-faint: #636d83;
+  /* 다크 패널(#282c34) 위 AA — 구 값은 muted 3.7:1 · faint 2.7:1 로 둘 다 미달이었다. */
+  --admin-text-muted: #a3aab8;
+  --admin-text-faint: #8a93a8;
   --admin-accent: #61afef;
   --admin-accent-soft: rgba(97, 175, 239, 0.12);
   --admin-accent-soft-strong: rgba(97, 175, 239, 0.18);
@@ -810,147 +670,65 @@ body[data-admin-ui="admin"] [data-slot="select-item"][data-highlighted] {
     linear-gradient(180deg, #1a1e24 0%, #1e2127 48%, #1e2228 100%);
 }
 
-.dark .admin-shell::before {
+[data-theme='blog-dark'] .admin-shell::before {
   background:
     radial-gradient(circle at 10% 14%, rgba(97, 175, 239, 0.08), transparent 18%),
     radial-gradient(circle at 92% 10%, rgba(198, 120, 221, 0.06), transparent 16%);
 }
 
-.dark .admin-page-header {
+[data-theme='blog-dark'] .admin-page-header {
   background:
     linear-gradient(180deg, rgba(40, 44, 52, 0.92), rgba(37, 41, 48, 0.95)),
     radial-gradient(circle at top right, rgba(97, 175, 239, 0.08), transparent 32%);
 }
 
-.dark .admin-page-title-icon {
+[data-theme='blog-dark'] .admin-page-title-icon {
   color: #61afef;
 }
 
-.dark .admin-panel {
+[data-theme='blog-dark'] .admin-panel {
   background: linear-gradient(180deg, var(--admin-panel-strong), rgba(37, 41, 48, 0.96));
 }
 
-.dark .admin-panel-soft {
+[data-theme='blog-dark'] .admin-panel-soft {
   border-color: rgba(99, 109, 131, 0.22);
 }
 
-.dark .admin-stat-card {
+[data-theme='blog-dark'] .admin-stat-card {
   background: linear-gradient(180deg, rgba(40, 44, 52, 0.96), rgba(37, 41, 48, 0.98));
 }
 
-.dark .admin-stat-meta {
+[data-theme='blog-dark'] .admin-stat-meta {
   color: #61afef;
 }
 
-.dark .admin-pill {
+[data-theme='blog-dark'] .admin-pill {
   border-color: rgba(99, 109, 131, 0.28);
   background: rgba(44, 49, 58, 0.9);
 }
 
-.dark .admin-icon-chip {
+[data-theme='blog-dark'] .admin-icon-chip {
   border-color: rgba(97, 175, 239, 0.14);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-.dark .admin-link-card {
+[data-theme='blog-dark'] .admin-link-card {
   background: linear-gradient(180deg, rgba(40, 44, 52, 0.94), rgba(37, 41, 48, 0.96));
 }
 
-.dark .admin-link-card:hover {
+[data-theme='blog-dark'] .admin-link-card:hover {
   border-color: rgba(97, 175, 239, 0.22);
   box-shadow: 0 14px 28px rgba(97, 175, 239, 0.06);
 }
 
-.dark .admin-shell ::-webkit-scrollbar-track {
+[data-theme='blog-dark'] .admin-shell ::-webkit-scrollbar-track {
   background: rgba(33, 37, 43, 0.92);
 }
 
-.dark .admin-shell ::-webkit-scrollbar-thumb {
+[data-theme='blog-dark'] .admin-shell ::-webkit-scrollbar-thumb {
   background: rgba(99, 109, 131, 0.5);
 }
 
-.dark .admin-shell ::-webkit-scrollbar-thumb:hover {
+[data-theme='blog-dark'] .admin-shell ::-webkit-scrollbar-thumb:hover {
   background: rgba(99, 109, 131, 0.7);
-}
-
-/* Admin dark: shadcn component overrides */
-
-.dark body[data-admin-ui="admin"] [data-slot="button"][data-variant="outline"] {
-  border-color: rgba(99, 109, 131, 0.26);
-  background: rgba(40, 44, 52, 0.82);
-  color: var(--admin-text-secondary);
-}
-
-.dark body[data-admin-ui="admin"] [data-slot="button"][data-variant="outline"]:hover {
-  background: rgba(48, 53, 64, 0.98);
-  color: var(--admin-text);
-}
-
-.dark body[data-admin-ui="admin"] [data-slot="button"][data-variant="ghost"] {
-  color: var(--admin-text-muted);
-}
-
-.dark body[data-admin-ui="admin"] [data-slot="button"][data-variant="ghost"]:hover {
-  background: rgba(97, 175, 239, 0.08);
-  color: var(--admin-text);
-}
-
-.dark body[data-admin-ui="admin"] [data-slot="input"],
-.dark body[data-admin-ui="admin"] [data-slot="textarea"],
-.dark body[data-admin-ui="admin"] [data-slot="select-trigger"] {
-  border-color: rgba(99, 109, 131, 0.28);
-  background: rgba(40, 44, 52, 0.88);
-  color: var(--admin-text);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.dark body[data-admin-ui="admin"] [data-slot="input"]::placeholder,
-.dark body[data-admin-ui="admin"] [data-slot="textarea"]::placeholder {
-  color: var(--admin-text-faint);
-}
-
-.dark body[data-admin-ui="admin"] [data-slot="tabs-list"] {
-  border-color: rgba(99, 109, 131, 0.24);
-  background: rgba(37, 41, 48, 0.85);
-}
-
-.dark body[data-admin-ui="admin"] [data-slot="tabs-trigger"] {
-  color: var(--admin-text-muted);
-}
-
-.dark body[data-admin-ui="admin"] [data-slot="tabs-trigger"][data-state="active"] {
-  border-color: rgba(99, 109, 131, 0.26);
-  background: rgba(40, 44, 52, 0.96);
-  color: var(--admin-text);
-}
-
-.dark body[data-admin-ui="admin"] [data-slot="popover-content"],
-.dark body[data-admin-ui="admin"] [data-slot="select-content"],
-.dark body[data-admin-ui="admin"] [data-slot="dropdown-menu-content"],
-.dark body[data-admin-ui="admin"] [data-slot="dialog-content"],
-.dark body[data-admin-ui="admin"] [data-slot="alert-dialog-content"],
-.dark body[data-admin-ui="admin"] [data-slot="command"] {
-  border-color: rgba(99, 109, 131, 0.28);
-  background: rgba(40, 44, 52, 0.98);
-  color: var(--admin-text);
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.25);
-}
-
-.dark body[data-admin-ui="admin"] [data-slot="dialog-overlay"],
-.dark body[data-admin-ui="admin"] [data-slot="alert-dialog-overlay"] {
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(3px);
-}
-
-.dark body[data-admin-ui="admin"] [data-slot="command-input-wrapper"] {
-  border-color: rgba(99, 109, 131, 0.22);
-}
-
-.dark body[data-admin-ui="admin"] [data-slot="command-item"][data-selected="true"],
-.dark body[data-admin-ui="admin"] [data-slot="dropdown-menu-item"]:focus,
-.dark body[data-admin-ui="admin"] [data-slot="dropdown-menu-checkbox-item"]:focus,
-.dark body[data-admin-ui="admin"] [data-slot="dropdown-menu-radio-item"]:focus,
-.dark body[data-admin-ui="admin"] [data-slot="select-item"][data-highlighted] {
-  background: rgba(97, 175, 239, 0.08);
-  color: var(--admin-text);
 }

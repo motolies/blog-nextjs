@@ -1,5 +1,5 @@
+import { Button } from '@hvy/ui';
 import { useRef } from 'react';
-import { Button } from '@/components/ui/button';
 
 interface FileUploadComponentProps {
   multiple?: boolean;
@@ -18,7 +18,7 @@ export default function FileUploadComponent({
     <div>
       <Button
         className={`w-full${className ? ` ${className}` : ''}`}
-        variant="outline"
+        variant="outline-gray"
         size="lg"
         onClick={() => fileInput.current?.click()}
       >

@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Lock, X } from 'lucide-react';
 import { Popover as RadixPopover } from 'radix-ui';
 import { type ComponentPropsWithRef, useState } from 'react';
 import { Icon } from '../icons';
@@ -10,7 +10,6 @@ import { useControllableState } from '../lib/useControllableState';
 import { Calendar, parseIsoDate } from './calendar';
 import { FieldViewText, useFieldControl } from './field';
 import type { FieldMode } from './form-mode';
-import type { FieldLock } from './input';
 
 /**
  * 날짜 선택 — 타이핑과 달력 팝업을 **둘 다** 지원한다.
@@ -32,7 +31,7 @@ import type { FieldLock } from './input';
 
 /**
  * 타이핑 입력 정규화 — `20260812` · `2026.08.12` · `2026/08/12` → `2026-08-12`. 실패는 null.
- * date-time-picker 가 날짜부 처리에 재사용한다(barrel 미노출 — 패키지 내부 계약).
+ * date-range-picker·date-time-picker 가 재사용한다(barrel 미노출 — 패키지 내부 계약).
  */
 export function normalizeDateText(text: string): string | null {
   const compact = text.trim().replace(/[./]/g, '-');
@@ -42,7 +41,7 @@ export function normalizeDateText(text: string): string | null {
   return parseIsoDate(iso) ? iso : null;
 }
 
-/** 달력 팝업 패널 — Select 패널과 같은 배색·그림자·z-index 를 쓴다. date-time-picker 도 쓴다. */
+/** 달력 팝업 패널 — Select 패널과 같은 배색·그림자·z-index 를 쓴다. 기간 계열 둘도 쓴다. */
 export const PANEL_CLASS =
   'z-[var(--dl-z-menu)] rounded-dl-container border border-dl-field-border bg-dl-surface shadow-dl-menu';
 
@@ -50,7 +49,7 @@ export const PANEL_CLASS =
  * 달력 열기 버튼 — QA `_form.css` 실측: hover 에서 아이콘 뒤에 **24×24 · radius 4 ·
  * primary-hover 사각형**이 깔리고 아이콘이 흰색이 된다(장식이 아니라 명확한 버튼임을 알린다).
  * Popover.Trigger 의 asChild 를 받으므로 ref·이벤트 전달이 필요해 props 를 그대로 흘린다.
- * date-time-picker 도 쓴다(barrel 미노출).
+ * date-range-picker·date-time-picker 도 쓴다(barrel 미노출).
  */
 export function CalendarButton({
   label,
@@ -94,11 +93,18 @@ export type DatePickerProps = {
   /** ISO 경계(포함) — 달력에서 밖의 날짜가 비활성이 된다. 타이핑 값은 서버 검증이 막는다. */
   readonly min?: string;
   readonly max?: string;
-  readonly lock?: FieldLock;
+  /** 폼 모드. 생략하면 감싼 `Field`/`FormMode` 를 따른다 — 명시하면 폼이 view 여도 이긴다. */
+  readonly mode?: FieldMode;
+  /** 시스템 채움 영구 불변 — readOnly + 자물쇠(달력 버튼 대신). 모든 mode 를 이긴다. */
+  readonly lock?: boolean;
   readonly invalid?: boolean;
   /** 5단 사이즈. 생략하면 감싼 `Field` 의 size, 그것도 없으면 `md`(42). */
   readonly size?: ControlSize;
   readonly id?: string;
+  /** 값 지우기(×) — 값이 있으면 달력 버튼 왼쪽에 뜬다. */
+  readonly clearable?: boolean;
+  /** × 버튼의 접근성 이름. `ui` 는 사전을 모른다 — 필요하면 번역을 주입한다. */
+  readonly clearLabel?: string;
   readonly className?: string;
 };
 
@@ -110,25 +116,29 @@ export function DatePicker({
   placeholder = 'YYYY-MM-DD',
   min,
   max,
+  mode,
   lock,
   invalid,
   size,
   id,
+  clearable,
+  clearLabel = '지우기',
   className,
 }: DatePickerProps) {
-  const field = useFieldControl({ id, invalid, size });
+  const field = useFieldControl({ id, invalid, size, mode, lock });
   const [value, setValue] = useControllableState(valueProp, defaultValue, onValueChange);
   const [open, setOpen] = useState(false);
   /** 편집 중 임시 텍스트 — null 이면 커밋된 값을 그대로 보여준다(effect 동기화 불필요). */
   const [draft, setDraft] = useState<string | null>(null);
 
-  if (field.mode === 'view') {
+  if (field.state.view) {
     // 값 계약이 YYYY-MM-DD 문자열이라 그대로가 표시값이다. 빈값이면 빈칸.
     return <FieldViewText size={field.size}>{value || null}</FieldViewText>;
   }
 
-  const locked = lock !== undefined;
-  const modeDisabled = field.mode === 'disabled';
+  // 지우기는 편집 가능한 상태에서만 뜬다 — 잠긴 값은 지울 수 있는 값이 아니다.
+  const showClear =
+    clearable === true && !field.state.readOnly && !field.state.disabled && value !== '';
 
   /**
    * 값이 실제로 바뀐 지점마다 `notifyDirty()` 를 부른다 — **달력 선택이 이유다.**
@@ -163,7 +173,8 @@ export function DatePicker({
               'dl-field min-w-[130px] pr-10',
               FIELD_SIZE_CLASS[field.size],
               field.invalid && 'dl-field-error',
-              (locked || modeDisabled) && 'dl-field-locked',
+              field.state.lockClass,
+              showClear && 'pr-16',
             )}
             id={field.id}
             name={name}
@@ -172,18 +183,42 @@ export function DatePicker({
             inputMode="numeric"
             aria-invalid={field['aria-invalid']}
             aria-describedby={field['aria-describedby']}
-            readOnly={lock === 'auto' || lock === 'readonly'}
+            aria-required={field.required || undefined}
+            readOnly={field.state.readOnly}
             // 입력 자신이 name·value 를 드므로 disabled 면 FormData 제외가 자동이다.
-            disabled={lock === 'disabled' || modeDisabled}
+            disabled={field.state.disabled}
+            {...field.state.dataProps}
             onChange={(event) => setDraft(event.target.value)}
             onBlur={(event) => commitText(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === 'Enter') commitText(event.currentTarget.value);
             }}
           />
-          <RadixPopover.Trigger asChild>
-            <CalendarButton label="달력 열기" locked={locked || modeDisabled} />
-          </RadixPopover.Trigger>
+          {showClear ? (
+            <button
+              type="button"
+              aria-label={clearLabel}
+              onClick={() => {
+                setDraft(null);
+                setValue('');
+                field.notifyDirty();
+              }}
+              className="absolute inset-y-0 right-10 my-auto flex size-5 items-center justify-center rounded-dl-badge text-dl-field-caret hover:bg-dl-option-hover hover:text-dl-fg"
+            >
+              <Icon icon={X} className="size-3" />
+            </button>
+          ) : null}
+          {lock ? (
+            // 잠긴 칸의 달력 버튼은 비활성 버튼이 아니라 **자물쇠 표식**으로 바꾼다 —
+            // 눌리지 않는 버튼은 어포던스만 거짓으로 만든다(DateInput 삭제와 같은 논리).
+            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-dl-locked-icon">
+              <Icon icon={Lock} size="lock" />
+            </span>
+          ) : (
+            <RadixPopover.Trigger asChild>
+              <CalendarButton label="달력 열기" locked={field.state.disabled} />
+            </RadixPopover.Trigger>
+          )}
         </span>
       </RadixPopover.Anchor>
 
@@ -203,214 +238,5 @@ export function DatePicker({
         </RadixPopover.Content>
       </RadixPopover.Portal>
     </RadixPopover.Root>
-  );
-}
-
-export type DateRange = { readonly start: string; readonly end: string };
-
-export type DateRangePickerProps = {
-  /** 각각 `YYYY-MM-DD` 또는 빈 문자열. 주면 controlled. */
-  readonly start?: string;
-  readonly end?: string;
-  readonly defaultStart?: string;
-  readonly defaultEnd?: string;
-  readonly onRangeChange?: (range: DateRange) => void;
-  /** FormData 전송용 — 시작·종료가 각자 이름을 가진다(검색 조건 관례). */
-  readonly startName?: string;
-  readonly endName?: string;
-  readonly min?: string;
-  readonly max?: string;
-  readonly lock?: FieldLock;
-  readonly invalid?: boolean;
-  /** 5단 사이즈 — 시작·종료 입력 둘 다에 적용된다. */
-  readonly size?: ControlSize;
-  readonly className?: string;
-};
-
-/**
- * 기간 선택 — 시작·종료 입력 한 쌍 + 공용 달력 하나.
- *
- * 달력 선택 규칙: 첫 클릭이 시작, 둘째 클릭이 종료(그리고 닫힘).
- * 시작보다 앞을 찍으면 그 날짜로 **다시 시작**한다 — 되돌리기가 클릭 하나다.
- * 타이핑으로 순서가 뒤집히면(시작 > 종료) 두 값을 맞바꾼다 — 뒤집힌 기간이라는
- * 상태 자체를 만들지 않는다.
- */
-export function DateRangePicker({
-  start: startProp,
-  end: endProp,
-  defaultStart = '',
-  defaultEnd = '',
-  onRangeChange,
-  startName,
-  endName,
-  min,
-  max,
-  lock,
-  invalid,
-  size,
-  className,
-}: DateRangePickerProps) {
-  // 한 이벤트(스왑·재시작)가 두 값을 동시에 바꾸므로 range 를 하나의 상태로 든다.
-  const [range, setRange] = useControllableState<DateRange>(
-    startProp !== undefined || endProp !== undefined
-      ? { start: startProp ?? '', end: endProp ?? '' }
-      : undefined,
-    { start: defaultStart, end: defaultEnd },
-    onRangeChange,
-  );
-  const [open, setOpen] = useState(false);
-  /**
-   * `notifyDirty`(달력은 Portal 이라 버블링이 닿지 않는다 — `DatePicker.commitText` 주석 참조)와
-   * view 분기용 `mode`·`size` 만 쓴다. id·invalid 는 양끝 `SideInput` 이 각자 배선한다.
-   */
-  const field = useFieldControl({ invalid, size });
-  const notifyDirty = field.notifyDirty;
-
-  if (field.mode === 'view') {
-    // 한쪽만 있으면 그쪽만 그린다 — `~` 는 양쪽 값이 있을 때만 뜻이 있다. 둘 다 빈값이면 빈칸.
-    const display =
-      range.start && range.end ? `${range.start} ~ ${range.end}` : range.start || range.end;
-    return <FieldViewText size={field.size}>{display || null}</FieldViewText>;
-  }
-
-  const locked = lock !== undefined;
-  const modeDisabled = field.mode === 'disabled';
-
-  const commitSide = (side: 'start' | 'end', text: string) => {
-    const iso = text.trim() === '' ? '' : normalizeDateText(text);
-    if (iso === null) return; // 무효 입력은 SideInput 이 이전 값으로 되돌린다
-    const next = { ...range, [side]: iso };
-    notifyDirty();
-    // 순서가 뒤집히면 맞바꾼다 — 둘 다 채워진 경우에만 판정한다.
-    if (next.start && next.end && next.start > next.end) {
-      setRange({ start: next.end, end: next.start });
-      return;
-    }
-    setRange(next);
-  };
-
-  const handleSelect = (iso: string) => {
-    notifyDirty();
-    const picking = range.start !== '' && range.end === '';
-    if (!picking || iso < range.start) {
-      setRange({ start: iso, end: '' });
-      return;
-    }
-    setRange({ start: range.start, end: iso });
-    setOpen(false);
-  };
-
-  return (
-    <RadixPopover.Root open={open} onOpenChange={setOpen}>
-      <RadixPopover.Anchor asChild>
-        {/* gap 10px · 물결표 20px/500/black — QA .filter-calender-wrapper · .form-calender__tilde 실측 */}
-        <span className={cn('flex w-full items-center gap-2.5', className)}>
-          <SideInput
-            side="start"
-            value={range.start}
-            name={startName}
-            lock={lock}
-            invalid={invalid}
-            size={size}
-            mode={field.mode}
-            onCommit={commitSide}
-          />
-          <span aria-hidden className="shrink-0 text-dl-title font-medium text-dl-fg">
-            ~
-          </span>
-          <span className="relative block w-full">
-            <SideInput
-              side="end"
-              value={range.end}
-              name={endName}
-              lock={lock}
-              invalid={invalid}
-              size={size}
-              mode={field.mode}
-              onCommit={commitSide}
-              className="pr-10"
-            />
-            <RadixPopover.Trigger asChild>
-              <CalendarButton label="기간 달력 열기" locked={locked || modeDisabled} />
-            </RadixPopover.Trigger>
-          </span>
-        </span>
-      </RadixPopover.Anchor>
-
-      <RadixPopover.Portal>
-        <RadixPopover.Content sideOffset={4} align="end" className={PANEL_CLASS}>
-          <Calendar
-            range={{ start: range.start || undefined, end: range.end || undefined }}
-            value={range.start && !range.end ? range.start : undefined}
-            initialFocus={range.start || undefined}
-            min={min}
-            max={max}
-            onSelect={handleSelect}
-          />
-        </RadixPopover.Content>
-      </RadixPopover.Portal>
-    </RadixPopover.Root>
-  );
-}
-
-/**
- * 기간의 한쪽 입력 — DatePicker 의 draft/commit 규칙과 동일하다.
- * `mode` 는 부모가 해석한 값을 prop 으로 받는다 — 자체 컨텍스트 조회에 맡기면
- * 부모와 다른 값을 읽을 수 있는 배선을 남기게 된다(view 분기는 부모가 통째로 한다).
- */
-function SideInput({
-  side,
-  value,
-  name,
-  lock,
-  invalid,
-  size,
-  mode,
-  onCommit,
-  className,
-}: {
-  readonly side: 'start' | 'end';
-  readonly value: string;
-  readonly name?: string;
-  readonly lock?: FieldLock;
-  readonly invalid?: boolean;
-  readonly size?: ControlSize;
-  readonly mode: FieldMode;
-  readonly onCommit: (side: 'start' | 'end', text: string) => void;
-  readonly className?: string;
-}) {
-  const field = useFieldControl({ invalid, size, mode });
-  const [draft, setDraft] = useState<string | null>(null);
-  const modeDisabled = field.mode === 'disabled';
-
-  const commit = (text: string) => {
-    setDraft(null);
-    onCommit(side, text);
-  };
-
-  return (
-    <input
-      className={cn(
-        'dl-field min-w-[130px]',
-        FIELD_SIZE_CLASS[field.size],
-        field.invalid && 'dl-field-error',
-        (lock !== undefined || modeDisabled) && 'dl-field-locked',
-        className,
-      )}
-      name={name}
-      value={draft ?? value}
-      placeholder="YYYY-MM-DD"
-      inputMode="numeric"
-      aria-label={side === 'start' ? '시작일' : '종료일'}
-      aria-invalid={field['aria-invalid']}
-      aria-describedby={field['aria-describedby']}
-      readOnly={lock === 'auto' || lock === 'readonly'}
-      disabled={lock === 'disabled' || modeDisabled}
-      onChange={(event) => setDraft(event.target.value)}
-      onBlur={(event) => commit(event.target.value)}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter') commit(event.currentTarget.value);
-      }}
-    />
   );
 }

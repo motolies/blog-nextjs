@@ -20,15 +20,25 @@ export type ToastTone =
   /** 성공·실패가 아니라 상태가 바뀌었거나 뒤에서 진행 중이다. */
   | 'info';
 
+/** 토스트 안의 단일 액션 — "실행 취소"류. 누르면 실행 후 토스트가 닫힌다. */
+export type ToastAction = {
+  readonly label: string;
+  readonly onClick: () => void;
+};
+
 export type Toast = {
   readonly id: number;
   readonly message: string;
   readonly tone: ToastTone;
   /** 제목(선택) — QA 권고: 1줄. 본문은 문장이 아닌 명사형을 권장한다. */
   readonly title?: string;
+  /** 액션(선택) — 있으면 토스트가 버튼형이 아니라 액션·닫기 버튼을 가진 박스가 된다. */
+  readonly action?: ToastAction;
+  /** 자동 닫힘까지(ms). 기본 3초. 유한하지 않으면(∞) 수동 닫기 전용이 된다. */
+  readonly durationMs?: number;
 };
 
-/** v3: 3초 뒤 자동으로 사라진다. 버튼이 없으므로 이 시간이 유일한 출구다. */
+/** v3: 3초 뒤 자동으로 사라진다. 액션이 있으면 durationMs 로 늘려 누를 시간을 준다. */
 const AUTO_DISMISS_MS = 3000;
 
 let toasts: readonly Toast[] = [];
@@ -48,15 +58,31 @@ function emit(): void {
 export function showToast(
   message: string,
   tone: ToastTone = 'success',
-  options?: { readonly title?: string },
+  options?: {
+    readonly title?: string;
+    readonly action?: ToastAction;
+    readonly durationMs?: number;
+  },
 ): void {
   const id = nextId;
   nextId += 1;
 
-  toasts = [...toasts, { id, message, tone, title: options?.title }];
+  toasts = [
+    ...toasts,
+    {
+      id,
+      message,
+      tone,
+      title: options?.title,
+      action: options?.action,
+      durationMs: options?.durationMs,
+    },
+  ];
   emit();
 
-  setTimeout(() => dismissToast(id), AUTO_DISMISS_MS);
+  const duration = options?.durationMs ?? AUTO_DISMISS_MS;
+  // 유한하지 않으면(∞) 예약하지 않는다 — setTimeout 은 Infinity 를 0 으로 강제한다(즉시 닫힘 사고).
+  if (Number.isFinite(duration)) setTimeout(() => dismissToast(id), duration);
 }
 
 export function dismissToast(id: number): void {

@@ -1,5 +1,5 @@
+import { cn } from '@hvy/ui';
 import { useRouter } from 'next/router';
-import { cn } from '@/lib/utils';
 import { getAdminRouteMeta } from './adminNavigation';
 
 interface AdminPageFrameProps {

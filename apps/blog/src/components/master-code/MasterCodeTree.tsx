@@ -1,8 +1,6 @@
-import { Code, Folder, FolderOpen, FolderTree } from 'lucide-react';
-import { useCallback } from 'react';
-import { Badge } from '@/components/ui/badge';
-import TreeView from '@/components/ui/tree-view';
-import { cn } from '@/lib/utils';
+import { Badge, cn, TreeGrid } from '@hvy/ui';
+import { Code, Folder, FolderOpen, FolderTree, Search } from 'lucide-react';
+import HighlightedText from '@/components/common/tree/HighlightedText';
 
 interface MasterCodeTreeNode {
   id: number;
@@ -13,84 +11,92 @@ interface MasterCodeTreeNode {
   [key: string]: unknown;
 }
 
-interface RenderContext {
-  depth: number;
-  isExpanded: boolean;
-  isSelected: boolean;
-}
-
 interface MasterCodeTreeProps {
-  treeData: MasterCodeTreeNode[];
+  /** 이미 필터링된 노드들. 검색 중이 아니면 원본 그대로다. */
+  treeData: readonly MasterCodeTreeNode[];
   selectedNodeId: number | null;
   onNodeSelect: (node: MasterCodeTreeNode) => void;
-  expandedIds: (string | number)[];
-  onToggle: (nodeId: string | number) => void;
-  searchQuery: string;
+  expanded: ReadonlySet<string>;
+  onToggle: (id: string) => void;
+  /** 검색어 — 행 안의 일치 글자를 강조하는 데 쓴다. */
+  query: string;
+  isSearching: boolean;
 }
 
+/** 마스터코드 트리 — @hvy/ui TreeGrid 배선. 행 내용(아이콘·코드·이름·비활성 배지)만 앱이 그린다. */
 export default function MasterCodeTree({
   treeData,
   selectedNodeId,
   onNodeSelect,
-  expandedIds,
+  expanded,
   onToggle,
-  searchQuery,
+  query,
+  isSearching,
 }: MasterCodeTreeProps) {
-  const searchFields = useCallback((node: MasterCodeTreeNode) => [node.code, node.name], []);
-
-  const renderIcon = useCallback(
-    (node: MasterCodeTreeNode, { depth, isExpanded }: RenderContext) => {
-      const isRoot = depth === 0;
-      const hasChildren = (node.children?.length ?? 0) > 0;
-      const Icon = isRoot ? (isExpanded ? FolderOpen : Folder) : hasChildren ? FolderTree : Code;
-      return (
-        <Icon className={cn('h-4 w-4 shrink-0', isRoot ? 'text-sky-600' : 'text-fuchsia-600')} />
-      );
-    },
-    [],
-  );
-
-  const renderLabel = useCallback(
-    (node: MasterCodeTreeNode, { isSelected }: RenderContext) => (
-      <span className="flex-1 truncate text-sm">
-        <span
-          className={cn(
-            'font-medium',
-            isSelected ? 'text-sky-700' : 'text-[color:var(--admin-text)]',
-          )}
-        >
-          {node.code}
-        </span>
-        <span className="ml-1.5 text-[color:var(--admin-text-faint)]">({node.name})</span>
-      </span>
-    ),
-    [],
-  );
-
-  const renderBadge = useCallback(
-    (node: MasterCodeTreeNode) =>
-      !node.isActive ? (
-        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">
-          비활성
-        </Badge>
-      ) : null,
-    [],
-  );
-
   return (
-    <TreeView
-      data={treeData}
-      expandedIds={expandedIds}
+    <TreeGrid<MasterCodeTreeNode>
+      nodes={treeData}
+      getRowId={(node) => String(node.id)}
+      expanded={expanded}
       onToggle={onToggle}
-      selectedNodeId={selectedNodeId}
-      onNodeClick={onNodeSelect}
-      searchQuery={searchQuery}
-      searchFields={searchFields}
-      collapsible={false}
-      emptyMessage="데이터가 없습니다."
-      renderIcon={renderIcon}
-      renderLabel={renderLabel}
-      renderBadge={renderBadge}
+      empty={
+        // 0건은 "데이터가 없다" 와 다른 사실이다 — 검색 중에는 탈출구를 함께 준다.
+        isSearching
+          ? {
+              title: '검색 결과가 없습니다',
+              icon: Search,
+              hint: `'${query}' 와 일치하는 항목이 없습니다.`,
+            }
+          : { title: '데이터가 없습니다' }
+      }
+      renderRow={(node, depth) => {
+        const isRoot = depth === 0;
+        const isSelected = selectedNodeId != null && selectedNodeId === node.id;
+        const hasChildren = (node.children?.length ?? 0) > 0;
+        const RowIcon = isRoot
+          ? expanded.has(String(node.id))
+            ? FolderOpen
+            : Folder
+          : hasChildren
+            ? FolderTree
+            : Code;
+        return (
+          <button
+            type="button"
+            onClick={() => onNodeSelect(node)}
+            className={cn(
+              'flex w-full items-center gap-2 rounded px-1 py-0.5 text-left',
+              isSelected && 'bg-dl-tonal ring-1 ring-dl-primary',
+            )}
+          >
+            <RowIcon
+              className={cn(
+                'h-4 w-4 shrink-0',
+                isRoot ? 'text-dl-primary-ink' : 'text-dl-fg-muted',
+              )}
+            />
+            {/* 코드와 이름은 검색 대상이 서로 다른 필드라 각각 강조한다 — 괄호는 장식이라 제외한다. */}
+            <span className="flex-1 truncate text-sm">
+              <span
+                className={cn(
+                  'font-medium',
+                  isSelected ? 'text-dl-primary-ink' : 'text-[color:var(--admin-text)]',
+                )}
+              >
+                <HighlightedText text={node.code} query={query} />
+              </span>
+              <span className="ml-1.5 text-[color:var(--admin-text-faint)]">
+                (<HighlightedText text={node.name} query={query} />)
+              </span>
+            </span>
+            {!node.isActive && (
+              <Badge tone="neutral" className="text-[10px] px-1.5 py-0 shrink-0">
+                비활성
+              </Badge>
+            )}
+          </button>
+        );
+      }}
     />
   );
 }

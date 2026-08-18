@@ -15,11 +15,9 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Button, cn, showToast } from '@hvy/ui';
 import { GripVertical, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import service from '@/service';
 import type { SeriesPost } from '@/types/series';
 
@@ -55,7 +53,7 @@ function SortablePostItem({
       className={cn(
         'flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors',
         'border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)]',
-        isDragging && 'opacity-50 shadow-lg ring-2 ring-ring',
+        isDragging && 'opacity-50 shadow-lg ring-2 ring-dl-primary',
       )}
     >
       <button
@@ -73,8 +71,7 @@ function SortablePostItem({
       <span className="flex-1 truncate text-sm text-[color:var(--admin-text)]">{post.subject}</span>
       <Button
         variant="ghost"
-        size="icon"
-        className="h-6 w-6 shrink-0 cursor-pointer text-[color:var(--admin-text-faint)] hover:text-destructive"
+        className="aspect-square p-0 h-6 w-6 shrink-0 cursor-pointer text-[color:var(--admin-text-faint)] hover:text-dl-danger"
         onClick={() => onRemove(post.postId)}
         aria-label={`${post.subject} 시리즈에서 제거`}
       >
@@ -120,11 +117,11 @@ export default function SortablePostList({
           seriesId: String(seriesId),
           postIds: reordered.map((p) => p.postId),
         });
-        toast.success('포스트 순서가 변경되었습니다.');
+        showToast('포스트 순서가 변경되었습니다.');
         onPostsReordered();
       } catch {
         setPosts(previousPosts);
-        toast.error('순서 변경에 실패했습니다.');
+        showToast('순서 변경에 실패했습니다.', 'error');
       }
     },
     [posts, seriesId, onPostsReordered],
@@ -135,10 +132,10 @@ export default function SortablePostList({
       setRemovingId(postId);
       try {
         await service.series.removePost({ seriesId: String(seriesId), postId: String(postId) });
-        toast.success('포스트가 시리즈에서 제거되었습니다.');
+        showToast('포스트가 시리즈에서 제거되었습니다.');
         onPostRemoved();
       } catch {
-        toast.error('포스트 제거에 실패했습니다.');
+        showToast('포스트 제거에 실패했습니다.', 'error');
       } finally {
         setRemovingId(null);
       }

@@ -1,14 +1,15 @@
 'use client';
 
-import { DatePicker, DateRangePicker, Field, FormMode } from '@hvy/ui';
+import { DatePicker, Field, FormMode } from '@hvy/ui';
 
 /**
- * DatePicker·DateRangePicker 3모드 — 값 계약이 `YYYY-MM-DD` 문자열이라 view 는 그대로가 표시값이다.
+ * DatePicker 3모드 — 값 계약이 `YYYY-MM-DD` 문자열이라 view 는 그대로가 표시값이다.
  *
- * · Range 의 view 는 `start ~ end` 한 스팬 — **한쪽만 있으면 그쪽만** 그린다.
- *   `~` 는 양쪽 값이 있을 때만 뜻이 있고, 양쪽 빈값이면 빈칸이다.
+ * · view 는 값 텍스트만 남는다 — 미선택이면 placeholder 가 아니라 **빈칸**이다.
  * · disabled 모드: 입력 자신이 name·value 를 드므로 FormData 제외가 자동이고,
- *   달력 버튼도 함께 잠긴다(lock 과 OR 합성 — mode 는 lock 을 잠복시킬 뿐 지우지 않는다).
+ *   달력 버튼도 함께 잠긴다. lock 은 별개 축이다 — 모든 mode 를 이겨 edit 로 돌아와도 잠긴 채다.
+ *
+ * 기간(range)의 3모드는 DateRangePicker 문서에 따로 있다.
  */
 const MODES = ['edit', 'view', 'disabled'] as const;
 
@@ -22,11 +23,8 @@ export function DatePickerModesDemo() {
             <Field label="주문일" htmlFor={`dpm-${mode}-orderDate`}>
               <DatePicker id={`dpm-${mode}-orderDate`} defaultValue="2026-08-18" />
             </Field>
-            <Field label="조회 기간" htmlFor={`dpm-${mode}-period`}>
-              <DateRangePicker defaultStart="2026-08-01" defaultEnd="2026-08-18" />
-            </Field>
-            <Field label="시작일만 입력됨" htmlFor={`dpm-${mode}-open`}>
-              <DateRangePicker defaultStart="2026-08-01" />
+            <Field label="미선택" htmlFor={`dpm-${mode}-empty`}>
+              <DatePicker id={`dpm-${mode}-empty`} />
             </Field>
           </div>
         </FormMode>

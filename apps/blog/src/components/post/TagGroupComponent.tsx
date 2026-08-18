@@ -1,20 +1,9 @@
-import { ChevronsUpDown } from 'lucide-react';
+import { Combobox, showToast } from '@hvy/ui';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
 import { useShallow } from 'zustand/react/shallow';
-import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useTags } from '@/hooks/useTags';
-import { COMBOBOX_POPOVER_CONTENT_CLASSNAME, isSameEntityId } from '@/lib/combobox';
+import { isSameEntityId } from '@/lib/combobox';
 import service from '@/service';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { Tag as TagType } from '@/types/tag';
@@ -40,9 +29,7 @@ export default function TagGroupComponent({
   );
   const { data: allTags } = useTags();
   const [postTags, setPostTags] = useState<TagType[]>(Array.isArray(tagList) ? tagList : []);
-  const [newTag, setNewTag] = useState<string>('');
   const [isAddTag, setIsAddTag] = useState<boolean>(true);
-  const [open, setOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (tagList === undefined) return;
@@ -54,16 +41,14 @@ export default function TagGroupComponent({
     return (allTags ?? []).filter((tag) => !postTagIds.has(tag.id));
   }, [allTags, postTags]);
 
-  const onSelectTag = (tag: TagType) => {
-    const currentPostTags = postTags ?? [];
-
-    if (currentPostTags.some((postTag) => isSameEntityId(postTag.id, tag.id))) {
-      toast.warning('동일 태그는 한 번만 추가할 수 있습니다.');
-      setOpen(false);
+  const onPickTag = (value: string) => {
+    const tag = availableTags.find((t) => isSameEntityId(t.id, value));
+    if (!tag) return;
+    if ((postTags ?? []).some((postTag) => isSameEntityId(postTag.id, tag.id))) {
+      showToast('동일 태그는 한 번만 추가할 수 있습니다.', 'warning');
       return;
     }
     addTagOnPost(tag.name);
-    setOpen(false);
   };
 
   const addTagOnPost = (tagName: string) => {
@@ -77,7 +62,7 @@ export default function TagGroupComponent({
           setPostTags((prev) =>
             prev.some((t) => isSameEntityId(t.id, createdTag.id)) ? prev : [...prev, createdTag],
           );
-          toast.success(`태그가 추가되었습니다.`);
+          showToast(`태그가 추가되었습니다.`);
         }
       })
       .finally(() => {
@@ -88,9 +73,8 @@ export default function TagGroupComponent({
   const handleAddNewTag = (inputValue: string) => {
     if (inputValue.trim().length > 1) {
       addTagOnPost(inputValue.trim());
-      setOpen(false);
     } else {
-      toast.error(`태그는 두 글자 이상이어야 합니다.`);
+      showToast(`태그는 두 글자 이상이어야 합니다.`, 'error');
     }
   };
 
@@ -100,77 +84,33 @@ export default function TagGroupComponent({
       .then((res: { status: number }) => {
         if (res.status >= 200 && res.status < 300) {
           setPostTags((prev) => prev.filter((tag) => !isSameEntityId(tag.id, tagId)));
-          toast.success('태그 삭제에 성공하였습니다.');
+          showToast('태그 삭제에 성공하였습니다.');
         }
       })
       .catch(() => {
-        toast.error('태그 삭제에 실패하였습니다.');
+        showToast('태그 삭제에 실패하였습니다.', 'error');
       });
   };
 
   return (
     <div className="space-y-2">
       {!(userState.isAuthenticated && userState.user.username) ? null : (
-        <Popover
-          open={open}
-          onOpenChange={(isOpen: boolean) => {
-            setOpen(isOpen);
-            if (!isOpen) {
-              setNewTag('');
-            }
-          }}
-        >
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              className={
-                writePage
-                  ? 'h-11 w-full justify-between rounded-full border-slate-300/80 bg-white/90 text-[color:var(--admin-text)] hover:bg-sky-600/8 dark:border-[color:var(--admin-border-strong)] dark:bg-[color:var(--admin-panel)] dark:hover:bg-sky-500/15'
-                  : 'public-control-surface public-muted-text h-11 w-full justify-between rounded-full border'
-              }
-            >
-              Add Tags
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="start" className={COMBOBOX_POPOVER_CONTENT_CLASSNAME}>
-            <Command
-              filter={(value: string, search: string) => {
-                if (value.startsWith('__create__')) return 1;
-                if (value.toLowerCase().includes(search.toLowerCase())) return 1;
-                return 0;
-              }}
-            >
-              <CommandInput
-                placeholder="태그 검색 또는 새 태그 입력..."
-                onValueChange={setNewTag}
-              />
-              <CommandList>
-                <CommandEmpty>일치하는 태그가 없습니다.</CommandEmpty>
-                <CommandGroup>
-                  {availableTags.map((tag) => (
-                    <CommandItem key={tag.id} value={tag.name} onSelect={() => onSelectTag(tag)}>
-                      {tag.name}
-                    </CommandItem>
-                  ))}
-                  {newTag.trim().length > 1 &&
-                    !availableTags.some(
-                      (t) => t.name.toLowerCase() === newTag.trim().toLowerCase(),
-                    ) && (
-                      <CommandItem
-                        value={`__create__${newTag}`}
-                        onSelect={() => handleAddNewTag(newTag)}
-                      >
-                        + &quot;{newTag.trim()}&quot; 새 태그 추가
-                      </CommandItem>
-                    )}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <Combobox
+          options={availableTags.map((tag) => ({ value: String(tag.id), label: tag.name }))}
+          onPick={onPickTag}
+          onCreate={handleAddNewTag}
+          // handleAddNewTag 가 2자 미만을 거부한다 — 행을 띄워 놓고 누르면 실패시키지 않는다.
+          minCreateLength={2}
+          createLabel={(input) => `+ "${input}" 새 태그 추가`}
+          triggerLabel="Add Tags"
+          searchPlaceholder="태그 검색 또는 새 태그 입력..."
+          emptyLabel="일치하는 태그가 없습니다."
+          className={
+            writePage
+              ? 'h-11 w-full rounded-full border-dl-border bg-dl-surface text-[color:var(--admin-text)] hover:bg-dl-tonal '
+              : 'public-control-surface public-muted-text h-11 w-full rounded-full'
+          }
+        />
       )}
 
       <div className="flex flex-wrap gap-2" style={listHeight}>

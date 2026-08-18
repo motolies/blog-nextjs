@@ -6,9 +6,10 @@ export interface PageResponse<T> {
   pageSize: number;
 }
 
+// direction 은 hvy-common Direction enum 의 **이름**(ASCENDING/DESCENDING)이다 — 코드값(ASC/DESC)이 아니다.
 export interface OrderBy {
   column: string;
-  direction: 'ASC' | 'DESC';
+  direction: 'ASCENDING' | 'DESCENDING';
 }
 
 export interface PageRequest {

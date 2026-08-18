@@ -1,16 +1,6 @@
+import { Button, Input, Label, Select, Switch } from '@hvy/ui';
 import { Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 
 const ATTRIBUTE_TYPES = [
   { value: 'text', label: '텍스트' },
@@ -55,7 +45,7 @@ export function AttributeSchemaEditor({ schema, onChange }: AttributeSchemaEdito
     <div>
       <div className="mb-3 flex items-center justify-between">
         <h4 className="text-sm font-semibold text-[color:var(--admin-text)]">속성 스키마 정의</h4>
-        <Button type="button" variant="outline" size="sm" onClick={handleAdd}>
+        <Button type="button" variant="outline-gray" size="sm" onClick={handleAdd}>
           <Plus className="h-3.5 w-3.5 mr-1" />
           추가
         </Button>
@@ -74,8 +64,11 @@ export function AttributeSchemaEditor({ schema, onChange }: AttributeSchemaEdito
             className="flex items-end gap-2 rounded-lg border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)] p-3"
           >
             <div className="flex-1 space-y-1">
-              <Label className="text-xs">키 (영문)</Label>
+              <Label htmlFor={`attr-key-${index}`} className="text-xs">
+                키 (영문)
+              </Label>
               <Input
+                id={`attr-key-${index}`}
                 value={item.key}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   handleChange(index, 'key', e.target.value)
@@ -84,8 +77,11 @@ export function AttributeSchemaEditor({ schema, onChange }: AttributeSchemaEdito
               />
             </div>
             <div className="flex-1 space-y-1">
-              <Label className="text-xs">표시명</Label>
+              <Label htmlFor={`attr-label-${index}`} className="text-xs">
+                표시명
+              </Label>
               <Input
+                id={`attr-label-${index}`}
                 value={item.label}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   handleChange(index, 'label', e.target.value)
@@ -94,27 +90,25 @@ export function AttributeSchemaEditor({ schema, onChange }: AttributeSchemaEdito
               />
             </div>
             <div className="w-28 space-y-1">
-              <Label className="text-xs">타입</Label>
+              <Label htmlFor={`attr-type-${index}`} className="text-xs">
+                타입
+              </Label>
               <Select
+                id={`attr-type-${index}`}
                 value={item.type}
                 onValueChange={(val: string) => handleChange(index, 'type', val)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ATTRIBUTE_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="타입"
+                options={ATTRIBUTE_TYPES.map((t) => ({ value: t.value, label: t.label }))}
+              />
             </div>
             <div className="shrink-0 space-y-1">
-              <Label className="text-xs">민감</Label>
+              <Label htmlFor={`attr-sensitive-${index}`} className="text-xs">
+                민감
+              </Label>
               <div className="flex h-9 items-center justify-center">
                 <Switch
+                  id={`attr-sensitive-${index}`}
+                  label="민감 속성"
                   checked={item.sensitive === 'true'}
                   onCheckedChange={(checked: boolean) =>
                     handleChange(index, 'sensitive', checked ? 'true' : 'false')
@@ -127,7 +121,7 @@ export function AttributeSchemaEditor({ schema, onChange }: AttributeSchemaEdito
               type="button"
               variant="ghost"
               size="sm"
-              className="text-red-500 hover:text-red-700 hover:bg-red-500/10 shrink-0"
+              className="text-dl-danger hover:text-dl-danger-hover hover:bg-dl-danger-bg shrink-0"
               onClick={() => handleRemove(index)}
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -176,9 +170,14 @@ export function AttributeValueEditor({ schema, attributes, onChange }: Attribute
           const currentValue = safeAttributes[schemaDef.key] ?? '';
           return (
             <div key={schemaDef.key} className="space-y-1">
-              <Label>{schemaDef.label || schemaDef.key}</Label>
-              {renderAttributeInput(schemaDef, currentValue, (val: string) =>
-                handleChange(schemaDef.key, val),
+              <Label htmlFor={`attr-value-${schemaDef.key}`}>
+                {schemaDef.label || schemaDef.key}
+              </Label>
+              {renderAttributeInput(
+                `attr-value-${schemaDef.key}`,
+                schemaDef,
+                currentValue,
+                (val: string) => handleChange(schemaDef.key, val),
               )}
             </div>
           );
@@ -188,7 +187,9 @@ export function AttributeValueEditor({ schema, attributes, onChange }: Attribute
   );
 }
 
+/** 스키마 타입별 입력 컨트롤. `id` 는 바깥 `<Label htmlFor>` 와 짝이라 선택이 아니다. */
 function renderAttributeInput(
+  id: string,
   schemaDef: AttributeSchemaItem,
   value: string,
   onChange: (val: string) => void,
@@ -197,6 +198,7 @@ function renderAttributeInput(
     case 'number':
       return (
         <Input
+          id={id}
           type="number"
           value={value}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
@@ -205,19 +207,21 @@ function renderAttributeInput(
       );
     case 'boolean':
       return (
-        <Select value={value || ''} onValueChange={onChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="선택" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Y">예 (Y)</SelectItem>
-            <SelectItem value="N">아니오 (N)</SelectItem>
-          </SelectContent>
-        </Select>
+        <Select
+          id={id}
+          value={value || ''}
+          onValueChange={onChange}
+          placeholder="선택"
+          options={[
+            { value: 'Y', label: '예 (Y)' },
+            { value: 'N', label: '아니오 (N)' },
+          ]}
+        />
       );
     default:
       return (
         <Input
+          id={id}
           value={value}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
           placeholder={schemaDef.label || schemaDef.key}

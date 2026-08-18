@@ -1,6 +1,6 @@
+import { showToast } from '@hvy/ui';
 import dynamic from 'next/dynamic';
 import { useCallback, useRef } from 'react';
-import { toast } from 'sonner';
 import { useInvalidateFiles } from '@/hooks/useFiles';
 import service from '@/service';
 import { useLoadingStore } from '@/store/useLoadingStore';
@@ -9,11 +9,11 @@ import { fileLink } from '@/util/fileLink';
 function EditorLoadErrorFallback() {
   return (
     <div
-      className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+      className="rounded-lg border border-dl-warning bg-dl-warning-bg px-4 py-3 text-sm text-dl-warning-ink"
       role="alert"
     >
       <p className="font-semibold">에디터를 불러오지 못했습니다.</p>
-      <p className="mt-1 text-amber-100/80">페이지를 새로고침한 뒤 다시 시도해주세요.</p>
+      <p className="mt-1 text-dl-warning-ink">페이지를 새로고침한 뒤 다시 시도해주세요.</p>
     </div>
   );
 }
@@ -70,7 +70,10 @@ export default function DynamicEditor({
             const body = new FormData();
             loader.file.then(async (file: File) => {
               if (!postIdRef.current) {
-                toast.warning('게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+                showToast(
+                  '게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.',
+                  'warning',
+                );
                 reject(new Error('postId is null'));
                 return;
               }
@@ -83,7 +86,7 @@ export default function DynamicEditor({
                   resolve({ default: res.data.resourceUri });
                 })
                 .catch((err: Error) => {
-                  toast.error('파일 업로드에 실패하였습니다.');
+                  showToast('파일 업로드에 실패하였습니다.', 'error');
                   reject(err);
                 })
                 .finally(() => {
@@ -103,7 +106,7 @@ export default function DynamicEditor({
       if (!file) return;
 
       if (!postIdRef.current) {
-        toast.warning('게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+        showToast('게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.', 'warning');
         return;
       }
 
@@ -120,7 +123,7 @@ export default function DynamicEditor({
           editor.model.insertContent(modelFragment, editor.model.document.selection);
         })
         .catch(() => {
-          toast.error('파일 업로드에 실패하였습니다.');
+          showToast('파일 업로드에 실패하였습니다.', 'error');
         })
         .finally(() => {
           cancelLoading();

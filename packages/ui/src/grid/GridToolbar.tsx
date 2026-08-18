@@ -1,10 +1,24 @@
 'use client';
 
+import { X } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { FormMode } from '../components/form-mode';
 import { Input } from '../components/input';
 import { Select } from '../components/select';
+import { Icon } from '../icons';
 import { cn } from '../lib/cn';
+
+/** 선택 컨텍스트 — 선택이 있는 동안 툴바가 "선택에 대한 조작대"로 교대하는 계약. */
+export type GridToolbarSelection = {
+  /** 선택 건수 — `useGridSelection` 의 `selectedIds.size` 를 배선한다. */
+  readonly count: number;
+  /** "N건 선택" 요약 문구 — `ui` 는 사전을 모른다. 주입받는다. */
+  readonly summary: (count: number) => string;
+  /** 선택이 있을 때 `actions` 자리를 **교대**하는 액션들 — 선택 삭제·일괄 변경 등. */
+  readonly actions?: ReactNode;
+  /** 선택 전체 해제 × — label 은 a11y 필수라 핸들러와 함께 받는다. */
+  readonly clear?: { readonly label: string; readonly onClick: () => void };
+};
 
 /**
  * 그리드 툴바 — v3 §ds-03.
@@ -20,11 +34,17 @@ import { cn } from '../lib/cn';
  * 잠긴 상태(확정 이후)에서는 **액션만 감춘다** — 표시 컨트롤은 열람에도 쓰인다.
  * 높이 = 액션 버튼 sm + 상하 6 + 보더 1 (default 49). 버튼 sm 이 테마 스케일을
  * 따라가므로 툴바도 자동 추종한다 — `--spacing-dl-grid-toolbar` 공식과 같은 식이다.
+ *
+ * `selection` 이 있고 count > 0 이면 페이징 옆에 "N건 선택" 요약(+해제 ×)이 뜨고
+ * `actions` 자리가 `selection.actions` 로 **교대**한다 — 화면마다
+ * `disabled={count === 0}` 삼항식을 반복하던 배선을 여기로 흡수한 것이다.
+ * 표시 컨트롤은 교대하지 않는다 — 선택 중에도 열람 도구는 그대로 쓰인다.
  */
 export function GridToolbar({
   paging,
   actions,
   viewControls,
+  selection,
   className,
 }: {
   /** 총 건수 · 페이저 · 페이지당 건수. 어느 화면에서도 빠뜨리지 않는다. */
@@ -33,8 +53,15 @@ export function GridToolbar({
   readonly actions?: ReactNode;
   /** 행 높이 · 정렬 · 목록 · 컬럼 설정. 액션과 **구분 막대로** 갈린다. */
   readonly viewControls?: ReactNode;
+  /** 선택 컨텍스트 — 생략하면 기존 동작 그대로다(전부 opt-in). */
+  readonly selection?: GridToolbarSelection;
   readonly className?: string;
 }) {
+  const selecting = selection !== undefined && selection.count > 0;
+  // 선택 액션이 정의되어 있을 때만 교대한다 — 요약만 쓰고 액션은 상시 유지도 가능하다.
+  const effectiveActions =
+    selecting && selection.actions !== undefined ? selection.actions : actions;
+
   return (
     /* 그리드 크롬은 폼이 아니다 — FormMode(view/disabled) 아래에서도 퀵서치·
        페이지크기 셀렉트가 잠기면 안 되므로 edit 로 핀한다. paging/actions 등
@@ -48,10 +75,28 @@ export function GridToolbar({
       >
         <div className="flex items-center gap-2">{paging}</div>
 
+        {selecting ? (
+          <span className="ml-3 inline-flex items-center gap-1 whitespace-nowrap font-semibold text-dl-md text-dl-primary-ink">
+            {selection.summary(selection.count)}
+            {selection.clear ? (
+              <button
+                type="button"
+                aria-label={selection.clear.label}
+                title={selection.clear.label}
+                onClick={selection.clear.onClick}
+                // PagerButton 과 같은 고스트 규격(24×24) — 액션 버튼과 무게를 가른다.
+                className="inline-flex size-6 items-center justify-center rounded-dl-control text-dl-fg-muted hover:bg-dl-option-hover"
+              >
+                <Icon icon={X} size="sm" />
+              </button>
+            ) : null}
+          </span>
+        ) : null}
+
         <div className="ml-auto flex items-center gap-1.5">
-          {actions}
+          {effectiveActions}
           {/* 구분 막대는 **버튼↔표시 옵션 사이 하나만** 둔다 */}
-          {actions && viewControls ? <GridToolbarSeparator /> : null}
+          {effectiveActions && viewControls ? <GridToolbarSeparator /> : null}
           {viewControls}
         </div>
       </div>
@@ -83,7 +128,7 @@ export function TotalCount({
   return (
     <span className="inline-flex items-center whitespace-nowrap text-dl-md">
       <span className="font-semibold text-dl-fg-muted">{prefix}</span>
-      <span className="mx-1 font-semibold text-dl-primary text-dl-xl">{format(total)}</span>
+      <span className="mx-1 font-semibold text-dl-primary-ink text-dl-xl">{format(total)}</span>
       <span className="font-semibold text-dl-fg-muted">{suffix}</span>
     </span>
   );
@@ -231,11 +276,18 @@ export function PageSizeSelect({
 }) {
   return (
     <Select
-      className="w-[86px]"
+      // 폭은 라벨이 정한다 — 접미사("건씩"/"건")는 호출부가, 좌우 패딩은 테마(--dl-scale-*)가
+      // 바꾸므로 고정 px 를 박으면 그 순간 truncate 로 잘린다(w-[86px] 시절 실제 증상).
+      className="w-auto"
+      // 푸터 규격은 sm 이다 — 컬럼 설정 버튼·페이지 이동 입력과 같은 높이로 맞춘다.
+      size="sm"
       value={String(value)}
       onValueChange={(next) => onChange(Number(next))}
       placeholder={label}
-      options={options.map((size) => ({ value: String(size), label: `${format(size)}${suffix}` }))}
+      options={options.map((pageSize) => ({
+        value: String(pageSize),
+        label: `${format(pageSize)}${suffix}`,
+      }))}
     />
   );
 }

@@ -32,7 +32,7 @@
 :where(.content, .ck-content) h2,
 :where(.content, .ck-content) h3,
 :where(.content, .ck-content) h4 {
-  color: hsl(var(--foreground));
+  color: var(--color-dl-fg);
   font-family: var(--font-display);
   line-height: 1.2;
   letter-spacing: 0;
@@ -169,42 +169,42 @@
 
 /* ── Dark mode ── */
 
-:is(.dark .content, .dark .ck-content) {
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) {
   color: rgba(171, 178, 191, 0.92);
 }
 
-:is(.dark .content, .dark .ck-content) a {
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) a {
   color: rgb(97 175 239);
 }
 
-:is(.dark .content, .dark .ck-content) blockquote {
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) blockquote {
   border-left-color: rgba(97, 175, 239, 0.6);
   background: rgba(97, 175, 239, 0.06);
 }
 
-:is(.dark .content, .dark .ck-content) table {
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) table {
   border-color: rgba(99, 109, 131, 0.2);
 }
 
-:is(.dark .content, .dark .ck-content) th {
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) th {
   background: rgba(44, 49, 58, 0.5);
 }
 
-:is(.dark .content, .dark .ck-content) th,
-:is(.dark .content, .dark .ck-content) td {
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) th,
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) td {
   border-bottom-color: rgba(99, 109, 131, 0.12);
 }
 
-:is(.dark .content, .dark .ck-content) :not(pre) > code {
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) :not(pre) > code {
   background: rgba(171, 178, 191, 0.1);
   color: rgb(171 178 191);
 }
 
-:is(.dark .content, .dark .ck-content) img {
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) img {
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.3);
 }
 
-:is(.dark .content, .dark .ck-content)
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content)
   [style*="background-color"]:not(
     [style*="rgb(30, 30, 30)"]
   ):not(
@@ -217,6 +217,6 @@
 
 /* 코드블록 텍스트: 다크 본문 글자와 명도가 너무 가까워 박스가 묻히는 인상을
    주므로, 다크 모드에서만 한 톤 밝게 끌어올려 본문과 차별화한다. */
-:is(.dark .content, .dark .ck-content) pre {
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) pre {
   color: #d7dae0;
 }

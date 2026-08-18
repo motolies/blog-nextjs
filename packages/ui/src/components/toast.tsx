@@ -1,6 +1,6 @@
 'use client';
 
-import { CircleAlert, CircleCheck, type LucideIcon, TriangleAlert } from 'lucide-react';
+import { CircleAlert, CircleCheck, type LucideIcon, TriangleAlert, X } from 'lucide-react';
 import { useSyncExternalStore } from 'react';
 import { Icon } from '../icons';
 import { cn } from '../lib/cn';
@@ -64,32 +64,75 @@ export function ToastViewport({ dismissLabel = '닫기' }: { readonly dismissLab
     >
       {toasts.map((toast) => {
         const tone = TONE_STYLE[toast.tone];
-        return (
-          <button
-            key={toast.id}
-            type="button"
-            aria-label={dismissLabel}
-            onClick={() => dismissToast(toast.id)}
-            // QA .toast: 320px 고정 폭 · padding 12/16 · radius 8
-            className={cn(
-              'pointer-events-auto flex w-dl-toast-w items-start gap-2 rounded-dl-container border px-4 py-3 text-left shadow-dl-toast',
-              tone.box,
-            )}
-          >
+        // QA .toast: 320px 고정 폭 · padding 12/16 · radius 8
+        const boxClass = cn(
+          'pointer-events-auto flex w-dl-toast-w items-start gap-2 rounded-dl-container border px-4 py-3 text-left shadow-dl-toast',
+          tone.box,
+        );
+        const content = (
+          <>
             <span className={cn('mt-0.5 flex shrink-0', tone.iconColor)}>
               <Icon icon={tone.icon} size="sm" />
             </span>
-            <span className="min-w-0 text-dl-md text-dl-fg">
+            <span className="min-w-0 flex-1 text-dl-fg text-dl-md">
               {toast.title ? (
-                <span className="mb-1 block text-dl-sm font-bold">{toast.title}</span>
+                <span className="mb-1 block font-bold text-dl-sm">{toast.title}</span>
               ) : null}
               {toast.message}
             </span>
-          </button>
+          </>
+        );
+
+        // 액션이 없으면 기존 그대로 — 아무 데나 눌러 닫는 단일 버튼(QA 규격).
+        if (!toast.action) {
+          return (
+            <button
+              key={toast.id}
+              type="button"
+              aria-label={dismissLabel}
+              onClick={() => dismissToast(toast.id)}
+              className={boxClass}
+            >
+              {content}
+            </button>
+          );
+        }
+
+        // 액션이 있으면 버튼 안에 버튼을 못 넣으므로(중첩 버튼) 박스가 div 가 되고
+        // 액션·닫기가 각자 버튼이 된다 — 닫기 어포던스를 잃지 않는 것이 조건이다.
+        const action = toast.action;
+        return (
+          <div key={toast.id} className={boxClass}>
+            {content}
+            <button
+              type="button"
+              onClick={() => {
+                action.onClick();
+                dismissToast(toast.id);
+              }}
+              className="shrink-0 rounded-dl-control border border-dl-border bg-dl-surface px-2 py-1 font-semibold text-dl-fg text-dl-xs hover:bg-dl-option-hover"
+            >
+              {action.label}
+            </button>
+            <button
+              type="button"
+              aria-label={dismissLabel}
+              onClick={() => dismissToast(toast.id)}
+              className="flex size-5 shrink-0 items-center justify-center rounded-dl-badge text-dl-fg-muted hover:bg-dl-option-hover hover:text-dl-fg"
+            >
+              <Icon icon={X} className="size-3" />
+            </button>
+          </div>
         );
       })}
     </div>
   );
 }
 
-export { showToast, subscribeToasts, type Toast, type ToastTone } from './toast-store';
+export {
+  showToast,
+  subscribeToasts,
+  type Toast,
+  type ToastAction,
+  type ToastTone,
+} from './toast-store';

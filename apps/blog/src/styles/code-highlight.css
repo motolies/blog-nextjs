@@ -157,17 +157,17 @@ pre:hover .code-copy-btn {
    거의 같아 박스가 묻히는 인상을 줌. 다크에서만 한 톤 밝게 조정한다.
    라이트 테마는 손대지 않는다. */
 
-:is(.dark .content, .dark .ck-content) pre[class*="language-"] {
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) pre[class*="language-"] {
     color: #d7dae0;
 }
 
-:is(.dark .content, .dark .ck-content) .token.punctuation {
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) .token.punctuation {
     color: #c0c5cf;
 }
 
-:is(.dark .content, .dark .ck-content) .token.comment,
-:is(.dark .content, .dark .ck-content) .token.prolog,
-:is(.dark .content, .dark .ck-content) .token.doctype,
-:is(.dark .content, .dark .ck-content) .token.cdata {
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) .token.comment,
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) .token.prolog,
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) .token.doctype,
+:is([data-theme='blog-dark'] .content, [data-theme='blog-dark'] .ck-content) .token.cdata {
     color: #8b95a5;
 }

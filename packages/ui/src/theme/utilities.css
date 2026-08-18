@@ -8,9 +8,11 @@
  *
  * `default.css` 가 `@import` 한다 — 별도 export 가 필요 없다.
  *
- * ⚠️ 선언 순서가 계약이다: `dl-field` < `dl-field-error` < `dl-field-locked` 는
- * 알파벳순으로도 이 순서라 Tailwind 의 유틸리티 정렬에서 뒤가 이긴다 —
- * error·locked 가 기본 hover/focus 보더를 덮는 근거다.
+ * ⚠️ 선언 순서가 계약이다: `dl-field` < `dl-field-error` < `dl-field-locked`
+ * < `dl-field-locked-hint` < `dl-field-masked` 는 알파벳순으로도 이 순서라
+ * Tailwind 의 유틸리티 정렬에서 뒤가 이긴다 — error·locked 가 기본 hover/focus
+ * 보더를 덮고, hint 가 locked 의 placeholder 은닉을, masked 가 locked 의 글자색을
+ * 각각 덮는 근거다. **이름을 바꾸면 이 순서부터 다시 검증한다.**
  */
 
 /**
@@ -130,6 +132,30 @@
 }
 
 /**
+ * lock(시스템 채움) 칸의 안내문 재표시 — `dl-field-locked` 와 **함께** 쓴다.
+ *
+ * 잠긴 칸은 placeholder 를 감추지만, lock 칸의 안내문("자동 / 저장 시 발급")만은
+ * 남아야 빈 회색 칸이 고장으로 읽히지 않는다. disabled 모드는 이 유틸을 받지 않아
+ * 계속 감춘다 — 입력 신호 금지 원칙 그대로다. 알파벳순으로 locked 뒤라 이긴다.
+ */
+@utility dl-field-locked-hint {
+  &::placeholder {
+    color: var(--color-dl-locked-fg);
+  }
+}
+
+/**
+ * 마스킹된 개인정보 값 — `dl-field-locked` 위에 글자만 갈라낸다.
+ *
+ * 편집 불가(잠금 배색)에 더해 값 자체가 실값이 아님을 색·기울임으로 알린다.
+ * 알파벳순으로 locked 뒤라 글자색이 이긴다.
+ */
+@utility dl-field-masked {
+  color: var(--color-dl-masked);
+  font-style: italic;
+}
+
+/**
  * 검색 필터 그리드 — 라벨+필드 4쌍, 행 높이 54px(42px 컨트롤 + 상하 6px) 고정.
  * 카드가 좁아지면 2쌍으로 접힌다. 미디어 쿼리가 아니라 **컨테이너 쿼리**인 이유는
  * 같은 필터가 화면 폭이 아니라 담긴 카드 폭에 반응해야 하기 때문이다(모달 안에서도 쓰인다).
@@ -167,4 +193,31 @@
   column-gap: var(--spacing-dl-gutter);
   row-gap: var(--spacing-dl-gutter);
   align-items: start;
+}
+
+/**
+ * 아코디언 열림/닫힘 애니메이션 — radix 가 노출하는 콘텐츠 실측 높이 변수를 쓴다.
+ * (blog 추가분 — accordion.tsx 전용. shadcn/tailwind.css 의존을 두지 않기 위해 자체 정의)
+ */
+@theme static {
+  --animate-dl-accordion-down: dl-accordion-down 0.2s ease-out;
+  --animate-dl-accordion-up: dl-accordion-up 0.2s ease-out;
+
+  @keyframes dl-accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes dl-accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
 }

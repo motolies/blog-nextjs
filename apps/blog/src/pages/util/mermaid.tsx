@@ -1,3 +1,4 @@
+import { Button, InlineNotice, Input, Select, showToast } from '@hvy/ui';
 import {
   ArrowLeft,
   Crosshair,
@@ -10,19 +11,10 @@ import {
   ZoomOut,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { useTheme } from 'next-themes';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { downloadBlob, downloadDataUrl } from '@/util/browserUtils';
 
 const SAMPLE_CODES = {
@@ -332,6 +324,8 @@ const SAMPLE_CODES = {
   blockDiagram: [
     {
       name: '화면 UI 레이아웃',
+      // token-exempt(22): 샘플 다이어그램 **코드 문자열** — mermaid 의 style 지시문이고
+      // 색 체계는 mermaid 가 소유한다(앱 DOM 이 아니라 mermaid 가 그리는 SVG 에 적용된다).
       code: `block-beta
     columns 4
 
@@ -461,6 +455,8 @@ const createExportSvg = (
 
 export default function MermaidPage() {
   const router = useRouter();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
   const [code, setCode] = useState(SAMPLE_CODES.flowchart[0].code);
   const [scaleMode, setScaleMode] = useState('ratio');
   const [scale, setScale] = useState(2);
@@ -538,6 +534,8 @@ export default function MermaidPage() {
     setIsClient(true);
   }, []);
 
+  // 다이어그램 색은 mermaid 가 소유한다 — 테마를 따라가지 않으면 다크에서 노드 글자(#333)가 묻힌다.
+  // 이미 그려진 SVG 는 initialize 만으로 바뀌지 않으므로 아래 렌더 effect 가 isDark 에도 반응한다.
   useEffect(() => {
     if (!isClient) return;
     const initMermaid = async () => {
@@ -546,7 +544,7 @@ export default function MermaidPage() {
         mermaidRef.current = mermaid;
         mermaid.initialize({
           startOnLoad: false,
-          theme: 'default',
+          theme: isDark ? 'dark' : 'default',
           securityLevel: 'loose',
           fontFamily: 'D2Coding, monospace',
         });
@@ -556,7 +554,7 @@ export default function MermaidPage() {
       }
     };
     initMermaid();
-  }, [isClient]);
+  }, [isClient, isDark]);
 
   const renderDiagram = useCallback(
     async (container: HTMLDivElement | null) => {
@@ -626,7 +624,7 @@ export default function MermaidPage() {
     );
 
     return () => clearTimeout(timer);
-  }, [code, isFullscreen, isMermaidReady, renderDiagram]);
+  }, [code, isFullscreen, isMermaidReady, renderDiagram, isDark]);
 
   useEffect(() => {
     const target = isFullscreen ? fullscreenPreviewRef.current : previewRef.current;
@@ -642,7 +640,7 @@ export default function MermaidPage() {
         isFullscreen ? fullscreenPreviewRef.current : previewRef.current
       )?.querySelector('svg');
       if (!svgElement) {
-        toast.warning('다이어그램을 먼저 생성해주세요.');
+        showToast('다이어그램을 먼저 생성해주세요.', 'warning');
         return;
       }
 
@@ -668,9 +666,9 @@ export default function MermaidPage() {
         pixelRatio,
       });
       downloadDataUrl(dataUrl, `mermaid-diagram-${Date.now()}.png`);
-      toast.success('PNG 다운로드 완료');
+      showToast('PNG 다운로드 완료');
     } catch (e: any) {
-      toast.error(`다운로드 실패: ${e.message}`);
+      showToast(`다운로드 실패: ${e.message}`, 'error');
     } finally {
       wrapper?.remove();
     }
@@ -681,7 +679,7 @@ export default function MermaidPage() {
       isFullscreen ? fullscreenPreviewRef.current : previewRef.current
     )?.querySelector('svg');
     if (!svgElement) {
-      toast.warning('다이어그램을 먼저 생성해주세요.');
+      showToast('다이어그램을 먼저 생성해주세요.', 'warning');
       return;
     }
     // 화면 줌/팬 스타일이 제거된 복제본을 직렬화해 파일에 transform이 새어나가지 않도록 함
@@ -692,9 +690,9 @@ export default function MermaidPage() {
         new Blob([svgData], { type: 'image/svg+xml' }),
         `mermaid-diagram-${Date.now()}.svg`,
       );
-      toast.success('SVG 다운로드 완료');
+      showToast('SVG 다운로드 완료');
     } catch (e: any) {
-      toast.error(`다운로드 실패: ${e.message}`);
+      showToast(`다운로드 실패: ${e.message}`, 'error');
     }
   };
 
@@ -764,8 +762,7 @@ export default function MermaidPage() {
     <div className="flex items-center gap-0.5">
       <Button
         variant="ghost"
-        size="icon"
-        className="h-7 w-7"
+        className="aspect-square p-0 h-7 w-7"
         onClick={() => setPreviewZoom((z) => Math.max(z * 0.8, 0.1))}
       >
         <ZoomOut className="h-3.5 w-3.5" />
@@ -773,16 +770,14 @@ export default function MermaidPage() {
       <span className="text-xs w-11 text-center">{Math.round(previewZoom * 100)}%</span>
       <Button
         variant="ghost"
-        size="icon"
-        className="h-7 w-7"
+        className="aspect-square p-0 h-7 w-7"
         onClick={() => setPreviewZoom((z) => Math.min(z * 1.2, 5))}
       >
         <ZoomIn className="h-3.5 w-3.5" />
       </Button>
       <Button
         variant="ghost"
-        size="icon"
-        className="h-7 w-7"
+        className="aspect-square p-0 h-7 w-7"
         onClick={handleResetZoom}
         title="화면 맞춤"
       >
@@ -793,28 +788,32 @@ export default function MermaidPage() {
 
   const DownloadControls = () => (
     <div className="flex gap-1.5 items-center flex-wrap">
-      <Select value={scaleMode} onValueChange={setScaleMode}>
-        <SelectTrigger className="h-8 w-20 text-xs">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="ratio">배율</SelectItem>
-          <SelectItem value="custom">픽셀</SelectItem>
-        </SelectContent>
-      </Select>
+      <Select
+        value={scaleMode}
+        onValueChange={setScaleMode}
+        placeholder="배율"
+        size="xs"
+        options={[
+          { value: 'ratio', label: '배율' },
+          { value: 'custom', label: '픽셀' },
+        ]}
+        className="w-20"
+      />
 
       {scaleMode === 'ratio' ? (
-        <Select value={String(scale)} onValueChange={(v) => setScale(Number(v))}>
-          <SelectTrigger className="h-8 w-16 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1">1x</SelectItem>
-            <SelectItem value="2">2x</SelectItem>
-            <SelectItem value="3">3x</SelectItem>
-            <SelectItem value="4">4x</SelectItem>
-          </SelectContent>
-        </Select>
+        <Select
+          value={String(scale)}
+          onValueChange={(v) => setScale(Number(v))}
+          placeholder="배율"
+          size="xs"
+          options={[
+            { value: '1', label: '1x' },
+            { value: '2', label: '2x' },
+            { value: '3', label: '3x' },
+            { value: '4', label: '4x' },
+          ]}
+          className="w-16"
+        />
       ) : (
         <div className="flex items-center gap-1">
           <Input
@@ -838,11 +837,11 @@ export default function MermaidPage() {
       )}
 
       <div className="flex gap-1">
-        <Button size="sm" onClick={downloadPng}>
+        <Button variant="primary" size="sm" onClick={downloadPng}>
           <Download className="h-3.5 w-3.5 mr-1" />
           PNG
         </Button>
-        <Button size="sm" onClick={downloadSvg}>
+        <Button variant="primary" size="sm" onClick={downloadSvg}>
           <Download className="h-3.5 w-3.5 mr-1" />
           SVG
         </Button>
@@ -857,14 +856,18 @@ export default function MermaidPage() {
     onMouseUp: handleMouseUp,
     onMouseLeave: handleMouseUp,
   };
-  const previewAreaClassName = `flex-1 overflow-hidden flex justify-center items-center bg-gray-50 dark:bg-[rgba(33,37,43,0.8)] border ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`;
+  const previewAreaClassName = `flex-1 overflow-hidden flex justify-center items-center bg-dl-grid-header border ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`;
 
   // 일반 모드
   return (
     <>
       <div className="p-2 sm:p-4">
         <div className="flex items-center gap-2 mb-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
+          <Button
+            className="aspect-square p-0"
+            variant="ghost"
+            onClick={() => router.push('/util')}
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-xl sm:text-3xl font-bold">Mermaid Editor</h1>
@@ -879,24 +882,22 @@ export default function MermaidPage() {
                 type="button"
                 key={key}
                 onClick={() => handleSampleChange(key)}
-                className={`text-sm px-3 py-1 rounded-full border transition-all flex-shrink-0 whitespace-nowrap ${selectedSample === key ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]'}`}
+                className={`text-sm px-3 py-1 rounded-full border transition-all flex-shrink-0 whitespace-nowrap ${selectedSample === key ? 'bg-dl-primary text-dl-primary-fg border-dl-primary font-semibold' : 'hover:bg-dl-option-hover'}`}
               >
                 {label}
               </button>
             ))}
           </div>
-          <Select value={String(selectedSampleIndex)} onValueChange={handleSampleIndexChange}>
-            <SelectTrigger className="w-full sm:w-56">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {(SAMPLE_CODES as any)[selectedSample].map((sample: any, index: number) => (
-                <SelectItem key={index} value={String(index)}>
-                  {sample.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Select
+            value={String(selectedSampleIndex)}
+            onValueChange={handleSampleIndexChange}
+            placeholder="샘플 선택"
+            options={(SAMPLE_CODES as any)[selectedSample].map((sample: any, index: number) => ({
+              value: String(index),
+              label: sample.name,
+            }))}
+            className="w-full sm:w-56"
+          />
         </div>
 
         {/* 모바일 탭 전환 */}
@@ -908,7 +909,7 @@ export default function MermaidPage() {
             aria-controls="panel-editor"
             id="tab-editor"
             onClick={() => setActiveTab('editor')}
-            className={`flex-1 py-2.5 text-sm font-medium text-center border-b-2 transition-colors duration-200 ${activeTab === 'editor' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 dark:text-[#636d83] hover:text-gray-700 dark:hover:text-[#abb2bf]'}`}
+            className={`flex-1 py-2.5 text-sm font-medium text-center border-b-2 transition-colors duration-200 ${activeTab === 'editor' ? 'border-dl-primary text-dl-primary-ink' : 'border-transparent text-dl-fg-muted hover:text-dl-fg'}`}
           >
             코드
           </button>
@@ -919,7 +920,7 @@ export default function MermaidPage() {
             aria-controls="panel-preview"
             id="tab-preview"
             onClick={() => setActiveTab('preview')}
-            className={`flex-1 py-2.5 text-sm font-medium text-center border-b-2 transition-colors duration-200 ${activeTab === 'preview' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 dark:text-[#636d83] hover:text-gray-700 dark:hover:text-[#abb2bf]'}`}
+            className={`flex-1 py-2.5 text-sm font-medium text-center border-b-2 transition-colors duration-200 ${activeTab === 'preview' ? 'border-dl-primary text-dl-primary-ink' : 'border-transparent text-dl-fg-muted hover:text-dl-fg'}`}
           >
             미리보기
           </button>
@@ -937,7 +938,7 @@ export default function MermaidPage() {
             <textarea
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="flex-1 w-full font-mono text-sm resize-none border rounded p-2 outline-none focus:ring-1 focus:ring-blue-400"
+              className="flex-1 w-full font-mono text-sm resize-none border rounded p-2 outline-none focus:ring-1 focus:ring-dl-primary"
             />
           </div>
 
@@ -955,8 +956,7 @@ export default function MermaidPage() {
                 <ZoomControls />
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
+                  className="aspect-square p-0 h-7 w-7"
                   onClick={toggleFullscreen}
                   title="전체화면"
                 >
@@ -971,9 +971,9 @@ export default function MermaidPage() {
             </div>
 
             {error && (
-              <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
+              <InlineNotice tone="error" live className="mb-2">
                 {error}
-              </div>
+              </InlineNotice>
             )}
 
             <div
@@ -984,9 +984,9 @@ export default function MermaidPage() {
           </div>
         </div>
 
-        <div className="mt-4 p-3 bg-gray-100 dark:bg-[rgba(44,49,58,0.7)] rounded-md">
+        <div className="mt-4 p-3 bg-dl-option-hover rounded-md">
           <p className="text-sm font-semibold mb-1">Mermaid 문법 참고</p>
-          <p className="text-sm text-gray-500 dark:text-[#636d83]">
+          <p className="text-sm text-dl-fg-muted">
             Mermaid는 텍스트 기반으로 다이어그램을 생성하는 도구입니다. Flowchart, Sequence Diagram,
             Class Diagram, ER Diagram, Block Diagram, State Diagram 등 다양한 다이어그램을
             지원합니다. 자세한 문법은{' '}
@@ -994,7 +994,7 @@ export default function MermaidPage() {
               href="https://mermaid.js.org/syntax/flowchart.html"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-dl-primary-ink hover:underline"
             >
               Mermaid 공식 문서
             </a>
@@ -1006,17 +1006,15 @@ export default function MermaidPage() {
       {isFullscreen &&
         isClient &&
         createPortal(
-          <div className="fixed inset-0 z-[1200] bg-white dark:bg-[#1e2127] flex flex-col">
-            <div className="p-2 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white dark:bg-[#21252b] shadow-sm">
+          <div className="fixed inset-0 z-[1200] bg-dl-canvas flex flex-col">
+            <div className="p-2 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-dl-surface shadow-sm">
               <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
+                  <Button className="aspect-square p-0" variant="ghost" onClick={toggleFullscreen}>
                     <Minimize className="h-5 w-5" />
                   </Button>
                   <span className="font-semibold">미리보기</span>
-                  <span className="text-xs text-gray-400 dark:text-[#636d83] hidden sm:inline">
-                    (ESC로 닫기)
-                  </span>
+                  <span className="text-xs text-dl-fg-muted hidden sm:inline">(ESC로 닫기)</span>
                 </div>
                 <div className="sm:hidden">
                   <ZoomControls />
@@ -1032,9 +1030,9 @@ export default function MermaidPage() {
             </div>
 
             {error && (
-              <div className="mx-4 mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+              <InlineNotice tone="error" live className="mx-4 mt-2">
                 {error}
-              </div>
+              </InlineNotice>
             )}
 
             <div
@@ -1044,15 +1042,14 @@ export default function MermaidPage() {
             />
 
             <div
-              className={`fixed z-[1300] shadow-2xl overflow-hidden border bg-white dark:bg-[#282c34] transition-all duration-300 bottom-0 inset-x-0 rounded-t-xl sm:bottom-5 sm:right-5 sm:left-auto sm:inset-x-auto sm:rounded-lg ${isEditorVisible ? 'sm:w-[420px]' : 'w-auto sm:w-auto'}`}
+              className={`fixed z-[1300] shadow-2xl overflow-hidden border bg-dl-surface transition-all duration-300 bottom-0 inset-x-0 rounded-t-xl sm:bottom-5 sm:right-5 sm:left-auto sm:inset-x-auto sm:rounded-lg ${isEditorVisible ? 'sm:w-[420px]' : 'w-auto sm:w-auto'}`}
               style={{ maxHeight: isEditorVisible ? '45vh' : 'auto' }}
             >
-              <div className="flex items-center px-3 py-2 border-b bg-gray-50 dark:bg-[rgba(33,37,43,0.8)]">
+              <div className="flex items-center px-3 py-2 border-b bg-dl-grid-header">
                 <span className="text-sm font-bold flex-1">코드</span>
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
+                  className="aspect-square p-0 h-6 w-6"
                   onClick={() => setIsEditorVisible(!isEditorVisible)}
                 >
                   {isEditorVisible ? (

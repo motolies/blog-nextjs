@@ -6,7 +6,7 @@
  * 베이스 + default 테마 — **토큰 구조(Tier 2)와 default 팔레트의 원본이 여기다.**
  *
  * 다른 테마는 `theme/<name>.css` 가 `:root[data-theme='<name>']` 스코프로
- * Tier 1 전체(색 팔레트 26키 + 컨트롤 스케일 5키 = 31키)를 재정의한다 —
+ * Tier 1 전체(색 팔레트 33키 + 컨트롤 스케일 5키 = 38키)를 재정의한다 —
  * radius·shadow·z-index 와 스케일에서 유도되지 않는 고정 치수는 테마 대상이 아니다.
  * QA teal 팔레트의 정본은 `oms.css` 로 이동했다.
  * 중립·의미색 hex 는 QA `deleo-one QA-2(2/24)` 값을 변환 없이 그대로 적는다.
@@ -44,16 +44,39 @@
     --dl-brand-025: #f8f6fe; /* primary-light2 — 활성 페이지·활성 탭 배경 */
     --dl-brand-150: #d3caf8; /* 체크박스·스위치 checked+disabled 배경 */
 
+    /* 브랜드색이 쓰이는 자리는 셋이고, 요구가 서로 달라 이름을 나눈다.
+         -fg    채움 **위의 글자**  — 읽어야 한다(텍스트 4.5:1)
+         -mark  채움 **위의 도형**  — 형태만 보이면 된다(비텍스트 3:1)
+         -ink   **밝은 표면 위에** 브랜드색으로 쓰는 글자 — `-fg` 와 뜻이 반대다
+       `-ink` 가 따로 필요한 이유: 채움색 하나를 글자에도 겸용하면, 채움으로는 멀쩡한
+       밝은 브랜드색이 흰 배경 위 글자로는 무너진다(teal 2.35:1). 채움/보더는 계속
+       `--color-dl-primary` 를 쓰고 글자만 잉크로 간다.
+
+       세 값이 지금은 전부 흰색/브랜드색이라 `-fg` 와 `-mark` 가 같아 보이지만 합치지
+       않는다 — 밝은 브랜드색 테마가 들어와 글자를 짙게 가져가야 할 때 도형까지 따라가면
+       라디오 점·체크가 원에 구멍이 뚫린 것처럼 탁해지고, 비활성 틴트 위에서는 "꺼졌는데
+       표식만 진한" 뒤집힌 위계가 된다(oms 에서 실제로 겪었다). 값이 같아도 이름이
+       살아 있어야 그때 값만 바꿔 끝난다 — danger/error 와 같은 근거다.
+       대비는 `pnpm verify:tokens` 가 검사한다. */
+    --dl-brand-fg: #ffffff; /* Primary 버튼 라벨 · 선택 날짜 · 옵션 누름 글자 */
+    --dl-brand-mark: #ffffff; /* 체크 글리프 · indeterminate 바 · 라디오 점 · 스위치 knob */
+    --dl-brand-ink: #6c4de6; /* outline-primary 라벨 · 활성 탭 · Total 숫자 · 배지 primary */
+
     /* 의미색 — 데이터의 뜻을 나타낼 때만 쓴다 */
     --dl-green-500: #01a235;
     --dl-green-050: #e1f4e7;
     --dl-orange-500: #ff8000; /* QA --warning */
     --dl-orange-050: #fff0e0;
+    /* 틴트 배경 위 글자용 — 500 을 그대로 글자로 쓰면 배지가 2.2~2.9:1 이다.
+       색도(hue/채도)를 보존한 채 선형 RGB 를 균일 배율로 낮춰 도출했다. */
+    --dl-green-ink: #017b26;
+    --dl-orange-ink: #ab5300;
 
     /* 빨강 — QA 는 파괴적 액션과 폼 오류가 **한 색**이다(#FF4263).
        Tier 2 의 danger/error 이름은 소비처가 넓어 유지하고 값만 여기로 모은다. */
     --dl-red-500: #ff4263;
     --dl-red-050: #ffe8ec;
+    --dl-red-ink: #c2304a; /* 틴트 배경 위 글자 */
 
     /* 중립 — QA `--gray-*` 8단계 + 상태 전용 2개(150·650).
        팔레트에 없으면 개발자가 hex 를 쓰고 싶어진다. 항상 토큰이 있게 한다. */
@@ -68,6 +91,7 @@
     --dl-gray-650: #bbbbbb; /* 비활성 체크박스/라디오 라벨 글자 */
     --dl-gray-700: #6b6b6b; /* 보조 글자 · 테이블 헤더 글자 · outline-black 보더 */
     --dl-gray-800: #383838; /* outline-gray 글자 */
+    --dl-gray-ink: #646464; /* 틴트(gray-300) 배경 위 글자 — 배지 neutral */
     --dl-black: #000000; /* 본문 · 레이블 · 툴팁 배경 */
 
     --dl-link: #0000ff; /* 그리드 링크. 관습색이라 브랜드 색조로 끌어오지 않는다 */
@@ -89,16 +113,22 @@
        `z-[var(--dl-z-modal)]` 로 쓴다.
 
        목업이 실제로 겪은 사고를 물려받지 않으려고 순서를 한 곳에 적는다 —
-       그리드 내부 sticky 헤더가 검색 필터 위로 올라오는 문제. */
+       그리드 내부 sticky 헤더가 검색 필터 위로 올라오는 문제,
+       그리고 메뉴가 모달 아래(120)에 있어 다이얼로그 안 Select 드롭다운이
+       스크림 뒤에 깔려 클릭 불가였던 문제(언어·타임존 설정). */
     --dl-z-grid-cell: 1;
     --dl-z-grid-pinned: 2;
     --dl-z-grid-header: 3;
     --dl-z-grid-header-pinned: 4;
     --dl-z-grid-empty: 5;
-    --dl-z-menu: 120;
     --dl-z-filter: 200;
+    /* 전역 헤더·사이드바(sticky 크롬) — 필터 위, 모달 아래. */
+    --dl-z-chrome: 300;
     --dl-z-modal: 9999;
-    --dl-z-toast: 10000;
+    /* 메뉴·팝오버는 모달 안에서도 열리므로 모달 위에 둔다(MUI·Chakra 와 같은 층위).
+       포탈이 전부 body 직계라 이 값끼리 직접 비교된다. 토스트·툴팁은 항상 최상단. */
+    --dl-z-menu: 10000;
+    --dl-z-toast: 10010;
   }
 }
 
@@ -113,19 +143,31 @@
   --color-dl-primary: var(--dl-brand-500);
   --color-dl-primary-hover: var(--dl-brand-600);
   --color-dl-primary-active: var(--dl-brand-700);
-  --color-dl-primary-fg: var(--dl-gray-000);
+  /** 브랜드 채움 **위**의 글자·글리프. `-fg` = on-*(배경 위 전경), `-ink` = *-colored text.
+      두 계열의 뜻이 반대이니 이름을 섞지 않는다(구 `--color-dl-warning-fg` 는 후자 쪽이다). */
+  --color-dl-primary-fg: var(--dl-brand-fg);
+  /** 밝은 표면 위에 브랜드색으로 쓰는 글자 — outline-primary 라벨·활성 탭·Total 숫자.
+      채움(`--color-dl-primary`)과 값이 갈리는 이유: 밝은 브랜드색은 채움으로는 멀쩡해도
+      흰 배경 위 글자로는 대비가 무너진다(teal 2.35:1). 채움/보더는 계속 primary 를 쓴다. */
+  --color-dl-primary-ink: var(--dl-brand-ink);
+  /** brand 채움 위의 도형. `-fg`(글자)와 갈라져 있다 — 근거는 Tier 1 주석. */
+  --color-dl-primary-mark: var(--dl-brand-mark);
 
   /** 톤얼(연한 브랜드색) — 개수 배지·미저장 셀 등 면적 강조. */
   --color-dl-tonal: var(--dl-brand-050);
   --color-dl-tonal-hover: var(--dl-brand-025);
   --color-dl-tonal-border: var(--dl-brand-150);
-  --color-dl-tonal-fg: var(--dl-brand-500);
+  --color-dl-tonal-fg: var(--dl-brand-ink);
 
   /* ── 의미색 ───────────────────────────────────────────────────────────── */
   --color-dl-success: var(--dl-green-500);
   --color-dl-success-bg: var(--dl-green-050);
+  /** 틴트 배경 위 글자용. 500 계열은 **면**(아이콘·막대)에 쓰고, 글자는 ink 를 쓴다 —
+      배지가 그 구분이 필요한 유일한 소비처였다(전부 2.2~2.9:1 이었다). */
+  --color-dl-success-ink: var(--dl-green-ink);
   --color-dl-warning: var(--dl-orange-500);
   --color-dl-warning-bg: var(--dl-orange-050);
+  --color-dl-warning-ink: var(--dl-orange-ink);
   --color-dl-warning-fg: var(--dl-orange-500);
   --color-dl-info: var(--dl-brand-500);
   --color-dl-info-bg: var(--dl-brand-050);
@@ -136,6 +178,13 @@
   --color-dl-danger: var(--dl-red-500);
   --color-dl-danger-bg: var(--dl-red-050);
   --color-dl-danger-border: var(--dl-red-500);
+  --color-dl-danger-ink: var(--dl-red-ink);
+  /** 삭제 버튼 hover 채움과 그 위 글자.
+      원색(#ff4263) 으로 채우면 흰 글자가 3.38:1 이라 AA(4.5) 에 못 미친다 —
+      한 단 짙은 red-ink 로 채워야 5.50:1 이 된다. 채움 위 글자는 brand 와 같은
+      `-fg` 축이다(도형용 `-mark` 는 danger 에 소비처가 없어 만들지 않는다). */
+  --color-dl-danger-hover: var(--dl-red-ink);
+  --color-dl-danger-fg: var(--dl-gray-000);
 
   /* ── 폼 오류 ──────────────────────────────────────────────────────────── */
   --color-dl-error: var(--dl-red-500);
@@ -175,6 +224,9 @@
   --color-dl-locked-border: var(--dl-gray-300);
   --color-dl-locked-fg: var(--dl-gray-600);
   --color-dl-locked-icon: var(--dl-gray-600);
+  /** 잠금 배경(gray-300) 위 글자 — 배지 neutral. locked-fg(gray-600)는 2.53:1 이라
+      비활성 컨트롤에는 남기고(1.4.3 disabled 예외) 배지 글자만 갈라낸다. */
+  --color-dl-locked-ink: var(--dl-gray-ink);
 
   /* ── 체크박스 · 라디오 · 스위치 상태 ──────────────────────────────────────
      QA 는 disabled 를 off(#f2f2f2)와 on(#b2ebf2)으로 갈라 그린다 —
@@ -217,11 +269,20 @@
   /* ── 사이드바 · 탭 ────────────────────────────────────────────────────── */
   --color-dl-nav-fg: var(--dl-gray-700);
   --color-dl-nav-hover: var(--dl-gray-100);
-  --color-dl-subtab: var(--dl-gray-200);
+  /* 작업 탭 칩(WorkTabsBar) — 밀집 카드 탭. 바는 캔버스(gray-200) 위에 놓이므로
+     칩 배경이 캔버스와 같으면 형태가 통째로 사라진다(구 gray-200 이 그랬다).
+     그룹 보더 + 칩 사이 1px 구분선이 윤곽을 만든다. */
+  --color-dl-subtab: var(--dl-gray-100);
   --color-dl-subtab-fg: var(--dl-gray-700);
-  --color-dl-subtab-border: var(--dl-gray-200);
-  /* 활성 작업 탭 칩 배경 — QA .tab-menu-btn.active 의 primary-light2. WorkTabsBar 전용. */
-  --color-dl-subtab-active: var(--dl-brand-025);
+  --color-dl-subtab-border: var(--dl-gray-300);
+  /** 칩 hover — 연한 브랜드 틴트. tonal 과 같은 값이지만 이름을 합치지 않는다:
+      소비처가 달라 언젠가 갈릴 때 이름이 남아 있어야 값만 바꿔 끝난다(danger/error 와 같은 근거). */
+  --color-dl-subtab-hover: var(--dl-brand-050);
+  /* 활성 작업 탭 칩 — 아래 화면과 같은 흰 표면이라 "이 탭이 지금 보는 화면"이 형태로 읽힌다.
+     QA .tab-menu-btn.active 의 primary-light2 배경 + primary 글자에서 바꾼 지점이다 —
+     그 조합은 대비 2.26:1 로 WCAG AA(4.5:1) 미달이었다. 하단 3px primary 라인은 QA 대로 유지. */
+  --color-dl-subtab-active: var(--dl-gray-000);
+  --color-dl-subtab-active-fg: var(--dl-black);
 
   /* ── 모양 ─────────────────────────────────────────────────────────────────
      QA 의 radius 는 **입력 6 / 그 밖의 상자 8** 두 단이다. 셀렉트 트리거가
@@ -360,19 +421,76 @@
   --spacing-dl-worktab-bar: calc(42px + var(--dl-scale-md) * 4px); /* QA 62px */
   --spacing-dl-worktab: calc(18px + var(--dl-scale-md) * 4px); /* 칩 높이 — QA ≈38px */
   --spacing-dl-menu-max: 232px; /* 드롭다운 패널 최대 높이 */
+  /* 선택 요약 칩 영역 최대 높이 — 약 3줄. 넘으면 이 안에서 스크롤한다.
+     드롭다운(232px)을 그대로 쓰면 칩이 패널을 다 먹어 정작 고를 목록이 안 남는다. */
+  --spacing-dl-chips-max: 84px;
   /* 컬럼 설정 목록 — 드롭다운(232px)을 빌려 쓰면 컬럼 14개 중 6개만 보여 드래그로 옮기기 어렵다.
      모달 자체가 max-h-[90vh] 이고 헤더·안내·푸터가 있어 60vh 면 넘치지 않는다. */
   --spacing-dl-column-list: 60vh;
 
-  /* 그리드 밀도 — size prop 이 아니라 **테마 md 스케일**을 따라간다(행에 여러
-     컨트롤이 섞이므로 개별 size 로는 정합이 깨진다). default 50 · compact 44. */
-  --spacing-dl-grid-header: calc(30px + var(--dl-scale-md) * 4px); /* QA 테이블 th min-height */
-  --spacing-dl-grid-row: calc(30px + var(--dl-scale-md) * 4px); /* QA 테이블 행 min-height */
+  /* ── 그리드 밀도 5단 ──────────────────────────────────────────────────────
+     한때 "size prop 이 아니라 테마 md 스케일만 따른다" 였다. 그 근거였던
+     "행에 여러 컨트롤이 섞여 정합이 깨진다" 는 **컨트롤마다 제각각 size 를 주는 것**에
+     대한 경고이지, 그리드 전체가 한 단계로 함께 가는 것에 대한 경고가 아니다.
+     실제로 두 수열의 기울기가 같아 정합은 공식으로 보장된다:
+
+       행      30px + 4px·n
+       컨트롤   22px + 4px·n
+       ─────────────────────
+       차이     8px  (n 과 무관하게 고정 → 셀 에디터 위아래 여유 4px 씩)
+
+     그래서 축이 둘이다 — **테마**(--dl-scale-* 재정의)가 전체 밀도를 옮기고,
+     **density prop**(그리드별)이 그 안에서 단계를 고른다. 둘은 곱해진다:
+     compact 테마의 xs 는 36px, default 테마의 xs 는 40px.
+
+     ⚠️ 단계별 토큰을 **루트에 5개씩** 두는 이유: 커스텀 프로퍼티는 선언된 요소에서
+        computed-value time 에 var() 치환이 끝나고 자손은 치환된 값을 상속받는다.
+        그래서 그리드 루트에서 --dl-scale-md 를 덮어써도 :root 에서 이미 확정된
+        --spacing-dl-grid-row 는 바뀌지 않는다. JS(useTokenPx)도 루트에서 읽으므로
+        density 는 **토큰 이름을 고르는 방식**이어야 한다(grid/gridDensity.ts).
+
+     density 를 **의도적으로 따르지 않는 것 3가지**:
+       · 글자 크기 — --text-dl-sm · --text-dl-lg 는 둘 다 14px 평평한 고정값이고
+         스케일 유도가 아니다. 40px 행에도 14px 는 들어가며, 밀도 때문에 가독성을 깎지 않는다.
+       · 컬럼 폭 — 내용이 정하는 축이지 밀도 축이 아니다.
+       · 툴바 — 데이터가 아니라 크롬이고 --spacing-dl-control-sm 에 묶여 있다.
+
+     값(default 스케일): 40 · 44 · 50 · 54 · 60   (compact: 36 · 40 · 44 · 50 · 54) */
+  --spacing-dl-grid-row-xs: calc(30px + var(--dl-scale-xs) * 4px);
+  --spacing-dl-grid-row-sm: calc(30px + var(--dl-scale-sm) * 4px);
+  --spacing-dl-grid-row-md: calc(30px + var(--dl-scale-md) * 4px); /* QA 테이블 행 min-height */
+  --spacing-dl-grid-row-lg: calc(30px + var(--dl-scale-lg) * 4px);
+  --spacing-dl-grid-row-xl: calc(30px + var(--dl-scale-xl) * 4px);
+  /* 접미사 없는 기존 이름은 md 별칭으로 남긴다 — density 를 안 쓰는 소비처가 무변경이어야 한다. */
+  --spacing-dl-grid-row: var(--spacing-dl-grid-row-md);
+
+  --spacing-dl-grid-header-xs: calc(30px + var(--dl-scale-xs) * 4px);
+  --spacing-dl-grid-header-sm: calc(30px + var(--dl-scale-sm) * 4px);
+  --spacing-dl-grid-header-md: calc(30px + var(--dl-scale-md) * 4px); /* QA 테이블 th min-height */
+  --spacing-dl-grid-header-lg: calc(30px + var(--dl-scale-lg) * 4px);
+  --spacing-dl-grid-header-xl: calc(30px + var(--dl-scale-xl) * 4px);
+  --spacing-dl-grid-header: var(--spacing-dl-grid-header-md);
+
+  /* 체크박스 선택열 폭 — 담는 체크박스 폭의 2배다(md: 20×2 = 40, QA 실측 보존).
+     독립 수열을 만들지 않는 이유는 이 칸의 존재 이유가 체크박스 하나이기 때문이다. */
+  --spacing-dl-grid-check-xs: calc(var(--spacing-dl-checkbox-xs) * 2);
+  --spacing-dl-grid-check-sm: calc(var(--spacing-dl-checkbox-sm) * 2);
+  --spacing-dl-grid-check-md: calc(var(--spacing-dl-checkbox-md) * 2);
+  --spacing-dl-grid-check-lg: calc(var(--spacing-dl-checkbox-lg) * 2);
+  --spacing-dl-grid-check-xl: calc(var(--spacing-dl-checkbox-xl) * 2);
+  --spacing-dl-grid-check: var(--spacing-dl-grid-check-md); /* 40px */
+
+  /* 셀 좌우 패딩 — QA 10px 가 md. 값: 7 · 8 · 10 · 11 · 13 */
+  --spacing-dl-cell-x-xs: round(nearest, 4px + var(--dl-scale-xs) * 1.2px, 1px);
+  --spacing-dl-cell-x-sm: round(nearest, 4px + var(--dl-scale-sm) * 1.2px, 1px);
+  --spacing-dl-cell-x-md: round(nearest, 4px + var(--dl-scale-md) * 1.2px, 1px); /* QA 10px */
+  --spacing-dl-cell-x-lg: round(nearest, 4px + var(--dl-scale-lg) * 1.2px, 1px);
+  --spacing-dl-cell-x-xl: round(nearest, 4px + var(--dl-scale-xl) * 1.2px, 1px);
+  --spacing-dl-cell-x: var(--spacing-dl-cell-x-md);
+
   --spacing-dl-grid-toolbar: calc(var(--spacing-dl-control-sm) + 13px); /* 버튼 sm + 상하 6 + 보더 1 */
-  --spacing-dl-grid-check: 40px; /* 체크박스 선택열 폭 */
-  --spacing-dl-grid-col: 120px; /* 컬럼 폭 기본값 — 컬럼 정의에 width 가 없을 때 */
+  --spacing-dl-grid-col: 120px; /* 컬럼 폭 기본값 — 내용 축이라 density 를 따르지 않는다 */
   --spacing-dl-grid-col-min: 56px; /* 리사이즈 하한 — 헤더 문구 한 글자 + 정렬 아이콘이 남는 최소치 */
-  --spacing-dl-cell-x: 10px; /* QA 셀 padding */
 
   --spacing-dl-filter-label: 130px; /* QA form-group-row 라벨 고정폭 */
   --spacing-dl-filter-row: calc(var(--spacing-dl-control) + 12px); /* md 컨트롤 + 상하 6px */
@@ -386,9 +504,14 @@
   --spacing-dl-form-col: 220px;
   --spacing-dl-gutter: 20px; /* 카드 사이 · 본문 바깥 여백 — QA 리듬 20px */
 
-  --spacing-dl-sidebar: 224px;
-  --spacing-dl-sidebar-mini: 56px;
-  --spacing-dl-app-min: 1600px;
+  /* 사이드바 — 펼침(아이콘+텍스트) / 접힘(아이콘 레일). 접힘 상태는 앱이 토글한다. */
+  --spacing-dl-sidebar: 240px;
+  --spacing-dl-sidebar-mini: 64px;
+  /** 앱 최소 폭 — 기준 뷰포트는 맥북에어 13" (1440×900). 1600 은 v3 실측이었으나
+      "핵심 정보는 1440 에 맞추고 밀도가 필요한 그리드만 내부 가로 스크롤" 로 계약을 바꿨다.
+      1430 = 1440 − 여유 10(오버레이 스크롤바). 클래식 스크롤바 환경에서 가로 스크롤이
+      생기면 1420 까지 내린다. */
+  --spacing-dl-app-min: 1430px;
   --spacing-dl-modal-alert: 500px; /* QA alert-content 고정 폭 */
   --spacing-dl-modal-pick: 1140px; /* QA modal-content 기본 폭 */
   --spacing-dl-modal-pick-min: 500px;
@@ -407,6 +530,12 @@
     color-scheme: light;
   }
 
+  /* 다크 테마는 폼 컨트롤·스크롤바 등 UA 렌더링도 다크로 —
+     테마 파일은 Tier 1 키만 갖는 규약(verify:tokens 키 검사)이라 여기서 스위칭한다. */
+  :root[data-theme='blog-dark'] {
+    color-scheme: dark;
+  }
+
   body {
     background-color: var(--color-dl-canvas);
     color: var(--color-dl-fg);
@@ -420,9 +549,11 @@
   /**
    * 포커스 표시는 접근성 요건이다. 절대 제거하지 않는다.
    *
-   * QA 는 폼 컨트롤에 `outline: none` 을 두고 보더 색만 바꾸는데, 그 옵트아웃은
-   * `dl-field` 유틸리티 안에서만 한다. 버튼·링크·그리드 셀까지 전역으로 없애면
-   * 키보드 사용자가 화면에서 길을 잃는다.
+   * **`outline: none` 옵트아웃은 대체 표시가 있을 때만 허용한다** — 표시를 없애는 것이 아니라
+   * 그 컴포넌트의 형태에 맞는 다른 표시로 바꾸는 것이라야 한다. 현재 셋뿐이고 전부 대체가 있다:
+   * `dl-field`(보더 색 전환) · `Tab`(밑줄 + 배경 틴트 — 사각 링이 밑줄형 언어를 깬다) ·
+   * `WorkTabsBar` 의 칩 앵커(칩 `<li>` 가 대신 inset ring 을 받는다 — 링이 글자만 감싸면 어긋난다).
+   * 대체 없이 없애면 키보드 사용자가 화면에서 길을 잃는다.
    */
   :focus-visible {
     outline: 2px solid var(--color-dl-primary);

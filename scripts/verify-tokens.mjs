@@ -26,6 +26,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 /** 토큰 원본. 여기서 선언된 이름이 "쓸 수 있는 토큰"의 전부다(CLAUDE.md §4). */
 const THEME_DIR = join(ROOT, 'packages/ui/src/theme');
+const CN_PATH = join(ROOT, 'packages/ui/src/lib/cn.ts');
 
 const SCAN_EXTENSIONS = ['.ts', '.tsx'];
 const SKIP_DIRS = new Set(['node_modules', '.next', 'dist', 'build', '__boundary-violations__']);
@@ -316,6 +317,332 @@ function runThemeSelfTest() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 색 대비 (WCAG)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * 위 검사들은 전부 **이름**만 본다 — 키가 다 있는지, 오타가 없는지. 값이 틀린 것은
+ * 아무도 잡지 못했다. 실제로 배포 테마의 Primary 버튼 라벨이 2.35:1(WCAG AA 4.5:1
+ * 미달)로 오래 서 있었고, 드러난 계기는 사람이 "글자가 잘 안 보인다"고 말한 것이었다.
+ *
+ * 브라우저가 필요 없다 — 우리 구조가 정확히 2티어라 `var()` 를 한 홉만 따라가면
+ * 테마별 최종 hex 가 나온다. 그래서 이 검사는 CSS 소스만으로 성립한다.
+ */
+
+const AA_TEXT = 4.5; // WCAG 1.4.3 본문
+const AA_UI = 3.0; // WCAG 1.4.11 비텍스트(컨트롤 형태)
+
+/**
+ * 검사 쌍: [전경, 배경, 목표, 설명, 기준선?]
+ *
+ * 기준선이 **없으면** 목표 미달 = 위반(CI 차단).
+ * 기준선이 **있으면** 목표 미달은 경고로 두되 **기준선보다 나빠지면 위반**이다 —
+ * 아직 못 고친 것을 목록에서 지우면 침묵이 되고, 전부 차단하면 아무도 검사를
+ * 못 켠다. 래칫은 "고칠 때까지 더 나빠지지만 않게" 잠그는 절충이고, 고치고 나면
+ * 기준선을 지운다.
+ *
+ * 전 조합(70×70)을 자동 생성하지 않는다 — 화면에 실제로 겹치는 쌍만 사람이 적는다.
+ */
+const CONTRAST_PAIRS = [
+  // 브랜드 채움 위 글자 — QA 정본이 `.btn-primary { color: white }` 라 흰 글자가 계약이다.
+  // oms(teal)는 채움이 밝아 AA 에 못 미치는데, 고치려면 **채움 hex** 를 어둡게 해야 하고
+  // 그건 디자인 원본의 결정이라 여기서 조용히 바꿀 수 없다. 기준선으로 잠가 악화만 막는다.
+  // default(violet)는 같은 흰 글자로 5.47 이라 통과한다 — 기준선은 미달 테마에만 적용된다.
+  ['--color-dl-primary-fg', '--color-dl-primary', AA_TEXT, 'Primary 버튼 라벨', 2.35],
+  [
+    '--color-dl-primary-fg',
+    '--color-dl-primary-hover',
+    AA_TEXT,
+    '버튼 hover — 전 variant 공통',
+    3.0,
+  ],
+  [
+    '--color-dl-primary-fg',
+    '--color-dl-primary-active',
+    AA_TEXT,
+    '버튼 active — 전 variant 공통',
+    3.59,
+  ],
+  // 밝은 표면 위 브랜드색 글자
+  ['--color-dl-primary-ink', '--color-dl-surface', AA_TEXT, 'outline-primary 라벨·활성 탭·Total'],
+  ['--color-dl-primary-ink', '--color-dl-tonal', AA_TEXT, '톤얼 배경 위 브랜드 글자'],
+  ['--color-dl-tonal-fg', '--color-dl-tonal', AA_TEXT, 'Badge primary'],
+  ['--color-dl-tonal-fg', '--color-dl-tonal-hover', AA_TEXT, '활성 페이지·서브탭 배경 위 글자'],
+  // 의미색 배지 — 글자는 ink, 면은 500
+  ['--color-dl-success-ink', '--color-dl-success-bg', AA_TEXT, 'Badge success'],
+  ['--color-dl-warning-ink', '--color-dl-warning-bg', AA_TEXT, 'Badge warning'],
+  ['--color-dl-danger-ink', '--color-dl-danger-bg', AA_TEXT, 'Badge danger'],
+  ['--color-dl-danger-fg', '--color-dl-danger-hover', AA_TEXT, '삭제 버튼 hover 채움'],
+  ['--color-dl-locked-ink', '--color-dl-locked-bg', AA_TEXT, 'Badge neutral'],
+  // 본문·필드
+  ['--color-dl-fg', '--color-dl-surface', AA_TEXT, '본문'],
+  ['--color-dl-fg', '--color-dl-canvas', AA_TEXT, '캔버스 위 본문'],
+  ['--color-dl-fg-muted', '--color-dl-surface', AA_TEXT, '보조 글자'],
+  ['--color-dl-fg-label', '--color-dl-surface', AA_TEXT, '폼 라벨'],
+  ['--color-dl-field-fg', '--color-dl-surface', AA_TEXT, '입력값'],
+  // 버튼 아웃라인 4종
+  ['--color-dl-outline-fg', '--color-dl-surface', AA_TEXT, 'outline-gray 라벨'],
+  ['--color-dl-outline-strong-fg', '--color-dl-surface', AA_TEXT, 'outline-strong 라벨'],
+  // 그리드·탭·툴팁·사이드바
+  ['--color-dl-grid-header-fg', '--color-dl-grid-header', AA_TEXT, '그리드 헤더 셀'],
+  ['--color-dl-grid-link', '--color-dl-surface', AA_TEXT, '그리드 링크'],
+  ['--color-dl-tooltip-fg', '--color-dl-tooltip', AA_TEXT, '툴팁'],
+  ['--color-dl-subtab-fg', '--color-dl-subtab', AA_TEXT, '비활성 작업 탭'],
+  ['--color-dl-subtab-active-fg', '--color-dl-subtab-active', AA_TEXT, '활성 작업 탭'],
+  ['--color-dl-nav-fg', '--color-dl-surface', AA_TEXT, '사이드바 메뉴'],
+
+  // ── 아직 못 고친 것들 — 오늘 값을 기준선으로 잠근다 ──────────────────────────
+  // 파괴적 액션과 폼 오류의 빨강은 QA 정본(#ff4263) 이라 값을 못 바꾼다.
+  // 배지·문구는 ink 로 갈라냈지만 보더·라벨의 원색 사용은 남아 있다.
+  ['--color-dl-danger', '--color-dl-surface', AA_TEXT, 'outline-red 라벨', 3.38],
+  ['--color-dl-error', '--color-dl-surface', AA_TEXT, '폼 오류 문구', 3.38],
+  // 플레이스홀더는 1.4.3 의 disabled 예외가 아니다. 잠금 글자는 예외에 걸치지만
+  // "자동입력·읽기전용" 칸에도 쓰이므로 같이 잠가 둔다.
+  ['--color-dl-field-placeholder', '--color-dl-surface', AA_TEXT, '플레이스홀더', 3.15],
+  ['--color-dl-locked-fg', '--color-dl-locked-bg', AA_TEXT, '잠긴 칸 값·비활성 버튼', 2.53],
+  ['--color-dl-masked', '--color-dl-surface', AA_TEXT, '마스킹된 값', 3.15],
+  ['--color-dl-fg-subtle', '--color-dl-surface', AA_TEXT, '흐린 보조 글자', 2.41],
+];
+
+/** 비텍스트 대비(1.4.11) — 글자가 아니라 **형태**가 보이는지. */
+const CONTRAST_UI_PAIRS = [
+  // 도형(mark)은 글자와 달리 미관을 택해 흰색 고정이다 — 이 컨트롤들의 상태는 **채움색
+  // 전환**(흰색↔brand)이 말하므로, 1.4.11 판정은 아래 '선택·포커스 보더' 쌍에서 이미
+  // 결정된다. 도형 자체의 대비는 그 판정을 바꾸지 않아 기준선으로만 잠근다.
+  ['--color-dl-primary-mark', '--color-dl-primary', AA_UI, '체크 글리프·라디오 점·knob', 2.35],
+  ['--color-dl-field-border', '--color-dl-surface', AA_UI, '입력 보더', 1.25],
+  ['--color-dl-primary', '--color-dl-surface', AA_UI, '선택·포커스 보더', 2.35],
+];
+
+function parseHex(value) {
+  const text = String(value).trim();
+  if (!/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(text)) return null;
+  const hex =
+    text.length === 4
+      ? text
+          .slice(1)
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : text.slice(1);
+  return [0, 2, 4].map((i) => Number.parseInt(hex.slice(i, i + 2), 16));
+}
+
+function relativeLuminance(hex) {
+  const channels = parseHex(hex).map((value) => {
+    const c = value / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
+function contrastRatio(a, b) {
+  const [high, low] = [relativeLuminance(a), relativeLuminance(b)].sort((x, y) => y - x);
+  return (high + 0.05) / (low + 0.05);
+}
+
+/** `@theme static { … }` 본문을 중괄호 균형으로 잘라낸다(정규식 `[^}]*` 는 중첩에 깨진다). */
+function themeStaticBody(css) {
+  const start = css.search(/@theme\s+static\s*\{/);
+  if (start === -1) return '';
+  const open = css.indexOf('{', start);
+  let depth = 0;
+  for (let i = open; i < css.length; i += 1) {
+    if (css[i] === '{') depth += 1;
+    else if (css[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return css.slice(open + 1, i);
+    }
+  }
+  return '';
+}
+
+/** Tier 2 매핑: `--color-dl-x: var(--dl-y)` 또는 리터럴. */
+function collectSemanticMap(defaultCss) {
+  const map = new Map();
+  const body = themeStaticBody(stripCssComments(defaultCss));
+  for (const match of body.matchAll(/(--color-[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
+    map.set(match[1], match[2].trim());
+  }
+  return map;
+}
+
+/** 테마별 Tier 1 팔레트 = default plain `:root` ⊕ `:root[data-theme]` 오버라이드. */
+function paletteFor(defaultCss, themeCss) {
+  const palette = new Map();
+  const read = (block) => {
+    for (const match of block.matchAll(/(--dl-[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
+      palette.set(match[1], match[2].trim());
+    }
+  };
+  for (const match of stripCssComments(defaultCss).matchAll(/:root\s*\{([^}]*)\}/g)) read(match[1]);
+  if (themeCss) {
+    for (const match of stripCssComments(themeCss).matchAll(
+      /:root\[data-theme=(?:'[a-z][a-z0-9-]*'|"[a-z][a-z0-9-]*")\]\s*\{([^}]*)\}/g,
+    )) {
+      read(match[1]);
+    }
+  }
+  return palette;
+}
+
+/**
+ * Tier 2 토큰을 hex 로 푼다. `var()` 는 **한 홉만** 따라간다 — 우리 구조가 정확히
+ * 2티어이기 때문이고, 그보다 깊어지면 그것 자체가 구조 위반이라 알려야 한다.
+ * 해석 실패를 조용히 건너뛰지 않는 이유: 오타 하나로 검사 쌍이 통째로 사라지면
+ * 검사가 있는데 아무것도 안 보는 상태가 된다(SELF_TEST 철학과 같다).
+ */
+function resolveColor(token, semantic, palette) {
+  const raw = semantic.get(token);
+  if (raw === undefined) return { error: `${token} 이 @theme static 에 없습니다` };
+  const direct = parseHex(raw);
+  if (direct) return { hex: raw };
+  const varMatch = raw.match(/^var\((--[a-z0-9-]+)\)$/);
+  if (!varMatch) return { error: `${token} 의 값(${raw})이 hex 도 단일 var() 도 아닙니다` };
+  const resolved = palette.get(varMatch[1]);
+  if (resolved === undefined) return { error: `${token} → ${varMatch[1]} 이 팔레트에 없습니다` };
+  if (!parseHex(resolved)) {
+    return { error: `${token} → ${varMatch[1]} 의 값(${resolved})이 hex 가 아닙니다` };
+  }
+  return { hex: resolved };
+}
+
+/** 대비 검사. { problems, warnings } 를 돌려준다. */
+function checkContrast(defaultCss, themeFiles) {
+  const problems = [];
+  const warnings = [];
+  const semantic = collectSemanticMap(defaultCss);
+  const themes = [['default', null], ...themeFiles.map(([name, css]) => [name, css])];
+
+  for (const [themeName, themeCss] of themes) {
+    const palette = paletteFor(defaultCss, themeCss);
+    for (const [pairs, kind] of [
+      [CONTRAST_PAIRS, '텍스트'],
+      [CONTRAST_UI_PAIRS, 'UI'],
+    ]) {
+      for (const [fgToken, bgToken, target, label, baseline] of pairs) {
+        const fg = resolveColor(fgToken, semantic, palette);
+        const bg = resolveColor(bgToken, semantic, palette);
+        if (fg.error || bg.error) {
+          problems.push(`${themeName}: ${fg.error ?? bg.error} (${label})`);
+          continue;
+        }
+        const ratio = contrastRatio(fg.hex, bg.hex);
+        const shown = `${ratio.toFixed(2)}:1`;
+        const where = `${themeName} · ${label} (${fgToken} on ${bgToken}) ${shown}`;
+        if (ratio >= target) continue;
+        if (baseline === undefined) {
+          problems.push(`${where} — ${kind} 대비 ${target}:1 미달`);
+        } else if (ratio < baseline - 0.005) {
+          problems.push(`${where} — 기준선 ${baseline}:1 보다 나빠졌습니다`);
+        } else {
+          // 같은 쌍이 테마마다 반복되면 21줄이 되고, 그러면 아무도 안 읽는다.
+          // 값이 같은 테마는 한 줄로 묶는다(값이 갈리면 자연히 줄이 갈라진다).
+          warnings.push({
+            key: `${fgToken}|${bgToken}|${shown}`,
+            theme: themeName,
+            text: `${label} (${fgToken} on ${bgToken}) ${shown} — ${kind} 대비 ${target}:1 미달, 기준선 ${baseline}:1`,
+          });
+        }
+      }
+    }
+  }
+  return { problems, warnings };
+}
+
+/** 대비 검사 자기검증 — 공식·파서·래칫·해석실패 네 축. */
+function runContrastSelfTest() {
+  const failures = [];
+  const near = (actual, expected) => Math.abs(actual - expected) <= 0.02;
+
+  // ① 공식 자체. 손으로 검증한 실측치와 어긋나면 즉시 죽는다.
+  if (!near(contrastRatio('#ffffff', '#000000'), 21))
+    failures.push('대비 공식: 흰/검 21:1 이 아닙니다');
+  if (!near(contrastRatio('#6c4de6', '#ffffff'), 5.47))
+    failures.push('대비 공식: violet/흰 5.47:1 이 아닙니다');
+  if (!near(contrastRatio('#00bad1', '#ffffff'), 2.35))
+    failures.push('대비 공식: teal/흰 2.35:1 이 아닙니다');
+  if (!near(contrastRatio('#fff', '#000'), 21))
+    failures.push('대비 공식: 3자리 hex 를 못 읽습니다');
+
+  // ② 파서 — var() 한 홉 + 테마 오버라이드 병합
+  const base =
+    ':root { --dl-a: #ffffff; --dl-b: #000000; }\n@theme static { --color-dl-x: var(--dl-a); --color-dl-y: var(--dl-b); }';
+  const semantic = collectSemanticMap(base);
+  const defPalette = paletteFor(base, null);
+  const themePalette = paletteFor(base, ":root[data-theme='t'] { --dl-a: #777777; }");
+  if (resolveColor('--color-dl-x', semantic, defPalette).hex !== '#ffffff') {
+    failures.push('대비 파서: default 팔레트 해석 실패');
+  }
+  if (resolveColor('--color-dl-x', semantic, themePalette).hex !== '#777777') {
+    failures.push('대비 파서: 테마 오버라이드가 반영되지 않습니다');
+  }
+  if (resolveColor('--color-dl-nope', semantic, defPalette).error === undefined) {
+    failures.push('대비 파서: 미정의 토큰을 조용히 통과시켰습니다');
+  }
+  if (
+    themeStaticBody('@theme static { a: 1; @media x { b: 2; } c: 3; }').includes('c: 3') === false
+  ) {
+    failures.push('대비 파서: @theme static 중첩 블록에서 본문이 잘렸습니다');
+  }
+  return failures;
+}
+
+/**
+ * cn.ts 의 폰트 크기 목록 ↔ default.css 의 `--text-dl-*` 동일성.
+ *
+ * 목록에 없는 크기 토큰은 twMerge 가 **색으로 오인**해 같은 요소의 글자색을 지운다.
+ * 화면에는 "글자가 검정으로 나온다"로만 보이고 유틸리티도 변수도 멀쩡해, 기존
+ * 검사 중 어느 것도 잡지 못한다. 실제로 그렇게 새 나간 적이 있다.
+ */
+function checkFontSizeGroupParity(defaultCss, cnSource) {
+  const declared = new Set(
+    [...stripCssComments(defaultCss).matchAll(/--text-(dl-[a-z0-9-]+)\s*:/g)].map((m) => m[1]),
+  );
+  const literal = cnSource.match(/DL_FONT_SIZE_TOKENS[^=]*=\s*\[([^\]]*)\]/);
+  if (!literal) {
+    return [
+      'cn.ts 에서 DL_FONT_SIZE_TOKENS 배열을 찾지 못했습니다 — 이름을 바꿨다면 이 검사도 함께 고치세요.',
+    ];
+  }
+  const listed = new Set([...literal[1].matchAll(/'(dl-[a-z0-9-]+)'/g)].map((m) => m[1]));
+  const problems = [];
+  const missing = [...declared].filter((k) => !listed.has(k)).sort();
+  const extra = [...listed].filter((k) => !declared.has(k)).sort();
+  if (missing.length > 0) {
+    problems.push(
+      `cn.ts DL_FONT_SIZE_TOKENS 누락 ${missing.length}개 — ${missing.join(', ')} (twMerge 가 색으로 오인해 글자색을 지웁니다)`,
+    );
+  }
+  if (extra.length > 0) {
+    problems.push(`cn.ts DL_FONT_SIZE_TOKENS 에 없는 토큰 ${extra.length}개 — ${extra.join(', ')}`);
+  }
+  return problems;
+}
+
+/** 폰트 크기 패리티 자기검증. */
+function runFontSizeSelfTest() {
+  const failures = [];
+  const css = '@theme static { --text-dl-a: 12px; --text-dl-b: 14px; }';
+  const good = "const DL_FONT_SIZE_TOKENS = ['dl-a', 'dl-b'] as const;";
+  const missing = "const DL_FONT_SIZE_TOKENS = ['dl-a'] as const;";
+  const extra = "const DL_FONT_SIZE_TOKENS = ['dl-a', 'dl-b', 'dl-c'] as const;";
+  if (checkFontSizeGroupParity(css, good).length !== 0) {
+    failures.push('폰트 크기 패리티: 정상 케이스가 통과해야 하는데 위반이 나왔습니다');
+  }
+  if (!checkFontSizeGroupParity(css, missing).some((p) => p.includes('누락'))) {
+    failures.push('폰트 크기 패리티: 누락을 검출하지 못했습니다');
+  }
+  if (!checkFontSizeGroupParity(css, extra).some((p) => p.includes('없는 토큰'))) {
+    failures.push('폰트 크기 패리티: 초과를 검출하지 못했습니다');
+  }
+  if (checkFontSizeGroupParity(css, 'const OTHER = [];').length === 0) {
+    failures.push('폰트 크기 패리티: 배열을 못 찾았는데 통과시켰습니다');
+  }
+  return failures;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // 소스 전처리
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -410,6 +737,36 @@ function lineOf(source, index) {
   return line;
 }
 
+/**
+ * 인라인 예외 수집 — `// token-exempt: <사유>` 가 붙은 줄과 그 다음 줄을 면제한다.
+ *
+ * **파일 단위 제외를 두지 않는 이유**가 이 프로젝트에 실물로 있다: `scanRoots()` 가
+ * apps/blog 를 통째로 제외해 두는 동안 팔레트 유출 255건이 아무도 모르게 쌓였다.
+ * 예외는 사유와 함께 그 줄 옆에 남아야, 나중에 왜 허용됐는지 읽을 수 있고
+ * 같은 파일의 새 유출은 계속 잡힌다.
+ *
+ * 정당한 예외는 셋뿐이다:
+ *   1. dl 토큰이 도달하지 못하는 픽셀 — 새 창(window.open) · canvas · 외부 라이브러리 테마
+ *   2. 기능이 색을 규정하는 곳 — 바코드 흑백(스캔 요건)
+ *   3. 색 문자열이지만 지정이 아니라 판별인 곳 — 서드파티 산출물 감지 비교
+ * 그 밖은 예외가 아니라 아직 안 고친 유출이다.
+ */
+function collectExemptions(raw) {
+  const lines = raw.split('\n');
+  const exempt = new Set();
+  for (let i = 0; i < lines.length; i += 1) {
+    // `token-exempt: 사유` 는 그 줄과 다음 줄, `token-exempt(N): 사유` 는 다음 N줄까지.
+    // 범위형이 필요한 이유는 템플릿 리터럴이다 — 리터럴 안에는 `//` 주석을 넣을 수 없어
+    // 선언 앞에서 한 번에 덮는 수밖에 없다(mermaid 샘플 코드·팝업 HTML 문자열).
+    const match = lines[i].match(/token-exempt(?:\((\d+)\))?:/);
+    if (!match) continue;
+    const span = match[1] ? Number(match[1]) : 1;
+    exempt.add(i + 1);
+    for (let k = 1; k <= span; k += 1) exempt.add(i + 1 + k);
+  }
+  return exempt;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 규칙
 // ─────────────────────────────────────────────────────────────────────────────
@@ -447,6 +804,8 @@ function buildRules(tokens) {
       // 3·4·6·8 자리만 — 5·7 자리는 색이 아니라서 `#tab` 류 앵커의 오탐을 줄인다
       /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b/g,
       'hex 리터럴 금지 — --dl-* 토큰을 쓰세요 (회사별 런타임 테마 주입이 불가능해집니다)',
+      // HTML 수치 문자 참조(`&#039;` = 작은따옴표)는 색이 아니다 — 이스케이프 코드에서 나온다
+      (match) => match.input?.[match.index - 1] === '&' && /^#\d+$/.test(match[0]),
     ),
 
     patternRule(
@@ -598,12 +957,12 @@ function collectFiles(dir, out) {
 }
 
 function scanRoots() {
+  // 앱도 전부 스캔한다. apps/blog 는 Gate 3(UI 빅뱅 전환) 동안 구 shadcn 토큰 체계라
+  // 한시적으로 제외돼 있었고, 그 사이 팔레트 유출 255건이 무검사로 쌓였다 —
+  // 전환을 마치며 제외를 걷어냈다. 다시 제외하지 말 것.
   const roots = [join(ROOT, 'packages/ui/src')];
-  // Gate 3(UI 빅뱅 전환) 완료 전까지 apps/blog 는 구 shadcn 토큰 체계라 스캔에서 제외한다.
-  // 전환 완료 시 아래 앱 스캔을 복원할 것 (ui-docs 는 데모 특성상 원본 deleo 도 앱 스캔 대상).
   const appsDir = join(ROOT, 'apps');
   for (const app of readdirSync(appsDir)) {
-    if (app === 'blog') continue; // TODO(Gate 3): 제외 해제
     roots.push(join(appsDir, app, 'src'));
   }
   return roots;
@@ -613,7 +972,12 @@ function main() {
   const tokens = collectTokens();
   const rules = buildRules(tokens);
 
-  const selfTestFailures = [...runSelfTest(rules), ...runThemeSelfTest()];
+  const selfTestFailures = [
+    ...runSelfTest(rules),
+    ...runThemeSelfTest(),
+    ...runContrastSelfTest(),
+    ...runFontSizeSelfTest(),
+  ];
   if (selfTestFailures.length > 0) {
     console.error('토큰 검사기 자기검증 실패 — 정규식이 의도대로 동작하지 않습니다:');
     for (const failure of selfTestFailures) console.error(`  ✗ ${failure}`);
@@ -625,7 +989,28 @@ function main() {
   const themeFiles = readdirSync(THEME_DIR)
     .filter((name) => name.endsWith('.css') && name !== 'default.css' && name !== 'utilities.css')
     .map((name) => [name, readFileSync(join(THEME_DIR, name), 'utf8')]);
-  const themeProblems = checkThemeIntegrity(defaultCss, themeFiles);
+  const { problems: contrastProblems, warnings } = checkContrast(defaultCss, themeFiles);
+  const themeProblems = [
+    ...checkThemeIntegrity(defaultCss, themeFiles),
+    ...checkFontSizeGroupParity(defaultCss, readFileSync(CN_PATH, 'utf8')),
+    ...contrastProblems,
+  ];
+  // 경고는 막지 않는다 — 기준선을 지키고 있는 항목이라 "아직 남은 빚"의 목록이다.
+  if (warnings.length > 0) {
+    const grouped = new Map();
+    for (const warning of warnings) {
+      const entry = grouped.get(warning.key) ?? { text: warning.text, themes: [] };
+      entry.themes.push(warning.theme);
+      grouped.set(warning.key, entry);
+    }
+    console.warn(
+      `\n대비 경고 ${grouped.size}건 (기준선 유지 — 고치면 목록에서 기준선을 지웁니다):\n`,
+    );
+    for (const { text, themes } of grouped.values()) {
+      console.warn(`  ! ${text}  [${themes.join(', ')}]`);
+    }
+    console.warn('');
+  }
   if (themeProblems.length > 0) {
     console.error(`\n테마 무결성 위반 ${themeProblems.length}건:\n`);
     for (const problem of themeProblems) console.error(`  ✗ ${problem}`);
@@ -643,12 +1028,16 @@ function main() {
 
     const raw = readFileSync(path, 'utf8');
     const source = stripComments(raw);
+    const exemptLines = collectExemptions(raw);
 
     for (const rule of rules) {
       for (const finding of rule.scan(source)) {
+        const line = lineOf(source, finding.index);
+        // 예외는 사유와 함께 코드 옆에 남는다 — 파일 통째 제외는 사유가 사라져 금지다
+        if (exemptLines.has(line)) continue;
         violations.push({
           file: relative(ROOT, path),
-          line: lineOf(source, finding.index),
+          line,
           text: finding.text,
           message: rule.message,
         });
@@ -667,7 +1056,8 @@ function main() {
   }
 
   console.log(
-    `디자인 토큰 규칙 ${rules.length}종 · 파일 ${files.length}개 · 토큰 ${tokens.variables.size}개 — 위반 없습니다.`,
+    `디자인 토큰 규칙 ${rules.length}종 · 파일 ${files.length}개 · 토큰 ${tokens.variables.size}개 · ` +
+      `대비 쌍 ${CONTRAST_PAIRS.length + CONTRAST_UI_PAIRS.length}종 × 테마 ${themeFiles.length + 1} — 위반 없습니다.`,
   );
 }
 

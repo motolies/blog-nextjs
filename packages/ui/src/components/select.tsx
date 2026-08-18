@@ -1,8 +1,9 @@
 'use client';
 
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Search, X } from 'lucide-react';
 import { Popover as RadixPopover } from 'radix-ui';
 import {
+  Fragment,
   type KeyboardEvent,
   type Ref,
   type SelectHTMLAttributes,
@@ -18,6 +19,8 @@ import { type ControlSize, FIELD_SIZE_CLASS } from '../lib/controlSize';
 import { useControllableState } from '../lib/useControllableState';
 import { warnOnce } from '../lib/warnOnce';
 import { FieldViewText, useFieldControl } from './field';
+import type { FieldMode } from './form-mode';
+import { groupHeaderBefore } from './optionGroups';
 
 /**
  * 셀렉트 — v3 §ds-04.
@@ -36,6 +39,12 @@ export type SelectOption = {
   readonly value: string;
   readonly label: string;
   readonly disabled?: boolean;
+  /**
+   * 옵션 그룹 라벨(이미 번역된 값) — 그룹이 갈리는 자리에 헤더 줄이 끼워진다.
+   * **같은 그룹은 연속 배치가 전제다** — 흩어져 있으면 헤더가 반복된다(순서는 호출부 몫).
+   * 헤더는 시각 전용이라 키보드 이동·검색 인덱스에 끼어들지 않는다(`optionGroups.ts`).
+   */
+  readonly group?: string;
 };
 
 export type SelectProps = {
@@ -64,11 +73,20 @@ export type SelectProps = {
   readonly searchPlaceholder?: string;
   /** 검색 결과가 없을 때 문구. */
   readonly emptyLabel?: string;
-  readonly disabled?: boolean;
+  /** 폼 모드. 생략하면 감싼 `Field`/`FormMode` 를 따른다 — 명시하면 폼이 view 여도 이긴다. */
+  readonly mode?: FieldMode;
   readonly invalid?: boolean;
   /** 5단 사이즈. 생략하면 감싼 `Field` 의 size, 그것도 없으면 `md`(42). */
   readonly size?: ControlSize;
   readonly id?: string;
+  /**
+   * 값 지우기 — "전체" 옵션이 따로 없는 필터에 쓴다. 켜면 두 경로가 함께 열린다:
+   * 트리거의 ×(값이 있으면 캐럿 왼쪽) + **선택된 옵션 재클릭 = 선택 취소**.
+   * "값을 비울 수 있는가"는 축 하나여야 한다 — 경로마다 다른 prop 이면 언젠가 어긋난다.
+   */
+  readonly clearable?: boolean;
+  /** × 버튼의 접근성 이름. `ui` 는 사전을 모른다 — 필요하면 번역을 주입한다. */
+  readonly clearLabel?: string;
   readonly className?: string;
   /** 목록 폭이 트리거보다 넓어야 할 때만 끈다(코드+국가명처럼 긴 항목). */
   readonly matchTriggerWidth?: boolean;
@@ -84,14 +102,16 @@ export function Select({
   searchThreshold = 10,
   searchPlaceholder = '검색',
   emptyLabel = '검색 결과가 없습니다',
-  disabled,
+  mode,
   invalid,
   size,
   id,
+  clearable,
+  clearLabel = '지우기',
   className,
   matchTriggerWidth = true,
 }: SelectProps) {
-  const field = useFieldControl({ id, invalid, size });
+  const field = useFieldControl({ id, invalid, size, mode });
   const listId = useId();
   const optionIdPrefix = useId();
 
@@ -134,14 +154,22 @@ export function Select({
 
   const commit = (option: SelectOption) => {
     if (option.disabled) return;
+    // clearable 이면 선택된 옵션 재클릭이 곧 선택 취소다 — 트리거 × 와 같은 축이라
+    // 마우스(클릭)·키보드(Enter) 어느 경로로도 같은 해제가 성립한다.
+    if (clearable === true && option.value === value) {
+      setValue('');
+      field.notifyDirty();
+      setOpen(false);
+      return;
+    }
     setValue(option.value);
     setOpen(false);
   };
 
   const moveActive = (delta: number) => {
     if (visible.length === 0) return;
-    // 검색 필터로 목록이 줄었으면 activeIndex 가 범위를 벗어날 수 있다 — 그때는 처음부터 탐색한다.
-    const current = activeIndex >= 0 && activeIndex < visible.length ? activeIndex : -1;
+    const activeOption = activeIndex < 0 ? undefined : visible[activeIndex];
+    const current = activeOption === undefined ? -1 : visible.indexOf(activeOption);
     const start = current < 0 ? (delta > 0 ? -1 : visible.length) : current;
     let next = start;
     // 비활성 항목은 건너뛴다. 전부 비활성이면 한 바퀴 돌고 멈춘다.
@@ -193,45 +221,85 @@ export function Select({
     );
   }
 
-  // 폼 수준(mode)과 칸 수준(disabled)의 OR 합성 — edit 복귀 시 칸 수준 상태가 복원된다.
-  const effectiveDisabled = disabled || field.mode === 'disabled';
+  // 지우기는 편집 가능한 상태에서만 뜬다 — 비활성 칸의 값은 지울 수 있는 값이 아니다.
+  const showClear = clearable === true && !field.state.disabled && value !== '';
+
+  const trigger = (
+    <RadixPopover.Trigger
+      id={field.id}
+      disabled={field.state.disabled}
+      role="combobox"
+      aria-expanded={open}
+      aria-controls={listId}
+      aria-invalid={field['aria-invalid']}
+      aria-describedby={field['aria-describedby']}
+      aria-required={field.required || undefined}
+      {...field.state.dataProps}
+      className={cn(
+        // 트리거만 radius 8 이다 — QA 가 입력(6)과 셀렉트(8)를 달리 그린다. 실측이 그렇다.
+        'dl-field flex items-center justify-between gap-1.5 rounded-dl-container text-left',
+        FIELD_SIZE_CLASS[field.size],
+        open && 'border-dl-primary-hover',
+        field.invalid && 'dl-field-error',
+        field.state.lockClass,
+        // ⚠️ showClear 라고 트리거에 pr 을 더하지 않는다 — 캐럿이 flex 자식이라 패딩이
+        // 캐럿까지 밀어 "clearable 을 켜면 화살표가 왼쪽으로 가는" 오동작이 된다(실측).
+        // 캐럿은 제자리(content 우측)에 두고, × 는 그 왼쪽 허공(right-9)에 겹쳐 올리며,
+        // 라벨 스팬만 pr 로 일찍 잘라 × 밑으로 못 들어가게 한다.
+        // clearable 이면 래퍼 span 이 루트다 — 폭 지정(className)은 래퍼가 갖고 트리거는
+        // dl-field(w-full)로 래퍼를 채운다. 트리거에 두면 × 의 위치 기준(래퍼 w-full)과
+        // 트리거 폭이 어긋나 × 가 트리거 밖 허공에 그려진다(실측 버그).
+        clearable ? undefined : className,
+      )}
+    >
+      <span
+        className={cn(
+          'truncate',
+          selected ? undefined : 'text-dl-field-placeholder',
+          // × (right-9, 36~56px 지점) 밑으로 라벨이 들어가지 않게 라벨만 일찍 자른다.
+          showClear && 'pr-6',
+        )}
+      >
+        {selected ? selected.label : placeholder}
+      </span>
+      <span
+        className={cn(
+          'flex shrink-0 text-dl-field-caret transition-transform',
+          open && 'rotate-180',
+        )}
+      >
+        <Icon icon={ChevronDown} size="sm" />
+      </span>
+    </RadixPopover.Trigger>
+  );
 
   return (
     <RadixPopover.Root open={open} onOpenChange={handleOpenChange}>
       {/* 폼 전송용. 트리거가 button 이라 이게 없으면 FormData 에 값이 안 실린다.
-          disabled 면 내지 않는다 — 네이티브 컨트롤이 FormData 에서 빠지는 규약과 맞춘다.
-          여기가 무조건부면 "disabled = 전송 안 됨"을 믿는 호출부에서 값이 몰래 나간다. */}
-      {name && !effectiveDisabled ? <input type="hidden" name={name} value={value} /> : null}
-      <RadixPopover.Trigger
-        id={field.id}
-        disabled={effectiveDisabled}
-        role="combobox"
-        aria-expanded={open}
-        aria-controls={listId}
-        aria-invalid={field['aria-invalid']}
-        aria-describedby={field['aria-describedby']}
-        className={cn(
-          // 트리거만 radius 8 이다 — QA 가 입력(6)과 셀렉트(8)를 달리 그린다. 실측이 그렇다.
-          'dl-field flex items-center justify-between gap-1.5 rounded-dl-container text-left',
-          FIELD_SIZE_CLASS[field.size],
-          open && 'border-dl-primary-hover',
-          field.invalid && 'dl-field-error',
-          effectiveDisabled && 'dl-field-locked',
-          className,
-        )}
-      >
-        <span className={cn('truncate', selected ? undefined : 'text-dl-field-placeholder')}>
-          {selected ? selected.label : placeholder}
+          submits(edit 모드)가 아니면 내지 않는다 — 네이티브 컨트롤이 FormData 에서
+          빠지는 규약과 맞춘다. 무조건부면 값이 몰래 나간다. */}
+      {name && field.state.submits ? <input type="hidden" name={name} value={value} /> : null}
+      {clearable ? (
+        <span className={cn('relative block w-full', className)}>
+          {trigger}
+          {showClear ? (
+            // 트리거(button) 안에 버튼을 중첩할 수 없어 형제로 겹쳐 올린다 — 캐럿 왼쪽 자리다.
+            <button
+              type="button"
+              aria-label={clearLabel}
+              onClick={() => {
+                setValue('');
+                field.notifyDirty();
+              }}
+              className="absolute inset-y-0 right-9 my-auto flex size-5 items-center justify-center rounded-dl-badge text-dl-field-caret hover:bg-dl-option-hover hover:text-dl-fg"
+            >
+              <Icon icon={X} className="size-3" />
+            </button>
+          ) : null}
         </span>
-        <span
-          className={cn(
-            'flex shrink-0 text-dl-field-caret transition-transform',
-            open && 'rotate-180',
-          )}
-        >
-          <Icon icon={ChevronDown} size="sm" />
-        </span>
-      </RadixPopover.Trigger>
+      ) : (
+        trigger
+      )}
 
       <RadixPopover.Portal>
         <RadixPopover.Content
@@ -289,36 +357,49 @@ export function Select({
             ) : (
               visible.map((option, index) => {
                 const isSelected = option.value === value;
+                // 그룹 헤더는 시각 전용 — 옵션 인덱스(activeIndex·activedescendant)에 끼지 않는다.
+                const groupHeader = groupHeaderBefore(option, visible[index - 1]);
                 return (
-                  /**
-                   * listbox 패턴에서 option 은 **focusable 이 아니다** — 포커스는 검색 입력이나
-                   * 리스트에 있고 `aria-activedescendant` 로 가상 이동한다. 키보드 처리는
-                   * 컨테이너의 `onKeyDown` 이 전부 맡는다(↑↓ Home End Enter Esc).
-                   * 두 규칙은 각 요소가 자기 키 핸들러를 갖는 형태만 정적으로 인식한다.
-                   */
-                  // biome-ignore lint/a11y/useKeyWithClickEvents: 키보드는 컨테이너 onKeyDown 이 처리한다
-                  // biome-ignore lint/a11y/useFocusableInteractive: aria-activedescendant 로 가상 포커스를 쓴다
-                  <div
-                    key={option.value}
-                    id={`${optionIdPrefix}-${index}`}
-                    data-index={index}
-                    role="option"
-                    aria-selected={isSelected}
-                    aria-disabled={option.disabled}
-                    onClick={() => commit(option)}
-                    onMouseEnter={() => setActiveIndex(index)}
-                    className={cn(
-                      'flex cursor-pointer items-center rounded-dl-badge px-4 py-2 text-dl-sm',
-                      // QA 옵션 상태: 고른 항목 = 흰 배경 + primary 글자 · hover = gray-f7 ·
-                      // 누르는 중 = primary-active 채움 + 흰 글자
-                      isSelected ? 'font-semibold text-dl-primary' : 'text-dl-fg',
-                      index === activeIndex && 'bg-dl-option-hover',
-                      'active:bg-dl-primary-active active:text-dl-primary-fg',
-                      option.disabled && 'cursor-not-allowed text-dl-locked-fg',
-                    )}
-                  >
-                    <span className="truncate">{option.label}</span>
-                  </div>
+                  <Fragment key={option.value}>
+                    {groupHeader !== null ? (
+                      <div
+                        aria-hidden
+                        className="px-4 pt-2 pb-1 font-semibold text-dl-fg-muted text-dl-xs"
+                      >
+                        {groupHeader}
+                      </div>
+                    ) : null}
+                    {/**
+                     * listbox 패턴에서 option 은 **focusable 이 아니다** — 포커스는 검색 입력이나
+                     * 리스트에 있고 `aria-activedescendant` 로 가상 이동한다. 키보드 처리는
+                     * 컨테이너의 `onKeyDown` 이 전부 맡는다(↑↓ Home End Enter Esc).
+                     * 두 규칙은 각 요소가 자기 키 핸들러를 갖는 형태만 정적으로 인식한다.
+                     */}
+                    {/* biome-ignore lint/a11y/useKeyWithClickEvents: 키보드는 컨테이너 onKeyDown 이 처리한다 */}
+                    {/* biome-ignore lint/a11y/useFocusableInteractive: aria-activedescendant 로 가상 포커스를 쓴다 */}
+                    <div
+                      id={`${optionIdPrefix}-${index}`}
+                      data-index={index}
+                      role="option"
+                      aria-selected={isSelected}
+                      aria-disabled={option.disabled}
+                      onClick={() => commit(option)}
+                      onMouseEnter={() => setActiveIndex(index)}
+                      className={cn(
+                        'flex cursor-pointer items-center rounded-dl-badge py-2 text-dl-sm',
+                        // 그룹에 속한 옵션은 들여쓴다 — 헤더가 상위 계층으로 읽히는 근거는 이 단차다.
+                        option.group !== undefined ? 'pr-4 pl-7' : 'px-4',
+                        // QA 옵션 상태: 고른 항목 = 흰 배경 + primary 글자 · hover = gray-f7 ·
+                        // 누르는 중 = primary-active 채움 + 흰 글자
+                        isSelected ? 'font-semibold text-dl-primary-ink' : 'text-dl-fg',
+                        index === activeIndex && 'bg-dl-option-hover',
+                        'active:bg-dl-primary-active active:text-dl-primary-fg',
+                        option.disabled && 'cursor-not-allowed text-dl-locked-fg',
+                      )}
+                    >
+                      <span className="truncate">{option.label}</span>
+                    </div>
+                  </Fragment>
                 );
               })
             )}
@@ -329,8 +410,13 @@ export function Select({
   );
 }
 
-export type NativeSelectProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, 'size'> & {
+export type NativeSelectProps = Omit<
+  SelectHTMLAttributes<HTMLSelectElement>,
+  'size' | 'disabled'
+> & {
   ref?: Ref<HTMLSelectElement>;
+  /** 폼 모드 — view 는 미지원(경고 + 편집 렌더 유지). 조회가 필요하면 `Select` 를 쓴다. */
+  readonly mode?: FieldMode;
   readonly invalid?: boolean;
   /** 5단 사이즈. 네이티브 `size`(표시 행 수)는 쓰지 않는 속성이라 이름을 가져온다. */
   readonly size?: ControlSize;
@@ -345,14 +431,14 @@ export type NativeSelectProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, 's
  */
 export function NativeSelect({
   className,
+  mode,
   invalid,
   size,
   id,
-  disabled,
   children,
   ...props
 }: NativeSelectProps) {
-  const field = useFieldControl({ id, invalid, size });
+  const field = useFieldControl({ id, invalid, size, mode });
 
   /**
    * view 를 유도할 수 없다 — 선택 라벨이 children `<option>` 안에 있어 탐색 없이는 못 꺼낸다.
@@ -365,8 +451,6 @@ export function NativeSelect({
     );
   }
 
-  const effectiveDisabled = disabled || field.mode === 'disabled';
-
   return (
     <select
       className={cn(
@@ -374,13 +458,15 @@ export function NativeSelect({
         FIELD_SIZE_CLASS[field.size],
         field.invalid && 'dl-field-error',
         // 잠금 배색은 다른 컨트롤과 같은 유틸을 입는다 — disabled 인데 편집 칸처럼 보이면 안 된다.
-        effectiveDisabled && 'dl-field-locked',
+        field.state.lockClass,
         className,
       )}
       id={field.id}
-      disabled={effectiveDisabled}
+      disabled={field.state.disabled}
       aria-invalid={field['aria-invalid']}
       aria-describedby={field['aria-describedby']}
+      aria-required={field.required || undefined}
+      {...field.state.dataProps}
       {...props}
     >
       {children}

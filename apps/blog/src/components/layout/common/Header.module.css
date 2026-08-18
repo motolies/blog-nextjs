@@ -15,6 +15,6 @@
     box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
 }
 
-:global(.dark) .back {
+:global([data-theme='blog-dark']) .back {
     box-shadow: 0 16px 40px rgba(2, 6, 23, 0.22);
 }

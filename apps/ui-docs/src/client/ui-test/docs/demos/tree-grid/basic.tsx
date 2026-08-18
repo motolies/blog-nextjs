@@ -52,6 +52,8 @@ function collectIds(nodes: readonly DemoNode[]): string[] {
 
 export function TreeGridBasicDemo() {
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set(['n1']));
+  /** 노드가 0개일 때 — DataGrid 와 **같은 계약**(GridEmpty)으로 문구가 나온다. */
+  const [showEmpty, setShowEmpty] = useState(false);
 
   const toggle = (id: string) => {
     setExpanded((previous) => {
@@ -67,22 +69,30 @@ export function TreeGridBasicDemo() {
       <div className="mb-2 flex gap-2">
         <button
           type="button"
-          className="text-dl-xs text-dl-primary underline underline-offset-2"
+          className="text-dl-xs text-dl-primary-ink underline underline-offset-2"
           onClick={() => setExpanded(new Set(collectIds(NODES)))}
         >
           모두 펼치기
         </button>
         <button
           type="button"
-          className="text-dl-xs text-dl-primary underline underline-offset-2"
+          className="text-dl-xs text-dl-primary-ink underline underline-offset-2"
           onClick={() => setExpanded(new Set())}
         >
           모두 접기
         </button>
+        <button
+          type="button"
+          className="text-dl-xs text-dl-primary-ink underline underline-offset-2"
+          onClick={() => setShowEmpty((previous) => !previous)}
+        >
+          {showEmpty ? '노드 되돌리기' : '노드 비우기'}
+        </button>
       </div>
 
       <TreeGrid
-        nodes={NODES}
+        nodes={showEmpty ? [] : NODES}
+        empty={{ title: '이력이 없습니다', hint: '주문이 아직 처리 단계에 들어가지 않았습니다' }}
         getRowId={(node) => node.id}
         expanded={expanded}
         onToggle={toggle}

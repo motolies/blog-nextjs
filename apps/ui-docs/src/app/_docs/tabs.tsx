@@ -1,10 +1,11 @@
 import type { Tab, TabList, Tabs } from '@hvy/ui';
+import { Box } from 'lucide-react';
 import type { ComponentProps } from 'react';
+import { TabsBadgeDemo } from '../../client/ui-test/docs/demos/tabs/badge';
 import { TabsBasicDemo } from '../../client/ui-test/docs/demos/tabs/basic';
 import { type DocEntry, definePropRows } from './types';
 
 const USAGE = `import { Tab, TabList, TabPanel, Tabs } from '@hvy/ui';
-import { Box } from 'lucide-react';
 
 <Tabs value={tab} onValueChange={setTab}>   // URL 연동은 useSearchParams 로 앱이 배선
   <TabList label="주문 상세 탭">
@@ -30,6 +31,13 @@ export const tabsDoc: DocEntry = {
       note: 'QA filter-tab-menu — 활성 탭은 검정 글자 + primary 아이콘 + 하단 3px primary 라인. 화살표 키로 탭 사이를 이동한다.',
       file: 'src/client/ui-test/docs/demos/tabs/basic.tsx',
       Component: TabsBasicDemo,
+    },
+    {
+      id: 'badge',
+      title: '탭 뱃지 — 건수 표시',
+      note: '「목록 (32)」 관례. 톤얼 칩이라 활성/비활성에서 폭이 변하지 않는다(활성이어도 weight 를 올리지 않는 규칙과 같은 이유 — 옆 탭이 밀리면 안 된다). 숫자 포맷(천단위 등)은 앱 몫이다. 닫기 버튼은 여기 없다 — 닫히는 탭은 WorkTabsBar 소관(시각 언어가 다르다).',
+      file: 'src/client/ui-test/docs/demos/tabs/badge.tsx',
+      Component: TabsBadgeDemo,
     },
   ],
   propsTables: [
@@ -80,8 +88,14 @@ export const tabsDoc: DocEntry = {
         },
         {
           name: 'icon',
-          type: 'LucideIcon',
+          type: 'IconName',
           description: '라벨 왼쪽 아이콘 — 활성이면 primary 색.',
+        },
+        {
+          name: 'badge',
+          type: 'ReactNode',
+          description:
+            '라벨 뒤 건수 칩 — 「목록 (32)」 관례. 숫자 포맷은 앱 몫이고, 닫기 버튼은 WorkTabsBar 소관이라 여기 없다.',
         },
         {
           name: 'disabled',

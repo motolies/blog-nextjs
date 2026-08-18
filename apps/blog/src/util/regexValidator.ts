@@ -159,16 +159,24 @@ const FEATURE_PATTERNS: Record<string, FeaturePattern> = {
   },
 };
 
+/**
+ * 매치 하이라이트 색 — 값은 `styles/global.css` 의 앱 팔레트가 소유한다.
+ * 여기서는 이름만 참조해, 색맹 대응 팔레트 등으로 바꿀 때 한 곳만 고치면 되게 한다.
+ * 이 배경 위 글자는 `HIGHLIGHT_FG` 로 고정한다(상속시키면 다크에서 묻힌다).
+ */
 export const HIGHLIGHT_COLORS: string[] = [
-  '#ffeb3b', // yellow
-  '#4caf50', // green
-  '#2196f3', // blue
-  '#ff9800', // orange
-  '#e91e63', // pink
-  '#9c27b0', // purple
-  '#00bcd4', // cyan
-  '#8bc34a', // light green
+  'var(--regex-hl-1)',
+  'var(--regex-hl-2)',
+  'var(--regex-hl-3)',
+  'var(--regex-hl-4)',
+  'var(--regex-hl-5)',
+  'var(--regex-hl-6)',
+  'var(--regex-hl-7)',
+  'var(--regex-hl-8)',
 ];
+
+/** 하이라이트 배경 위 글자색 — 배경이 늘 밝으므로 테마와 무관하게 어둡다. */
+export const HIGHLIGHT_FG = 'var(--regex-hl-fg)';
 
 export const getSupportedLanguages = (): SupportedLanguage[] => {
   return Object.entries(LANGUAGE_FEATURES).map(([id, config]) => ({

@@ -1,3 +1,4 @@
+import { IconButton } from '@hvy/ui';
 import { FilePlus, LogIn, Moon, Search, Shield, Sparkles, Sun } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -6,7 +7,6 @@ import { useEffect, useState } from 'react';
 import { getTsid } from 'tsid-ts';
 import { useShallow } from 'zustand/react/shallow';
 import MemoDialog from '@/components/memo/MemoDialog';
-import { Button } from '@/components/ui/button';
 import { searchObjectInit } from '@/model/searchObject';
 import { useAuthStore } from '@/store/useAuthStore';
 import { base64Encode } from '@/util/base64Util';
@@ -56,11 +56,11 @@ export default function Header() {
         <div className="public-container flex h-[4.5rem] items-center gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex min-w-0 shrink-0 items-center gap-4">
             <Link href="/" className="group inline-flex min-w-0 items-center gap-3">
-              <span className="flex size-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0d7ff2,#7dd3fc)] text-white shadow-[0_12px_30px_rgba(13,127,242,0.28)]">
+              <span className="flex size-10 items-center justify-center rounded-2xl bg-dl-primary text-dl-primary-fg shadow-dl-action">
                 <Sparkles className="h-5 w-5" />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-lg font-semibold tracking-[-0.02em] text-slate-950 dark:text-slate-50">
+                <span className="block truncate text-lg font-semibold tracking-[-0.02em] text-dl-fg">
                   motolies
                 </span>
               </span>
@@ -76,64 +76,48 @@ export default function Header() {
                 value={searchText}
                 onChange={onChangeText}
                 onKeyDown={onSearchTextKeyDown}
-                className="public-control-surface h-10 w-full rounded-full border pl-7 pr-3 text-sm placeholder:text-[color:var(--public-text-subtle)] backdrop-blur transition focus:border-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-100/80 dark:focus:border-blue-400 dark:focus:ring-blue-900/50 sm:h-11 sm:pl-9 sm:pr-4 sm:text-sm"
+                className="public-control-surface h-10 w-full rounded-full border pl-7 pr-3 text-sm placeholder:text-[color:var(--public-text-subtle)] backdrop-blur transition focus:border-dl-primary focus:outline-none focus:ring-4 focus:ring-dl-primary sm:h-11 sm:pl-9 sm:pr-4 sm:text-sm"
               />
             </div>
 
             {mounted && (
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label={resolvedTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
-                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-blue-300"
+              <IconButton
+                icon={resolvedTheme === 'dark' ? Sun : Moon}
+                iconSize="sm"
+                label={resolvedTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
+                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-dl-primary-ink"
                 onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-              >
-                {resolvedTheme === 'dark' ? (
-                  <Sun className="h-4 w-4" />
-                ) : (
-                  <Moon className="h-4 w-4" />
-                )}
-              </Button>
+              />
             )}
 
             {!userState.user.username ? null : (
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="메모 작성"
-                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-blue-300"
+              <IconButton
+                icon={FilePlus}
+                iconSize="sm"
+                label="메모 작성"
+                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-dl-primary-ink"
                 onClick={() => setMemoDialogOpen(true)}
-              >
-                <FilePlus className="h-4 w-4" />
-              </Button>
+              />
             )}
 
             {router.pathname === '/login' || userState.user.username ? null : (
-              <Button
-                variant="ghost"
-                size="icon"
+              <Link
+                href="/login"
                 aria-label="로그인"
-                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-blue-300"
-                asChild
+                className="inline-flex h-9 w-9 items-center justify-center public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-dl-primary-ink"
               >
-                <Link href="/login">
-                  <LogIn className="h-4 w-4" />
-                </Link>
-              </Button>
+                <LogIn className="h-4 w-4" />
+              </Link>
             )}
 
             {!userState.user.username ? null : (
-              <Button
-                variant="ghost"
-                size="icon"
+              <Link
+                href="/admin"
                 aria-label="관리자 페이지"
-                className="public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-sky-700 dark:hover:text-blue-300"
-                asChild
+                className="inline-flex h-9 w-9 items-center justify-center public-control-surface rounded-full border text-[color:var(--public-text-muted)] hover:text-dl-primary-ink"
               >
-                <Link href="/admin">
-                  <Shield className="h-4 w-4" />
-                </Link>
-              </Button>
+                <Shield className="h-4 w-4" />
+              </Link>
             )}
 
             <MemoDialog open={memoDialogOpen} onClose={() => setMemoDialogOpen(false)} />

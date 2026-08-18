@@ -1,21 +1,22 @@
+import {
+  Badge,
+  Button,
+  ContentDialog,
+  DataGrid,
+  defineColumns,
+  Input,
+  Label,
+  Switch,
+  showToast,
+  useConfirm,
+} from '@hvy/ui';
 import { Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import ShadcnDataTable, { type DataTableColumn } from '@/components/common/ShadcnDataTable';
-import DeleteConfirm from '@/components/confirm/DeleteConfirm';
+import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
+import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
+import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { useClientGrid } from '@/hooks/useClientGrid';
 import service from '@/service';
 import type { HotDealKeyword } from '@/types/hotDeal';
 
@@ -31,6 +32,7 @@ const extractErrorMessage = (err: unknown, fallback: string) => {
 };
 
 export default function HotDealKeywordsPage() {
+  const askConfirm = useConfirm();
   const [keywords, setKeywords] = useState<HotDealKeyword[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,16 +46,12 @@ export default function HotDealKeywordsPage() {
   const [keywordEnabled, setKeywordEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // 삭제 확인
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<HotDealKeyword | null>(null);
-
   const loadKeywords = useCallback(async () => {
     try {
       const data = await service.hotDeal.getKeywords();
       setKeywords(data ?? []);
     } catch {
-      toast.error('키워드 목록을 불러오지 못했습니다.');
+      showToast('키워드 목록을 불러오지 못했습니다.', 'error');
     } finally {
       setLoading(false);
     }
@@ -104,18 +102,18 @@ export default function HotDealKeywordsPage() {
     const normalized = normalizeKeyword(trimmed);
 
     if (!normalized) {
-      toast.error('키워드는 공백만으로 구성될 수 없습니다.');
+      showToast('키워드는 공백만으로 구성될 수 없습니다.', 'error');
       return;
     }
     if (normalized.length < MIN_KEYWORD_LENGTH) {
-      toast.error('키워드는 공백 제거 기준 2자 이상이어야 합니다.');
+      showToast('키워드는 공백 제거 기준 2자 이상이어야 합니다.', 'error');
       return;
     }
     const duplicated = keywords.some(
       (item) => item.id !== editTarget?.id && normalizeKeyword(item.keyword) === normalized,
     );
     if (duplicated) {
-      toast.error('이미 등록된 키워드입니다.');
+      showToast('이미 등록된 키워드입니다.', 'error');
       return;
     }
 
@@ -124,35 +122,33 @@ export default function HotDealKeywordsPage() {
       const payload = { keyword: trimmed, enabled: keywordEnabled };
       if (dialogMode === 'create') {
         await service.hotDeal.createKeyword(payload);
-        toast.success('키워드가 등록되었습니다.');
+        showToast('키워드가 등록되었습니다.');
       } else {
         await service.hotDeal.updateKeyword(editTarget!.id, payload);
-        toast.success('키워드가 수정되었습니다.');
+        showToast('키워드가 수정되었습니다.');
       }
       setOpenDialog(false);
       await loadKeywords();
     } catch (err) {
-      toast.error(extractErrorMessage(err, '키워드 저장에 실패했습니다.'));
+      showToast(extractErrorMessage(err, '키워드 저장에 실패했습니다.'), 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = (keyword: HotDealKeyword) => {
-    setDeleteTarget(keyword);
-    setShowDeleteConfirm(true);
-  };
-
-  const confirmDelete = async () => {
-    setShowDeleteConfirm(false);
+  const handleDelete = async (keyword: HotDealKeyword) => {
+    const ok = await askConfirm({
+      message: `${keyword.keyword} 키워드를 삭제하시겠습니까?`,
+      confirmLabel: '삭제',
+      destructive: true,
+    });
+    if (!ok) return;
     try {
-      await service.hotDeal.deleteKeyword(deleteTarget!.id);
-      toast.success('키워드가 삭제되었습니다.');
+      await service.hotDeal.deleteKeyword(keyword.id);
+      showToast('키워드가 삭제되었습니다.');
       await loadKeywords();
     } catch (err) {
-      toast.error(extractErrorMessage(err, '키워드 삭제에 실패했습니다.'));
-    } finally {
-      setDeleteTarget(null);
+      showToast(extractErrorMessage(err, '키워드 삭제에 실패했습니다.'), 'error');
     }
   };
 
@@ -163,55 +159,89 @@ export default function HotDealKeywordsPage() {
         keyword: keyword.keyword,
         enabled: !keyword.enabled,
       });
-      toast.success(keyword.enabled ? '키워드를 비활성화했습니다.' : '키워드를 활성화했습니다.');
+      showToast(keyword.enabled ? '키워드를 비활성화했습니다.' : '키워드를 활성화했습니다.');
       await loadKeywords();
     } catch (err) {
-      toast.error(extractErrorMessage(err, '상태 변경에 실패했습니다.'));
+      showToast(extractErrorMessage(err, '상태 변경에 실패했습니다.'), 'error');
     }
   };
 
   const enabledCount = useMemo(() => keywords.filter((k) => k.enabled).length, [keywords]);
 
-  const columns = useMemo<DataTableColumn[]>(
-    () => [
-      {
-        accessorKey: 'keyword',
-        header: '키워드',
-        grow: true,
-        mobilePrimary: true,
-        mobileLabel: '키워드',
-      },
-      {
-        accessorKey: 'normalizedKeyword',
-        header: '매칭 문자열',
-        size: 200,
-        mobileHidden: true,
-        cell: ({ value }: { value: string }) => (
-          <span className="font-mono text-xs text-[color:var(--admin-text-muted)]">{value}</span>
-        ),
-      },
-      {
-        accessorKey: 'enabled',
-        header: '활성',
-        size: 100,
-        mobileLabel: '상태',
-        cell: ({ value, row }: { value: boolean; row: any }) => (
-          <button
-            type="button"
-            className="cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleToggleEnabled(row);
-            }}
-            aria-label={`${row.keyword} ${value ? '비활성화' : '활성화'}`}
-          >
-            <Badge variant={value ? 'success' : 'secondary'}>{value ? '활성' : '비활성'}</Badge>
-          </button>
-        ),
-      },
-    ],
+  const columns = useMemo(
+    () =>
+      defineColumns<Record<string, unknown>>([
+        { id: 'keyword', headerWord: '키워드', grow: 1, align: 'left' },
+        {
+          id: 'normalizedKeyword',
+          headerWord: '매칭 문자열',
+          width: 200,
+          align: 'left',
+          format: (value) => (
+            <span className="font-mono text-xs text-[color:var(--admin-text-muted)]">
+              {String(value)}
+            </span>
+          ),
+        },
+        {
+          id: 'enabled',
+          headerWord: '활성',
+          width: 100,
+          align: 'left',
+          format: (value, row) => (
+            <button
+              type="button"
+              className="cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleEnabled(row as unknown as HotDealKeyword);
+              }}
+              aria-label={`${row.keyword} ${value ? '비활성화' : '활성화'}`}
+            >
+              <Badge tone={value ? 'success' : 'neutral'}>{value ? '활성' : '비활성'}</Badge>
+            </button>
+          ),
+        },
+        {
+          id: 'actions',
+          headerWord: ' ',
+          width: 100,
+          resizable: false,
+          sortable: false,
+          hideable: false,
+          format: (_value, row) => {
+            const keyword = row as unknown as HotDealKeyword;
+            return (
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  className="aspect-square p-0 h-7 w-7 cursor-pointer"
+                  onClick={() => handleEdit(keyword)}
+                  aria-label={`${keyword.keyword} 수정`}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="aspect-square p-0 h-7 w-7 cursor-pointer text-dl-danger hover:text-dl-danger"
+                  onClick={() => handleDelete(keyword)}
+                  aria-label={`${keyword.keyword} 삭제`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            );
+          },
+        },
+      ]),
     [],
   );
+
+  const grid = useClientGrid<Record<string, unknown>>(
+    filteredKeywords as unknown as Record<string, unknown>[],
+    { pageSize: 20 },
+  );
+  const { visibleColumns, openSettings, dialog } = useColumnSettings(columns);
 
   return (
     <AdminPageFrame>
@@ -219,7 +249,7 @@ export default function HotDealKeywordsPage() {
       <div className="admin-panel admin-panel-pad mb-2">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-dl-fg-muted" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -230,26 +260,28 @@ export default function HotDealKeywordsPage() {
             {searchQuery && (
               <button
                 type="button"
-                className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer rounded p-0.5 hover:bg-muted"
+                className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer rounded p-0.5 hover:bg-dl-option-hover"
                 onClick={() => setSearchQuery('')}
                 aria-label="검색어 지우기"
               >
-                <X className="h-3.5 w-3.5 text-muted-foreground" />
+                <X className="h-3.5 w-3.5 text-dl-fg-muted" />
               </button>
             )}
           </div>
 
-          <label className="inline-flex cursor-pointer items-center gap-2 whitespace-nowrap text-sm text-[color:var(--admin-text-muted)]">
+          {/* Switch 는 <button role="switch"> 라 <label> 이 감쌀 수 없다(labelable 요소가 아니다).
+              옆 문구는 설명이고, 접근성 이름은 Switch 의 label prop 이 갖는다. */}
+          <span className="inline-flex items-center gap-2 whitespace-nowrap text-sm text-[color:var(--admin-text-muted)]">
             <Switch
               checked={enabledOnly}
               onCheckedChange={setEnabledOnly}
-              aria-label="활성 키워드만 보기"
+              label={`활성 키워드만 보기 (${enabledCount}개)`}
             />
             활성만 ({enabledCount})
-          </label>
+          </span>
 
           <div className="flex items-center gap-2 ml-auto">
-            <Button className="cursor-pointer" onClick={handleCreate}>
+            <Button variant="primary" className="cursor-pointer" onClick={handleCreate}>
               <Plus className="h-4 w-4 mr-1" />새 키워드
             </Button>
           </div>
@@ -267,102 +299,82 @@ export default function HotDealKeywordsPage() {
 
       {/* 키워드 테이블 */}
       <div className="admin-panel admin-table-shell">
-        <ShadcnDataTable
-          columns={columns}
-          paginationMode="client"
-          clientSideData={filteredKeywords}
-          defaultPageSize={20}
-          density="comfortable"
-          enableRowActions
-          actionsColumnSize={100}
-          positionActionsColumn="last"
-          renderRowActions={({ row }: { row: any }) => (
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 cursor-pointer"
-                onClick={() => handleEdit(row.original)}
-                aria-label={`${row.original.keyword} 수정`}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 cursor-pointer text-destructive hover:text-destructive"
-                onClick={() => handleDelete(row.original)}
-                aria-label={`${row.original.keyword} 삭제`}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+        <DataGrid<Record<string, unknown>>
+          columns={visibleColumns}
+          rows={grid.rows}
+          getRowId={(row) => String(row.id)}
+          empty={GRID_EMPTY}
+          sortOf={grid.sortOf}
+          onToggleSort={grid.toggleSort}
+          attachedToolbar
         />
+        <GridPagingBar
+          pageIndex={grid.pageIndex}
+          pageCount={grid.pageCount}
+          onPageChange={grid.setPageIndex}
+          total={grid.totalCount}
+          pageSize={grid.pageSize}
+          onPageSizeChange={grid.setPageSize}
+          onColumnSettings={openSettings}
+        />
+        {dialog}
       </div>
 
       {/* 생성/수정 다이얼로그 */}
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{dialogMode === 'create' ? '키워드 추가' : '키워드 수정'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-sm">
-              이 키워드에 매칭되면 <strong>임계값을 무시</strong>하고 <strong>@channel 멘션</strong>
-              으로 알림이 갑니다. 짧거나 흔한 단어는 알림이 과도하게 발생할 수 있습니다.
-            </div>
-            <div className="space-y-1">
-              <Label>키워드 *</Label>
-              <Input
-                value={keywordText}
-                onChange={(e) => setKeywordText(e.target.value)}
-                placeholder="예: 닌텐도"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSave();
-                }}
-              />
-              {normalizedPreview && (
-                <p className="text-xs text-[color:var(--admin-text-muted)]">
-                  매칭 문자열: <code className="font-mono">{normalizedPreview}</code>
-                  {normalizedPreview.length < MIN_KEYWORD_LENGTH && (
-                    <span className="text-destructive"> (2자 이상 필요)</span>
-                  )}
-                </p>
-              )}
-            </div>
-            <div className="flex items-center justify-between">
-              <Label>활성 상태</Label>
-              <Switch
-                checked={keywordEnabled}
-                onCheckedChange={setKeywordEnabled}
-                aria-label="키워드 활성 상태"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenDialog(false)}>
+      <ContentDialog
+        open={openDialog}
+        onOpenChange={setOpenDialog}
+        title={dialogMode === 'create' ? '키워드 추가' : '키워드 수정'}
+        size="md"
+        footer={
+          <>
+            <Button variant="outline-gray" onClick={() => setOpenDialog(false)}>
               취소
             </Button>
-            <Button onClick={handleSave} disabled={saving}>
+            <Button variant="primary" onClick={handleSave} busy={saving}>
               <Save className="h-4 w-4 mr-1" />
               {saving ? '저장 중...' : '저장'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* 삭제 확인 */}
-      <DeleteConfirm
-        open={showDeleteConfirm}
-        question={`${deleteTarget?.keyword} 키워드를 삭제하시겠습니까?`}
-        onConfirm={confirmDelete}
-        onCancel={() => {
-          setShowDeleteConfirm(false);
-          setDeleteTarget(null);
-        }}
-      />
+          </>
+        }
+      >
+        <div className="space-y-4 pt-2">
+          <div className="rounded-lg border border-dl-warning bg-dl-warning-bg p-3 text-sm">
+            이 키워드에 매칭되면 <strong>임계값을 무시</strong>하고 <strong>@channel 멘션</strong>
+            으로 알림이 갑니다. 짧거나 흔한 단어는 알림이 과도하게 발생할 수 있습니다.
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="keyword-text">키워드 *</Label>
+            <Input
+              id="keyword-text"
+              value={keywordText}
+              onChange={(e) => setKeywordText(e.target.value)}
+              placeholder="예: 닌텐도"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSave();
+              }}
+            />
+            {normalizedPreview && (
+              <p className="text-xs text-[color:var(--admin-text-muted)]">
+                매칭 문자열: <code className="font-mono">{normalizedPreview}</code>
+                {normalizedPreview.length < MIN_KEYWORD_LENGTH && (
+                  <span className="text-dl-danger"> (2자 이상 필요)</span>
+                )}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="keyword-enabled">활성 상태</Label>
+            <Switch
+              id="keyword-enabled"
+              checked={keywordEnabled}
+              onCheckedChange={setKeywordEnabled}
+              label="키워드 활성 상태"
+            />
+          </div>
+        </div>
+      </ContentDialog>
     </AdminPageFrame>
   );
 }

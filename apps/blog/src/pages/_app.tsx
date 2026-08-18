@@ -3,12 +3,12 @@ import '../styles/d2coding-subset.css';
 import '../styles/rainbow.css';
 import '../styles/ckeditor.css';
 import '../styles/ckeditor-theme.css';
+import { ConfirmProvider, ToastViewport } from '@hvy/ui';
 import { HydrationBoundary, QueryClientProvider } from '@tanstack/react-query';
 import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
 import { ThemeProvider } from 'next-themes';
 import { useEffect, useRef, useState } from 'react';
-import { Toaster } from 'sonner';
 import Loading from '@/components/Loading';
 import AdminLayout from '@/components/layout/admin/AdminLayout';
 import CommonLayout from '@/components/layout/common/CommonLayout';
@@ -77,26 +77,34 @@ function Skyscape({ Component, pageProps }: AppProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <HydrationBoundary state={pageProps.dehydratedState}>
-          <Toaster richColors duration={2000} position="top-right" />
-          {isLoading && <Loading />}
-          {isAdminLikeRoute ? (
-            <AdminLayout>
-              <Component {...pageProps} />
-            </AdminLayout>
-          ) : (
-            <CommonLayout>
-              {isUtilRoute ? (
-                <UtilityLayout>
-                  <Component {...pageProps} />
-                </UtilityLayout>
-              ) : (
+      <ThemeProvider
+        attribute="data-theme"
+        value={{ light: 'blog', dark: 'blog-dark' }}
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <ConfirmProvider labels={{ cancel: '취소' }}>
+          <HydrationBoundary state={pageProps.dehydratedState}>
+            <ToastViewport />
+            {isLoading && <Loading />}
+            {isAdminLikeRoute ? (
+              <AdminLayout>
                 <Component {...pageProps} />
-              )}
-            </CommonLayout>
-          )}
-        </HydrationBoundary>
+              </AdminLayout>
+            ) : (
+              <CommonLayout>
+                {isUtilRoute ? (
+                  <UtilityLayout>
+                    <Component {...pageProps} />
+                  </UtilityLayout>
+                ) : (
+                  <Component {...pageProps} />
+                )}
+              </CommonLayout>
+            )}
+          </HydrationBoundary>
+        </ConfirmProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

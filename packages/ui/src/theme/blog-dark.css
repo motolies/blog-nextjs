@@ -1,0 +1,71 @@
+/**
+ * blog 다크 테마 — 기존 blog-nextjs 다크(One Dark 계열, #282c34/#abb2bf/#61afef)를
+ * Tier 1 재정의로 재현한다. 핵심은 **중립 램프 역전**: gray-000(표면)이 어두운 면,
+ * black(본문)이 밝은 글자가 된다 — Tier 2 는 역할 참조라 무수정으로 다크가 성립한다.
+ *
+ * 사용법: next-themes 가 `<html data-theme="blog-dark">` 를 스탬프한다
+ * (attribute="data-theme" + value 매핑 — _app.tsx 참조).
+ *
+ * 규칙 (verify:tokens 가 강제):
+ * · Tier 1 전체(색 팔레트 33키 + 컨트롤 스케일 5키 = 38키)를 재정의한다.
+ * · `@theme`·`@import` 금지, `@layer theme` 안이어야 한다.
+ * · color-scheme 은 default.css base 레이어가 data-theme 로 스위칭한다(키 검사 대상 아님).
+ * · 대비는 verify:tokens 가 AA(4.5:1) + 래칫 기준선으로 검사한다.
+ */
+@layer theme {
+  :root[data-theme='blog-dark'] {
+    /* 브랜드 — One Dark 파랑(#61afef, 기존 다크 primary). 다크에서는 hover/active 가
+       더 진해지는 방향(l66→58→50) — 밝은 면 위 상호작용 관습. */
+    --dl-brand-500: #61afef;
+    --dl-brand-600: #3c9dec;
+    --dl-brand-700: #178ae8;
+    --dl-brand-050: #253b52; /* 배지 배경 — 파랑 틴트의 어두운 대응 */
+    --dl-brand-025: #21313f;
+    --dl-brand-150: #2f5476; /* checked+disabled 배경 */
+    /* 채움 위 글자·도형 — 밝은 파랑 채움 위 흰 글자는 2.24:1 로 기준선(2.35)조차 못 넘는다.
+       다크 관습대로 **어두운 글자**로 역전한다(캔버스색 겸용) — 500/hover/active 위 6.91/5.62/4.54. */
+    --dl-brand-fg: #1d2025;
+    --dl-brand-mark: #1d2025;
+    --dl-brand-ink: #61afef; /* 어두운 표면 위 브랜드 글자 — 표면/틴트/틴트2 위 5.92/4.87/5.64. 다크는 500이 충분히 밝아 겸용 */
+
+    /* 의미색 — One Dark 계열로 명도 보정.
+       -ink: 다크에서는 500 이 이미 밝아 틴트 위 글자로도 AA 를 넘는다 — 겸용(라이트와 다른 지점). */
+    --dl-green-500: #98c379;
+    --dl-green-050: #2b3a2c;
+    --dl-orange-500: #d19a66;
+    --dl-orange-050: #3a3226;
+    --dl-green-ink: #98c379; /* 틴트 위 5.97 */
+    --dl-orange-ink: #d19a66; /* 틴트 위 5.12 */
+
+    /* 빨강 — 기존 다크 destructive(#e06c75) */
+    --dl-red-500: #e06c75;
+    --dl-red-050: #3c2a2e;
+    --dl-red-ink: #e88892; /* 500(4.20)은 틴트 위 AA 미달이라 한 단계 밝게 — 배지 5.35 · 삭제 hover 채움 위 gray-000 글자 5.58 */
+
+    /* 중립 — One Dark 램프 역전.
+       000=표면(기존 card #282c34) · 200=캔버스(기존 background) · 300=보더 · black=본문 글자 */
+    --dl-gray-000: #282c34;
+    --dl-gray-100: #2e3138; /* 옵션 hover — 기존 muted */
+    --dl-gray-150: #32363e;
+    --dl-gray-200: #1d2025; /* 캔버스 — 기존 background */
+    --dl-gray-300: #3c4049; /* 표준 보더 — 기존 border */
+    --dl-gray-400: #4b515c;
+    --dl-gray-500: #6b7280; /* 보조 텍스트 — 기존 muted-foreground */
+    --dl-gray-600: #7d8492; /* 플레이스홀더(500보다 한 단계 또렷 — 라이트와 동일 서열) */
+    --dl-gray-650: #5c6370; /* 비활성 라벨 */
+    --dl-gray-700: #9da5b4; /* 보조 글자·테이블 헤더 글자 */
+    --dl-gray-800: #c9cdd6; /* outline-gray 글자 */
+    --dl-gray-ink: #a8b0bf; /* 틴트(gray-300) 배경 위 글자 — 배지 neutral, 4.76 */
+    --dl-black: #abb2bf; /* 본문 — 기존 foreground */
+
+    --dl-link: #61afef; /* 순청은 다크에서 실독성 — 기존 다크 링크색 */
+    --dl-excel: #3ba474; /* 로고색의 다크 명도 보정 */
+
+    /* 컨트롤 스케일 — default 와 동일 */
+    --dl-scale-xs: 2.5;
+    --dl-scale-sm: 3.5;
+    --dl-scale-md: 5;
+    --dl-scale-lg: 6;
+    --dl-scale-xl: 7.5;
+  }
+}

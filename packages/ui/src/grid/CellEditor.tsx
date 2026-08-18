@@ -12,15 +12,16 @@ import { DateTimePicker } from '../components/date-time-picker';
 import { Input } from '../components/input';
 import { MultiSelect } from '../components/multi-select';
 import { Select } from '../components/select';
+import type { ControlSize } from '../lib/controlSize';
 import type { ColumnDef, ColumnEditor } from './columns';
 
 /**
  * 활성 셀에 그려지는 인라인 에디터 — `editor.type` 별로 기존 폼 컨트롤을 그대로 쓴다.
  *
- * 컨트롤 높이는 md 그대로다 — 셀 전용 축소 사이즈를 만들지 않고, 셀 쪽에서
- * 패딩만 줄인다(`px-dl-cell-x` → `px-1`). 행 높이와 컨트롤 md 가 **둘 다
- * 테마 md 스케일에서 유도**되므로 어느 테마에서도 여백이 함께 조여진다
- * (default 50 행에 42 컨트롤 → compact 44 행에 36 컨트롤).
+ * 컨트롤 높이는 그리드의 density 를 그대로 따른다 — **셀 전용 축소 사이즈를 만들지 않는다.**
+ * 행(30+4n)과 컨트롤(22+4n)의 기울기가 같아 **차이가 언제나 8px** 이므로, 어느 density·
+ * 어느 테마에서도 위아래 여유가 4px 씩 남는다 (default md 50↔42 · default xs 40↔32 ·
+ * compact md 44↔36). 셀 쪽 좌우 패딩은 편집 중에만 `px-1` 로 줄인다.
  *
  * 키보드 규약:
  * - Enter = 확정 + 아래 행 이동 · Tab/Shift+Tab = 확정 + 좌우 편집 셀 이동 · Esc = 취소
@@ -35,6 +36,8 @@ type CellEditorProps<T extends Record<string, unknown>> = {
   readonly row: T;
   /** 현재 표시 값(draft 반영본). */
   readonly value: unknown;
+  /** 그리드 density — 안에 서는 컨트롤이 같은 단계로 움직인다. 생략하면 컨트롤 기본(md). */
+  readonly size?: ControlSize;
   readonly invalid: boolean;
   /** 값만 반영한다 — 편집 종료·이동은 `onClose`/`onMove` 가 따로 맡는다. */
   readonly onCommitValue: (value: unknown) => void;
@@ -100,6 +103,7 @@ function TextCellEditor<T extends Record<string, unknown>>({
   editor,
   column,
   value,
+  size,
   invalid,
   onCommitValue,
   onClose,
@@ -161,6 +165,7 @@ function TextCellEditor<T extends Record<string, unknown>>({
     <Input
       ref={inputRef}
       className="w-full"
+      size={size}
       value={draft}
       invalid={invalid}
       align={(column.align ?? 'center') === 'center' ? 'center' : 'left'}
@@ -215,6 +220,7 @@ function useCloseOnOutsidePointerDown(
 function SelectCellEditor<T extends Record<string, unknown>>({
   editor,
   value,
+  size,
   invalid,
   onCommitValue,
   onClose,
@@ -244,6 +250,7 @@ function SelectCellEditor<T extends Record<string, unknown>>({
     <div ref={wrapperRef} className="w-full" onKeyDown={handleKeyDown}>
       <Select
         value={value == null ? '' : String(value)}
+        size={size}
         options={editor.options}
         placeholder={editor.placeholder}
         invalid={invalid}
@@ -259,6 +266,7 @@ function SelectCellEditor<T extends Record<string, unknown>>({
 function MultiSelectCellEditor<T extends Record<string, unknown>>({
   editor,
   value,
+  size,
   invalid,
   onCommitValue,
   onClose,
@@ -286,6 +294,7 @@ function MultiSelectCellEditor<T extends Record<string, unknown>>({
     <div ref={wrapperRef} className="w-full" onKeyDown={handleKeyDown}>
       <MultiSelect
         value={Array.isArray(value) ? (value as readonly string[]) : []}
+        size={size}
         options={editor.options}
         placeholder={editor.placeholder}
         invalid={invalid}
@@ -299,6 +308,7 @@ function MultiSelectCellEditor<T extends Record<string, unknown>>({
 function DateCellEditor<T extends Record<string, unknown>>({
   editor,
   value,
+  size,
   invalid,
   onCommitValue,
   onClose,
@@ -347,6 +357,7 @@ function DateCellEditor<T extends Record<string, unknown>>({
       {editor.type === 'date' ? (
         <DatePicker
           className="w-full"
+          size={size}
           value={typeof value === 'string' ? value : ''}
           min={editor.min}
           max={editor.max}
@@ -356,6 +367,7 @@ function DateCellEditor<T extends Record<string, unknown>>({
       ) : (
         <DateTimePicker
           className="w-full"
+          size={size}
           value={typeof value === 'string' ? value : ''}
           invalid={invalid}
           onValueChange={commitAndClose}

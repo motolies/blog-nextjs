@@ -1,3 +1,4 @@
+import { Button, showToast, useConfirm } from '@hvy/ui';
 import {
   ArrowLeft,
   ArrowRight,
@@ -15,11 +16,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { useShallow } from 'zustand/react/shallow';
-import DeleteConfirm from '@/components/confirm/DeleteConfirm';
-import PublicConfirm from '@/components/confirm/PublicConfirm';
-import { Button } from '@/components/ui/button';
 import { useCodeHighlight } from '@/hooks/useCodeHighlight';
 import { searchObjectInit } from '@/model/searchObject';
 import service from '@/service';
@@ -75,11 +72,9 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
     useShallow((s) => ({ isAuthenticated: s.isAuthenticated, user: s.user })),
   );
 
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
-  const [showPublicConfirm, setShowPublicConfirm] = useState<boolean>(false);
+  const askConfirm = useConfirm();
   const [postPublic, setPostPublic] = useState<boolean | undefined>(post?.public);
   const [tags, setTags] = useState<Tag[]>(post?.tags || []);
-  const [publicConfirmQuestion, setPublicConfirmQuestion] = useState<string>('');
   const [postBody, setPostBody] = useState<string>('');
   const [isClientMounted, setIsClientMounted] = useState<boolean>(false);
   const [relatedPosts, setRelatedPosts] = useState<RelatedPost[]>([]);
@@ -167,6 +162,8 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
       currentImg.style.cursor = 'zoom-in';
       currentImg.addEventListener('click', () => {
         const safeSrc = currentImg.src.replace(/"/g, '&quot;');
+        // token-exempt(10): window.open 으로 띄우는 **별도 document** 라 dl 토큰이 도달하지 않는다.
+        // 이미지 뷰어 배경은 사진을 정확히 보기 위한 검정이 관례다.
         const imgPopupHtml = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -190,6 +187,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
     Array.prototype.slice
       .call(doc.getElementsByTagName('div'), 0)
       .forEach((div: HTMLDivElement) => {
+        // token-exempt: 색 지정이 아니라 CKEditor 가 만든 코드블록 배경을 **판별**하는 비교문이다
         if (div.style?.backgroundColor && div.style.backgroundColor === 'rgb(30, 30, 30)') {
           if (getRootElement(div)) {
             div.style.padding = '15px';
@@ -204,6 +202,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
     Array.prototype.slice
       .call(doc.getElementsByTagName('div'), 0)
       .forEach((div: HTMLDivElement) => {
+        // token-exempt: IntelliJ 테마 코드블록을 **판별**하는 비교문 — 색 지정이 아니다
         if (div.style?.backgroundColor && div.style.backgroundColor === 'rgb(40, 44, 52)') {
           if (getRootElement(div)) {
             div.style.padding = '15px';
@@ -218,6 +217,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
     Array.prototype.slice
       .call(doc.getElementsByTagName('div'), 0)
       .forEach((div: HTMLDivElement) => {
+        // token-exempt: JetBrains 테마 코드블록을 **판별**하는 비교문 — 색 지정이 아니다
         if (div.style?.backgroundColor && div.style.backgroundColor === 'rgb(43, 43, 43)') {
           if (getRootElement(div)) {
             div.style.padding = '15px';
@@ -239,6 +239,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
     let current: HTMLElement | null = element;
     while (current?.parentNode) {
       const parent = current.parentNode as HTMLElement;
+      // token-exempt: 위와 같은 판별 비교문 — 색을 지정하지 않는다
       if (parent.style?.backgroundColor && parent.style.backgroundColor === 'rgb(30, 30, 30)') {
         rtn = false;
         break;
@@ -248,17 +249,25 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
     return rtn;
   };
 
-  const showDeleteConfirmDialog = () => {
-    setShowDeleteConfirm(true);
+  const showDeleteConfirmDialog = async () => {
+    const ok = await askConfirm({
+      message: '현재 포스트를 삭제하시겠습니까?',
+      confirmLabel: '삭제',
+      destructive: true,
+    });
+    if (!ok) return;
+    await deletePost();
   };
 
-  const showPublicConfirmDialog = () => {
-    if (postPublic) {
-      setPublicConfirmQuestion('현재 포스트를 비공개 상태로 변경하시겠습니까?');
-    } else {
-      setPublicConfirmQuestion('현재 포스트를 공개 상태로 변경하시겠습니까?');
-    }
-    setShowPublicConfirm(true);
+  const showPublicConfirmDialog = async () => {
+    const ok = await askConfirm({
+      message: postPublic
+        ? '현재 포스트를 비공개 상태로 변경하시겠습니까?'
+        : '현재 포스트를 공개 상태로 변경하시겠습니까?',
+      confirmLabel: '변경',
+    });
+    if (!ok) return;
+    await setPublicStatus();
   };
 
   const deletePost = async () => {
@@ -266,22 +275,13 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
       .deletePost({ postId: String(post?.id) })
       .then((res: { data: { id: number } }) => {
         if (res.data.id === post?.id) {
-          toast.success('삭제에 성공하였습니다.');
+          showToast('삭제에 성공하였습니다.');
           router.push('/');
         }
       })
       .catch(() => {
-        toast.error('삭제에 실패하였습니다.');
+        showToast('삭제에 실패하였습니다.', 'error');
       });
-    setShowDeleteConfirm(false);
-  };
-
-  const deletePostCancel = () => {
-    setShowDeleteConfirm(false);
-  };
-
-  const publicPostCancel = () => {
-    setShowPublicConfirm(false);
   };
 
   const onEditor = () => {
@@ -295,11 +295,11 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
         .then((res: { status: number }) => {
           if (res.status >= 200 && res.status < 300) {
             setPostPublic(false);
-            toast.success('공개를 비공개로 변경하였습니다.');
+            showToast('공개를 비공개로 변경하였습니다.');
           }
         })
         .catch(() => {
-          toast.error('공개를 비공개로 변경하지 못했습니다.');
+          showToast('공개를 비공개로 변경하지 못했습니다.', 'error');
         });
     } else {
       await service.post
@@ -307,14 +307,13 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
         .then((res: { status: number }) => {
           if (res.status >= 200 && res.status < 300) {
             setPostPublic(true);
-            toast.success('비공개를 공개로 변경하였습니다.');
+            showToast('비공개를 공개로 변경하였습니다.');
           }
         })
         .catch(() => {
-          toast.error('비공개를 공개로 변경하지 못했습니다.');
+          showToast('비공개를 공개로 변경하지 못했습니다.', 'error');
         });
     }
-    setShowPublicConfirm(false);
   };
 
   const searchCategory = (): string => {
@@ -357,13 +356,13 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
                   <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                     Article
                   </p>
-                  <h1 className="section-title mt-3 text-4xl font-semibold leading-tight tracking-[-0.045em] text-slate-950 dark:text-slate-50 sm:text-5xl">
+                  <h1 className="section-title mt-3 text-4xl font-semibold leading-tight tracking-[-0.045em] text-dl-fg sm:text-5xl">
                     {post.subject}
                   </h1>
                   <div className="public-muted-text mt-5 flex flex-wrap items-center gap-3 text-sm">
                     <Link
                       href={searchCategory()}
-                      className="rounded-full border border-sky-100 bg-sky-50 px-4 py-2 font-semibold text-sky-800 transition hover:border-sky-200 hover:bg-sky-100 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:border-blue-700 dark:hover:bg-blue-900/50"
+                      className="rounded-full border border-dl-tonal-border bg-dl-tonal px-4 py-2 font-semibold text-dl-tonal-fg transition hover:bg-dl-tonal-hover"
                     >
                       {post.category?.name}
                     </Link>
@@ -385,7 +384,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
                 {!(userState.isAuthenticated && userState.user.username) ? null : (
                   <div className="flex flex-wrap items-center gap-2">
                     <Button
-                      variant="outline"
+                      variant="outline-gray"
                       size="sm"
                       className="public-control-surface rounded-full border"
                       aria-label="공개 상태 변경"
@@ -399,7 +398,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
                       {postPublic ? 'Public' : 'Private'}
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="outline-gray"
                       size="sm"
                       className="public-control-surface rounded-full border"
                       aria-label="edit"
@@ -409,9 +408,9 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
                       Edit
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="outline-gray"
                       size="sm"
-                      className="public-control-surface rounded-full border text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                      className="public-control-surface rounded-full border text-dl-danger hover:text-dl-danger-hover"
                       aria-label="delete"
                       onClick={showDeleteConfirmDialog}
                     >
@@ -425,40 +424,38 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
 
             {series && (
               <div className="border-b border-[color:var(--line-soft)] px-6 py-5 sm:px-8">
-                <div className="rounded-2xl border border-sky-200 bg-sky-50/80 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+                <div className="rounded-2xl border border-dl-tonal-border bg-dl-tonal p-4">
                   <button
                     type="button"
                     className="flex w-full items-center justify-between text-left"
                     onClick={() => setSeriesExpanded(!seriesExpanded)}
                   >
                     <div className="flex items-center gap-2">
-                      <List className="h-4 w-4 text-sky-600 dark:text-blue-400" />
-                      <span className="text-sm font-semibold text-sky-800 dark:text-blue-300">
-                        {series.title}
-                      </span>
-                      <span className="rounded-full bg-sky-200 px-2 py-0.5 text-xs font-medium text-sky-700 dark:bg-blue-800 dark:text-blue-300">
+                      <List className="h-4 w-4 text-dl-tonal-fg" />
+                      <span className="text-sm font-semibold text-dl-tonal-fg">{series.title}</span>
+                      <span className="rounded-full bg-dl-tonal-hover px-2 py-0.5 text-xs font-medium text-dl-tonal-fg">
                         {series.posts?.length ?? 0}편
                       </span>
                     </div>
                     {seriesExpanded ? (
-                      <ChevronUp className="h-4 w-4 text-sky-600 dark:text-blue-400" />
+                      <ChevronUp className="h-4 w-4 text-dl-tonal-fg" />
                     ) : (
-                      <ChevronDown className="h-4 w-4 text-sky-600 dark:text-blue-400" />
+                      <ChevronDown className="h-4 w-4 text-dl-tonal-fg" />
                     )}
                   </button>
                   {seriesExpanded && (
-                    <ol className="mt-3 space-y-1 border-t border-sky-200 pt-3 dark:border-blue-800">
+                    <ol className="mt-3 space-y-1 border-t border-dl-tonal-border pt-3">
                       {series.posts?.map((sp) => (
                         <li key={sp.postId}>
                           {sp.postId === post.id ? (
-                            <span className="flex items-center gap-2 rounded-lg bg-sky-200/60 px-3 py-2 text-sm font-semibold text-sky-900 dark:bg-blue-800/40 dark:text-blue-200">
-                              <span className="text-xs text-sky-500">{sp.seq}.</span>
+                            <span className="flex items-center gap-2 rounded-lg bg-dl-tonal-hover px-3 py-2 text-sm font-semibold text-dl-tonal-fg">
+                              <span className="text-xs text-dl-primary">{sp.seq}.</span>
                               {sp.subject}
                             </span>
                           ) : (
                             <Link
                               href={`/post/${sp.postId}`}
-                              className="public-muted-text flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition hover:bg-sky-100 dark:hover:bg-blue-900/30"
+                              className="public-muted-text flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition hover:bg-dl-tonal"
                             >
                               <span className="public-label-text text-xs">{sp.seq}.</span>
                               {sp.subject}
@@ -504,7 +501,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
                     <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                       Previous
                     </p>
-                    <div className="public-muted-text mt-3 flex items-center gap-2 text-sm font-semibold transition group-hover:text-sky-700 dark:group-hover:text-blue-400">
+                    <div className="public-muted-text mt-3 flex items-center gap-2 text-sm font-semibold transition group-hover:text-dl-primary-ink">
                       <ArrowLeft className="h-4 w-4 shrink-0" />
                       <span className="truncate">{prevNext?.prevSubject || '이전 글로 이동'}</span>
                     </div>
@@ -522,7 +519,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
                     <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                       Next
                     </p>
-                    <div className="public-muted-text mt-3 flex items-center justify-end gap-2 text-sm font-semibold transition group-hover:text-sky-700 dark:group-hover:text-blue-400">
+                    <div className="public-muted-text mt-3 flex items-center justify-end gap-2 text-sm font-semibold transition group-hover:text-dl-primary-ink">
                       <span className="truncate">{prevNext?.nextSubject || '다음 글로 이동'}</span>
                       <ArrowRight className="h-4 w-4 shrink-0" />
                     </div>
@@ -543,7 +540,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
                       href={`/post/${related.id}`}
                       className="public-card-surface group rounded-2xl border p-4 transition hover:shadow-sm"
                     >
-                      <p className="truncate text-sm font-semibold text-foreground transition group-hover:text-sky-700 dark:group-hover:text-blue-400">
+                      <p className="truncate text-sm font-semibold text-dl-fg transition group-hover:text-dl-primary-ink">
                         {related.subject}
                       </p>
                       <div className="public-label-text mt-2 flex items-center gap-2 text-xs">
@@ -575,37 +572,20 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
               <dl className="public-muted-text mt-4 space-y-4 text-sm">
                 <div>
                   <dt className="public-label-text font-semibold">Category</dt>
-                  <dd className="mt-1 text-slate-950 dark:text-slate-100">
-                    {post.category?.name || '-'}
-                  </dd>
+                  <dd className="mt-1 text-dl-fg">{post.category?.name || '-'}</dd>
                 </div>
                 <div>
                   <dt className="public-label-text font-semibold">Tags</dt>
-                  <dd className="mt-1 text-slate-950 dark:text-slate-100">{tags?.length || 0}</dd>
+                  <dd className="mt-1 text-dl-fg">{tags?.length || 0}</dd>
                 </div>
                 <div>
                   <dt className="public-label-text font-semibold">Visibility</dt>
-                  <dd className="mt-1 text-slate-950 dark:text-slate-100">
-                    {postPublic ? 'Public' : 'Private'}
-                  </dd>
+                  <dd className="mt-1 text-dl-fg">{postPublic ? 'Public' : 'Private'}</dd>
                 </div>
               </dl>
             </div>
           </aside>
         </div>
-
-        <DeleteConfirm
-          open={showDeleteConfirm}
-          question={'현재 포스트를 삭제하시겠습니까?'}
-          onConfirm={deletePost}
-          onCancel={deletePostCancel}
-        />
-        <PublicConfirm
-          open={showPublicConfirm}
-          question={publicConfirmQuestion}
-          onConfirm={setPublicStatus}
-          onCancel={publicPostCancel}
-        />
       </div>
     );
   }
@@ -616,9 +596,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
         <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
           Missing Article
         </p>
-        <h2 className="section-title mt-3 text-4xl font-semibold text-slate-950 dark:text-slate-50">
-          No post found
-        </h2>
+        <h2 className="section-title mt-3 text-4xl font-semibold text-dl-fg">No post found</h2>
       </div>
     </article>
   );

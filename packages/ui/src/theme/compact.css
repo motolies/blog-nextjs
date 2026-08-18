@@ -8,7 +8,7 @@
  * 루트 레이아웃 `<html data-theme="compact">`. 두 가지가 모두 있어야 적용된다.
  *
  * 규칙 (verify:tokens 가 강제) — `oms.css` 헤더 참조:
- * · Tier 1 전체(색 팔레트 26키 + 컨트롤 스케일 5키 = 31키)를 재정의한다.
+ * · Tier 1 전체(색 팔레트 33키 + 컨트롤 스케일 5키 = 38키)를 재정의한다.
  * · `@theme`·`@import` 금지, `@layer theme` 안이어야 한다.
  */
 @layer theme {
@@ -20,14 +20,20 @@
     --dl-brand-050: #f0edfd;
     --dl-brand-025: #f8f6fe;
     --dl-brand-150: #d3caf8;
+    --dl-brand-fg: #ffffff;
+    --dl-brand-ink: #6c4de6;
+    --dl-brand-mark: #ffffff;
 
     /* 의미색 — default 와 동일한 QA 값 */
     --dl-green-500: #01a235;
     --dl-green-050: #e1f4e7;
     --dl-orange-500: #ff8000;
     --dl-orange-050: #fff0e0;
+    --dl-green-ink: #017b26;
+    --dl-orange-ink: #ab5300;
     --dl-red-500: #ff4263;
     --dl-red-050: #ffe8ec;
+    --dl-red-ink: #c2304a;
 
     /* 중립 — default 와 동일한 QA 값 */
     --dl-gray-000: #ffffff;
@@ -41,6 +47,7 @@
     --dl-gray-650: #bbbbbb;
     --dl-gray-700: #6b6b6b;
     --dl-gray-800: #383838;
+    --dl-gray-ink: #646464;
     --dl-black: #000000;
 
     --dl-link: #0000ff;

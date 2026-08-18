@@ -1,20 +1,8 @@
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Combobox, showToast } from '@hvy/ui';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { ConditionComponent } from '@/components/ConditionComponent';
-import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useCategoryFlat } from '@/hooks/useCategories';
-import { COMBOBOX_POPOVER_CONTENT_CLASSNAME, isSameEntityId } from '@/lib/combobox';
-import { cn } from '@/lib/utils';
+import { isSameEntityId } from '@/lib/combobox';
 
 interface CategoryItem {
   id: string;
@@ -37,7 +25,6 @@ export default function SearchCategory({
   const categories = (categoryData ?? []) as CategoryItem[];
 
   const [selectCategories, setSelectCategories] = useState<CategoryItem[]>([]);
-  const [open, setOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (defaultCategory !== undefined) {
@@ -49,67 +36,32 @@ export default function SearchCategory({
     onChangeDeleteCategory(deleteCategoryId);
   };
 
-  const onSelectCategory = (category: CategoryItem) => {
+  const onPickCategory = (value: string) => {
+    const category = categories.find((c) => isSameEntityId(c.id, value));
+    if (!category) return;
     if (
       selectCategories.some((selectedCategory) => isSameEntityId(selectedCategory.id, category.id))
     ) {
-      toast.warning('동일 카테고리는 한 번만 추가할 수 있습니다.');
-      setOpen(false);
+      showToast('동일 카테고리는 한 번만 추가할 수 있습니다.', 'warning');
       return;
     }
     onChangeAddCategory(category);
-    setOpen(false);
   };
 
   return (
     <div className="space-y-2">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="public-control-surface public-muted-text h-11 w-full justify-between rounded-[1.15rem] border px-4"
-          >
-            카테고리(하위포함, OR 조건)
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent align="start" className={COMBOBOX_POPOVER_CONTENT_CLASSNAME}>
-          <Command
-            filter={(value: string, search: string) => {
-              if (value.toLowerCase().includes(search.toLowerCase())) return 1;
-              return 0;
-            }}
-          >
-            <CommandInput placeholder="카테고리 검색..." />
-            <CommandList>
-              <CommandEmpty>카테고리를 찾을 수 없습니다.</CommandEmpty>
-              <CommandGroup>
-                {categories.map((category) => (
-                  <CommandItem
-                    key={category.id}
-                    value={category.label || category.name}
-                    onSelect={() => onSelectCategory(category)}
-                  >
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        selectCategories.some((selectedCategory) =>
-                          isSameEntityId(selectedCategory.id, category.id),
-                        )
-                          ? 'opacity-100'
-                          : 'opacity-0',
-                      )}
-                    />
-                    {category.label || category.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+      <Combobox
+        options={categories.map((category) => ({
+          value: String(category.id),
+          label: category.label || category.name,
+        }))}
+        pickedValues={selectCategories.map((category) => String(category.id))}
+        onPick={onPickCategory}
+        triggerLabel="카테고리(하위포함, OR 조건)"
+        searchPlaceholder="카테고리 검색..."
+        emptyLabel="카테고리를 찾을 수 없습니다."
+        className="public-control-surface public-muted-text h-11 w-full rounded-[1.15rem] px-4"
+      />
       {selectCategories.length > 0 ? (
         <div className="public-muted-panel rounded-[1.5rem] border border-dashed p-3.5">
           <p className="public-label-text mb-2 text-xs font-semibold uppercase tracking-[0.18em]">

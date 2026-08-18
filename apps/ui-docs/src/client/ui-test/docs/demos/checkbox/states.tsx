@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 /**
  * Checkbox 상태 전수 — 20px 규격. hover 링(shadow-action)은 활성 상태에서만 뜨고,
- * 비활성은 off(연회색)와 on(하늘색)이 다른 배색이다(QA 실측).
+ * 비활성(mode="disabled" — disabled prop 은 없다)은 off(연회색)와 on(하늘색)이 다른 배색이다(QA 실측).
  * indeterminate 는 DOM 프로퍼티라 그리드 전체선택의 "일부 선택" 표시에 쓰인다.
  */
 export function CheckboxStatesDemo() {
@@ -29,14 +29,14 @@ export function CheckboxStatesDemo() {
         htmlFor="pg-cb-d1"
         className="flex items-center gap-2 text-dl-label-disabled text-dl-sm"
       >
-        <Checkbox id="pg-cb-d1" disabled />
+        <Checkbox id="pg-cb-d1" mode="disabled" />
         Disabled
       </label>
       <label
         htmlFor="pg-cb-d2"
         className="flex items-center gap-2 text-dl-label-disabled text-dl-sm"
       >
-        <Checkbox id="pg-cb-d2" checked readOnly disabled />
+        <Checkbox id="pg-cb-d2" checked readOnly mode="disabled" />
         Disabled + Checked
       </label>
     </div>

@@ -1,14 +1,6 @@
+import { Button, Input, Select } from '@hvy/ui';
 import { ArrowUpRight, Search } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 
 interface SearchEngine {
   id: string | number;
@@ -32,7 +24,7 @@ export const SearchEngineComponent = ({ engines = [] }: SearchEngineComponentPro
   const host = (() => {
     try {
       return new URL(selectedEngine?.url ?? '').hostname.replace(/^www\./, '');
-    } catch (error) {
+    } catch {
       return 'search endpoint';
     }
   })();
@@ -47,36 +39,29 @@ export const SearchEngineComponent = ({ engines = [] }: SearchEngineComponentPro
   };
 
   return (
-    <div className="surface-panel-strong w-full rounded-[1.75rem] p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] dark:shadow-[0_24px_70px_rgba(2,6,23,0.3)] sm:p-6">
+    <div className="surface-panel-strong w-full rounded-[1.75rem] p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-6">
       <div className="mb-5 flex items-start justify-between gap-3">
         <div>
           <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
             Quick Search
           </p>
           <p className="public-muted-text mt-2 text-sm">
-            현재 선택: <span className="font-medium text-foreground">{host}</span>
+            현재 선택: <span className="font-medium text-dl-fg">{host}</span>
           </p>
         </div>
-        <span className="flex size-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 dark:bg-blue-950/50 dark:text-blue-400">
+        <span className="flex size-10 items-center justify-center rounded-2xl bg-dl-tonal text-dl-tonal-fg">
           <Search className="h-4 w-4" />
         </span>
       </div>
 
       <div className="grid gap-3 md:grid-cols-[minmax(160px,220px)_minmax(0,1fr)_140px]">
-        <Select value={selectedEngine?.url ?? ''} onValueChange={setSelectedUrl}>
-          <SelectTrigger
-            className={`${controlClassName} public-control-surface w-full border px-4 py-0 leading-none`}
-          >
-            <SelectValue placeholder="검색 엔진 선택" />
-          </SelectTrigger>
-          <SelectContent>
-            {engines.map((engine) => (
-              <SelectItem key={engine.id} value={engine.url}>
-                {engine.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Select
+          value={selectedEngine?.url ?? ''}
+          onValueChange={setSelectedUrl}
+          placeholder="검색 엔진 선택"
+          options={engines.map((engine) => ({ value: engine.url, label: engine.name }))}
+          className={`${controlClassName} public-control-surface w-full border px-4 py-0 leading-none`}
+        />
 
         <Input
           type="search"
@@ -90,14 +75,16 @@ export const SearchEngineComponent = ({ engines = [] }: SearchEngineComponentPro
           }}
           onCompositionStart={() => setIsComposing(true)}
           onCompositionEnd={() => setIsComposing(false)}
-          className={`${controlClassName} public-control-surface border px-4 placeholder:text-[color:var(--public-text-subtle)] focus-visible:border-sky-400 focus-visible:ring-sky-100/80 dark:focus-visible:border-blue-400 dark:focus-visible:ring-blue-900/50`}
+          className={`${controlClassName} public-control-surface border px-4 placeholder:text-[color:var(--public-text-subtle)] focus-visible:border-dl-primary focus-visible:ring-dl-primary`}
         />
 
         <Button
+          variant="primary"
           type="button"
           onClick={goSearch}
           disabled={!selectedEngine?.url || text.length === 0}
-          className={`${controlClassName} w-full bg-sky-600 px-5 text-white hover:bg-sky-700 disabled:bg-slate-300 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400`}
+          title="검색 엔진을 고르고 검색어를 입력하면 눌러진다"
+          className={`${controlClassName} w-full bg-dl-primary px-5 text-dl-primary-fg hover:bg-dl-primary-hover disabled:bg-dl-locked-bg disabled:text-dl-locked-fg`}
         >
           <ArrowUpRight className="h-4 w-4" />
           Search

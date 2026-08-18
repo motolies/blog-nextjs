@@ -8,7 +8,7 @@ import { Field, FormMode, MultiSelect } from '@hvy/ui';
  * · 조인 순서는 **value 순서**다 — 트리거(선택된 것만 옵션 순서로 나열)와 달리
  *   값 배열이 든 순서 그대로라 누락 없이 그린다.
  * · 0개 선택이면 view 는 빈칸이다(placeholder 금지 규칙).
- * · disabled(칸이든 FormMode 든)는 값마다 내던 hidden input 을 내지 않는다 — FormData 제외.
+ * · disabled(칸의 mode="disabled" 명시든 FormMode 든)는 값마다 내던 hidden input 을 내지 않는다 — FormData 제외.
  */
 const CARRIER_OPTIONS = [
   { value: 'CJ', label: 'CJ대한통운' },

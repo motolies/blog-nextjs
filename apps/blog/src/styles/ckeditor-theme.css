@@ -2,23 +2,23 @@
  * ckeditor-theme.css
  *
  * CKEditor 5 다크 테마. ckeditor5/ckeditor5.css와 ckeditor.css 이후에 로드되어
- * `<html>.dark`(next-themes)에서만 활성화되는 변수 오버라이드.
+ * `<html>[data-theme='blog-dark']`(next-themes)에서만 활성화되는 변수 오버라이드.
  *
  * 팔레트는 발행 페이지 surface-panel-strong 다크값(#282c34, Atom One Dark)과
  * 통일하여 작성/미리보기/발행 페이지가 동일 디자인 언어를 공유하도록 한다.
  *
  * Selector 강화 이유:
- * - ckeditor5.css는 모든 변수를 :root((0,0,1))에 정의. 단순 .dark((0,1,0))도
+ * - ckeditor5.css는 모든 변수를 :root((0,0,1))에 정의. 단순 [data-theme='blog-dark']((0,1,0))도
  *   specificity로 이기지만, dynamic import 순서/내부 더 specific selector
  *   가능성을 모두 회피하기 위해 다음 세 selector를 함께 사용:
- *   - :root.dark        ((0,1,1))  → html에 직접 정의되어 자손이 모두 inherit
- *   - .dark .ck         ((0,2,0))  → 모든 CKEditor 요소 자체에 정의
- *   - .dark .ck-body-wrapper       → portal 렌더 컨테이너에 직접 정의
+ *   - :root[data-theme='blog-dark']        ((0,1,1))  → html에 직접 정의되어 자손이 모두 inherit
+ *   - [data-theme='blog-dark'] .ck         ((0,2,0))  → 모든 CKEditor 요소 자체에 정의
+ *   - [data-theme='blog-dark'] .ck-body-wrapper       → portal 렌더 컨테이너에 직접 정의
  */
 
-:root.dark,
-.dark .ck,
-.dark .ck-body-wrapper {
+:root[data-theme='blog-dark'],
+[data-theme='blog-dark'] .ck,
+[data-theme='blog-dark'] .ck-body-wrapper {
     /* ── Base ── */
     --ck-color-base-background: #282c34;
     --ck-color-base-foreground: #1f232a;

@@ -1,10 +1,10 @@
+import { Button } from '@hvy/ui';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { getTsid } from 'tsid-ts';
 import SearchFilter from '@/components/search/SearchFilter';
 import SearchResult from '@/components/search/SearchResult';
-import { Button } from '@/components/ui/button';
 import { usePostSearch } from '@/hooks/usePostSearch';
 import { searchObjectInit } from '@/model/searchObject';
 import { base64Decode, base64Encode } from '@/util/base64Util';
@@ -66,7 +66,7 @@ export default function SearchPage() {
   return (
     <div className="public-container px-4 pb-8 pt-28 sm:px-6 lg:px-8">
       <h1 className="visually-hidden">검색 결과</h1>
-      <section className="public-card-surface mb-6 flex flex-wrap items-center gap-3 rounded-[1.4rem] border px-4 py-3 shadow-[0_14px_40px_rgba(15,23,42,0.05)] dark:shadow-[0_14px_40px_rgba(2,6,23,0.2)] sm:px-5">
+      <section className="public-card-surface mb-6 flex flex-wrap items-center gap-3 rounded-[1.4rem] border px-4 py-3 shadow-[0_14px_40px_rgba(15,23,42,0.05)] sm:px-5">
         <span className="public-label-text text-[11px] font-semibold uppercase tracking-[0.2em]">
           Search Summary
         </span>
@@ -75,13 +75,13 @@ export default function SearchPage() {
             <span className="public-label-text mr-2 text-[11px] font-semibold uppercase tracking-[0.18em]">
               Results
             </span>
-            <span className="font-semibold text-slate-950 dark:text-slate-100">{resultCount}</span>
+            <span className="font-semibold text-dl-fg">{resultCount}</span>
           </div>
           <div className="public-chip-surface public-muted-text flex rounded-full border px-3 py-1.5 text-sm">
             <span className="public-label-text mr-2 text-[11px] font-semibold uppercase tracking-[0.18em]">
               Pages
             </span>
-            <span className="font-semibold text-slate-950 dark:text-slate-100">{totalPage}</span>
+            <span className="font-semibold text-dl-fg">{totalPage}</span>
           </div>
         </div>
       </section>
@@ -103,24 +103,24 @@ export default function SearchPage() {
       </div>
 
       {totalPage > 0 && (
-        <div className="public-card-surface mt-8 flex flex-wrap items-center justify-center gap-2 rounded-[1.5rem] border px-4 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)] dark:shadow-[0_16px_40px_rgba(2,6,23,0.2)]">
+        <div className="public-card-surface mt-8 flex flex-wrap items-center justify-center gap-2 rounded-[1.5rem] border px-4 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
           <Button
-            variant="outline"
-            size="icon"
+            variant="outline-gray"
             onClick={() => goPage(1)}
             disabled={currentPage === 1}
+            title="첫 페이지입니다"
             aria-label="첫 페이지"
-            className="public-control-surface rounded-full border"
+            className="aspect-square p-0 public-control-surface rounded-full border"
           >
             <ChevronsLeft className="h-4 w-4" />
           </Button>
           <Button
-            variant="outline"
-            size="icon"
+            variant="outline-gray"
             onClick={() => goPage(currentPage - 1)}
             disabled={currentPage === 1}
+            title="첫 페이지입니다"
             aria-label="이전 페이지"
-            className="public-control-surface rounded-full border"
+            className="aspect-square p-0 public-control-surface rounded-full border"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -130,13 +130,12 @@ export default function SearchPage() {
             .map((p: number) => (
               <Button
                 key={p}
-                variant={p === currentPage ? 'default' : 'outline'}
-                size="icon"
+                variant={p === currentPage ? 'primary' : 'outline-gray'}
                 onClick={() => goPage(p)}
                 className={
                   p === currentPage
-                    ? 'rounded-full bg-sky-600 text-white hover:bg-sky-600'
-                    : 'public-control-surface rounded-full border'
+                    ? 'aspect-square p-0 rounded-full bg-dl-primary text-dl-primary-fg'
+                    : 'aspect-square p-0 public-control-surface rounded-full border'
                 }
               >
                 {p}
@@ -144,22 +143,22 @@ export default function SearchPage() {
             ))}
 
           <Button
-            variant="outline"
-            size="icon"
+            variant="outline-gray"
             onClick={() => goPage(currentPage + 1)}
             disabled={currentPage === totalPage}
+            title="마지막 페이지입니다"
             aria-label="다음 페이지"
-            className="public-control-surface rounded-full border"
+            className="aspect-square p-0 public-control-surface rounded-full border"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
           <Button
-            variant="outline"
-            size="icon"
+            variant="outline-gray"
             onClick={() => goPage(totalPage)}
             disabled={currentPage === totalPage}
+            title="마지막 페이지입니다"
             aria-label="마지막 페이지"
-            className="public-control-surface rounded-full border"
+            className="aspect-square p-0 public-control-surface rounded-full border"
           >
             <ChevronsRight className="h-4 w-4" />
           </Button>

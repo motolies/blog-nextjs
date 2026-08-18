@@ -16,13 +16,13 @@ export const checkboxDoc: DocEntry = {
   category: 'components',
   title: 'Checkbox',
   description:
-    '20px 규격 체크박스. 네이티브 <input type="checkbox"> 가 그대로 살아 있어 폼 전송·라벨 연결이 표준 방식이고, 내부적으로는 값을 useControllableState 로 미러링하는 관리형이다(네이티브 onChange API 는 그대로) — 비제어(defaultChecked)에서도 view 모드가 현재값을 아는 근거다. Field 안에서는 htmlFor 의 id 가 자동 연결된다. 그리드 전체선택의 "일부 선택" 표시는 indeterminate 로 한다.',
+    '20px 규격 체크박스. 네이티브 <input type="checkbox"> 가 그대로 살아 있어 폼 전송·라벨 연결이 표준 방식이고, 내부적으로는 값을 useControllableState 로 미러링하는 관리형이다(네이티브 onChange API 는 그대로) — 비제어(defaultChecked)에서도 view 모드가 현재값을 아는 근거다. 상태 축은 mode 하나다 — 비활성은 mode="disabled"(disabled boolean prop 은 타입에서 제거됐다). Field 안에서는 htmlFor 의 id 뿐 아니라 size·error 도 컨텍스트로 도달한다 — invalid 는 aria-invalid 로 방출된다(배색은 QA 미규정). 그리드 전체선택의 "일부 선택" 표시는 indeterminate 로 한다.',
   usage: USAGE,
   examples: [
     {
       id: 'states',
       title: '상태 전수',
-      note: 'hover 링(shadow-action)은 활성 상태에서만 뜨고, 비활성은 off(연회색)와 on(하늘색)이 다른 배색이다 — QA 실측.',
+      note: 'hover 링(shadow-action)은 활성 상태에서만 뜨고, 비활성(mode="disabled")은 off(연회색)와 on(하늘색)이 다른 배색이다 — QA 실측.',
       file: 'src/client/ui-test/docs/demos/checkbox/states.tsx',
       Component: CheckboxStatesDemo,
     },
@@ -45,16 +45,35 @@ export const checkboxDoc: DocEntry = {
             '일부만 선택된 상태. DOM 프로퍼티라 속성으로 줄 수 없어 내부에서 effect 로 넣는다 — 그리드 전체선택에서 이게 없으면 "일부 선택"이 "전체 선택"으로 보인다.',
         },
         {
+          name: 'mode',
+          type: "'edit' | 'view' | 'disabled'",
+          description:
+            '폼 상태 — 비활성 표기는 이 축 하나다(mode="disabled"). 생략하면 감싼 Field/FormMode 를 따르고, 명시하면 폼이 view 여도 이긴다.',
+        },
+        {
+          name: 'invalid',
+          type: 'boolean',
+          description:
+            'Field 밖에서 단독으로 쓸 때만 — Field 안이면 error 컨텍스트가 이긴다. 배색은 QA 미규정이라 aria-invalid 만 단다.',
+        },
+        {
           name: 'size',
           type: "'xs' | 'sm' | 'md' | 'lg' | 'xl'",
           defaultValue: "'md'",
-          description: '테마 스케일 유도 5단 — 기본 md 가 QA 20×20 이다.',
+          description:
+            '테마 스케일 유도 5단 — 기본 md 가 QA 20×20 이다. 생략하면 감싼 Field 의 size 를 따른다.',
         },
         {
           name: 'checked',
           type: 'boolean',
           description:
-            '그 밖에는 <input type="checkbox"> 네이티브 속성(checked·onChange·disabled 등)을 그대로 받는다. 내부가 값을 미러링하므로 비제어(defaultChecked)여도 view 모드가 현재값을 알고, view↔edit 왕복 시 remount 에서 값이 복원된다.',
+            'controlled 값. 그 밖에는 <input type="checkbox"> 네이티브 속성(onChange·readOnly 등)을 그대로 받는다 — 단 disabled 는 타입에서 제거됐다(mode 로 표기).',
+        },
+        {
+          name: 'defaultChecked',
+          type: 'boolean',
+          description:
+            '비제어 초기값. 내부가 값을 미러링하므로 비제어여도 view 모드가 현재값을 알고, view↔edit 왕복 시 remount 에서 값이 복원된다.',
         },
         {
           name: 'viewLabels',

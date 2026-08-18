@@ -51,7 +51,8 @@ export type RadioGroupProps = {
   readonly onValueChange?: (value: string) => void;
   /** 있으면 폼 전송에 실린다(Radix 가 hidden input 을 만든다). */
   readonly name?: string;
-  readonly disabled?: boolean;
+  /** 폼 모드. 생략하면 감싼 `Field`/`FormMode` 를 따른다 — 명시하면 폼이 view 여도 이긴다. */
+  readonly mode?: FieldMode;
   readonly invalid?: boolean;
   /** 5단 사이즈 — 그룹의 모든 Radio 에 내려간다(개별 Radio 의 명시 prop 이 이긴다). */
   readonly size?: ControlSize;
@@ -68,7 +69,7 @@ export function RadioGroup({
   defaultValue,
   onValueChange,
   name,
-  disabled,
+  mode,
   invalid,
   size,
   id,
@@ -78,14 +79,14 @@ export function RadioGroup({
   children,
 }: RadioGroupProps) {
   // size 도 넘긴다 — 안 넘기면 Field 의 size 가 그룹에 도달하지 못한다.
-  const field = useFieldControl({ id, invalid, size });
+  const field = useFieldControl({ id, invalid, size, mode });
   /**
    * 값을 항상 알도록 관리형으로 둔다(Radix Root 에 controlled 로 전달) —
    * 비제어(defaultValue) 사용에서도 view 모드가 체크된 항목을 판정할 수 있다.
    */
   const [value, setValue] = useControllableState(valueProp, defaultValue ?? '', onValueChange);
 
-  if (field.mode === 'view') {
+  if (field.state.view) {
     // 체크된 Radio 만 라벨을 남긴다(판정은 각 Radio 가 컨텍스트로).
     // 미선택이면 아무것도 안 그려 빈칸 규칙이 성립한다. gap·orientation 은 조회에서 무의미하다.
     return (
@@ -103,10 +104,12 @@ export function RadioGroup({
       value={value}
       onValueChange={setValue}
       name={name}
-      disabled={disabled || field.mode === 'disabled'}
+      disabled={field.state.disabled}
       aria-label={label}
       aria-invalid={field['aria-invalid']}
       aria-describedby={field['aria-describedby']}
+      aria-required={field.required || undefined}
+      {...field.state.dataProps}
       orientation={orientation}
       className={cn(
         'flex gap-5',
@@ -165,7 +168,7 @@ export function Radio({ value, disabled, size: sizeProp, children, className }: 
         )}
       >
         <RadixRadioGroup.Indicator className="flex size-full items-center justify-center">
-          <span className={cn('rounded-full bg-dl-primary-fg', DOT_CLASS[size])} />
+          <span className={cn('rounded-full bg-dl-primary-mark', DOT_CLASS[size])} />
         </RadixRadioGroup.Indicator>
       </RadixRadioGroup.Item>
       {children}

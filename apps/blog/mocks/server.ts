@@ -15,6 +15,16 @@ import { handlers } from './handlers';
  */
 type MockGlobal = typeof globalThis & {
   __hvyMswServer?: ReturnType<typeof setupServer>;
+  /**
+   * `server.listen()` 직후의 `globalThis.fetch`.
+   *
+   * MSW 는 전역 fetch 를 **자기 함수로 교체**해서 가로챈다. 그런데 Turbopack 이
+   * 리빌드할 때마다 전역 fetch 가 원본으로 되돌아가고, 그러면 목은 켜져 있는데
+   * 아무것도 가로채지 못한다 — 브라우저→BFF 호출이 전부 실 백엔드로 나간다.
+   * "우리가 심은 fetch 가 아직 살아 있는가"를 판정하려면 심은 순간의 참조가 필요하다.
+   * (MSW 내부 심볼을 읽지 않는 이유: 버전이 바뀌면 조용히 판정이 깨진다.)
+   */
+  __hvyMswFetch?: typeof globalThis.fetch;
 };
 
 const store = globalThis as MockGlobal;
@@ -29,14 +39,31 @@ export function startMockDownstream(): void {
   });
 
   store.__hvyMswServer = server;
+  store.__hvyMswFetch = globalThis.fetch;
 }
 
-/** HMR 이후에도 목이 살아 있는지 확인하고, 죽었으면 다시 켠다. */
+/**
+ * 요청 처리 직전에 목이 **실제로 가로채는 상태인지** 확인하고, 아니면 다시 켠다.
+ *
+ * 서버 객체가 살아 있는지만 보면 안 된다 — Turbopack 리빌드는 객체를 그대로 두고
+ * 전역 fetch 만 원본으로 되돌린다. 그 상태가 정확히 이 파일 상단이 경고하는
+ * "목이 조용히 꺼진 채 실 백엔드를 호출하는" 사고이고, 판정 대상이 틀리면 경고가 무의미하다.
+ */
 export function ensureMockDownstream(): void {
-  if (!store.__hvyMswServer) startMockDownstream();
+  if (!store.__hvyMswServer) {
+    startMockDownstream();
+    return;
+  }
+  if (store.__hvyMswFetch === globalThis.fetch) return;
+
+  store.__hvyMswServer.close();
+  store.__hvyMswServer = undefined;
+  store.__hvyMswFetch = undefined;
+  startMockDownstream();
 }
 
 export function stopMockDownstream(): void {
   store.__hvyMswServer?.close();
   store.__hvyMswServer = undefined;
+  store.__hvyMswFetch = undefined;
 }

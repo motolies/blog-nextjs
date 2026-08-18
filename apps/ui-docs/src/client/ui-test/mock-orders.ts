@@ -67,10 +67,47 @@ export const DEMO_ORDERS: readonly DemoOrder[] = Array.from({ length: 57 }, (_, 
   orderDate: `2026-07-${String((index % 28) + 1).padStart(2, '0')}`,
 }));
 
-/** 인라인 편집 데모용 — checkbox 에디터가 매핑할 'Y'/'N' 코드 컬럼을 추가한 행. */
-export type DemoEditableOrder = DemoOrder & { readonly useYn: 'Y' | 'N' };
+/**
+ * 부가서비스 12종 — multiselect 에디터용. **12개인 이유가 둘 다 있다**:
+ * 10을 넘겨야 셀 안에서도 검색 입력이 붙고, 6개를 넘겨야 선택 요약(칩)이 붙는다.
+ * 둘 중 하나라도 못 넘기면 셀 편집기에서 그 동작을 확인할 수 없다.
+ */
+export const DEMO_ADDON_OPTIONS = [
+  { value: 'GIFT', label: '선물포장' },
+  { value: 'COOL', label: '냉장배송' },
+  { value: 'FREEZE', label: '냉동배송' },
+  { value: 'FRAGILE', label: '파손주의' },
+  { value: 'INSURE', label: '보험' },
+  { value: 'SIGN', label: '수령확인' },
+  { value: 'DAWN', label: '새벽배송' },
+  { value: 'HOLD', label: '보관' },
+  { value: 'ASSEMBLE', label: '설치조립' },
+  { value: 'RECYCLE', label: '포장회수' },
+  { value: 'INVOICE', label: '거래명세서' },
+  { value: 'DUTY', label: '관세대납' },
+] as const;
+
+/**
+ * 인라인 편집 데모용 — 편집기 종류마다 필요한 데이터 모양이 달라 필드를 덧댄다:
+ * checkbox 는 'Y'/'N' 코드 컬럼, multiselect 는 **값 배열**이다.
+ */
+export type DemoEditableOrder = DemoOrder & {
+  readonly useYn: 'Y' | 'N';
+  readonly addons: readonly string[];
+};
 
 /** 30건이면 스크롤이 생겨 "가상 스크롤로 밀려난 에디터의 커밋 유지"를 확인할 수 있다. */
 export const DEMO_EDITABLE_ORDERS: readonly DemoEditableOrder[] = DEMO_ORDERS.slice(0, 30).map(
-  (order, index) => ({ ...order, useYn: index % 4 === 0 ? 'N' : 'Y' }),
+  (order, index) => ({
+    ...order,
+    useYn: index % 4 === 0 ? 'N' : 'Y',
+    // 첫 행은 7개 — 요약 임계값(5)을 넘긴 상태를 **열자마자** 보여준다.
+    // 나머지는 0~2개로 두어 임계값 아래의 평소 모습이 같은 열에 함께 보인다.
+    addons:
+      index === 0
+        ? DEMO_ADDON_OPTIONS.slice(0, 7).map((addon) => addon.value)
+        : DEMO_ADDON_OPTIONS.slice(index % 5, (index % 5) + (index % 3)).map(
+            (addon) => addon.value,
+          ),
+  }),
 );

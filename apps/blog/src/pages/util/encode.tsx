@@ -1,13 +1,8 @@
+import { Badge, Button, Input, showToast, Tab, TabList, TabPanel, Tabs, Textarea } from '@hvy/ui';
 import { format } from 'date-fns';
 import { ArrowLeft, ArrowUpDown, Copy } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
 import { copyTextToClipboard } from '@/util/browserUtils';
 import {
   decodeBase64Utf8,
@@ -24,10 +19,10 @@ function CopyButton({ value, onCopy }) {
     <button
       type="button"
       onClick={() => void onCopy(value)}
-      className="absolute right-2 top-2 p-1 rounded hover:bg-gray-100 dark:hover:bg-[rgba(44,49,58,0.7)]"
+      className="absolute right-2 top-2 p-1 rounded hover:bg-dl-option-hover"
       title="복사"
     >
-      <Copy className="h-4 w-4 text-gray-500 dark:text-[#636d83]" />
+      <Copy className="h-4 w-4 text-dl-fg-muted" />
     </button>
   );
 }
@@ -80,15 +75,15 @@ export default function EncodePage() {
 
   const handleCopy = async (text) => {
     if (!text) {
-      toast.warning('복사할 내용이 없습니다.');
+      showToast('복사할 내용이 없습니다.', 'warning');
       return;
     }
 
     try {
       await copyTextToClipboard(text);
-      toast.success('클립보드에 복사되었습니다.');
+      showToast('클립보드에 복사되었습니다.');
     } catch (e) {
-      toast.error(e.message || '클립보드 복사에 실패했습니다.');
+      showToast(e.message || '클립보드 복사에 실패했습니다.', 'error');
     }
   };
 
@@ -101,40 +96,40 @@ export default function EncodePage() {
   const encodeBase64 = () => {
     try {
       setOutput(encodeBase64Utf8(input));
-      toast.success('Base64 인코딩 완료');
+      showToast('Base64 인코딩 완료');
     } catch (e) {
       setOutput('');
-      toast.error(`인코딩 실패: ${e.message}`);
+      showToast(`인코딩 실패: ${e.message}`, 'error');
     }
   };
 
   const decodeBase64 = () => {
     try {
       setOutput(decodeBase64Utf8(input));
-      toast.success('Base64 디코딩 완료');
-    } catch (e) {
+      showToast('Base64 디코딩 완료');
+    } catch {
       setOutput('');
-      toast.error('디코딩 실패: 유효하지 않은 Base64 문자열');
+      showToast('디코딩 실패: 유효하지 않은 Base64 문자열', 'error');
     }
   };
 
   const encodeUrl = () => {
     try {
       setOutput(encodeURIComponent(input));
-      toast.success('URL 인코딩 완료');
+      showToast('URL 인코딩 완료');
     } catch (e) {
       setOutput('');
-      toast.error(`인코딩 실패: ${e.message}`);
+      showToast(`인코딩 실패: ${e.message}`, 'error');
     }
   };
 
   const decodeUrl = () => {
     try {
       setOutput(decodeURIComponent(input));
-      toast.success('URL 디코딩 완료');
+      showToast('URL 디코딩 완료');
     } catch (e) {
       setOutput('');
-      toast.error('디코딩 실패: 유효하지 않은 URL 인코딩');
+      showToast('디코딩 실패: 유효하지 않은 URL 인코딩', 'error');
     }
   };
 
@@ -148,10 +143,10 @@ export default function EncodePage() {
           .replace(/"/g, '&quot;')
           .replace(/'/g, '&#039;'),
       );
-      toast.success('HTML 인코딩 완료');
+      showToast('HTML 인코딩 완료');
     } catch (e) {
       setOutput('');
-      toast.error(`인코딩 실패: ${e.message}`);
+      showToast(`인코딩 실패: ${e.message}`, 'error');
     }
   };
 
@@ -166,58 +161,58 @@ export default function EncodePage() {
           .replace(/&#039;/g, "'")
           .replace(/&#39;/g, "'"),
       );
-      toast.success('HTML 디코딩 완료');
+      showToast('HTML 디코딩 완료');
     } catch (e) {
       setOutput('');
-      toast.error(`디코딩 실패: ${e.message}`);
+      showToast(`디코딩 실패: ${e.message}`, 'error');
     }
   };
 
   const encodeUnicode = () => {
     try {
       setOutput(encodeUnicodeEscapes(input));
-      toast.success('Unicode 인코딩 완료');
+      showToast('Unicode 인코딩 완료');
     } catch (e) {
       setOutput('');
-      toast.error(`인코딩 실패: ${e.message}`);
+      showToast(`인코딩 실패: ${e.message}`, 'error');
     }
   };
 
   const decodeUnicode = () => {
     try {
       setOutput(decodeUnicodeEscapes(input));
-      toast.success('Unicode 디코딩 완료');
+      showToast('Unicode 디코딩 완료');
     } catch (e) {
       setOutput('');
-      toast.error('디코딩 실패: 유효하지 않은 Unicode 문자열');
+      showToast('디코딩 실패: 유효하지 않은 Unicode 문자열', 'error');
     }
   };
 
   const hashMd5 = () => {
     if (!CryptoJS) {
-      toast.info('암호화 라이브러리 로딩 중...');
+      showToast('암호화 라이브러리 로딩 중...', 'info');
       return;
     }
     try {
       setOutput(CryptoJS.MD5(input).toString());
-      toast.success('MD5 해시 생성 완료');
+      showToast('MD5 해시 생성 완료');
     } catch (e) {
       setOutput('');
-      toast.error(`해시 생성 실패: ${e.message}`);
+      showToast(`해시 생성 실패: ${e.message}`, 'error');
     }
   };
 
   const hashSha256 = () => {
     if (!CryptoJS) {
-      toast.info('암호화 라이브러리 로딩 중...');
+      showToast('암호화 라이브러리 로딩 중...', 'info');
       return;
     }
     try {
       setOutput(CryptoJS.SHA256(input).toString());
-      toast.success('SHA-256 해시 생성 완료');
+      showToast('SHA-256 해시 생성 완료');
     } catch (e) {
       setOutput('');
-      toast.error(`해시 생성 실패: ${e.message}`);
+      showToast(`해시 생성 실패: ${e.message}`, 'error');
     }
   };
 
@@ -239,33 +234,33 @@ export default function EncodePage() {
       }
 
       setOutput(JSON.stringify({ header, payload }, null, 2));
-      toast.success('JWT 디코딩 완료');
+      showToast('JWT 디코딩 완료');
     } catch (e) {
       setJwtHeader('');
       setJwtPayload('');
       setJwtExpiry(null);
       setOutput('');
-      toast.error(`JWT 디코딩 실패: ${e.message}`);
+      showToast(`JWT 디코딩 실패: ${e.message}`, 'error');
     }
   };
 
   const formatJson = () => {
     try {
       setOutput(formatJsonText(input));
-      toast.success('JSON 포맷팅 완료');
+      showToast('JSON 포맷팅 완료');
     } catch (e) {
       setOutput('');
-      toast.error(`JSON 파싱 실패: ${e.message}`);
+      showToast(`JSON 파싱 실패: ${e.message}`, 'error');
     }
   };
 
   const minifyJson = () => {
     try {
       setOutput(minifyJsonText(input));
-      toast.success('JSON 압축 완료');
+      showToast('JSON 압축 완료');
     } catch (e) {
       setOutput('');
-      toast.error(`JSON 파싱 실패: ${e.message}`);
+      showToast(`JSON 파싱 실패: ${e.message}`, 'error');
     }
   };
 
@@ -285,21 +280,36 @@ export default function EncodePage() {
         className={`${TEXTAREA_MIN_HEIGHT_CLASS} font-mono text-sm`}
       />
       <div className="flex gap-2 justify-center items-center">
-        <Button onClick={encodeFn}>Encode</Button>
-        <Button onClick={decodeFn}>Decode</Button>
-        <Button variant="ghost" size="icon" onClick={handleSwap} title="입력/출력 스왑">
+        <Button variant="primary" onClick={encodeFn}>
+          Encode
+        </Button>
+        <Button variant="primary" onClick={decodeFn}>
+          Decode
+        </Button>
+        <Button
+          className="aspect-square p-0"
+          variant="ghost"
+          onClick={handleSwap}
+          title="입력/출력 스왑"
+        >
           <ArrowUpDown className="h-4 w-4" />
         </Button>
       </div>
-      <div className="relative">
-        <Textarea
-          value={output}
-          readOnly
-          rows={10}
-          className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 ${isMonospace ? 'font-mono text-sm' : ''}`}
-          placeholder={outputLabel}
-        />
-        <CopyButton value={output} onCopy={handleCopy} />
+      <div>
+        {/* 잠긴 칸은 placeholder 가 감춰진다(dl-field-locked) — 라벨을 밖으로 올린다 */}
+        <label htmlFor="encode-output" className="text-xs text-dl-fg-muted mb-1 block">
+          {outputLabel}
+        </label>
+        <div className="relative">
+          <Textarea
+            id="encode-output"
+            value={output}
+            lock
+            rows={10}
+            className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 ${isMonospace ? 'font-mono text-sm' : ''}`}
+          />
+          <CopyButton value={output} onCopy={handleCopy} />
+        </div>
       </div>
     </div>
   );
@@ -311,7 +321,7 @@ export default function EncodePage() {
   return (
     <div className="p-2 sm:p-4">
       <div className="flex items-center gap-2 mb-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
+        <Button className="aspect-square p-0" variant="ghost" onClick={() => router.push('/util')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-xl sm:text-3xl font-bold">Encoder / Decoder</h1>
@@ -319,47 +329,47 @@ export default function EncodePage() {
 
       <div className="border rounded-md">
         <Tabs value={tabValue} onValueChange={setTabValue}>
-          <TabsList className="w-full flex h-auto border-b rounded-none justify-start px-2 py-1 gap-1 overflow-x-auto">
+          <TabList className="w-full flex h-auto border-b rounded-none justify-start px-2 py-1 gap-1 overflow-x-auto">
             {ENCODING_TYPES.map((type) => (
-              <TabsTrigger key={type.id} value={type.id} className="flex-none">
+              <Tab key={type.id} value={type.id} className="flex-none">
                 {type.label}
-              </TabsTrigger>
+              </Tab>
             ))}
-          </TabsList>
+          </TabList>
 
           <div className="p-2 sm:p-4">
             {/* Base64 */}
-            <TabsContent value="base64">
+            <TabPanel value="base64">
               {renderBidirectionalPanel({
                 encodeFn: encodeBase64,
                 decodeFn: decodeBase64,
                 inputPlaceholder: '인코딩/디코딩할 텍스트를 입력하세요',
                 outputLabel: '출력',
               })}
-            </TabsContent>
+            </TabPanel>
 
             {/* URL */}
-            <TabsContent value="url">
+            <TabPanel value="url">
               {renderBidirectionalPanel({
                 encodeFn: encodeUrl,
                 decodeFn: decodeUrl,
                 inputPlaceholder: 'URL 인코딩/디코딩할 텍스트를 입력하세요',
                 outputLabel: '출력',
               })}
-            </TabsContent>
+            </TabPanel>
 
             {/* HTML */}
-            <TabsContent value="html">
+            <TabPanel value="html">
               {renderBidirectionalPanel({
                 encodeFn: encodeHtml,
                 decodeFn: decodeHtml,
                 inputPlaceholder: 'HTML 인코딩/디코딩할 텍스트를 입력하세요',
                 outputLabel: '출력',
               })}
-            </TabsContent>
+            </TabPanel>
 
             {/* Unicode */}
-            <TabsContent value="unicode">
+            <TabPanel value="unicode">
               {renderBidirectionalPanel({
                 encodeFn: encodeUnicode,
                 decodeFn: decodeUnicode,
@@ -367,10 +377,10 @@ export default function EncodePage() {
                   'Unicode 인코딩: 일반 텍스트, 디코딩: \\u0048\\u0065\\u006c\\u006c\\u006f',
                 outputLabel: '출력',
               })}
-            </TabsContent>
+            </TabPanel>
 
             {/* MD5 */}
-            <TabsContent value="md5">
+            <TabPanel value="md5">
               <div className="space-y-3">
                 <Textarea
                   value={input}
@@ -380,22 +390,24 @@ export default function EncodePage() {
                   className={TEXTAREA_MIN_HEIGHT_CLASS}
                 />
                 <div className="flex justify-center">
-                  <Button onClick={hashMd5}>MD5 해시 생성</Button>
+                  <Button variant="primary" onClick={hashMd5}>
+                    MD5 해시 생성
+                  </Button>
                 </div>
-                <div className="relative">
-                  <Input
-                    value={output}
-                    readOnly
-                    placeholder="MD5 해시 (32자)"
-                    className="pr-8 font-mono"
-                  />
-                  <CopyButton value={output} onCopy={handleCopy} />
+                <div>
+                  <label htmlFor="encode-md5" className="text-xs text-dl-fg-muted mb-1 block">
+                    MD5 해시 (32자)
+                  </label>
+                  <div className="relative">
+                    <Input id="encode-md5" value={output} lock className="pr-8 font-mono" />
+                    <CopyButton value={output} onCopy={handleCopy} />
+                  </div>
                 </div>
               </div>
-            </TabsContent>
+            </TabPanel>
 
             {/* SHA-256 */}
-            <TabsContent value="sha256">
+            <TabPanel value="sha256">
               <div className="space-y-3">
                 <Textarea
                   value={input}
@@ -405,22 +417,24 @@ export default function EncodePage() {
                   className={TEXTAREA_MIN_HEIGHT_CLASS}
                 />
                 <div className="flex justify-center">
-                  <Button onClick={hashSha256}>SHA-256 해시 생성</Button>
+                  <Button variant="primary" onClick={hashSha256}>
+                    SHA-256 해시 생성
+                  </Button>
                 </div>
-                <div className="relative">
-                  <Input
-                    value={output}
-                    readOnly
-                    placeholder="SHA-256 해시 (64자)"
-                    className="pr-8 font-mono"
-                  />
-                  <CopyButton value={output} onCopy={handleCopy} />
+                <div>
+                  <label htmlFor="encode-sha256" className="text-xs text-dl-fg-muted mb-1 block">
+                    SHA-256 해시 (64자)
+                  </label>
+                  <div className="relative">
+                    <Input id="encode-sha256" value={output} lock className="pr-8 font-mono" />
+                    <CopyButton value={output} onCopy={handleCopy} />
+                  </div>
                 </div>
               </div>
-            </TabsContent>
+            </TabPanel>
 
             {/* JWT */}
-            <TabsContent value="jwt">
+            <TabPanel value="jwt">
               <div className="space-y-3">
                 <Textarea
                   value={input}
@@ -430,41 +444,55 @@ export default function EncodePage() {
                   className={`${TEXTAREA_MIN_HEIGHT_CLASS} font-mono text-xs`}
                 />
                 <div className="flex justify-center">
-                  <Button onClick={decodeJwt}>JWT 디코딩</Button>
+                  <Button variant="primary" onClick={decodeJwt}>
+                    JWT 디코딩
+                  </Button>
                 </div>
                 {jwtHeader && (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="relative">
-                        <label className="text-xs text-gray-500 dark:text-[#636d83] mb-1 block">
+                      <div>
+                        <label
+                          htmlFor="encode-jwt-header"
+                          className="text-xs text-dl-fg-muted mb-1 block"
+                        >
                           Header
                         </label>
-                        <Textarea
-                          value={jwtHeader}
-                          readOnly
-                          rows={10}
-                          className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 font-mono text-xs`}
-                        />
-                        <CopyButton value={jwtHeader} onCopy={handleCopy} />
+                        <div className="relative">
+                          <Textarea
+                            id="encode-jwt-header"
+                            value={jwtHeader}
+                            lock
+                            rows={10}
+                            className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 font-mono text-xs`}
+                          />
+                          <CopyButton value={jwtHeader} onCopy={handleCopy} />
+                        </div>
                       </div>
-                      <div className="relative">
-                        <label className="text-xs text-gray-500 dark:text-[#636d83] mb-1 block">
+                      <div>
+                        <label
+                          htmlFor="encode-jwt-payload"
+                          className="text-xs text-dl-fg-muted mb-1 block"
+                        >
                           Payload
                         </label>
-                        <Textarea
-                          value={jwtPayload}
-                          readOnly
-                          rows={10}
-                          className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 font-mono text-xs`}
-                        />
-                        <CopyButton value={jwtPayload} onCopy={handleCopy} />
+                        <div className="relative">
+                          <Textarea
+                            id="encode-jwt-payload"
+                            value={jwtPayload}
+                            lock
+                            rows={10}
+                            className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 font-mono text-xs`}
+                          />
+                          <CopyButton value={jwtPayload} onCopy={handleCopy} />
+                        </div>
                       </div>
                     </div>
                     {jwtExpiry && (
                       <div className="flex items-center gap-2">
                         <span className="text-sm">만료 시간:</span>
                         <span className="text-sm font-mono">{jwtExpiry.date}</span>
-                        <Badge variant={jwtExpiry.expired ? 'destructive' : 'default'}>
+                        <Badge tone={jwtExpiry.expired ? 'danger' : 'primary'}>
                           {jwtExpiry.expired ? '만료됨' : '유효'}
                         </Badge>
                       </div>
@@ -472,10 +500,10 @@ export default function EncodePage() {
                   </>
                 )}
               </div>
-            </TabsContent>
+            </TabPanel>
 
             {/* JSON */}
-            <TabsContent value="json">
+            <TabPanel value="json">
               <div className="space-y-3">
                 <Textarea
                   value={input}
@@ -485,30 +513,48 @@ export default function EncodePage() {
                   className={`${TEXTAREA_MIN_HEIGHT_CLASS} font-mono text-xs`}
                 />
                 <div className="flex gap-2 justify-center items-center">
-                  <Button onClick={formatJson}>포맷팅 (Beautify)</Button>
-                  <Button onClick={minifyJson}>압축 (Minify)</Button>
-                  <Button variant="ghost" size="icon" onClick={handleSwap} title="입력/출력 스왑">
+                  <Button variant="primary" onClick={formatJson}>
+                    포맷팅 (Beautify)
+                  </Button>
+                  <Button variant="primary" onClick={minifyJson}>
+                    압축 (Minify)
+                  </Button>
+                  <Button
+                    className="aspect-square p-0"
+                    variant="ghost"
+                    onClick={handleSwap}
+                    title="입력/출력 스왑"
+                  >
                     <ArrowUpDown className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="relative">
-                  <Textarea
-                    value={output}
-                    readOnly
-                    rows={10}
-                    className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 font-mono text-xs`}
-                  />
-                  <CopyButton value={output} onCopy={handleCopy} />
+                <div>
+                  <label
+                    htmlFor="encode-json-output"
+                    className="text-xs text-dl-fg-muted mb-1 block"
+                  >
+                    출력
+                  </label>
+                  <div className="relative">
+                    <Textarea
+                      id="encode-json-output"
+                      value={output}
+                      lock
+                      rows={10}
+                      className={`${TEXTAREA_MIN_HEIGHT_CLASS} pr-8 font-mono text-xs`}
+                    />
+                    <CopyButton value={output} onCopy={handleCopy} />
+                  </div>
                 </div>
               </div>
-            </TabsContent>
+            </TabPanel>
           </div>
         </Tabs>
       </div>
 
-      <div className="mt-4 p-3 bg-gray-100 dark:bg-[rgba(44,49,58,0.7)] rounded-md">
+      <div className="mt-4 p-3 bg-dl-option-hover rounded-md">
         <p className="text-sm font-semibold mb-1">인코딩 타입 안내</p>
-        <ul className="text-sm text-gray-500 dark:text-[#636d83] list-disc ml-5 space-y-0.5">
+        <ul className="text-sm text-dl-fg-muted list-disc ml-5 space-y-0.5">
           <li>
             <strong>Base64</strong>: 바이너리 데이터를 ASCII 문자로 변환
           </li>

@@ -1,20 +1,9 @@
-import { Plus, RefreshCw, Save, Search, X } from 'lucide-react';
-import type React from 'react';
+import { Button, ContentDialog, Spinner, showToast, useConfirm } from '@hvy/ui';
+import { Plus, RefreshCw, Save } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import ConfirmDialog from '@/components/confirm/ConfirmDialog';
-import DeleteConfirm from '@/components/confirm/DeleteConfirm';
+import TreeSearchBar from '@/components/common/tree/TreeSearchBar';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useTreeSearch } from '@/hooks/useTreeSearch';
 import service from '@/service';
 import MasterCodeTree from './MasterCodeTree';
 import NodeDetailPanel from './NodeDetailPanel';
@@ -69,17 +58,18 @@ const INITIAL_FORM_DATA: FormData = {
   attributes: {},
 };
 
+// useTreeSearch 에 넘기는 추출자 — 모듈 스코프에 둬야 참조가 고정돼 필터가 매 렌더 다시 돌지 않는다.
+const getMasterCodeRowId = (node: MasterCodeNode) => String(node.id);
+const masterCodeSearchFields = (node: MasterCodeNode) => [node.code, node.name];
+
 export default function MasterCodePage() {
+  const askConfirm = useConfirm();
   // 데이터 상태
   const [treeData, setTreeData] = useState<MasterCodeNode[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   // 선택/탐색 상태
   const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
-  const [expandedIds, setExpandedIds] = useState<(string | number)[]>([]);
-
-  // 검색 상태
-  const [searchQuery, setSearchQuery] = useState<string>('');
 
   // 다이얼로그 상태
   const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -88,9 +78,10 @@ export default function MasterCodePage() {
   const [originalCode, setOriginalCode] = useState<string>('');
   const [dialogParentNode, setDialogParentNode] = useState<MasterCodeNode | null>(null);
 
-  // 확인 다이얼로그 상태 (네이티브 confirm 대체)
-  const [deleteTarget, setDeleteTarget] = useState<MasterCodeNode | null>(null);
-  const [cacheConfirmOpen, setCacheConfirmOpen] = useState<boolean>(false);
+  // 트리 검색 — 검색어와 펼침 상태를 함께 소유한다.
+  // 아래 파생값들은 **원본** treeData 를 봐야 한다. 필터된 클론을 넣으면 자식이 잘린 노드가
+  // 흘러들어 삭제 가드(하위 노드 존재 확인)와 상세 패널의 하위 개수가 조용히 틀어진다.
+  const search = useTreeSearch(treeData, getMasterCodeRowId, masterCodeSearchFields);
 
   // 선택된 노드 객체 찾기 (트리에서 재귀 탐색)
   const selectedNode = useMemo(() => {
@@ -111,28 +102,17 @@ export default function MasterCodePage() {
       setLoading(true);
       const data = await service.masterCode.getTree();
       setTreeData(data || []);
-      // 초기 로드 시 루트 노드 모두 펼침
-      if (expandedIds.length === 0 && data?.length > 0) {
-        setExpandedIds(data.map((n: MasterCodeNode) => n.id));
-      }
     } catch (error: any) {
-      toast.error(`데이터 로드 실패: ${error.response?.data?.message || error.message}`);
+      showToast(`데이터 로드 실패: ${error.response?.data?.message || error.message}`, 'error');
       setTreeData([]);
     } finally {
       setLoading(false);
     }
-  }, []); // expandedIds 의존성 제거: 초기 로드에서만 자동 펼침
+  }, []);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
-
-  // 트리 노드 펼침/접힘 토글
-  const handleToggle = useCallback((nodeId: string | number) => {
-    setExpandedIds((prev) =>
-      prev.includes(nodeId) ? prev.filter((id) => id !== nodeId) : [...prev, nodeId],
-    );
-  }, []);
 
   // 노드 선택
   const handleNodeSelect = useCallback((node: MasterCodeNode) => {
@@ -186,43 +166,47 @@ export default function MasterCodePage() {
   }, []);
 
   // 삭제 요청 — 확인 다이얼로그를 띄운다
-  const handleDelete = useCallback((node: MasterCodeNode) => {
-    const hasChildren = Array.isArray(node.children) && node.children.length > 0;
-    if (hasChildren) {
-      toast.error('하위 노드가 존재하여 삭제할 수 없습니다. 하위 노드를 먼저 삭제해주세요.');
-      return;
-    }
-    setDeleteTarget(node);
-  }, []);
-
-  // 확인 후 실제 삭제 수행
-  const performDelete = useCallback(async () => {
-    if (!deleteTarget) return;
-    const node = deleteTarget;
-    setDeleteTarget(null);
-    try {
-      setLoading(true);
-      await service.masterCode.deleteNode(node.id);
-      toast.success('노드가 성공적으로 삭제되었습니다.');
-      if (selectedNodeId === node.id) {
-        setSelectedNodeId(null);
+  const handleDelete = useCallback(
+    async (node: MasterCodeNode) => {
+      const hasChildren = Array.isArray(node.children) && node.children.length > 0;
+      if (hasChildren) {
+        showToast(
+          '하위 노드가 존재하여 삭제할 수 없습니다. 하위 노드를 먼저 삭제해주세요.',
+          'error',
+        );
+        return;
       }
-      await loadData();
-    } catch (error: any) {
-      toast.error(`삭제 실패: ${error.response?.data?.message || error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [deleteTarget, loadData, selectedNodeId]);
+      const ok = await askConfirm({
+        message: `"${node.name}" (${node.code})을(를) 삭제하시겠습니까?`,
+        confirmLabel: '삭제',
+        destructive: true,
+      });
+      if (!ok) return;
+      try {
+        setLoading(true);
+        await service.masterCode.deleteNode(node.id);
+        showToast('노드가 성공적으로 삭제되었습니다.');
+        if (selectedNodeId === node.id) {
+          setSelectedNodeId(null);
+        }
+        await loadData();
+      } catch (error: any) {
+        showToast(`삭제 실패: ${error.response?.data?.message || error.message}`, 'error');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [askConfirm, loadData, selectedNodeId],
+  );
 
   // 저장
   const handleSave = async () => {
     if (!formData.code?.trim()) {
-      toast.error('코드는 필수 입력입니다.');
+      showToast('코드는 필수 입력입니다.', 'error');
       return;
     }
     if (!formData.name?.trim()) {
-      toast.error('이름은 필수 입력입니다.');
+      showToast('이름은 필수 입력입니다.', 'error');
       return;
     }
 
@@ -248,7 +232,7 @@ export default function MasterCodePage() {
           attributeSchema: normalizedSchema,
         };
         await service.masterCode.createNode(payload);
-        toast.success('루트 노드가 성공적으로 생성되었습니다.');
+        showToast('루트 노드가 성공적으로 생성되었습니다.');
       } else if (dialogMode === 'addChild') {
         const payload = {
           code: formData.code.trim(),
@@ -260,10 +244,10 @@ export default function MasterCodePage() {
           attributes: formData.attributes,
         };
         await service.masterCode.createNode(payload);
-        toast.success('하위 노드가 성공적으로 생성되었습니다.');
+        showToast('하위 노드가 성공적으로 생성되었습니다.');
         // 부모 노드 펼침
-        if (formData.parentId && !expandedIds.includes(formData.parentId)) {
-          setExpandedIds((prev) => [...prev, formData.parentId!]);
+        if (formData.parentId != null) {
+          search.expandNode(String(formData.parentId));
         }
       } else if (dialogMode === 'edit') {
         const isRoot = formData.isRoot;
@@ -276,32 +260,36 @@ export default function MasterCodePage() {
           ...(isRoot ? { attributeSchema: normalizedSchema } : { attributes: formData.attributes }),
         };
         await service.masterCode.updateNode(selectedNode!.id, payload);
-        toast.success('노드가 성공적으로 수정되었습니다.');
+        showToast('노드가 성공적으로 수정되었습니다.');
       }
+
+      // 방금 만든 노드가 검색어와 맞지 않으면 화면에 나타나지 않는다 — 생성일 때만 필터를 푼다.
+      // 편집·삭제는 대상 행이 이미 보이던 행이라 이 문제가 없다.
+      if (dialogMode !== 'edit') search.clearQuery();
 
       setOpenDialog(false);
       await loadData();
     } catch (error: any) {
-      toast.error(`저장 실패: ${error.response?.data?.message || error.message}`);
+      showToast(`저장 실패: ${error.response?.data?.message || error.message}`, 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  // 캐시 삭제 요청 — 확인 다이얼로그를 띄운다
-  const handleClearAllCache = () => {
-    setCacheConfirmOpen(true);
-  };
-
-  // 확인 후 실제 캐시 삭제 수행
-  const performClearAllCache = async () => {
-    setCacheConfirmOpen(false);
+  // 확인 후 전체 캐시 삭제 수행
+  const handleClearAllCache = async () => {
+    const ok = await askConfirm({
+      message:
+        '전체 캐시를 삭제하시겠습니까? 모든 캐시가 삭제되며 시스템 성능에 일시적인 영향을 줄 수 있습니다.',
+      confirmLabel: '삭제',
+    });
+    if (!ok) return;
     try {
       setLoading(true);
       const result = await service.masterCode.evictAllCaches();
-      toast.success(`${result.message} (${result.evictedCacheCount}개 캐시 삭제됨)`);
+      showToast(`${result.message} (${result.evictedCacheCount}개 캐시 삭제됨)`);
     } catch (error: any) {
-      toast.error(`캐시 삭제 실패: ${error.response?.data?.message || error.message}`);
+      showToast(`캐시 삭제 실패: ${error.response?.data?.message || error.message}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -332,15 +320,15 @@ export default function MasterCodePage() {
       className="admin-page-frame--fixed"
       actions={
         <>
-          <Button onClick={handleAddRoot} disabled={loading}>
+          <Button variant="primary" onClick={handleAddRoot} busy={loading}>
             <Plus className="h-4 w-4 mr-1" />
             루트 추가
           </Button>
           <Button
-            variant="outline"
-            className="border-amber-500/25 text-amber-700 hover:bg-amber-500/10 hover:text-amber-800"
+            variant="outline-gray"
+            className="border-dl-warning text-dl-warning-ink hover:bg-dl-warning-bg"
             onClick={handleClearAllCache}
-            disabled={loading}
+            busy={loading}
           >
             <RefreshCw className="h-4 w-4 mr-1" />
             캐시 삭제
@@ -348,47 +336,36 @@ export default function MasterCodePage() {
         </>
       }
     >
-      {/* 검색 바 */}
-      <div className="admin-panel admin-panel-pad mb-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-            placeholder="코드 또는 이름으로 검색..."
-            className="pl-9 pr-8"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 hover:bg-muted"
-              onClick={() => setSearchQuery('')}
-            >
-              <X className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
-          )}
-        </div>
-      </div>
+      {/* 검색 바 — 로딩 삼항 밖에 둔다. 안에 넣으면 로딩이 끝나는 순간 검색바가 튀어 들어온다. */}
+      <TreeSearchBar
+        value={search.query}
+        onChange={search.setQuery}
+        onClear={search.clearQuery}
+        placeholder="코드 또는 이름으로 검색..."
+        label="마스터코드 검색"
+        resultCount={search.isSearching ? search.matchCount : null}
+      />
 
       {/* 메인 콘텐츠 */}
       {loading && treeData.length === 0 ? (
-        <div className="flex flex-col gap-2 py-4">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-3/4" />
+        <div className="flex items-center justify-center py-10">
+          <Spinner className="size-6" />
         </div>
       ) : (
         <div className="admin-split-layout admin-fill" data-size="wide">
           {/* 좌측: 트리 뷰 */}
           <div className="admin-panel admin-fill min-w-0 overflow-hidden">
-            <MasterCodeTree
-              treeData={treeData}
-              selectedNodeId={selectedNodeId}
-              onNodeSelect={handleNodeSelect}
-              expandedIds={expandedIds}
-              onToggle={handleToggle}
-              searchQuery={searchQuery}
-            />
+            <div className="h-full overflow-y-auto p-2">
+              <MasterCodeTree
+                treeData={search.nodes}
+                selectedNodeId={selectedNodeId}
+                onNodeSelect={handleNodeSelect}
+                expanded={search.expanded}
+                onToggle={search.toggle}
+                query={search.query}
+                isSearching={search.isSearching}
+              />
+            </div>
           </div>
 
           {/* 우측: 상세 패널 */}
@@ -405,24 +382,17 @@ export default function MasterCodePage() {
       )}
 
       {/* 추가/편집 다이얼로그 */}
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{dialogTitle}</DialogTitle>
-          </DialogHeader>
-          <NodeForm
-            formData={formData}
-            setFormData={setFormData}
-            dialogMode={dialogMode}
-            originalCode={originalCode}
-            parentNode={dialogParentNode}
-            rootAttributeSchema={formRootAttributeSchema}
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenDialog(false)} disabled={loading}>
+      <ContentDialog
+        open={openDialog}
+        onOpenChange={setOpenDialog}
+        title={dialogTitle}
+        size="lg"
+        footer={
+          <>
+            <Button variant="outline-gray" onClick={() => setOpenDialog(false)} busy={loading}>
               취소
             </Button>
-            <Button onClick={handleSave} disabled={loading}>
+            <Button variant="primary" onClick={handleSave} busy={loading}>
               {loading ? (
                 <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
               ) : (
@@ -430,33 +400,18 @@ export default function MasterCodePage() {
               )}
               {loading ? '저장 중...' : '저장'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* 노드 삭제 확인 */}
-      <DeleteConfirm
-        open={deleteTarget != null}
-        question={
-          deleteTarget
-            ? `"${deleteTarget.name}" (${deleteTarget.code})을(를) 삭제하시겠습니까?`
-            : ''
+          </>
         }
-        onConfirm={performDelete}
-        onCancel={() => setDeleteTarget(null)}
-      />
-
-      {/* 전체 캐시 삭제 확인 */}
-      <ConfirmDialog
-        open={cacheConfirmOpen}
-        icon={RefreshCw}
-        iconClassName="text-primary"
-        title="전체 캐시 삭제"
-        question="전체 캐시를 삭제하시겠습니까? 모든 캐시가 삭제되며 시스템 성능에 일시적인 영향을 줄 수 있습니다."
-        confirmText="삭제"
-        onConfirm={performClearAllCache}
-        onCancel={() => setCacheConfirmOpen(false)}
-      />
+      >
+        <NodeForm
+          formData={formData}
+          setFormData={setFormData}
+          dialogMode={dialogMode}
+          originalCode={originalCode}
+          parentNode={dialogParentNode}
+          rootAttributeSchema={formRootAttributeSchema}
+        />
+      </ContentDialog>
     </AdminPageFrame>
   );
 }

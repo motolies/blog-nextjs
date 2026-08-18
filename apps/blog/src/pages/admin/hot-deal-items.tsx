@@ -1,8 +1,13 @@
+import { Badge, DataGrid, defineColumns } from '@hvy/ui';
 import { format } from 'date-fns';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import ShadcnDataTable, { type DataTableColumn } from '@/components/common/ShadcnDataTable';
+import DynamicSearchFields from '@/components/common/DynamicSearchFields';
+import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
+import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
+import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
-import { Badge } from '@/components/ui/badge';
+import { useServerGrid } from '@/hooks/useServerGrid';
+import type { SearchField, SearchRequest } from '@/lib/gridSearch';
 import service from '@/service';
 import { formatUtcToLocal } from '@/util/dateTimeUtil';
 
@@ -10,6 +15,48 @@ interface SiteOption {
   value: string;
   label: string;
 }
+
+const COLUMNS = defineColumns<Record<string, unknown>>([
+  { id: 'siteName', headerWord: '사이트', width: 140, align: 'left' },
+  {
+    id: 'title',
+    headerWord: '제목',
+    grow: 1,
+    align: 'left',
+    format: (value, row) => (
+      <a
+        href={String(row.url)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-dl-primary-ink hover:text-dl-primary-ink hover:underline"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {String(value)}
+      </a>
+    ),
+  },
+  { id: 'price', headerWord: '가격', width: 200, align: 'left' },
+  { id: 'recommendationCount', headerWord: '추천', width: 80, align: 'right' },
+  { id: 'unrecommendationCount', headerWord: '비추천', width: 80, align: 'right' },
+  { id: 'viewCount', headerWord: '조회', width: 80, align: 'right' },
+  { id: 'commentCount', headerWord: '댓글', width: 80, align: 'right' },
+  {
+    id: 'notified',
+    headerWord: '알림',
+    width: 80,
+    align: 'left',
+    format: (value) => (
+      <Badge tone={value ? 'success' : 'neutral'}>{value ? '발송' : '미발송'}</Badge>
+    ),
+  },
+  {
+    id: 'scrapedAt',
+    headerWord: '스크래핑일시',
+    width: 200,
+    align: 'left',
+    format: (value) => formatUtcToLocal(String(value), 'yyyy-MM-dd HH:mm:ss'),
+  },
+]);
 
 export default function HotDealItemsPage() {
   // 모듈 로드 시점이 아닌 마운트 시점에 기본 검색일을 계산한다(자정 넘김 stale 방지)
@@ -26,92 +73,11 @@ export default function HotDealItemsPage() {
   }, []);
 
   const fetchItems = useCallback(
-    (searchRequest: any) => service.hotDeal.searchItems({ searchRequest }),
+    (searchRequest: SearchRequest) => service.hotDeal.searchItems({ searchRequest }),
     [],
   );
 
-  const columns = useMemo<DataTableColumn[]>(
-    () => [
-      {
-        accessorKey: 'siteName',
-        header: '사이트',
-        size: 140,
-        mobileLabel: '사이트',
-      },
-      {
-        accessorKey: 'title',
-        header: '제목',
-        grow: true,
-        mobilePrimary: true,
-        mobileLabel: '제목',
-        cell: ({ value, row }: { value: string; row: any }) => (
-          <a
-            href={row.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sky-600 hover:text-sky-800 hover:underline"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {value}
-          </a>
-        ),
-      },
-      {
-        accessorKey: 'price',
-        header: '가격',
-        size: 200,
-        mobileLabel: '가격',
-      },
-      {
-        accessorKey: 'recommendationCount',
-        header: '추천',
-        size: 80,
-        // mobileHidden: true,
-        cellAlign: 'right',
-      },
-      {
-        accessorKey: 'unrecommendationCount',
-        header: '비추천',
-        size: 80,
-        mobileHidden: true,
-        cellAlign: 'right',
-      },
-      {
-        accessorKey: 'viewCount',
-        header: '조회',
-        size: 80,
-        // mobileHidden: true,
-        cellAlign: 'right',
-      },
-      {
-        accessorKey: 'commentCount',
-        header: '댓글',
-        size: 80,
-        mobileHidden: true,
-        cellAlign: 'right',
-      },
-      {
-        accessorKey: 'notified',
-        header: '알림',
-        size: 80,
-        mobileLabel: '알림',
-        mobileHidden: true,
-        cell: ({ value }: { value: boolean }) => (
-          <Badge variant={value ? 'success' : 'secondary'}>{value ? '발송' : '미발송'}</Badge>
-        ),
-      },
-      {
-        accessorKey: 'scrapedAt',
-        header: '스크래핑일시',
-        size: 200,
-        // mobileHidden: true,
-        cell: ({ value }: { value: string }) => formatUtcToLocal(value, 'yyyy-MM-dd HH:mm:ss'),
-      },
-    ],
-    [],
-  );
-
-  const searchFields = useMemo(
+  const searchFields = useMemo<SearchField[]>(
     () => [
       {
         type: 'dateRange',
@@ -129,16 +95,6 @@ export default function HotDealItemsPage() {
         options: siteOptions,
       },
       { name: 'title', label: '제목' },
-      // {
-      //   name: 'notified',
-      //   label: '알림 상태',
-      //   type: 'select',
-      //   options: [
-      //     {value: 'true', label: '발송'},
-      //     {value: 'false', label: '미발송'},
-      //   ],
-      // },
-      // {name: 'dealCategory', label: '딜 카테고리'},
       {
         type: 'numberRange',
         fromName: 'minRecommendationCount',
@@ -173,17 +129,51 @@ export default function HotDealItemsPage() {
     [siteOptions],
   );
 
+  const defaultSearchParams = useMemo(
+    () => ({ scrapedAtFrom: today, scrapedAtTo: today }),
+    [today],
+  );
+
+  const grid = useServerGrid<Record<string, unknown>>({
+    fetchData: fetchItems,
+    searchFields,
+    defaultSearchParams,
+    defaultPageSize: 25,
+  });
+
+  const { visibleColumns, openSettings, dialog } = useColumnSettings(COLUMNS);
+
   return (
     <AdminPageFrame>
       <div className="admin-panel admin-table-shell">
-        <ShadcnDataTable
-          columns={columns}
-          fetchData={fetchItems}
-          searchFields={searchFields}
-          defaultSearchParams={{ scrapedAtFrom: today, scrapedAtTo: today }}
-          defaultPageSize={25}
-          enableDynamicSearch={true}
-        />
+        <div className="flex flex-col gap-2">
+          <DynamicSearchFields
+            searchFields={searchFields as Parameters<typeof DynamicSearchFields>[0]['searchFields']}
+            defaultSearchParams={defaultSearchParams}
+            enableDynamic
+            {...grid.search}
+          />
+          <DataGrid<Record<string, unknown>>
+            columns={visibleColumns}
+            rows={grid.rows}
+            getRowId={(row) => String(row.id)}
+            isFetching={grid.loading}
+            empty={GRID_EMPTY}
+            sortOf={grid.sortOf}
+            onToggleSort={grid.toggleSort}
+            attachedToolbar
+          />
+          <GridPagingBar
+            pageIndex={grid.pageIndex}
+            pageCount={grid.pageCount}
+            onPageChange={grid.setPageIndex}
+            total={grid.totalCount}
+            pageSize={grid.pageSize}
+            onPageSizeChange={grid.setPageSize}
+            onColumnSettings={openSettings}
+          />
+          {dialog}
+        </div>
       </div>
     </AdminPageFrame>
   );

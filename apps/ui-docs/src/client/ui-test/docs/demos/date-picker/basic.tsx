@@ -3,13 +3,13 @@
 import { DatePicker } from '@hvy/ui';
 import { useState } from 'react';
 
-/** 단일 날짜 — controlled 로 값을 보여주고, min/max 로 달력의 선택 가능 범위를 좁힌다. */
+/** 단일 날짜 — controlled 로 값을 보여준다. clearable 이라 값이 있으면 달력 버튼 왼쪽에 × 가 뜬다. */
 export function DatePickerBasicDemo() {
   const [value, setValue] = useState('');
 
   return (
     <div className="flex max-w-80 flex-col gap-3">
-      <DatePicker value={value} onValueChange={setValue} name="orderDate" />
+      <DatePicker value={value} onValueChange={setValue} name="orderDate" clearable />
       <p className="text-dl-sm text-dl-fg-muted">
         값: <code className="font-dl-mono">{value === '' ? '(비어 있음)' : value}</code>
       </p>
@@ -40,13 +40,17 @@ export function DatePickerBoundsDemo() {
   );
 }
 
-/** 잠금 3종 — 배색은 Input 과 같은 dl-field-locked, 달력 버튼도 함께 잠긴다. */
+/**
+ * lock(boolean) — 시스템 채움 영구 불변. readOnly 로 잠기고 **달력 버튼 자리가
+ * 자물쇠 표식으로 스왑**된다(눌리지 않는 버튼은 어포던스가 거짓이다). 값은 전송된다.
+ * 전송까지 막아야 하면 lock 이 아니라 mode="disabled" 다 — 세 번째 칸이 그 대비다.
+ */
 export function DatePickerLockDemo() {
   return (
     <div className="flex max-w-80 flex-col gap-3">
-      <DatePicker defaultValue="2026-08-12" lock="auto" placeholder="자동 / 저장 시 발급" />
-      <DatePicker defaultValue="2026-08-12" lock="readonly" />
-      <DatePicker defaultValue="2026-08-12" lock="disabled" />
+      <DatePicker defaultValue="2026-08-12" lock placeholder="자동 / 저장 시 발급" />
+      <DatePicker lock placeholder="자동 / 저장 시 발급" />
+      <DatePicker defaultValue="2026-08-12" mode="disabled" />
     </div>
   );
 }

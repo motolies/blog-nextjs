@@ -1,5 +1,5 @@
+import { Button } from '@hvy/ui';
 import { Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface ConditionComponentProps {
   id: string | number;
@@ -14,13 +14,13 @@ export const ConditionComponent = ({ id, name, onDelete }: ConditionComponentPro
   };
 
   return (
-    <div className="inline-flex items-center gap-1 rounded-full border border-sky-100 bg-sky-50/80 px-3 py-1 text-sm font-medium text-sky-900 transition hover:border-sky-200 hover:bg-sky-100/80 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:border-blue-700 dark:hover:bg-blue-900/50">
+    <div className="inline-flex items-center gap-1 rounded-full border border-dl-tonal-border bg-dl-tonal px-3 py-1 text-sm font-medium text-dl-tonal-fg transition hover:bg-dl-tonal-hover">
       {name}
       <Button
         variant="ghost"
-        size="icon-xs"
+        size="xs"
         aria-label="delete"
-        className="rounded-full text-sky-700 hover:bg-sky-200/70 hover:text-sky-900 dark:text-blue-400 dark:hover:bg-blue-800/50 dark:hover:text-blue-200"
+        className="aspect-square p-0 rounded-full text-dl-primary-ink hover:bg-dl-tonal-hover"
         onClick={deleteCondition}
       >
         <Trash2 size={14} />

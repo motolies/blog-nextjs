@@ -6,14 +6,15 @@
 
 ```
 ├─ apps/blog        # 블로그 앱 (Next.js 16, Pages Router) — Docker 배포 대상
-├─ apps/ui-docs     # 디자인 시스템 문서 앱 (로컬 전용, 포트 3020) — Gate 2 에서 추가 예정
-├─ packages/ui      # @hvy/ui 디자인 시스템 — Gate 2 에서 추가 예정
+├─ apps/ui-docs     # 디자인 시스템 문서 앱 (로컬 전용, 포트 3020) — Docker 미포함
+├─ packages/ui      # @hvy/ui 디자인 시스템 — 빌드 산출물 없이 TS 소스를 앱이 직접 소비
 ├─ pnpm-workspace.yaml  # catalog = 버전 고정의 단일 진실 소스
 └─ biome.json       # 린트/포맷 (ESLint 대체)
 ```
 
 ## 📚 문서
 
+- [로컬 개발 가이드 (Local Development)](./docs/local-development.md) - 설치부터 blog·ui-docs 실행까지 (모노레포 전환 후 첫 실행이라면 여기부터)
 - [인증 시스템 (Authentication)](./docs/authentication.md) - 쿠키 기반 인증 구조 및 SSR/CSR 플로우
 - [디버깅 가이드 (Debug)](./docs/debug.md) - IntelliJ에서 Turbopack 서버/클라이언트 디버깅 설정
 
@@ -22,14 +23,19 @@
 요구사항: Node ≥ 24, pnpm 11.20.0 (`npm i -g pnpm@11.20.0`)
 
 ```shell
-pnpm install
+pnpm install        # 반드시 레포 루트에서 (catalog:/workspace:* 는 루트에서만 해석된다)
 pnpm dev            # apps/blog 개발 서버 (:3000)
+pnpm dev:docs       # apps/ui-docs 문서 앱 (:3020)
 pnpm build          # apps/blog 프로덕션 빌드
 pnpm check          # biome 린트/포맷 검사 (자동수정: pnpm check:fix)
 pnpm typecheck      # 전 워크스페이스 tsc --noEmit
-pnpm test           # apps/blog 유틸 테스트 (node:test)
-pnpm verify         # check + typecheck + test + build 일괄
+pnpm test           # vitest (packages/** + apps/**/*.test.ts)
+pnpm test:blog      # apps/blog 유틸 테스트 (node:test)
+pnpm verify         # check + typecheck + verify:tokens + test + build 일괄
 ```
+
+백엔드 없이 띄우기(`MOCK_DOWNSTREAM=true`), 로컬 백엔드 연결, 트러블슈팅은
+[로컬 개발 가이드](./docs/local-development.md)를 참고한다.
 
 ## 의존성 업데이트
 

@@ -5,7 +5,7 @@
  * 첫 페인트 전 반영은 layout.tsx 의 인라인 스크립트가 맡는다.
  * 새 테마 추가 = @hvy/ui 에 theme/<name>.css + 이 배열 1항목 + app/theme.css @import 1줄.
  */
-export const THEMES = ['default', 'compact'] as const;
+export const THEMES = ['default', 'compact', 'blog', 'blog-dark'] as const;
 
 export type ThemeName = (typeof THEMES)[number];
 

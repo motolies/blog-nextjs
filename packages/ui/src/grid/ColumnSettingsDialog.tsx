@@ -225,7 +225,8 @@ export function ColumnSettingsDialog<T extends Record<string, unknown>>({
               >
                 <Checkbox
                   checked={item.visible}
-                  disabled={!hideable}
+                  // undefined 여야 다이얼로그의 FormMode edit 핀을 따른다.
+                  mode={hideable ? undefined : 'disabled'}
                   title={hideable ? undefined : labels.alwaysVisible}
                   aria-label={`${labels.visibleColumn}: ${title}`}
                   onChange={() => toggle(index)}

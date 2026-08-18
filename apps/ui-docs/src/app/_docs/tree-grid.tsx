@@ -24,7 +24,7 @@ export const treeGridDoc: DocEntry = {
     {
       id: 'basic',
       title: '계층 데이터 — 펼침 상태는 호출부가 소유한다',
-      note: '모두 펼치기/접기 버튼이 Set 교체 한 번으로 동작하는 것을 확인한다.',
+      note: '모두 펼치기/접기 버튼이 Set 교체 한 번으로 동작하는 것을 확인한다. "노드 비우기" 로 빈 상태도 본다 — DataGrid 와 같은 GridEmpty 계약이다.',
       file: 'src/client/ui-test/docs/demos/tree-grid/basic.tsx',
       Component: TreeGridBasicDemo,
     },
@@ -56,6 +56,12 @@ export const treeGridDoc: DocEntry = {
           type: '(node: T) => ReactNode',
           required: true,
           description: '행 내용 — 컬럼 개념이 없어 자유 렌더다.',
+        },
+        {
+          name: 'empty',
+          type: 'GridEmpty — { state?, title, hint?, icon?, action? }',
+          description:
+            'DataGrid 와 같은 계약이다 — 두 그리드의 "없음"이 화면마다 달라 보이면 안 된다. 생략해도 기본 문구가 나온다(예전에는 nodes 가 비면 아무것도 그리지 않았다). 오버레이가 아니라 흐름 배치인 이유는 헤더도 고정 높이도 없어서고, isFetching 이 없어 로딩 상태를 받지 않는다.',
         },
         {
           name: 'collapseLabel / expandLabel',

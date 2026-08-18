@@ -9,8 +9,8 @@ import { Field, FormMode, Input, Textarea } from '@hvy/ui';
  * 볼 것:
  * · view: 값 텍스트만 남고 행 높이는 편집 컨트롤과 같다(VALUE_MIN_H 파리티)
  * · password: 값 길이와 무관한 고정 ******** — 평문도 길이도 노출하지 않는다
- * · lock="auto" × disabled 모드: OR 합성 — 자물쇠 아이콘이 유지된 채 잠긴다.
- *   mode 는 lock 을 지우지 않고 잠복시키므로 edit 복귀 시 lock 이 그대로 복원된다
+ * · lock × 모드: lock 은 **모든 mode 를 이긴다** — disabled 모드에서도 자물쇠가 유지되고,
+ *   edit 로 돌아와도 여전히 편집 불가다(값은 readOnly 라 FormData 에는 실린다)
  * · Textarea view: 줄바꿈 보존(whitespace-pre-wrap)
  */
 const MODES = ['edit', 'view', 'disabled'] as const;
@@ -29,7 +29,7 @@ export function InputModesDemo() {
               <Input id={`im-${mode}-pw`} type="password" defaultValue="secret-1234" />
             </Field>
             <Field label="주문번호" htmlFor={`im-${mode}-orderNo`}>
-              <Input id={`im-${mode}-orderNo`} lock="auto" placeholder="자동 / 저장 시 발급" />
+              <Input id={`im-${mode}-orderNo`} lock placeholder="자동 / 저장 시 발급" />
             </Field>
             <Field label="배송 메모" htmlFor={`im-${mode}-memo`}>
               <Textarea

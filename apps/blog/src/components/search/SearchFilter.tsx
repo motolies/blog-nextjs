@@ -1,18 +1,9 @@
+import { Button, Input, Select, showToast } from '@hvy/ui';
 import { Search } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { getTsid } from 'tsid-ts';
 import { ConditionComponent } from '@/components/ConditionComponent';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { searchObjectInit } from '@/model/searchObject';
 import type { Tag } from '@/types/tag';
 import { base64Encode } from '@/util/base64Util';
@@ -86,7 +77,7 @@ export default function SearchFilter({
   };
   const addKeyword = () => {
     if (keyword.length < 2) {
-      toast.error('검색어는 2글자 이상이어야 합니다.');
+      showToast('검색어는 2글자 이상이어야 합니다.', 'error');
       setKeyword('');
       return;
     }
@@ -140,18 +131,13 @@ export default function SearchFilter({
         <div className={sectionClassName}>
           <p className={fieldLabelClassName}>Search Scope</p>
           <div className="mt-2">
-            <Select value={searchType} onValueChange={setSearchType}>
-              <SelectTrigger className={controlClassName}>
-                <SelectValue placeholder="검색 범위" />
-              </SelectTrigger>
-              <SelectContent>
-                {searchTypes.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Select
+              value={searchType}
+              onValueChange={setSearchType}
+              placeholder="검색 범위"
+              options={searchTypes.map((option) => ({ value: option.value, label: option.name }))}
+              className={controlClassName}
+            />
           </div>
         </div>
 
@@ -160,18 +146,16 @@ export default function SearchFilter({
             <div>
               <p className={fieldLabelClassName}>Keyword Logic</p>
               <div className="mt-2">
-                <Select value={logic} onValueChange={setLogic}>
-                  <SelectTrigger className={controlClassName}>
-                    <SelectValue placeholder="AND | OR" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {searchLogic.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Select
+                  value={logic}
+                  onValueChange={setLogic}
+                  placeholder="AND | OR"
+                  options={searchLogic.map((option) => ({
+                    value: option.value,
+                    label: option.name,
+                  }))}
+                  className={controlClassName}
+                />
               </div>
             </div>
 
@@ -224,7 +208,8 @@ export default function SearchFilter({
         />
 
         <Button
-          className="h-11 w-full rounded-[1.15rem] bg-sky-600 text-white shadow-[0_18px_36px_rgba(14,116,228,0.2)] hover:bg-sky-700"
+          variant="primary"
+          className="h-11 w-full rounded-[1.15rem] bg-dl-primary text-dl-primary-fg hover:bg-dl-primary-hover"
           onClick={onSearching}
         >
           <Search className="h-4 w-4" />

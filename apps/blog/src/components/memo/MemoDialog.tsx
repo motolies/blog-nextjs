@@ -1,23 +1,6 @@
+import { Button, ContentDialog, Label, Select, showToast, Textarea } from '@hvy/ui';
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import service from '@/service';
 
 interface MemoCategory {
@@ -78,13 +61,13 @@ export default function MemoDialog({ open, onClose, memoId = null, onSaved }: Me
         setCategoryId(null);
       }
     } catch (error) {
-      toast.error('메모를 불러오는데 실패했습니다.');
+      showToast('메모를 불러오는데 실패했습니다.', 'error');
     }
   };
 
   const handleSave = async () => {
     if (!content.trim()) {
-      toast.warning('메모 내용을 입력해주세요.');
+      showToast('메모 내용을 입력해주세요.', 'warning');
       return;
     }
 
@@ -93,73 +76,67 @@ export default function MemoDialog({ open, onClose, memoId = null, onSaved }: Me
       const data = { content: content.trim(), categoryId: categoryId ? Number(categoryId) : null };
       if (memoId) {
         await service.memo.update(memoId, data);
-        toast.success('메모가 수정되었습니다.');
+        showToast('메모가 수정되었습니다.');
       } else {
         await service.memo.create(data);
-        toast.success('메모가 저장되었습니다.');
+        showToast('메모가 저장되었습니다.');
       }
       onSaved?.();
       onClose();
     } catch (error) {
-      toast.error('메모 저장에 실패했습니다.');
+      showToast('메모 저장에 실패했습니다.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen: boolean) => !isOpen && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col" showCloseButton={true}>
-        <DialogHeader>
-          <DialogTitle>{memoId ? '메모 수정' : '메모 작성'}</DialogTitle>
-        </DialogHeader>
-
-        <div className="flex flex-col gap-4 flex-1 overflow-y-auto py-2">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="memo-category">카테고리</Label>
-            <Select
-              value={categoryId ?? ''}
-              onValueChange={(val: string) => setCategoryId(val || null)}
-            >
-              <SelectTrigger id="memo-category" size="sm" className="w-full">
-                <SelectValue placeholder="카테고리 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories
-                  .slice()
-                  .sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0))
-                  .map((cat) => (
-                    <SelectItem key={cat.id} value={String(cat.id)}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-1.5 flex-1">
-            <Label htmlFor="memo-content">내용</Label>
-            <Textarea
-              id="memo-content"
-              autoFocus
-              placeholder="메모 내용을 입력하세요..."
-              value={content}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setContent(e.target.value)}
-              className="min-h-[200px] resize-y"
-              rows={8}
-            />
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+    <ContentDialog
+      open={open}
+      onOpenChange={(isOpen: boolean) => !isOpen && onClose()}
+      title={memoId ? '메모 수정' : '메모 작성'}
+      size="lg"
+      footer={
+        <>
+          <Button variant="outline-gray" onClick={onClose}>
             취소
           </Button>
-          <Button onClick={handleSave} disabled={loading}>
+          <Button variant="primary" onClick={handleSave} busy={loading}>
             저장
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4 flex-1 overflow-y-auto py-2">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="memo-category">카테고리</Label>
+          <Select
+            id="memo-category"
+            value={categoryId ?? ''}
+            onValueChange={(val: string) => setCategoryId(val || null)}
+            placeholder="카테고리 선택"
+            size="sm"
+            options={categories
+              .slice()
+              .sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0))
+              .map((cat) => ({ value: String(cat.id), label: cat.name }))}
+            className="w-full"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5 flex-1">
+          <Label htmlFor="memo-content">내용</Label>
+          <Textarea
+            id="memo-content"
+            autoFocus
+            placeholder="메모 내용을 입력하세요..."
+            value={content}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setContent(e.target.value)}
+            className="min-h-[200px] resize-y"
+            rows={8}
+          />
+        </div>
+      </div>
+    </ContentDialog>
   );
 }

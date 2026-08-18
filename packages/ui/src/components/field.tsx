@@ -3,6 +3,7 @@
 import { createContext, type ReactNode, useContext, useMemo } from 'react';
 import { cn } from '../lib/cn';
 import { type ControlSize, VALUE_MIN_H_CLASS } from '../lib/controlSize';
+import { type ControlState, resolveControlState, resolveMode } from './fieldState';
 import { type FieldMode, useFormMode } from './form-mode';
 
 /**
@@ -34,6 +35,10 @@ const noop = () => {};
 /**
  * 컨트롤이 접근성 배선을 가져가는 통로.
  * **명시 prop 이 컨텍스트를 이긴다** — Field 밖에서 단독으로 쓸 수도 있어야 한다.
+ *
+ * `lock`/`masking` 을 받은 컨트롤은 여기로 넘겨 `state`(fieldState.ts 계약의 합성 결과)
+ * 하나로 렌더한다 — readOnly/disabled/전송 여부/잠금 배색/data 속성을 제각각 계산하면
+ * 컨트롤마다 규칙이 갈라진다(과거 날짜 3형제가 같은 식을 4벌 복붙했던 원인).
  */
 export function useFieldControl(overrides?: {
   readonly id?: string;
@@ -41,28 +46,35 @@ export function useFieldControl(overrides?: {
   readonly describedBy?: string;
   readonly size?: ControlSize;
   readonly mode?: FieldMode;
+  readonly lock?: boolean;
+  readonly masking?: boolean;
 }): {
   readonly id: string | undefined;
   readonly 'aria-invalid': true | undefined;
   readonly 'aria-describedby': string | undefined;
   readonly invalid: boolean;
+  readonly required: boolean;
   readonly notifyDirty: () => void;
   readonly size: ControlSize;
   readonly mode: FieldMode;
+  readonly state: ControlState;
 } {
   const context = useContext(FieldContext);
   // FormMode 폴백은 Field 밖 단독 컨트롤 전용이다 — Field 안이면 context.mode 가 이미 확정값이다.
   const formMode = useFormMode();
   const invalid = overrides?.invalid ?? context?.invalid ?? false;
+  const mode = resolveMode(overrides?.mode, context?.mode, formMode);
 
   return {
     id: overrides?.id ?? context?.id,
     'aria-invalid': invalid ? true : undefined,
     'aria-describedby': overrides?.describedBy ?? context?.describedBy,
     invalid,
+    required: context?.required ?? false,
     notifyDirty: context?.notifyDirty ?? noop,
     size: overrides?.size ?? context?.size ?? 'md',
-    mode: overrides?.mode ?? context?.mode ?? formMode ?? 'edit',
+    mode,
+    state: resolveControlState({ mode, lock: overrides?.lock, masking: overrides?.masking }),
   };
 }
 
@@ -111,9 +123,10 @@ export function FieldError({ id, children }: { id?: string; children: ReactNode 
 /**
  * 읽기 전용 라벨/값 쌍 — 입력이 없는 상세 표시용.
  *
- * 읽기 전용 축은 **셋**이고 여긴 그중 "영구 조회"다:
+ * 읽기 전용 축은 **넷**이고 여긴 그중 "영구 조회"다(합성 규칙 정본은 fieldState.ts):
  *   · `FieldValue` — 애초에 **고칠 대상이 아닌** 값. 시간 개념이 없다 (여기)
- *   · `lock` — 마스킹/자동입력/조건부 잠금. "지금은 못 고친다" — 칸 수준 (input.tsx)
+ *   · `lock` — 시스템 채움 영구 불변. 칸 수준, 모든 mode 를 이긴다 (input.tsx 등)
+ *   · `masking` — 서버가 마스킹한 개인정보 값 선언. 칸 수준, 전송 제외 (input.tsx)
  *   · `mode` — 조회↔수정을 오가는 폼의 현재 상태 — 폼 수준 (form-mode.tsx)
  * 모드를 오가는 화면이면 `FieldValue` 가 아니라 `<Field mode="view">` 를 쓴다.
  *
@@ -149,19 +162,31 @@ export function FieldValue({
  * 최소 높이를 같은 size 컨트롤과 맞춰(`VALUE_MIN_H_CLASS` ↔ `FIELD_SIZE_CLASS` 파리티)
  * 모드를 토글해도 행이 튀지 않는다. 미선택/빈값이면 내용 없이 이 틀만 남는다 —
  * placeholder 를 그리지 않는 것(빈칸 규칙)은 호출한 컨트롤의 책임이다.
+ *
+ * `masked` 는 마스킹된 개인정보 값(password 고정 `********` 포함) — 실값이 아님을
+ * 색·기울임으로 알리고 `data-masked` 를 남겨 앱이 저장 페이로드에서 걸러낼 수 있게 한다.
  */
 export function FieldViewText({
   size,
+  masked,
   className,
   children,
 }: {
   readonly size: ControlSize;
+  readonly masked?: boolean;
   readonly className?: string;
   readonly children?: ReactNode;
 }) {
   return (
     <span
-      className={cn('flex items-center text-dl-sm text-dl-fg', VALUE_MIN_H_CLASS[size], className)}
+      data-mode="view"
+      data-masked={masked ? '' : undefined}
+      className={cn(
+        'flex items-center text-dl-sm text-dl-fg',
+        VALUE_MIN_H_CLASS[size],
+        masked && 'text-dl-masked italic',
+        className,
+      )}
     >
       {children}
     </span>
@@ -221,7 +246,7 @@ export function Field({
   children,
 }: FieldProps) {
   const formMode = useFormMode();
-  const mode = modeProp ?? formMode ?? 'edit';
+  const mode = resolveMode(modeProp, undefined, formMode);
 
   // view 모드는 오류 배선을 끊는다 — 입력이 사라져 aria-invalid 를 받을 대상이 없다.
   const invalid = mode !== 'view' && Boolean(error);
@@ -317,7 +342,8 @@ export function Field({
         <Label htmlFor={htmlFor} className="whitespace-nowrap py-2 pr-2 pl-3.5 text-dl-fg-label">
           {label}
           {requiredMark}
-        </Label>{' '}
+        </Label>
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: 자손 입력의 버블링만 받는다. 자체 동작이 없다 */}
         <div
           className={cn('flex min-w-0 items-center gap-2 px-2 py-1.5', className)}
           onInput={handleDirty}
@@ -332,7 +358,7 @@ export function Field({
 
   return (
     <FieldContext.Provider value={context}>
-      {' '}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: 자손 입력의 버블링만 받는다. 자체 동작이 없다 */}
       <div
         className={cn('flex flex-col gap-1', className)}
         onInput={handleDirty}

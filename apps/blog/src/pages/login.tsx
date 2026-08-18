@@ -1,7 +1,6 @@
+import { Button, Field, Input } from '@hvy/ui';
 import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react';
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export default function LoginPage() {
@@ -41,10 +40,7 @@ export default function LoginPage() {
     <div className="flex items-center justify-center" style={{ minHeight: '50vh' }}>
       <h1 className="visually-hidden">로그인</h1>
       <form noValidate onSubmit={handleSubmit} className="mt-1 p-10 w-full max-w-sm space-y-4">
-        <div className="space-y-1">
-          <label htmlFor="username" className="text-sm font-medium">
-            UserName
-          </label>
+        <Field label="UserName" htmlFor="username">
           <Input
             id="username"
             name="username"
@@ -52,11 +48,8 @@ export default function LoginPage() {
             autoFocus
             onChange={onChangeUsername}
           />
-        </div>
-        <div className="space-y-1">
-          <label htmlFor="password" className="text-sm font-medium">
-            Password
-          </label>
+        </Field>
+        <Field label="Password" htmlFor="password">
           <Input
             id="password"
             name="password"
@@ -69,12 +62,18 @@ export default function LoginPage() {
               }
             }}
           />
-        </div>
-        <Button disabled={isLoading} type="submit" className="w-full mt-3" onClick={onClickLogin}>
+        </Field>
+        <Button
+          variant="primary"
+          busy={isLoading}
+          type="submit"
+          className="w-full mt-3"
+          onClick={onClickLogin}
+        >
           Login
         </Button>
         {error !== '' && (
-          <div className="bg-red-50 border border-red-200 text-red-800 rounded-md px-4 py-3 text-sm">
+          <div className="bg-dl-danger-bg border border-dl-danger-border text-dl-danger-ink rounded-md px-4 py-3 text-sm">
             {error}
           </div>
         )}

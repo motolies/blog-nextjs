@@ -1,9 +1,6 @@
+import { Badge, Button, EmptyState, FieldValue, FormGrid, Spinner, showToast } from '@hvy/ui';
 import { BookOpen, Pencil, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import service from '@/service';
 import type { Series } from '@/types/series';
 import { parseServerDate } from '@/util/dateTimeUtil';
@@ -28,7 +25,7 @@ export default function SeriesDetailPanel({
   if (!series) {
     return (
       <div className="flex h-full items-center justify-center rounded-[1.1rem] border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)]">
-        <p className="text-sm text-[color:var(--admin-text-faint)]">시리즈를 선택하세요</p>
+        <EmptyState message="시리즈를 선택하세요" />
       </div>
     );
   }
@@ -36,24 +33,20 @@ export default function SeriesDetailPanel({
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center rounded-[1.1rem] border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)]">
-        <p className="text-sm text-[color:var(--admin-text-faint)]">불러오는 중...</p>
+        <Spinner className="size-6" />
       </div>
     );
   }
 
-  const renderTable = (rows: ([string, React.ReactNode] | false | null | undefined)[]) => (
-    <table className="w-full text-sm">
-      <tbody>
-        {(rows.filter(Boolean) as [string, React.ReactNode][]).map(([label, value], i) => (
-          <tr key={i} className="border-b border-[color:var(--admin-border)] last:border-0">
-            <td className="w-28 py-1.5 pr-3 align-top font-semibold text-[color:var(--admin-text-faint)]">
-              {label}
-            </td>
-            <td className="py-1.5 text-[color:var(--admin-text)]">{value}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+  // 라벨·값 쌍은 표가 아니라 상세 폼이다 — FormGrid + FieldValue 계약을 따른다.
+  const renderDetails = (rows: ([string, React.ReactNode] | false | null | undefined)[]) => (
+    <FormGrid>
+      {(rows.filter(Boolean) as [string, React.ReactNode][]).map(([label, value]) => (
+        <FieldValue key={label} label={label} size="sm">
+          {value}
+        </FieldValue>
+      ))}
+    </FormGrid>
   );
 
   const rows: ([string, React.ReactNode] | false | null | undefined)[] = [
@@ -61,11 +54,7 @@ export default function SeriesDetailPanel({
     series.description && ['설명', series.description],
     [
       '포스트',
-      <Badge
-        key="count"
-        variant={series.posts.length > 0 ? 'default' : 'secondary'}
-        className="text-xs"
-      >
+      <Badge key="count" tone={series.posts.length > 0 ? 'primary' : 'neutral'} className="text-xs">
         {series.posts.length}개
       </Badge>,
     ],
@@ -77,10 +66,10 @@ export default function SeriesDetailPanel({
   const handleAddPost = async (post: { postId: number; subject: string }) => {
     try {
       await service.series.addPost({ seriesId: String(series.id), postId: String(post.postId) });
-      toast.success('포스트가 추가되었습니다.');
+      showToast('포스트가 추가되었습니다.');
       onRefresh();
     } catch {
-      toast.error('포스트 추가에 실패했습니다.');
+      showToast('포스트 추가에 실패했습니다.', 'error');
     }
   };
 
@@ -88,39 +77,34 @@ export default function SeriesDetailPanel({
     <div className="flex h-full flex-col rounded-[1.1rem] border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)]">
       {/* 헤더 */}
       <div className="flex items-center gap-2 px-3 py-3">
-        <BookOpen className="h-4 w-4 text-sky-700" />
+        <BookOpen className="h-4 w-4 text-dl-primary-ink" />
         <span className="flex-1 text-sm font-semibold text-[color:var(--admin-text)]">
           시리즈 상세
         </span>
-        <Badge variant="default" className="text-xs">
+        <Badge tone="primary" className="text-xs">
           {series.title}
         </Badge>
       </div>
-      <Separator />
+      <div aria-hidden className="h-px w-full shrink-0 bg-dl-border" />
 
       {/* 스크롤 가능 영역 */}
       <div className="flex-1 overflow-auto">
         {/* 상세 정보 */}
-        <div className="p-2">{renderTable(rows)}</div>
-        <Separator />
+        <div className="p-2">{renderDetails(rows)}</div>
+        <div aria-hidden className="h-px w-full shrink-0 bg-dl-border" />
 
         {/* 액션 버튼 */}
         <div className="flex flex-wrap gap-1.5 p-3">
-          <Button size="sm" variant="outline" onClick={() => onEdit(series)}>
+          <Button size="sm" variant="outline-gray" onClick={() => onEdit(series)}>
             <Pencil className="h-3.5 w-3.5 mr-1" />
             편집
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="border-red-500/20 text-red-600 hover:bg-red-500/8 hover:text-red-700"
-            onClick={() => onDelete(series)}
-          >
+          <Button size="sm" variant="outline-red" onClick={() => onDelete(series)}>
             <Trash2 className="h-3.5 w-3.5 mr-1" />
             삭제
           </Button>
         </div>
-        <Separator />
+        <div aria-hidden className="h-px w-full shrink-0 bg-dl-border" />
 
         {/* 포스트 목록 */}
         <div className="p-3 space-y-2">
@@ -134,7 +118,7 @@ export default function SeriesDetailPanel({
             onPostsReordered={onRefresh}
           />
         </div>
-        <Separator />
+        <div aria-hidden className="h-px w-full shrink-0 bg-dl-border" />
 
         {/* 포스트 추가 */}
         <div className="p-3">

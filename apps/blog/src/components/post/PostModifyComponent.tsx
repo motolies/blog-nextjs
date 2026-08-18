@@ -1,21 +1,11 @@
-import { Eye, LogOut, Save, Send, Undo2 } from 'lucide-react';
+import { Button, Input, Select, showToast, useConfirm } from '@hvy/ui';
+import { Eye, Save, Send, Undo2 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { toast } from 'sonner';
 import { getTsid } from 'tsid-ts';
 import CategoryAutoComplete from '@/components/CategoryAutoComplete';
-import ConfirmDialog from '@/components/confirm/ConfirmDialog';
 import DynamicEditor from '@/components/editor/DynamicEditor';
 import FileUploadComponent from '@/components/editor/FileUploadComponent';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useFiles, useInvalidateFiles } from '@/hooks/useFiles';
 import service from '@/service';
 import { useLoadingStore } from '@/store/useLoadingStore';
@@ -30,6 +20,7 @@ import TagGroupComponent from './TagGroupComponent';
 
 export default function PostModifyComponent() {
   const router = useRouter();
+  const askConfirm = useConfirm();
   const {
     post,
     setSubject,
@@ -47,8 +38,6 @@ export default function PostModifyComponent() {
   const [tags, setTags] = useState<Tag[]>([]);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
-  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
-  const [discardDraftConfirmOpen, setDiscardDraftConfirmOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewSubject, setPreviewSubject] = useState<string>('');
   const [previewBody, setPreviewBody] = useState<string>('');
@@ -111,13 +100,13 @@ export default function PostModifyComponent() {
                 hour12: false,
               }),
             );
-            toast.success('임시저장되었습니다.');
+            showToast('임시저장되었습니다.');
           } else {
             router.push(`/post/${nextPost.id}`);
           }
         })
         .catch((err: unknown) => {
-          toast.error('저장에 실패하였습니다.');
+          showToast('저장에 실패하였습니다.', 'error');
           console.error('content save error', err);
           if (isAutosave) {
             setSaveStatus('idle');
@@ -139,9 +128,9 @@ export default function PostModifyComponent() {
     try {
       await service.post.deleteDraft({ postId: String(post.id) });
       await loadForModify(String(post.id));
-      toast.success('초안이 폐기되었습니다.');
+      showToast('초안이 폐기되었습니다.');
     } catch {
-      toast.error('초안 폐기에 실패하였습니다.');
+      showToast('초안 폐기에 실패하였습니다.', 'error');
     } finally {
       cancelLoading();
     }
@@ -151,7 +140,7 @@ export default function PostModifyComponent() {
     if (category?.id) {
       setCategoryId(category.id);
     } else {
-      toast.error('카테고리는 필수로 선택해야 합니다.');
+      showToast('카테고리는 필수로 선택해야 합니다.', 'error');
     }
   };
 
@@ -182,7 +171,7 @@ export default function PostModifyComponent() {
   const onChangeFile = async (files: FileList | undefined) => {
     if (files === undefined || files.length === 0) return;
     if (!post.id) {
-      toast.warning('게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+      showToast('게시글이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.', 'warning');
       return;
     }
     setLoading();
@@ -193,10 +182,10 @@ export default function PostModifyComponent() {
       await service.file
         .upload({ formData: body })
         .then(() => {
-          toast.success('파일 업로드에 성공하였습니다.');
+          showToast('파일 업로드에 성공하였습니다.');
         })
         .catch(() => {
-          toast.error('파일 업로드에 실패하였습니다.');
+          showToast('파일 업로드에 실패하였습니다.', 'error');
         });
     }
     cancelLoading();
@@ -208,10 +197,10 @@ export default function PostModifyComponent() {
     service.file
       .delete({ fileId: file.id })
       .then(() => {
-        toast.success('파일을 삭제하였습니다.');
+        showToast('파일을 삭제하였습니다.');
       })
       .catch(() => {
-        toast.error('파일 삭제에 실패하였습니다.');
+        showToast('파일 삭제에 실패하였습니다.', 'error');
       })
       .finally(() => {
         cancelLoading();
@@ -283,21 +272,19 @@ export default function PostModifyComponent() {
         <Select
           value={String(post.public)}
           onValueChange={(v: string) => setPostPublic(v === 'true')}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="isPublic" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="true">공개</SelectItem>
-            <SelectItem value="false">비공개</SelectItem>
-          </SelectContent>
-        </Select>
+          placeholder="isPublic"
+          options={[
+            { value: 'true', label: '공개' },
+            { value: 'false', label: '비공개' },
+          ]}
+          className="w-full"
+        />
 
         <Button
-          variant="outline"
+          variant="outline-gray"
           className="w-full"
           onClick={() => {
-            toast.warning('모달창에서 검색해서 선택할 수 있도록 하자.');
+            showToast('모달창에서 검색해서 선택할 수 있도록 하자.', 'warning');
             setInsertData(`${getTsid().toString()}`);
           }}
         >
@@ -342,7 +329,7 @@ export default function PostModifyComponent() {
         />
 
         <Button
-          variant="outline"
+          variant="outline-gray"
           className="w-full"
           onClick={() => setTriggerGetDataForPreview(getTsid().toString())}
         >
@@ -355,8 +342,15 @@ export default function PostModifyComponent() {
             {post.hasDraft && post.status === 'PUBLISH' && (
               <button
                 type="button"
-                className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50"
-                onClick={() => setDiscardDraftConfirmOpen(true)}
+                className="inline-flex items-center gap-1 rounded-md bg-dl-warning-bg px-2 py-1 text-xs font-medium text-dl-warning-ink hover:bg-dl-warning-bg"
+                onClick={async () => {
+                  const ok = await askConfirm({
+                    message: '초안을 폐기하고 발행된 원본 내용으로 되돌리시겠습니까?',
+                    confirmLabel: '폐기',
+                    destructive: true,
+                  });
+                  if (ok) onDiscardDraft();
+                }}
               >
                 <Undo2 size={12} />
                 초안 폐기
@@ -372,7 +366,7 @@ export default function PostModifyComponent() {
         <div className="grid grid-cols-3 gap-3">
           <Button
             size="lg"
-            variant="outline"
+            variant="outline-gray"
             onClick={() => {
               if (isSavingRef.current) {
                 return;
@@ -385,6 +379,7 @@ export default function PostModifyComponent() {
             임시저장
           </Button>
           <Button
+            variant="primary"
             size="lg"
             onClick={() => {
               if (isSavingRef.current) {
@@ -399,48 +394,23 @@ export default function PostModifyComponent() {
           </Button>
           <Button
             size="lg"
-            variant="destructive"
-            onClick={() => {
+            variant="outline-red"
+            onClick={async () => {
               const hasChanges =
                 post.body !== initialBodyRef.current || post.subject !== initialSubjectRef.current;
               if (hasChanges) {
-                setCancelConfirmOpen(true);
-              } else {
-                post.id ? router.push(`/post/${post.id}`) : router.back();
+                const ok = await askConfirm({
+                  message: '저장하지 않은 내용이 있습니다. 정말 나가시겠습니까?',
+                  confirmLabel: '나가기',
+                });
+                if (!ok) return;
               }
+              post.id ? router.push(`/post/${post.id}`) : router.back();
             }}
           >
             취소
           </Button>
         </div>
-
-        <ConfirmDialog
-          open={cancelConfirmOpen}
-          icon={LogOut}
-          iconClassName="text-amber-500"
-          title="작성 취소"
-          question="저장하지 않은 내용이 있습니다. 정말 나가시겠습니까?"
-          confirmText="나가기"
-          onConfirm={() => {
-            setCancelConfirmOpen(false);
-            post.id ? router.push(`/post/${post.id}`) : router.back();
-          }}
-          onCancel={() => setCancelConfirmOpen(false)}
-        />
-
-        <ConfirmDialog
-          open={discardDraftConfirmOpen}
-          icon={Undo2}
-          iconClassName="text-amber-500"
-          title="초안 폐기"
-          question="초안을 폐기하고 발행된 원본 내용으로 되돌리시겠습니까?"
-          confirmText="폐기"
-          onConfirm={() => {
-            setDiscardDraftConfirmOpen(false);
-            onDiscardDraft();
-          }}
-          onCancel={() => setDiscardDraftConfirmOpen(false)}
-        />
 
         <PostPreviewDialog
           open={previewOpen}

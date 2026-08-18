@@ -7,7 +7,7 @@ export const dialogPickerDoc: DocEntry = {
   category: 'examples',
   title: '선택 모달 → 폼 반영',
   description:
-    'PickerDialog 안에 DataGrid 를 넣고, 그리드에서 고른 값을 부모 폼의 잠금 칸(lock=readonly)에 반영하는 조합. 선택 모달은 Esc·딤 클릭으로 닫히지 않는다 — 고른 것을 잃는 경로를 좁힌 규격이다.',
+    'PickerDialog 안에 DataGrid 를 넣고, 그리드에서 고른 값을 부모 폼의 잠금 칸(lock — 시스템 채움 영구 불변)에 반영하는 조합. 선택 모달은 Esc·딤 클릭으로 닫히지 않는다 — 고른 것을 잃는 경로를 좁힌 규격이다.',
   examples: [
     {
       id: 'scenario',

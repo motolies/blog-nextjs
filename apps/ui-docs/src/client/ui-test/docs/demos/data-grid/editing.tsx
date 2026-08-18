@@ -21,6 +21,7 @@ import {
 import { Columns3, Plus, Save, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
+  DEMO_ADDON_OPTIONS,
   DEMO_EDITABLE_ORDERS,
   DEMO_STATUS_META,
   DEMO_STATUSES,
@@ -34,6 +35,8 @@ import {
  * - 셀 더블클릭 → 에디터 전환(레거시 dhtmlx 감각), 수정 셀은 dirty 배경 + 셀 안 ✕(초기화)
  * - ✕ 클릭 또는 값 원복 → 그 셀만 dirty 해제 (편집이 셀 단위이므로 원복도 셀 단위)
  * - Tab/Shift+Tab 좌우 이동 · Enter 확정 후 아래 이동 · Esc 취소
+ * - 부가서비스 열(multiselect) — 고를 때마다 커밋하고 **닫지 않는다**. 옵션 12종이라 셀
+ *   안에서도 검색이 붙고, 6개째부터 선택 요약(칩)이 붙어 팝오버가 커진다(첫 행이 7개다)
  * - 행 추가(행 전체 dirty 배경 + 주문번호 링크 비활성) → 저장 시 addList 로 나간다
  * - 저장 = validateAll() 통과 후 getSaveRequestData() — 레거시 gridWrapper 계약 그대로
  * - 미저장 상태의 재조회 가드(useConfirm)와 브라우저 이탈 가드(useBeforeUnloadGuard)
@@ -62,6 +65,21 @@ const STATUS_OPTIONS = DEMO_STATUSES.map((status) => ({
   value: status,
   label: DEMO_STATUS_META[status].label,
 }));
+
+/** multiselect 에디터의 옵션 — 12종이라 셀 안에서도 검색 입력이 붙는다(임계값 10). */
+const ADDON_OPTIONS = DEMO_ADDON_OPTIONS.map((addon) => ({
+  value: addon.value,
+  label: addon.label,
+}));
+
+/**
+ * 표시용 역인덱스 — 셀 렌더는 행마다 도므로 매번 find 하지 않는다.
+ * 키를 `string` 으로 명시한다: 원본이 `as const` 라 그냥 두면 키가 리터럴 유니온이 되어
+ * 셀 값(`string`)으로 조회할 수 없다.
+ */
+const ADDON_LABELS = new Map<string, string>(
+  ADDON_OPTIONS.map((addon) => [addon.value, addon.label]),
+);
 
 /** 필수 입력 검증 — `ui` 는 사전을 모르므로 번역된 문구를 클로저로 넘긴다(여기서는 리터럴). */
 const required = (value: unknown) =>
@@ -119,6 +137,19 @@ const ALL_COLUMNS = defineColumns<DemoEditableOrder>([
     validate: required,
   },
   {
+    id: 'addons',
+    headerWord: '부가서비스',
+    width: 200,
+    sortable: false,
+    editor: { type: 'multiselect', options: ADDON_OPTIONS, placeholder: '없음' },
+    // 배열은 기본 렌더로 그리면 쉼표 없이 붙는다 — 라벨로 바꿔 잇는다.
+    // 대응 option 이 없는 값은 raw 로 남긴다(빈칸이면 데이터 소실로 읽힌다).
+    format: (value) =>
+      Array.isArray(value)
+        ? value.map((entry) => ADDON_LABELS.get(String(entry)) ?? String(entry)).join(', ')
+        : '',
+  },
+  {
     id: 'useYn',
     headerWord: '사용',
     width: 70,
@@ -163,7 +194,9 @@ export function DataGridEditingDemo() {
 
   /** 툴바 "행 추가" — 맨 위에 넣고 첫 편집 컬럼을 바로 연다(더블클릭 없이 입력 시작). */
   const handleAddRow = () => {
-    const rowId = editing.addRow({ useYn: 'Y', status: 'READY' }, { at: 'start' });
+    // addons 를 빈 배열로 명시한다 — undefined 로 두면 편집기가 방어하긴 하지만,
+    // 저장 요청(addList)에 그 키가 통째로 빠져 "미선택"과 "필드 없음"이 갈린다.
+    const rowId = editing.addRow({ useYn: 'Y', status: 'READY', addons: [] }, { at: 'start' });
     editing.setActiveCell({ rowId, columnId: 'receiver' });
   };
 

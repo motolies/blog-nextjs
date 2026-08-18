@@ -4,6 +4,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { ArrowDown, ArrowUp, X } from 'lucide-react';
 import {
   type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
   type ReactNode,
   type PointerEvent as ReactPointerEvent,
   useEffect,
@@ -11,13 +12,24 @@ import {
   useState,
 } from 'react';
 import { Checkbox } from '../components/checkbox';
-import { Spinner } from '../components/feedback';
 import { FormMode } from '../components/form-mode';
 import { Icon } from '../icons';
 import { cn } from '../lib/cn';
+import type { ControlSize } from '../lib/controlSize';
 import { useTokenPx } from '../lib/useTokenPx';
+import { warnOnce } from '../lib/warnOnce';
 import { CellEditor, type CellEditorMove } from './CellEditor';
 import { type ColumnDef, isColumnEditable, pinnedCount } from './columns';
+import { type GridEmpty, GridEmptyOverlay } from './GridEmptyOverlay';
+import {
+  GRID_CELL_PX_CLASS,
+  GRID_CHECK_FALLBACK,
+  GRID_CHECK_TOKEN,
+  GRID_HEADER_FALLBACK,
+  GRID_HEADER_TOKEN,
+  GRID_ROW_FALLBACK,
+  GRID_ROW_TOKEN,
+} from './gridDensity';
 import { type ActiveCell, cellKey, findNextEditableCell, type GridEditing } from './gridEditing';
 import { type ColumnWidths, useColumnLayout } from './useColumnLayout';
 import type { SelectAllState } from './useGridSelection';
@@ -49,20 +61,46 @@ export type GridSelection<T> = {
   readonly selectRowLabel: string;
 };
 
+/**
+ * 합계행 — 본문 아래 sticky 로 붙는 요약 크롬(정산·수량 합계용).
+ * 셀 값은 호출부가 계산해 넘긴다 — 서버 페이징이라 **전체 합계는 서버만 안다**.
+ * 그리드가 보이는 행을 합산하면 "페이지 합계"를 전체로 오독하는 사고가 된다.
+ */
+export type GridFooter = {
+  /** columnId → 표시값. 없는 컬럼은 빈칸이다. 라벨("합계")도 원하는 컬럼 칸에 넣는다. */
+  readonly cells: Readonly<Record<string, ReactNode>>;
+};
+
+/**
+ * `empty` 를 생략했을 때의 문구.
+ *
+ * `loadingLabel = '불러오는 중'` · `resizeColumnLabel = '컬럼 너비 조절'` 과 같은 규약이다 —
+ * `ui` 는 사전을 모르지만 **문구가 아예 없는 것보다 한국어 기본값이 낫다**(앱이 덮는다).
+ * 예전에는 이 prop 이 없으면 헤더만 남은 빈 껍데기가 그려졌다.
+ *
+ * 모듈 상수인 이유는 참조 동일성이다 — 기본값을 인라인 객체로 두면 렌더마다 새 객체가 되어
+ * 자식의 memo 비교가 매번 깨진다.
+ */
+const DEFAULT_EMPTY: GridEmpty = { state: 'empty', title: '데이터가 없습니다' };
+
 export function DataGrid<T extends Record<string, unknown>>({
   columns,
   rows,
   getRowId,
   isFetching,
-  empty,
+  density = 'md',
+  empty = DEFAULT_EMPTY,
   loadingLabel = '불러오는 중',
   translateHeader,
   sortOf,
   onToggleSort,
   onRowPrimaryAction,
+  onRowActivate,
+  rowClassName,
   selection,
   editing,
   dirtyCells,
+  footer,
   invalid,
   attachedToolbar = false,
   maxHeight = 560,
@@ -77,8 +115,21 @@ export function DataGrid<T extends Record<string, unknown>>({
   readonly rows: readonly T[];
   readonly getRowId: (row: T) => string;
   readonly isFetching?: boolean;
-  /** 빈 상태는 본문 영역을 **덮는 오버레이**다 — 행 자리를 밀어내지 않는다(v3 §ds-03). */
-  readonly empty?: { readonly title: ReactNode; readonly hint?: ReactNode };
+  /**
+   * 밀도 5단 — 행·헤더 높이, 선택열 폭, 셀 좌우 패딩, 셀 에디터 컨트롤이 **함께** 한 단계
+   * 움직인다. 테마 축(`--dl-scale-*`)과 곱해진다: compact 테마의 xs 는 36px, default 는 40px.
+   * 글자 크기·컬럼 폭·툴바는 따르지 않는다(`theme/default.css` 그리드 밀도 섹션 참조).
+   */
+  readonly density?: ControlSize;
+  /**
+   * 행이 없을 때 무엇을 보여줄지. 빈 상태는 본문 영역을 **덮는 오버레이**이고
+   * 행 자리를 밀어내지 않는다(v3 §ds-03).
+   *
+   * **생략해도 기본 문구가 나온다** — 예전에는 생략하면 헤더만 남은 빈 껍데기였다.
+   * `state` 로 0건과 조회 실패를 가른다 — 앱마다 `error ? … : …` 삼항식을 복제하던 것을
+   * 여기로 올린 것이다.
+   */
+  readonly empty?: GridEmpty;
   readonly loadingLabel?: string;
   /**
    * `headerWord`(FieldWord 코드)를 표시 문구로 바꾼다.
@@ -90,6 +141,20 @@ export function DataGrid<T extends Record<string, unknown>>({
   readonly sortOf?: (columnId: string) => 'asc' | 'desc' | null;
   readonly onToggleSort?: (columnId: string) => void;
   readonly onRowPrimaryAction?: (row: T) => void;
+  /**
+   * 행 어디를 눌러도 실행되는 **보조** 열기 경로. 정본은 `column.primary` 링크다 —
+   * 그건 "어디를 누르면 열리는지"가 눈에 보이지만 이건 보이지 않기 때문이다.
+   * 목록 자체가 드릴다운 수단인 화면(집계표 → 상세)에서만 쓴다.
+   *
+   * 버튼·체크박스·셀 에디터에서 버블링된 클릭은 **무시한다** — 행 액션을 누른 사람은
+   * 행을 연 것이 아니다. 그 구분이 없으면 삭제 버튼 한 번에 상세가 함께 열린다.
+   */
+  readonly onRowActivate?: (row: T) => void;
+  /**
+   * 행 단위 강조 클래스. 배경색 유틸리티만 준다 —
+   * 높이·정렬을 건드리면 가상 스크롤의 행 높이 계산과 어긋난다.
+   */
+  readonly rowClassName?: (row: T) => string | undefined;
   readonly selection?: GridSelection<T>;
   /**
    * 인라인 편집 배선 — `useGridEditing().binding` 을 그대로 넘긴다(`selection` 과 같은 자리).
@@ -102,13 +167,23 @@ export function DataGrid<T extends Record<string, unknown>>({
    */
   readonly dirtyCells?: ReadonlySet<string>;
   /**
+   * 합계행 — 값은 호출부(보통 서버 응답)가 계산해 넘긴다. 행이 0이면 그리지 않는다.
+   * 헤더와 같은 sticky 크롬이라 세로 스크롤에도 하단에 남고 고정열 오프셋을 공유한다.
+   */
+  readonly footer?: GridFooter;
+  /**
    * 그리드도 하나의 입력 요소로 본다(v3 §ds-05) — 표 전체에 빨간 보더를 두른다.
    * **문구는 여기 없다.** 카드 제목 옆에 두는 것이 규칙이고, 그건 호출부가 안다.
    */
   readonly invalid?: boolean;
   /** 아래에 툴바가 이어 붙으면 아래 모서리를 각지게 한다. */
   readonly attachedToolbar?: boolean;
-  readonly maxHeight?: number;
+  /**
+   * 본문 스크롤 상한(px). `'auto'` 면 상한을 두지 않고 행 수만큼 늘어난다 —
+   * 페이징 없이 전체를 한눈에 보는 집계표가 그렇다. 그 경우 가상 스크롤은
+   * 사실상 꺼진다(모든 행이 뷰포트 안이므로) — 수백 행짜리 목록에는 쓰지 않는다.
+   */
+  readonly maxHeight?: number | 'auto';
   /** 컬럼 정의에 `width` 가 없을 때의 폭. 없으면 `--spacing-dl-grid-col`. */
   readonly defaultColumnWidth?: number;
   /**
@@ -126,10 +201,16 @@ export function DataGrid<T extends Record<string, unknown>>({
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 행 높이는 테마 토큰이 소유한다 — 숫자를 박아두면 테마를 바꿔도 그리드가 안 바뀐다.
-  const rowHeight = useTokenPx('--spacing-dl-grid-row', 50);
-  const headerHeight = useTokenPx('--spacing-dl-grid-header', 50);
-  const selectColumnWidth = useTokenPx('--spacing-dl-grid-check', 40);
+  /**
+   * 행 높이는 테마 토큰이 소유한다 — 숫자를 박아두면 테마를 바꿔도 그리드가 안 바뀐다.
+   *
+   * density 는 **토큰 이름을 고르는 방식**이라 `useTokenPx` 계약(루트에서 읽기 +
+   * data-theme 구독)이 그대로다. 훅의 deps 가 `[tokenName, fallback]` 이므로 이름이
+   * 바뀌면 재측정이 걸린다 — density 전환도 실측을 따라가는 근거다.
+   */
+  const rowHeight = useTokenPx(GRID_ROW_TOKEN[density], GRID_ROW_FALLBACK[density]);
+  const headerHeight = useTokenPx(GRID_HEADER_TOKEN[density], GRID_HEADER_FALLBACK[density]);
+  const selectColumnWidth = useTokenPx(GRID_CHECK_TOKEN[density], GRID_CHECK_FALLBACK[density]);
 
   const virtualizer = useVirtualizer({
     count: rows.length,
@@ -193,6 +274,47 @@ export function DataGrid<T extends Record<string, unknown>>({
     onWidthsChange: onColumnWidthsChange,
   });
 
+  /**
+   * 행 클릭이 유일한 열기 수단이면 키보드 사용자는 목록에서 아무 데도 못 간다.
+   * 타입으로 묶지 않는 이유는 `Button.disabled`/`title` 과 같다 — 강제하면 우회로 돌아온다.
+   */
+  if (onRowActivate && !columns.some((column) => column.primary)) {
+    warnOnce(
+      'grid-row-activate-no-primary',
+      'onRowActivate 만 있고 primary 컬럼이 없습니다. 행 클릭은 포인터 전용이라 키보드로는 상세에 갈 수 없습니다 — 핵심 키 컬럼에 primary: true 를 주세요.',
+    );
+  }
+
+  /**
+   * 행 액션 버튼·선택 체크박스·셀 에디터에서 버블링된 클릭은 행 열기가 아니다.
+   * 삭제 아이콘 한 번에 상세까지 열리면 사용자는 무엇이 실행됐는지 알 수 없다.
+   */
+  const handleRowClick = (event: ReactMouseEvent<HTMLDivElement>, row: T) => {
+    if (!onRowActivate) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('button, a, input, select, textarea, label, [role="separator"]')) return;
+    onRowActivate(row);
+  };
+  const isEmpty = rows.length === 0;
+  /**
+   * 조회 중 — 행이 남아 있어도 오버레이로 **덮는다**. 재조회는 전부 사용자가 방금 누른
+   * 명시적 조작(페이지·정렬·검색)이라 그 순간 이전 목록은 이미 무의미하기 때문이다.
+   * 폴링·debounce 검색·무한 스크롤처럼 "누르지 않았는데 바뀌는" 경로가 생기면
+   * 그때는 이전 데이터를 살려 두는 별도 표시(배지)가 다시 필요해진다.
+   */
+  const loading = isFetching === true;
+  /**
+   * 빈 상태에서 본문이 차지할 높이. 오버레이가 스크롤 컨테이너 **밖**이라 자리를
+   * 여기서 만들어 준다 — 안에서 만들면 절대배치가 오버플로가 되어 행이 0인데
+   * 세로 스크롤바가 생긴다(`GridEmptyOverlay` 헤더 주석 §2).
+   * 하한 2행은 문구+힌트+액션이 눌리지 않는 최소치, 상한은 `maxHeight` 를 넘지 않게 한다.
+   */
+  // maxHeight 가 'auto'(blog 확장 — 내용만큼 늘어남)면 상한 클램프를 생략한다.
+  const emptyBodyHeight = Math.max(
+    rowHeight * 2,
+    Math.min(rowHeight * 5, maxHeight === 'auto' ? rowHeight * 5 : maxHeight - headerHeight),
+  );
+
   return (
     /* 그리드 크롬은 폼이 아니다 — 화면을 FormMode(view/disabled)로 감싸도
        행 선택 체크박스·셀 에디터가 잠기면 안 되므로 edit 로 핀한다. */
@@ -204,15 +326,15 @@ export function DataGrid<T extends Record<string, unknown>>({
           invalid && 'border-dl-error',
         )}
       >
-        {isFetching ? (
-          // 재조회 중에도 이전 데이터를 유지한다(keepPreviousData) — 화면이 비면 체감이 나빠진다.
-          <div className="absolute top-2 right-2 z-[var(--dl-z-grid-empty)] flex items-center gap-1 rounded-dl-control bg-dl-surface/90 px-2 py-1">
-            <Spinner />
-            <span className="text-dl-xs text-dl-fg-muted">{loadingLabel}</span>
-          </div>
-        ) : null}
-
-        <div ref={scrollRef} className="overflow-auto" style={{ maxHeight }}>
+        <div
+          ref={scrollRef}
+          className="overflow-auto"
+          // 빈 상태에서는 높이를 확정한다 — 오버레이가 컨테이너 밖이라 자리를 만들지 않는다.
+          style={{
+            ...(maxHeight === 'auto' ? null : { maxHeight }),
+            ...(isEmpty ? { height: headerHeight + emptyBodyHeight } : null),
+          }}
+        >
           <div className="relative" style={{ minWidth: totalWidth }}>
             {/* ── 헤더 ── 상단 고정. 고정열은 가로로도 고정된다. */}
             <div
@@ -225,6 +347,7 @@ export function DataGrid<T extends Record<string, unknown>>({
                   style={{ width: selectColumnWidth }}
                 >
                   <Checkbox
+                    size={density}
                     checked={selection.allState === 'all'}
                     indeterminate={selection.allState === 'some'}
                     onChange={selection.toggleAll}
@@ -249,10 +372,14 @@ export function DataGrid<T extends Record<string, unknown>>({
                   <div
                     key={column.id}
                     className={cn(
-                      // 구분선은 surface(흰색)가 아니라 border 다 — 회색 헤더 위에서 흰 선은 묻혀서
-                      // 리사이즈 손잡이가 어디 있는지 보이지 않는다. (QA 는 헤더 세로선을 제거하지만
-                      // 그건 리사이즈가 없던 dhtmlx 규칙이다 — 잡는 자리는 보여야 한다.)
-                      'relative flex shrink-0 border-r border-dl-border bg-dl-grid-header',
+                      'relative flex shrink-0 bg-dl-grid-header',
+                      /**
+                       * 컬럼 경계선은 **한 줄만** 그린다.
+                       * 조절 가능한 컬럼에서는 손잡이가 같은 자리(right-0)에 그 선을 대신 그리므로,
+                       * 여기서 border-r 까지 켜면 3px 간격의 이중선이 컬럼마다 반복된다.
+                       * 조절 불가 컬럼에만 셀이 직접 긋는다 — 그래야 경계선이 빠짐없이 이어진다.
+                       */
+                      !canResize && 'border-r border-dl-border',
                       isPinned && 'sticky z-[var(--dl-z-grid-header-pinned)]',
                     )}
                     style={{ width, ...(isPinned ? { left: offsets[index] } : null) }}
@@ -294,6 +421,14 @@ export function DataGrid<T extends Record<string, unknown>>({
                 const isAdded = editing?.addedRowIds.has(rowId) ?? false;
 
                 return (
+                  /**
+                   * 행 클릭은 **포인터 전용 보조 경로**다 — 키보드·스크린리더의 열기 경로는
+                   * `column.primary` 가 그리는 링크 버튼이고, 그게 없으면 위에서 경고가 울린다.
+                   * 그래서 여기에 role/tabIndex 를 얹지 않는다: 링크와 행이 각각 포커스를 받으면
+                   * 같은 목적지가 탭 순서에 두 번 서서 표를 훑는 비용만 두 배가 된다.
+                   */
+                  // biome-ignore lint/a11y/useKeyWithClickEvents: 키보드 경로는 primary 링크가 갖는다(위 warnOnce 가 강제)
+                  // biome-ignore lint/a11y/noStaticElementInteractions: 위와 동일
                   <div
                     key={rowId}
                     className={cn(
@@ -302,8 +437,11 @@ export function DataGrid<T extends Record<string, unknown>>({
                       selectable ? 'hover:bg-dl-grid-hover' : 'bg-dl-locked-bg text-dl-locked-fg',
                       // 추가('A') 행은 행 전체가 미저장이다 — 셀 단위 dirty 와 같은 톤얼로 알린다
                       isAdded && 'bg-dl-grid-dirty',
+                      // 호출부 강조가 마지막이다 — 위 상태 배색을 덮을 수 있어야 뜻이 있다
+                      rowClassName?.(row),
                     )}
                     style={{ height: virtualRow.size, top: virtualRow.start }}
+                    onClick={onRowActivate ? (event) => handleRowClick(event, row) : undefined}
                   >
                     {hasSelection ? (
                       <div
@@ -314,8 +452,10 @@ export function DataGrid<T extends Record<string, unknown>>({
                         style={{ width: selectColumnWidth }}
                       >
                         <Checkbox
+                          size={density}
                           checked={checked}
-                          disabled={!selectable}
+                          // undefined 여야 그리드의 FormMode edit 핀을 따른다 — "edit" 하드코딩 금지.
+                          mode={selectable ? undefined : 'disabled'}
                           aria-label={selection.selectRowLabel}
                           onChange={(event) => {
                             const next = new Set(selection.selectedIds);
@@ -333,6 +473,7 @@ export function DataGrid<T extends Record<string, unknown>>({
                         column={column}
                         row={row}
                         rowId={rowId}
+                        density={density}
                         width={widths[index] ?? 0}
                         pinned={index < pinned}
                         left={index < pinned ? offsets[index] : undefined}
@@ -352,18 +493,58 @@ export function DataGrid<T extends Record<string, unknown>>({
               })}
             </div>
 
-            {/* 빈 상태는 본문 영역을 덮는다 — 행 자리를 밀어내지 않아 툴바 위치가 흔들리지 않는다 */}
-            {rows.length === 0 && empty ? (
+            {/* ── 합계행 ── 하단 sticky 크롬. 헤더와 같은 배색·고정열 오프셋을 쓴다.
+                행이 0이면 없다 — 합계가 없는데 크롬만 남으면 빈 상태 오버레이와 겹친다. */}
+            {footer && !isEmpty ? (
               <div
-                className="absolute right-0 left-0 z-[var(--dl-z-grid-empty)] flex flex-col items-center justify-center gap-1.5 bg-dl-surface text-center"
-                style={{ top: headerHeight, height: Math.max(rowHeight * 8, 160) }}
+                className="sticky bottom-0 z-[var(--dl-z-grid-header)] flex border-dl-border border-t bg-dl-grid-header"
+                style={{ height: rowHeight }}
               >
-                <p className="text-dl-base font-semibold text-dl-fg-muted">{empty.title}</p>
-                {empty.hint ? <p className="text-dl-sm text-dl-fg-subtle">{empty.hint}</p> : null}
+                {hasSelection ? (
+                  <div
+                    className="sticky left-0 z-[var(--dl-z-grid-header-pinned)] shrink-0 border-dl-border border-r bg-dl-grid-header"
+                    style={{ width: selectColumnWidth }}
+                  />
+                ) : null}
+                {columns.map((column, index) => {
+                  const isPinned = index < pinned;
+                  const align = column.align ?? 'center';
+                  return (
+                    <div
+                      key={column.id}
+                      className={cn(
+                        'flex shrink-0 items-center font-semibold text-dl-fg text-dl-sm',
+                        GRID_CELL_PX_CLASS[density],
+                        align === 'right' && 'justify-end',
+                        align === 'center' && 'justify-center',
+                        isPinned && 'sticky z-[var(--dl-z-grid-header-pinned)] bg-dl-grid-header',
+                      )}
+                      style={{
+                        width: widths[index] ?? 0,
+                        ...(isPinned ? { left: offsets[index] } : null),
+                      }}
+                    >
+                      <span className="truncate">{footer.cells[column.id]}</span>
+                    </div>
+                  );
+                })}
               </div>
             ) : null}
           </div>
         </div>
+
+        {/* 빈 상태와 조회 중이 본문 영역을 덮는다 — 행 자리를 밀어내지 않아 툴바 위치가
+            흔들리지 않는다(행이 남은 채 덮으면 컨테이너 높이가 그대로라 점프가 없다).
+            ⚠️ 스크롤 컨테이너 **밖**이어야 한다. 안에 두면 가운데정렬이 뷰포트가 아니라
+            컬럼 총폭 기준이 되어 가로 스크롤 시 문구가 화면 밖으로 나간다. */}
+        {isEmpty || loading ? (
+          <GridEmptyOverlay
+            top={headerHeight}
+            empty={empty}
+            loading={loading}
+            loadingLabel={loadingLabel}
+          />
+        ) : null}
       </div>
     </FormMode>
   );
@@ -373,6 +554,7 @@ function Cell<T extends Record<string, unknown>>({
   column,
   row,
   rowId,
+  density,
   width,
   pinned,
   left,
@@ -389,6 +571,8 @@ function Cell<T extends Record<string, unknown>>({
   column: ColumnDef<T>;
   row: T;
   rowId: string;
+  /** 그리드 밀도 — 셀 좌우 패딩과 안에 서는 컨트롤(체크박스·에디터)이 함께 따라간다. */
+  density: ControlSize;
   /** 헤더와 **같은 계산**에서 온 폭이다. 여기서 따로 구하면 표가 어긋난다. */
   width: number;
   pinned: boolean;
@@ -429,8 +613,9 @@ function Cell<T extends Record<string, unknown>>({
     <div
       className={cn(
         'flex shrink-0 items-center gap-1 text-dl-sm',
-        // 에디터(42px)가 50px 행에 서려면 좌우 여백을 줄여야 한다 — 조회 모드만 셀 패딩을 쓴다
-        isActive ? 'px-1' : 'px-dl-cell-x',
+        // 에디터가 행 안에 서려면 좌우 여백을 줄여야 한다 — 조회 모드만 셀 패딩을 쓴다.
+        // 행과 컨트롤의 차이는 어느 density 에서도 8px 고정이라 이 규칙이 단계와 무관하게 성립한다.
+        isActive ? 'px-1' : GRID_CELL_PX_CLASS[density],
         align === 'right' && 'justify-end',
         align === 'center' && 'justify-center',
         pinned && 'sticky z-[var(--dl-z-grid-pinned)]',
@@ -455,6 +640,7 @@ function Cell<T extends Record<string, unknown>>({
           column={column}
           row={row}
           value={raw}
+          size={density}
           invalid={invalidMessage !== undefined}
           onCommitValue={(value) => editing.onCommit(rowId, column.id, value)}
           onClose={() => editing.onActiveCellChange(null)}
@@ -465,6 +651,7 @@ function Cell<T extends Record<string, unknown>>({
           column={column}
           row={row}
           rowId={rowId}
+          density={density}
           raw={raw}
           isAdded={isAdded}
           headerLabel={headerLabel}
@@ -484,6 +671,8 @@ function Cell<T extends Record<string, unknown>>({
           }}
           // 아이콘 더블클릭이 셀의 편집 진입으로 새면 "원복하려다 에디터가 열리는" 사고가 된다
           onDoubleClick={(event) => event.stopPropagation()}
+          // size-6(24px)은 density 를 따르지 않는다 — 아이콘 버튼은 행 높이가 아니라
+          // **아이콘 축**(--spacing-dl-ic-sm 16px)을 따르고, 가장 좁은 xs 행(40px)에도 들어간다.
           className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-dl-badge text-dl-fg-muted hover:bg-dl-tonal hover:text-dl-tonal-fg"
         >
           <Icon icon={X} size="sm" />
@@ -501,7 +690,7 @@ function Cell<T extends Record<string, unknown>>({
             column.rowAction?.onAction(row);
           }}
           onDoubleClick={(event) => event.stopPropagation()}
-          className="flex size-6 shrink-0 items-center justify-center rounded-dl-badge text-dl-primary hover:bg-dl-tonal hover:text-dl-tonal-fg"
+          className="flex size-6 shrink-0 items-center justify-center rounded-dl-badge text-dl-primary-ink hover:bg-dl-tonal hover:text-dl-tonal-fg"
         >
           <Icon icon={column.rowAction.icon} size="sm" />
         </button>
@@ -515,6 +704,7 @@ function CellContent<T extends Record<string, unknown>>({
   column,
   row,
   rowId,
+  density,
   raw,
   isAdded,
   headerLabel,
@@ -524,6 +714,7 @@ function CellContent<T extends Record<string, unknown>>({
   column: ColumnDef<T>;
   row: T;
   rowId: string;
+  density: ControlSize;
   raw: T[keyof T & string];
   isAdded: boolean;
   headerLabel: string;
@@ -531,19 +722,29 @@ function CellContent<T extends Record<string, unknown>>({
   editing: GridEditing | undefined;
   onPrimaryAction?: (row: T) => void;
 }) {
-  if (editing && column.editor?.type === 'checkbox') {
+  if (column.editor?.type === 'checkbox') {
     const checkedValue = column.editor.checkedValue ?? true;
     const uncheckedValue = column.editor.uncheckedValue ?? false;
-    return (
-      <Checkbox
-        checked={Object.is(raw, checkedValue)}
-        aria-label={headerLabel}
-        onChange={(event) =>
-          // 체크박스는 편집 모드 진입 없이 토글 즉시 커밋한다 — 클릭 두 번을 강요하지 않는다.
-          editing.onCommit(rowId, column.id, event.target.checked ? checkedValue : uncheckedValue)
-        }
-      />
-    );
+    const checked = Object.is(raw, checkedValue);
+    if (editing) {
+      return (
+        <Checkbox
+          size={density}
+          checked={checked}
+          aria-label={headerLabel}
+          onChange={(event) =>
+            // 체크박스는 편집 모드 진입 없이 토글 즉시 커밋한다 — 클릭 두 번을 강요하지 않는다.
+            editing.onCommit(rowId, column.id, event.target.checked ? checkedValue : uncheckedValue)
+          }
+        />
+      );
+    }
+    /**
+     * 편집 불가(비편집 그리드 · `editable: false` · `applyLockedColumns` 잠금) 체크박스 컬럼 —
+     * raw 값 텍스트(true/false)가 아니라 **비활성 체크박스**로 그린다. 마스킹 잠금 컬럼이
+     * 텍스트로 무너지면 잠긴 것이 아니라 다른 데이터로 읽힌다.
+     */
+    return <Checkbox size={density} checked={checked} mode="disabled" aria-label={headerLabel} />;
   }
 
   const content = column.format ? column.format(raw, row) : formatDefault(raw);
@@ -688,11 +889,20 @@ function ColumnResizeHandle({
       className={cn(
         // touch-none 이 없으면 터치 기기에서 드래그가 스크롤로 가로채인다
         'absolute top-0 right-0 h-full w-[7px] cursor-col-resize touch-none select-none',
-        // 기본에도 separator(#ccc)로 살짝 보인다 — 상하 4px 들여진 짧은 선이라
-        // 풀하이트 셀 구분선과 구별되어 "잡는 손잡이"로 읽힌다. 상호작용 시 primary 로 강조.
-        'after:absolute after:top-1 after:right-[3px] after:bottom-1 after:w-px after:bg-dl-separator',
-        'hover:after:bg-dl-primary focus-visible:after:bg-dl-primary',
-        active && 'after:bg-dl-primary',
+        /**
+         * 평상시 이 선이 곧 **컬럼 경계선**이다 — 헤더 셀의 border-r 을 대신하므로
+         * 톤도 그것과 같은 border 다. 손잡이라고 따로 티내지 않아 헤더가 조용해진다.
+         */
+        'after:absolute after:inset-y-0 after:right-0 after:w-px after:bg-dl-border',
+        'after:transition-[width,background-color] after:duration-100',
+        /**
+         * 잡는 자리는 갖다 댔을 때 살아난다 — 색만 바꾸면 1px 선이라 눈에 안 띄어서
+         * 폭까지 2px 로 굵힌다. 굵어지는 방향은 셀 **안쪽**이라 옆 컬럼을 침범하지 않는다.
+         */
+        'hover:after:w-[2px] hover:after:bg-dl-primary',
+        // 기본 포커스링은 7px 짜리 얇은 요소에 어울리지 않는다 — 강조선이 그 역할을 대신한다(tabs 와 같은 규약).
+        'focus-visible:outline-none focus-visible:after:w-[2px] focus-visible:after:bg-dl-primary',
+        active && 'after:w-[2px] after:bg-dl-primary',
       )}
     />
   );

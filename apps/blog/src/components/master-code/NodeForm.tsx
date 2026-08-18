@@ -1,9 +1,5 @@
+import { cn, Input, Label, Switch, Textarea } from '@hvy/ui';
 import type React from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
 import { AttributeSchemaEditor, AttributeValueEditor } from './AttributeEditor';
 
 interface AttributeSchemaItem {
@@ -59,7 +55,7 @@ export default function NodeForm({
     <div className="space-y-4 pt-2">
       {/* 부모 노드 정보 (자식 추가 시) */}
       {dialogMode === 'addChild' && parentNode && (
-        <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-3">
+        <div className="rounded-lg border border-dl-tonal-border bg-dl-tonal p-3">
           <p className="text-sm text-[color:var(--admin-text-secondary)]">
             부모 노드:{' '}
             <strong>
@@ -74,18 +70,19 @@ export default function NodeForm({
 
       {/* 코드 */}
       <div className="space-y-1">
-        <Label>코드 *</Label>
+        <Label htmlFor="node-code">코드 *</Label>
         <Input
+          id="node-code"
           value={formData.code}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setFormData((prev) => ({ ...prev, code: e.target.value }))
           }
-          className={cn(codeChanged && 'border-yellow-500 focus-visible:ring-yellow-400')}
+          className={cn(codeChanged && 'border-dl-warning focus-visible:ring-dl-warning')}
         />
         <p
           className={cn(
             'text-xs',
-            codeChanged ? 'text-yellow-600' : 'text-[color:var(--admin-text-faint)]',
+            codeChanged ? 'text-dl-warning-ink' : 'text-[color:var(--admin-text-faint)]',
           )}
         >
           {codeChanged
@@ -96,8 +93,9 @@ export default function NodeForm({
 
       {/* 이름 */}
       <div className="space-y-1">
-        <Label>이름 *</Label>
+        <Label htmlFor="node-name">이름 *</Label>
         <Input
+          id="node-name"
           value={formData.name}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setFormData((prev) => ({ ...prev, name: e.target.value }))
@@ -107,8 +105,9 @@ export default function NodeForm({
 
       {/* 설명 */}
       <div className="space-y-1">
-        <Label>설명</Label>
+        <Label htmlFor="node-desc">설명</Label>
         <Textarea
+          id="node-desc"
           value={formData.description}
           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
             setFormData((prev) => ({ ...prev, description: e.target.value }))
@@ -119,8 +118,9 @@ export default function NodeForm({
 
       {/* 정렬순서 */}
       <div className="space-y-1">
-        <Label>정렬순서</Label>
+        <Label htmlFor="node-sort">정렬순서</Label>
         <Input
+          id="node-sort"
           type="number"
           value={formData.sort}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -135,12 +135,14 @@ export default function NodeForm({
       {/* 활성화 여부 */}
       <div className="flex items-center gap-2">
         <Switch
+          id="node-active"
+          label="활성화"
           checked={formData.isActive}
           onCheckedChange={(checked: boolean) =>
             setFormData((prev) => ({ ...prev, isActive: checked }))
           }
         />
-        <Label>활성화</Label>
+        <Label htmlFor="node-active">활성화</Label>
       </div>
 
       {/* 루트: 속성 스키마 편집 / 자식: 속성값 편집 */}

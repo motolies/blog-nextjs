@@ -9,6 +9,7 @@ import type { ControlSize } from '../lib/controlSize';
 import { useControllableState } from '../lib/useControllableState';
 import { warnOnce } from '../lib/warnOnce';
 import { FieldViewText, useFieldControl } from './field';
+import type { FieldMode } from './form-mode';
 
 /**
  * 체크박스 — QA `custom-checkbox`: md 20×20 커스텀 박스(5단은 테마 스케일 유도).
@@ -44,14 +45,21 @@ const BAR_CLASS: Record<ControlSize, string> = {
   xl: 'h-0.5 w-3',
 };
 
-export type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'> & {
+export type CheckboxProps = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'type' | 'size' | 'disabled'
+> & {
   ref?: Ref<HTMLInputElement>;
   /**
    * 일부만 선택된 상태. **DOM 프로퍼티라 속성으로 줄 수 없어** effect 로 넣는다 —
    * 그리드 전체선택에서 이게 없으면 "일부 선택"이 "전체 선택"으로 보인다.
    */
   readonly indeterminate?: boolean;
-  /** 5단 사이즈 — 기본 md(20). 네이티브 `size`(문자 폭)는 쓰지 않는 속성이라 이름을 가져온다. */
+  /** 폼 모드. 생략하면 감싼 `Field`/`FormMode` 를 따른다 — 명시하면 폼이 view 여도 이긴다. */
+  readonly mode?: FieldMode;
+  /** Field 밖에서 단독으로 쓸 때만. Field 안이면 컨텍스트가 이긴다. 배색은 QA 미규정이라 aria 만 단다. */
+  readonly invalid?: boolean;
+  /** 5단 사이즈 — 기본 md(20). 생략하면 감싼 `Field` 의 size 를 따른다. */
   readonly size?: ControlSize;
   /** view 모드 표시 문구. `ui` 는 사전을 모른다 — 주입받는다. 없으면 개발 경고 + 빈칸. */
   readonly viewLabels?: { readonly on: ReactNode; readonly off: ReactNode };
@@ -60,16 +68,18 @@ export type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' |
 export function Checkbox({
   className,
   indeterminate = false,
-  size = 'md',
+  mode,
+  invalid,
+  size,
   viewLabels,
   id,
-  disabled,
   checked: checkedProp,
   defaultChecked,
   onChange,
   ...props
 }: CheckboxProps) {
-  const field = useFieldControl({ id });
+  // invalid·size 도 넘긴다 — 안 넘기면 Field 의 오류·사이즈가 체크박스에 도달하지 못한다.
+  const field = useFieldControl({ id, invalid, size, mode });
   const ref = useRef<HTMLInputElement>(null);
 
   /**
@@ -87,16 +97,18 @@ export function Checkbox({
     if (ref.current) ref.current.indeterminate = indeterminate;
   }, [indeterminate]);
 
-  if (field.mode === 'view') {
+  if (field.state.view) {
     // 불리언 → 말 사전을 ui 가 모른다. 문구 없이 체크 모양만 남기면 입력으로 오독된다.
     if (!viewLabels) {
       warnOnce(
         `checkbox-view-no-labels:${id ?? field.id ?? 'unknown'}`,
         'view 모드의 Checkbox 에 viewLabels 가 없습니다. { on, off } 표시 문구를 주입해 주세요.',
       );
-      return <FieldViewText size={size} />;
+      return <FieldViewText size={field.size} />;
     }
-    return <FieldViewText size={size}>{checked ? viewLabels.on : viewLabels.off}</FieldViewText>;
+    return (
+      <FieldViewText size={field.size}>{checked ? viewLabels.on : viewLabels.off}</FieldViewText>
+    );
   }
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -105,7 +117,10 @@ export function Checkbox({
   };
 
   return (
-    <span className={cn('relative inline-flex shrink-0', BOX_CLASS[size], className)}>
+    <span
+      className={cn('relative inline-flex shrink-0', BOX_CLASS[field.size], className)}
+      {...field.state.dataProps}
+    >
       {/* 진짜 컨트롤 — 보이지 않지만 클릭·키보드·폼 전송을 전부 받는다. */}
       <input
         ref={ref}
@@ -116,7 +131,10 @@ export function Checkbox({
         // 비제어 remount(view↔edit 왕복)에서 미러링된 현재값으로 되살린다 — mount 시에만 읽힌다.
         defaultChecked={isControlled ? undefined : checked}
         onChange={handleChange}
-        disabled={disabled || field.mode === 'disabled'}
+        aria-invalid={field['aria-invalid']}
+        aria-describedby={field['aria-describedby']}
+        aria-required={field.required || undefined}
+        disabled={field.state.disabled}
         {...props}
       />
       {/* 박스 — 상태는 전부 peer(input)에서 온다. */}
@@ -138,16 +156,16 @@ export function Checkbox({
       {/* 체크 글리프 — checked 일 때만. indeterminate 가 이기도록 그때는 감춘다. */}
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 hidden items-center justify-center text-dl-primary-fg peer-checked:flex peer-indeterminate:hidden"
+        className="pointer-events-none absolute inset-0 hidden items-center justify-center text-dl-primary-mark peer-checked:flex peer-indeterminate:hidden"
       >
-        <Icon icon={Check} className={GLYPH_CLASS[size]} />
+        <Icon icon={Check} className={GLYPH_CLASS[field.size]} />
       </span>
       {/* indeterminate 글리프 — 가로 막대. */}
       <span
         aria-hidden
         className="pointer-events-none absolute inset-0 hidden items-center justify-center peer-indeterminate:flex"
       >
-        <span className={cn('rounded-dl-pill bg-dl-primary-fg', BAR_CLASS[size])} />
+        <span className={cn('rounded-dl-pill bg-dl-primary-mark', BAR_CLASS[field.size])} />
       </span>
     </span>
   );

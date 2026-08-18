@@ -1,0 +1,67 @@
+/**
+ * blog 라이트 테마 — 기존 blog-nextjs shadcn 팔레트(HSL)를 hex 로 변환해 매핑했다.
+ * 브랜드는 기존 primary(hsl 208 83% 52% = #1f8bea, 파랑) 계열.
+ *
+ * 사용법: 앱 theme.css 에서 `@import '@hvy/ui/theme/blog.css';` +
+ * 루트 `<html data-theme="blog">`. next-themes 가 light ↔ blog 를 매핑한다.
+ *
+ * 규칙 (verify:tokens 가 강제):
+ * · Tier 1 전체(색 팔레트 33키 + 컨트롤 스케일 5키 = 38키)를 재정의한다.
+ * · `@theme`·`@import` 금지, `@layer theme` 안이어야 한다.
+ * · 대비는 verify:tokens 가 AA(4.5:1) + 래칫 기준선으로 검사한다.
+ */
+@layer theme {
+  :root[data-theme='blog'] {
+    /* 브랜드 — 기존 primary 파랑. hover/active 는 명도 단계(l52→44→38),
+       틴트 3종은 같은 색상의 고명도(l95/97.5/85) 파생. */
+    --dl-brand-500: #1f8bea;
+    --dl-brand-600: #1376cd;
+    --dl-brand-700: #1066b1;
+    --dl-brand-050: #e8f3fd;
+    --dl-brand-025: #f3f9fe;
+    --dl-brand-150: #b9dbf8;
+    --dl-brand-fg: #ffffff; /* 채움 위 글자 — 500 위 3.54(기준선 2.35 상회) */
+    --dl-brand-mark: #ffffff; /* 채움 위 도형 — 체크·라디오 점·knob */
+    --dl-brand-ink: #1066b1; /* 밝은 표면 위 브랜드 글자 — 흰/틴트/틴트2 위 5.90/5.25/5.56. brand-700 겸용 */
+
+    /* 의미색 — 성공/경고는 QA 값 유지(blog 에 대응 팔레트 없음).
+       -ink 는 틴트 배경 위 글자용 — 500 을 글자로 쓰면 2.2~2.9:1 이라 갈라냈다(원본과 같은 근거). */
+    --dl-green-500: #01a235;
+    --dl-green-050: #e1f4e7;
+    --dl-orange-500: #ff8000;
+    --dl-orange-050: #fff0e0;
+    --dl-green-ink: #017b26; /* 틴트 위 4.74 — QA 값과 동일 */
+    --dl-orange-ink: #ab5300; /* 틴트 위 4.73 — QA 값과 동일 */
+
+    /* 빨강 — 기존 destructive(hsl 0 74% 54%) */
+    --dl-red-500: #e13333;
+    --dl-red-050: #fce9e9;
+    --dl-red-ink: #b02525; /* 틴트 위 5.73 · 삭제 버튼 hover 채움으로도 쓰여 흰 글자 6.69 */
+
+    /* 중립 — 기존 blog 팔레트의 블루그레이 램프.
+       000=카드면(card) · 200=캔버스(background) · 300=보더(border) · black=본문(foreground) */
+    --dl-gray-000: #ffffff;
+    --dl-gray-100: #eef2f7; /* 옵션 hover — 기존 muted */
+    --dl-gray-150: #e9eef4;
+    --dl-gray-200: #f7fafc; /* 캔버스 — 기존 background */
+    --dl-gray-300: #d7dfea; /* 표준 보더 — 기존 border */
+    --dl-gray-400: #b9c4d3;
+    --dl-gray-500: #8b99ab; /* 보조 텍스트 — 기존 public-text-subtle 계열 */
+    --dl-gray-600: #7b8a9e; /* 플레이스홀더 */
+    --dl-gray-650: #a5b1c1; /* 비활성 라벨 */
+    --dl-gray-700: #546173; /* 보조 글자 — 기존 muted-foreground */
+    --dl-gray-800: #2c3a4d;
+    --dl-gray-ink: #566070; /* 틴트(gray-300) 배경 위 글자 — 배지 neutral, 4.73 */
+    --dl-black: #19222e; /* 본문 — 기존 foreground */
+
+    --dl-link: #1066b1; /* 순청(#00f) 대신 브랜드 진한 단계 — 기존 blog 링크 관습 */
+    --dl-excel: #217346;
+
+    /* 컨트롤 스케일 — default 와 동일(밀도 변경 없음) */
+    --dl-scale-xs: 2.5;
+    --dl-scale-sm: 3.5;
+    --dl-scale-md: 5;
+    --dl-scale-lg: 6;
+    --dl-scale-xl: 7.5;
+  }
+}

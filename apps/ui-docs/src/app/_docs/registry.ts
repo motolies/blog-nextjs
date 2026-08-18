@@ -1,31 +1,44 @@
 import type { UiDocsNavGroup } from '../../client/ui-test/shell';
+import { accordionDoc } from './accordion';
 import { badgeDoc } from './badge';
 import { buttonDoc } from './button';
 import { cardDoc } from './card';
 import { checkboxDoc } from './checkbox';
+import { checkboxGroupDoc } from './checkbox-group';
+import { comboboxDoc } from './combobox';
 import { dataGridDoc } from './data-grid';
 import { datePickerDoc } from './date-picker';
+import { dateRangePickerDoc } from './date-range-picker';
 import { dateTimePickerDoc } from './date-time-picker';
+import { dateTimeRangePickerDoc } from './date-time-range-picker';
 import { dialogDoc } from './dialog';
 import { dialogPickerDoc } from './dialog-picker';
+import { dropdownMenuDoc } from './dropdown-menu';
 import { feedbackDoc } from './feedback';
 import { fieldDoc } from './field';
+import { fileUploadDoc } from './file-upload';
 import { formGridDoc } from './form-grid';
 import { formSaveDoc } from './form-save';
+import { formSectionDoc } from './form-section';
 import { gridDoc } from './grid';
 import { iconsDoc } from './icons';
+import { inlineNoticeDoc } from './inline-notice';
 import { inputDoc } from './input';
 import { multiSelectDoc } from './multi-select';
+import { numberInputDoc } from './number-input';
 import { radioDoc } from './radio';
 import { searchGridDoc } from './search-grid';
 import { selectDoc } from './select';
+import { statTileDoc } from './stat-tile';
 import { switchDoc } from './switch';
+import { tableDoc } from './table';
 import { tabsDoc } from './tabs';
 import { toastDoc } from './toast';
 import { tokensDoc } from './tokens';
 import { tooltipDoc } from './tooltip';
 import { treeGridDoc } from './tree-grid';
 import { DOC_CATEGORIES, type DocCategory, type DocEntry } from './types';
+import { workTabsDoc } from './work-tabs';
 
 /**
  * 문서 레지스트리 — **새 문서 추가 = 정의 파일 1개 + 여기 import 1줄**이다.
@@ -35,22 +48,35 @@ import { DOC_CATEGORIES, type DocCategory, type DocEntry } from './types';
 export const DOCS: readonly DocEntry[] = [
   buttonDoc,
   inputDoc,
+  numberInputDoc,
+  fileUploadDoc,
   datePickerDoc,
+  dateRangePickerDoc,
   dateTimePickerDoc,
+  dateTimeRangePickerDoc,
   selectDoc,
   multiSelectDoc,
+  comboboxDoc,
   checkboxDoc,
+  checkboxGroupDoc,
   radioDoc,
   switchDoc,
   tooltipDoc,
+  accordionDoc,
   fieldDoc,
   badgeDoc,
   cardDoc,
+  statTileDoc,
   tabsDoc,
+  workTabsDoc,
   formGridDoc,
+  formSectionDoc,
   dialogDoc,
+  dropdownMenuDoc,
   toastDoc,
+  inlineNoticeDoc,
   feedbackDoc,
+  tableDoc,
   dataGridDoc,
   treeGridDoc,
   gridDoc,

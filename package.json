@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "pnpm -F blog dev",
+    "dev:docs": "pnpm -F ui-docs dev",
     "build": "pnpm -F blog build",
     "start": "pnpm -F blog start",
     "test": "vitest run",

@@ -7,7 +7,7 @@ import { Field, FormMode, NativeSelect, Select } from '@hvy/ui';
  *
  * · 미선택 칸은 view 에서 placeholder 가 아니라 **빈칸**이다 — "고르라"는 입력 신호가
  *   조회 화면에 남으면 거짓말이 된다. 행 높이는 VALUE_MIN_H 가 유지한다.
- * · disabled(칸 disabled 든 FormMode disabled 든)는 hidden input 을 내지 않는다 —
+ * · disabled(칸의 mode="disabled" 명시든 FormMode disabled 든)는 hidden input 을 내지 않는다 —
  *   네이티브 컨트롤이 FormData 에서 빠지는 규약과 같다.
  * · NativeSelect 는 view 를 유도할 수 없다(선택 라벨이 children `<option>` 안) —
  *   **콘솔 경고 1회 후 편집 렌더를 유지**한다(조용한 빈칸 금지). 조회 모드가 필요한

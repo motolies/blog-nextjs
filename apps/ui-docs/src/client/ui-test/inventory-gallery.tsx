@@ -1,6 +1,6 @@
 'use client';
 
-import * as HvyUI from '@hvy/ui';
+import * as DeleoUI from '@hvy/ui';
 import { Badge } from '@hvy/ui';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -19,7 +19,7 @@ import { Panel } from './playground';
 
 export function InventoryGallery() {
   const theme = normalizeTheme(useSearchParams().get('theme'));
-  const names = Object.keys(HvyUI).sort((a, b) => a.localeCompare(b, 'en'));
+  const names = Object.keys(DeleoUI).sort((a, b) => a.localeCompare(b, 'en'));
   const missingCount = names.filter((name) => !EXPORT_INFO[name]).length;
 
   return (

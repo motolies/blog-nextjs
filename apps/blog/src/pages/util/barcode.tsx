@@ -1,18 +1,7 @@
+import { Button, Input, Select, showToast, Tab, TabList, TabPanel, Tabs, Textarea } from '@hvy/ui';
 import { ArrowLeft, Download } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
 import { downloadBlob, downloadDataUrl } from '@/util/browserUtils';
 
 const BARCODE_FORMATS = [
@@ -76,12 +65,13 @@ export default function BarcodePage() {
         font: 'D2Coding',
         fontSize: 16,
         margin: 10,
+        // token-exempt: 바코드 스캐너는 흑백 대비로 읽는다 — 테마색을 넣으면 인식률이 떨어진다
         background: '#ffffff',
       });
     } catch (e) {
       console.error('Barcode generation error:', e);
       if (barcodeSvgRef.current) barcodeSvgRef.current.innerHTML = '';
-      toast.error(`바코드 생성 실패: ${e.message || '유효하지 않은 입력값'}`);
+      showToast(`바코드 생성 실패: ${e.message || '유효하지 않은 입력값'}`, 'error');
     }
   }, [isClient, barcodeText, barcodeFormat, barcodeWidth, barcodeHeight, displayValue]);
 
@@ -101,11 +91,12 @@ export default function BarcodePage() {
         width: qrSize,
         margin: 2,
         errorCorrectionLevel: qrErrorLevel,
+        // token-exempt: QR 스캐너 인식 요건 — 순수 흑백이어야 한다
         color: { dark: '#000000', light: '#ffffff' },
       });
     } catch (e) {
       console.error('QR Code generation error:', e);
-      toast.error(`QR 코드 생성 실패: ${e.message || '유효하지 않은 입력값'}`);
+      showToast(`QR 코드 생성 실패: ${e.message || '유효하지 않은 입력값'}`, 'error');
     }
   }, [isClient, qrText, qrSize, qrErrorLevel]);
 
@@ -134,21 +125,21 @@ export default function BarcodePage() {
       const { toPng } = await import('html-to-image');
       const svgElement = barcodeSvgRef.current;
       if (!svgElement) {
-        toast.warning('바코드를 먼저 생성해주세요.');
+        showToast('바코드를 먼저 생성해주세요.', 'warning');
         return;
       }
       const dataUrl = await toPng(svgElement, { backgroundColor: 'white', pixelRatio: 2 });
       downloadDataUrl(dataUrl, `barcode-${barcodeFormat}-${Date.now()}.png`);
-      toast.success('PNG 다운로드 완료');
+      showToast('PNG 다운로드 완료');
     } catch (e) {
-      toast.error(`다운로드 실패: ${e.message}`);
+      showToast(`다운로드 실패: ${e.message}`, 'error');
     }
   };
 
   const downloadBarcodeSvg = () => {
     const svgElement = barcodeSvgRef.current;
     if (!svgElement) {
-      toast.warning('바코드를 먼저 생성해주세요.');
+      showToast('바코드를 먼저 생성해주세요.', 'warning');
       return;
     }
     const svgData = new XMLSerializer().serializeToString(svgElement);
@@ -157,24 +148,24 @@ export default function BarcodePage() {
         new Blob([svgData], { type: 'image/svg+xml' }),
         `barcode-${barcodeFormat}-${Date.now()}.svg`,
       );
-      toast.success('SVG 다운로드 완료');
+      showToast('SVG 다운로드 완료');
     } catch (e) {
-      toast.error(`다운로드 실패: ${e.message}`);
+      showToast(`다운로드 실패: ${e.message}`, 'error');
     }
   };
 
   const downloadQrPng = () => {
     const canvas = qrCanvasRef.current;
     if (!canvas) {
-      toast.warning('QR 코드를 먼저 생성해주세요.');
+      showToast('QR 코드를 먼저 생성해주세요.', 'warning');
       return;
     }
     const dataUrl = canvas.toDataURL('image/png');
     try {
       downloadDataUrl(dataUrl, `qrcode-${Date.now()}.png`);
-      toast.success('PNG 다운로드 완료');
+      showToast('PNG 다운로드 완료');
     } catch (e) {
-      toast.error(`다운로드 실패: ${e.message}`);
+      showToast(`다운로드 실패: ${e.message}`, 'error');
     }
   };
 
@@ -186,12 +177,13 @@ export default function BarcodePage() {
         width: qrSize,
         margin: 2,
         errorCorrectionLevel: qrErrorLevel,
+        // token-exempt: QR 스캐너 인식 요건 — 순수 흑백이어야 한다
         color: { dark: '#000000', light: '#ffffff' },
       });
       downloadBlob(new Blob([svgString], { type: 'image/svg+xml' }), `qrcode-${Date.now()}.svg`);
-      toast.success('SVG 다운로드 완료');
+      showToast('SVG 다운로드 완료');
     } catch (e) {
-      toast.error(`다운로드 실패: ${e.message}`);
+      showToast(`다운로드 실패: ${e.message}`, 'error');
     }
   };
 
@@ -204,7 +196,7 @@ export default function BarcodePage() {
   return (
     <div className="p-2 sm:p-4">
       <div className="flex items-center gap-2 mb-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push('/util')}>
+        <Button className="aspect-square p-0" variant="ghost" onClick={() => router.push('/util')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-xl sm:text-3xl font-bold">Barcode Generator</h1>
@@ -212,54 +204,43 @@ export default function BarcodePage() {
 
       <div className="border rounded-md">
         <Tabs value={tabValue} onValueChange={setTabValue}>
-          <TabsList className="w-full grid grid-cols-2 rounded-none border-b">
-            <TabsTrigger value="barcode">1D 바코드</TabsTrigger>
-            <TabsTrigger value="qr">QR 코드</TabsTrigger>
-          </TabsList>
+          <TabList className="w-full grid grid-cols-2 rounded-none border-b">
+            <Tab value="barcode">1D 바코드</Tab>
+            <Tab value="qr">QR 코드</Tab>
+          </TabList>
 
           {/* 1D Barcode */}
-          <TabsContent value="barcode">
+          <TabPanel value="barcode">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-2 sm:p-4">
               {/* 설정 영역 */}
               <div className="md:col-span-2 space-y-4">
                 <div>
-                  <label className="text-sm text-gray-500 dark:text-[#636d83] mb-1 block">
-                    포맷
-                  </label>
-                  <Select value={barcodeFormat} onValueChange={handleFormatChange}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BARCODE_FORMATS.map((format) => (
-                        <SelectItem key={format.value} value={format.value}>
-                          {format.label} - {format.description}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <label className="text-sm text-dl-fg-muted mb-1 block">포맷</label>
+                  <Select
+                    value={barcodeFormat}
+                    onValueChange={handleFormatChange}
+                    placeholder="포맷 선택"
+                    options={BARCODE_FORMATS.map((format) => ({
+                      value: format.value,
+                      label: `${format.label} - ${format.description}`,
+                    }))}
+                  />
                 </div>
 
                 <div>
-                  <label className="text-sm text-gray-500 dark:text-[#636d83] mb-1 block">
-                    텍스트
-                  </label>
+                  <label className="text-sm text-dl-fg-muted mb-1 block">텍스트</label>
                   <Input
                     value={barcodeText}
                     onChange={(e) => setBarcodeText(e.target.value)}
                     placeholder={currentFormat?.example}
                   />
                   {currentFormat && (
-                    <p className="text-xs text-gray-500 dark:text-[#636d83] mt-1">
-                      {currentFormat.description}
-                    </p>
+                    <p className="text-xs text-dl-fg-muted mt-1">{currentFormat.description}</p>
                   )}
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-[#636d83] mb-1">
-                    선 굵기: {barcodeWidth}
-                  </p>
+                  <p className="text-sm text-dl-fg-muted mb-1">선 굵기: {barcodeWidth}</p>
                   <input
                     type="range"
                     min={1}
@@ -267,14 +248,12 @@ export default function BarcodePage() {
                     step={0.5}
                     value={barcodeWidth}
                     onChange={(e) => setBarcodeWidth(Number(e.target.value))}
-                    className="w-full accent-blue-600"
+                    className="w-full accent-[color:var(--color-dl-primary)]"
                   />
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-[#636d83] mb-1">
-                    높이: {barcodeHeight}px
-                  </p>
+                  <p className="text-sm text-dl-fg-muted mb-1">높이: {barcodeHeight}px</p>
                   <input
                     type="range"
                     min={50}
@@ -282,7 +261,7 @@ export default function BarcodePage() {
                     step={10}
                     value={barcodeHeight}
                     onChange={(e) => setBarcodeHeight(Number(e.target.value))}
-                    className="w-full accent-blue-600"
+                    className="w-full accent-[color:var(--color-dl-primary)]"
                   />
                 </div>
 
@@ -297,11 +276,11 @@ export default function BarcodePage() {
                 </label>
 
                 <div className="flex gap-2 mt-2">
-                  <Button onClick={downloadBarcodePng} className="flex-1">
+                  <Button variant="primary" onClick={downloadBarcodePng} className="flex-1">
                     <Download className="h-4 w-4 mr-1" />
                     PNG
                   </Button>
-                  <Button onClick={downloadBarcodeSvg} className="flex-1">
+                  <Button variant="primary" onClick={downloadBarcodeSvg} className="flex-1">
                     <Download className="h-4 w-4 mr-1" />
                     SVG
                   </Button>
@@ -311,22 +290,20 @@ export default function BarcodePage() {
               {/* 미리보기 영역 */}
               <div
                 ref={barcodeRef}
-                className="md:col-span-3 min-h-[250px] flex justify-center items-center bg-gray-50 dark:bg-[rgba(33,37,43,0.8)] border rounded-md p-4"
+                className="md:col-span-3 min-h-[250px] flex justify-center items-center bg-dl-grid-header border rounded-md p-4"
               >
                 <svg ref={barcodeSvgRef} />
               </div>
             </div>
-          </TabsContent>
+          </TabPanel>
 
           {/* QR Code */}
-          <TabsContent value="qr">
+          <TabPanel value="qr">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-2 sm:p-4">
               {/* 설정 영역 */}
               <div className="md:col-span-2 space-y-4">
                 <div>
-                  <label className="text-sm text-gray-500 dark:text-[#636d83] mb-1 block">
-                    텍스트 / URL
-                  </label>
+                  <label className="text-sm text-dl-fg-muted mb-1 block">텍스트 / URL</label>
                   <Textarea
                     value={qrText}
                     onChange={(e) => setQrText(e.target.value)}
@@ -336,9 +313,7 @@ export default function BarcodePage() {
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-[#636d83] mb-1">
-                    사이즈: {qrSize}px
-                  </p>
+                  <p className="text-sm text-dl-fg-muted mb-1">사이즈: {qrSize}px</p>
                   <input
                     type="range"
                     min={100}
@@ -346,9 +321,9 @@ export default function BarcodePage() {
                     step={50}
                     value={qrSize}
                     onChange={(e) => setQrSize(Number(e.target.value))}
-                    className="w-full accent-blue-600"
+                    className="w-full accent-[color:var(--color-dl-primary)]"
                   />
-                  <div className="flex justify-between text-xs text-gray-400 dark:text-[#636d83] mt-0.5">
+                  <div className="flex justify-between text-xs text-dl-fg-muted mt-0.5">
                     <span>100</span>
                     <span>256</span>
                     <span>500</span>
@@ -356,29 +331,24 @@ export default function BarcodePage() {
                 </div>
 
                 <div>
-                  <label className="text-sm text-gray-500 dark:text-[#636d83] mb-1 block">
-                    에러 보정 레벨
-                  </label>
-                  <Select value={qrErrorLevel} onValueChange={setQrErrorLevel}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {QR_ERROR_LEVELS.map((level) => (
-                        <SelectItem key={level.value} value={level.value}>
-                          {level.label} - {level.description}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <label className="text-sm text-dl-fg-muted mb-1 block">에러 보정 레벨</label>
+                  <Select
+                    value={qrErrorLevel}
+                    onValueChange={setQrErrorLevel}
+                    placeholder="오류 수정 레벨"
+                    options={QR_ERROR_LEVELS.map((level) => ({
+                      value: level.value,
+                      label: `${level.label} - ${level.description}`,
+                    }))}
+                  />
                 </div>
 
                 <div className="flex gap-2">
-                  <Button onClick={downloadQrPng} className="flex-1">
+                  <Button variant="primary" onClick={downloadQrPng} className="flex-1">
                     <Download className="h-4 w-4 mr-1" />
                     PNG
                   </Button>
-                  <Button onClick={downloadQrSvg} className="flex-1">
+                  <Button variant="primary" onClick={downloadQrSvg} className="flex-1">
                     <Download className="h-4 w-4 mr-1" />
                     SVG
                   </Button>
@@ -388,18 +358,18 @@ export default function BarcodePage() {
               {/* 미리보기 영역 */}
               <div
                 ref={qrRef}
-                className="md:col-span-3 min-h-[250px] flex justify-center items-center bg-gray-50 dark:bg-[rgba(33,37,43,0.8)] border rounded-md p-4"
+                className="md:col-span-3 min-h-[250px] flex justify-center items-center bg-dl-grid-header border rounded-md p-4"
               >
                 <canvas ref={qrCanvasRef} />
               </div>
             </div>
-          </TabsContent>
+          </TabPanel>
         </Tabs>
       </div>
 
-      <div className="mt-4 p-3 bg-gray-100 dark:bg-[rgba(44,49,58,0.7)] rounded-md">
+      <div className="mt-4 p-3 bg-dl-option-hover rounded-md">
         <p className="text-sm font-semibold mb-1">바코드 포맷 안내</p>
-        <ul className="text-sm text-gray-500 dark:text-[#636d83] list-disc ml-5 space-y-0.5">
+        <ul className="text-sm text-dl-fg-muted list-disc ml-5 space-y-0.5">
           <li>
             <strong>CODE128</strong>: 가장 범용적인 포맷, 모든 ASCII 문자 지원
           </li>

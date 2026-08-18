@@ -3,13 +3,13 @@
 import { DateTimePicker } from '@hvy/ui';
 import { useState } from 'react';
 
-/** 단일 일시 — 달력에서 날짜, 오른쪽 리스트에서 시·분. 팝업은 [확인]·외부 클릭으로 닫는다. */
+/** 단일 일시 — 달력에서 날짜, 오른쪽 리스트에서 시·분. clearable 이라 값이 있으면 × 가 뜬다. */
 export function DateTimeBasicDemo() {
   const [value, setValue] = useState('');
 
   return (
     <div className="flex max-w-96 flex-col gap-3">
-      <DateTimePicker value={value} onValueChange={setValue} name="collectedAt" />
+      <DateTimePicker value={value} onValueChange={setValue} name="collectedAt" clearable />
       <p className="text-dl-sm text-dl-fg-muted">
         값: <code className="font-dl-mono">{value === '' ? '(비어 있음)' : value}</code>
       </p>
@@ -44,12 +44,15 @@ export function DateTimeMinuteDemo() {
   );
 }
 
-/** 잠금 — Input 의 FieldLock 규칙 그대로, 팝업 버튼도 함께 잠긴다. */
+/**
+ * lock(boolean) — readOnly 로 잠기고 **선택 버튼 자리가 자물쇠 표식**으로 스왑된다(값은 전송).
+ * 전송까지 막는 쪽은 mode="disabled" — 두 번째 칸이 그 대비다.
+ */
 export function DateTimeLockDemo() {
   return (
     <div className="flex max-w-96 flex-col gap-3">
-      <DateTimePicker defaultValue="2026-08-12 09:00:00" lock="readonly" />
-      <DateTimePicker defaultValue="2026-08-12 09:00:00" lock="disabled" />
+      <DateTimePicker defaultValue="2026-08-12 09:00:00" lock placeholder="자동 / 수집 시 기록" />
+      <DateTimePicker defaultValue="2026-08-12 09:00:00" mode="disabled" />
     </div>
   );
 }

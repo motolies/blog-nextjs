@@ -15,7 +15,7 @@ export function ErrorState({ message, onRetry }: { message: ReactNode; onRetry?:
         <button
           type="button"
           onClick={onRetry}
-          className="text-dl-xs text-dl-primary underline underline-offset-2"
+          className="text-dl-xs text-dl-primary-ink underline underline-offset-2"
         >
           다시 시도
         </button>

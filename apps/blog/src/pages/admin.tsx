@@ -7,7 +7,6 @@ import {
   NotebookPen,
   Radar,
   ShieldCheck,
-  Workflow,
 } from 'lucide-react';
 import Link from 'next/link';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
@@ -39,12 +38,6 @@ const dashboardStats: DashboardStat[] = [
     meta: '로그 전용 분석 화면',
     icon: ShieldCheck,
   },
-  {
-    label: '업무 흐름',
-    value: '1',
-    meta: '스프린트 리포트 영역',
-    icon: Workflow,
-  },
 ];
 
 const statusCards: StatusCard[] = [
@@ -71,7 +64,7 @@ export default function AdminPage() {
       actions={
         <Link
           href="/admin/write"
-          className="inline-flex items-center gap-2 rounded-2xl border border-sky-600/15 bg-sky-600/8 px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-600/12"
+          className="inline-flex items-center gap-2 rounded-2xl border border-dl-tonal-border bg-dl-tonal px-4 py-2 text-sm font-semibold text-dl-primary-ink transition hover:bg-dl-tonal-hover"
         >
           새 글 작성
           <ArrowRight className="h-4 w-4" />
@@ -83,7 +76,7 @@ export default function AdminPage() {
           <div className="admin-stat-card col-span-12 md:col-span-4" key={label}>
             <div className="flex items-center justify-between gap-3">
               <span className="admin-stat-label">{label}</span>
-              <Icon className="h-5 w-5 text-sky-600" />
+              <Icon className="h-5 w-5 text-dl-primary-ink" />
             </div>
             <strong className="admin-stat-value">{value}</strong>
             <span className="admin-stat-meta">{meta}</span>
@@ -115,7 +108,7 @@ export default function AdminPage() {
                   <h3 className="text-base font-semibold text-[color:var(--admin-text)]">
                     {label}
                   </h3>
-                  <ArrowRight className="h-4 w-4 text-[color:var(--admin-text-faint)] transition group-hover:text-sky-700" />
+                  <ArrowRight className="h-4 w-4 text-[color:var(--admin-text-faint)] transition group-hover:text-dl-primary-ink" />
                 </div>
                 <p className="mt-2 text-sm leading-6 text-[color:var(--admin-text-muted)]">
                   {description}
@@ -127,7 +120,7 @@ export default function AdminPage() {
 
         <section className="admin-panel admin-panel-pad">
           <div className="mb-4 flex items-center gap-3">
-            <NotebookPen className="h-5 w-5 text-sky-600" />
+            <NotebookPen className="h-5 w-5 text-dl-primary-ink" />
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">
                 Workspace Notes

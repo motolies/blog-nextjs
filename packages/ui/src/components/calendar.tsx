@@ -10,6 +10,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../icons';
 import { cn } from '../lib/cn';
+import { parseIsoDate, toIsoDate } from './isoDate';
 
 /** 헤더 내비게이션 방향 → lucide 아이콘 매핑 (구 스프라이트 prev/next/double-* 대응) */
 const NAV_ICONS: Readonly<Record<'prev' | 'next' | 'double-prev' | 'double-next', LucideIcon>> = {
@@ -32,23 +33,8 @@ const NAV_ICONS: Readonly<Record<'prev' | 'next' | 'double-prev' | 'double-next'
  * 다시 열 때마다 선택값의 달에서 시작한다. controlled month 가 필요해지면 그때 연다.
  */
 
-/** 유효한 ISO 날짜면 로컬 Date 로, 아니면 null. 2026-02-30 같은 역직렬화 오버플로도 거른다. */
-export function parseIsoDate(value: string | undefined): Date | null {
-  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-  const [year = 0, month = 0, day = 0] = value.split('-').map(Number);
-  const date = new Date(year, month - 1, day);
-  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
-    return null;
-  }
-  return date;
-}
-
-/** 로컬 y/m/d → `YYYY-MM-DD`. `toISOString()` 은 UTC 라 자정 부근에서 하루 밀린다 — 쓰지 않는다. */
-export function toIsoDate(date: Date): string {
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getDate()}`.padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
-}
+// 변환 자체는 순수 모듈로 분리했다(datePresets 가 React 무의존으로 쓴다) — 기존 소비처용 재export.
+export { parseIsoDate, toIsoDate };
 
 /** 오늘 — 렌더마다 new Date() 를 부르지 않도록 셀 판정에 한 번만 쓴다. */
 function todayIso(): string {
@@ -223,7 +209,7 @@ export function Calendar({
                 inRange ? 'bg-dl-tonal text-dl-tonal-fg' : 'rounded-dl-control',
                 !selected && !inRange && !disabled && 'hover:bg-dl-tonal hover:text-dl-tonal-fg',
                 cell.outside && !selected && 'text-dl-fg-subtle',
-                cell.iso === today && !selected && 'font-semibold text-dl-primary',
+                cell.iso === today && !selected && 'font-semibold text-dl-primary-ink',
                 selected && 'bg-dl-primary font-semibold text-dl-primary-fg',
                 disabled && 'cursor-not-allowed text-dl-label-disabled hover:bg-transparent',
               )}

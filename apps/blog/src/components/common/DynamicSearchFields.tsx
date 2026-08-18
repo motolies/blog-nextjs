@@ -1,32 +1,25 @@
 import {
+  Button,
+  DateRangePicker,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Input,
+  Label,
+  Select,
+} from '@hvy/ui';
+import {
   Plus as AddIcon,
   Check as CheckIcon,
   X as CloseIcon,
   RefreshCw as RefreshIcon,
   Search as SearchIcon,
 } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 
-const DateRangePicker = dynamic(() => import('./DateRangePicker'), { ssr: false });
-const SELECT_EMPTY_VALUE = '__SHADCN_SELECT_EMPTY__';
+const SELECT_EMPTY_VALUE = '__SELECT_EMPTY__';
 
 interface SelectOption {
   value: string | number;
@@ -67,10 +60,6 @@ interface NumberRangeSearchField {
 type RangeSearchField = DateRangeSearchField | NumberRangeSearchField;
 type SearchField = BaseSearchField | DateRangeSearchField | NumberRangeSearchField;
 
-interface SpacingConfig {
-  [key: string]: unknown;
-}
-
 /**
  * 필드의 고유 키를 반환
  */
@@ -99,22 +88,25 @@ const renderField = (
   field: SearchField,
   searchInputs: Record<string, unknown>,
   onInputChange: (name: string, value: string) => void,
-  onKeyPress: (e: React.KeyboardEvent) => void,
-  spacingConfig?: SpacingConfig,
+  onKeyDown: (e: React.KeyboardEvent) => void,
 ) => {
   if (field.type === 'dateRange') {
     const df = field as DateRangeSearchField;
     return (
-      <DateRangePicker
-        key={df.fromName}
-        fromValue={String(searchInputs[df.fromName] || '')}
-        toValue={String(searchInputs[df.toName] || '')}
-        onFromChange={(val: string) => onInputChange(df.fromName, val)}
-        onToChange={(val: string) => onInputChange(df.toName, val)}
-        fromLabel={df.fromLabel}
-        toLabel={df.toLabel}
-        size="small"
-      />
+      // 다른 검색 필드와 같은 규격(라벨 위 · gap 1) — 기간만 라벨이 없으면 무슨 날짜인지 알 수 없다.
+      <div key={df.fromName} className="flex flex-col gap-1">
+        <span className="text-xs text-dl-fg-muted">{getFieldLabel(df)}</span>
+        <DateRangePicker
+          size="sm"
+          className="w-auto"
+          start={String(searchInputs[df.fromName] || '')}
+          end={String(searchInputs[df.toName] || '')}
+          onRangeChange={({ start, end }) => {
+            onInputChange(df.fromName, start);
+            onInputChange(df.toName, end);
+          }}
+        />
+      </div>
     );
   }
 
@@ -124,29 +116,33 @@ const renderField = (
     const inputStep = nf.integerOnly ? 1 : undefined;
     return (
       <div key={nf.fromName} className="flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground">{`${nf.fromLabel} ~ ${nf.toLabel}`}</Label>
+        <Label
+          htmlFor={`dsf-${nf.fromName}`}
+          className="text-xs text-dl-fg-muted"
+        >{`${nf.fromLabel} ~ ${nf.toLabel}`}</Label>
         <div className="flex items-center gap-1">
           <Input
+            id={`dsf-${nf.fromName}`}
             type="number"
             value={String(searchInputs[nf.fromName] ?? '')}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               onInputChange(nf.fromName, e.target.value)
             }
-            onKeyPress={onKeyPress}
+            onKeyDown={onKeyDown}
             className="h-8 w-[90px]"
             placeholder={nf.fromLabel}
             min={inputMin}
             max={nf.max}
             step={inputStep}
           />
-          <span className="text-muted-foreground text-xs">~</span>
+          <span className="text-dl-fg-muted text-xs">~</span>
           <Input
             type="number"
             value={String(searchInputs[nf.toName] ?? '')}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               onInputChange(nf.toName, e.target.value)
             }
-            onKeyPress={onKeyPress}
+            onKeyDown={onKeyDown}
             className="h-8 w-[90px]"
             placeholder={nf.toLabel}
             min={inputMin}
@@ -169,39 +165,43 @@ const renderField = (
 
     return (
       <div key={baseField.name} className="flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground">{baseField.label}</Label>
+        <Label htmlFor={`dsf-${baseField.name}`} className="text-xs text-dl-fg-muted">
+          {baseField.label}
+        </Label>
         <Select
+          id={`dsf-${baseField.name}`}
           value={selectValue}
           onValueChange={(val: string) =>
             onInputChange(baseField.name, val === SELECT_EMPTY_VALUE ? '' : val)
           }
-        >
-          <SelectTrigger size="sm" className="min-w-[120px]">
-            <SelectValue placeholder="전체" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={SELECT_EMPTY_VALUE}>전체</SelectItem>
-            {baseField.options?.map((opt) => (
-              <SelectItem key={String(opt.value)} value={String(opt.value)}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          placeholder="전체"
+          size="sm"
+          options={[
+            { value: SELECT_EMPTY_VALUE, label: '전체' },
+            ...(baseField.options ?? []).map((opt) => ({
+              value: String(opt.value),
+              label: opt.label,
+            })),
+          ]}
+          className="min-w-[120px]"
+        />
       </div>
     );
   }
 
   return (
     <div key={baseField.name} className="flex flex-col gap-1">
-      <Label className="text-xs text-muted-foreground">{baseField.label}</Label>
+      <Label htmlFor={`dsf-${baseField.name}`} className="text-xs text-dl-fg-muted">
+        {baseField.label}
+      </Label>
       <Input
+        id={`dsf-${baseField.name}`}
         type={baseField.type || 'text'}
         value={String(searchInputs[baseField.name] ?? '')}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
           onInputChange(baseField.name, e.target.value)
         }
-        onKeyPress={onKeyPress}
+        onKeyDown={onKeyDown}
         className="h-8 min-w-[120px]"
         placeholder={baseField.label}
       />
@@ -216,8 +216,6 @@ interface DynamicSearchFieldsProps {
   onInputChange: (name: string, value: string) => void;
   onSearch: () => void;
   onReset: () => void;
-  onKeyPress: (e: React.KeyboardEvent) => void;
-  spacingConfig?: SpacingConfig;
   enableDynamic?: boolean;
 }
 
@@ -226,6 +224,7 @@ interface DynamicSearchFieldsProps {
  *
  * enableDynamic=false: 기존 방식 (모든 필드 일렬 표시)
  * enableDynamic=true: pinned/dynamic 분리 + 필드 추가 메뉴
+ * Enter 키 → onSearch 는 내부에서 처리한다 — 모든 소비자가 같은 동작만 원했다.
  */
 export default function DynamicSearchFields({
   searchFields,
@@ -234,12 +233,14 @@ export default function DynamicSearchFields({
   onInputChange,
   onSearch,
   onReset,
-  onKeyPress,
-  spacingConfig,
   enableDynamic = false,
 }: DynamicSearchFieldsProps) {
   const [activeFields, setActiveFields] = useState<string[]>([]);
   const fieldRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') onSearch();
+  };
 
   // defaultSearchParams에 값이 있는 동적 필드는 자동 활성화
   useEffect(() => {
@@ -264,16 +265,16 @@ export default function DynamicSearchFields({
   // 기존 방식 (enableDynamic=false)
   if (!enableDynamic) {
     return (
-      <div className="rounded-lg border bg-card p-3 mb-3">
+      <div className="rounded-lg border bg-dl-surface p-3 mb-3">
         <div className="flex flex-wrap items-end gap-2">
           {searchFields.map((field) =>
-            renderField(field, searchInputs, onInputChange, onKeyPress, spacingConfig),
+            renderField(field, searchInputs, onInputChange, handleKeyDown),
           )}
-          <Button size="sm" onClick={onSearch} className="h-8">
+          <Button variant="primary" size="sm" onClick={onSearch} className="h-8">
             <SearchIcon />
             검색
           </Button>
-          <Button variant="outline" size="sm" onClick={onReset} className="h-8">
+          <Button variant="outline-gray" size="sm" onClick={onReset} className="h-8">
             <RefreshIcon />
             초기화
           </Button>
@@ -325,17 +326,17 @@ export default function DynamicSearchFields({
   };
 
   return (
-    <div className="rounded-lg border bg-card p-3 mb-3">
+    <div className="rounded-lg border bg-dl-surface p-3 mb-3">
       {/* Row 1: Pinned 필드 + 검색/초기화 버튼 */}
       <div className="flex flex-wrap items-end gap-2">
         {pinnedFields.map((field) =>
-          renderField(field, searchInputs, onInputChange, onKeyPress, spacingConfig),
+          renderField(field, searchInputs, onInputChange, handleKeyDown),
         )}
-        <Button size="sm" onClick={onSearch} className="h-8">
+        <Button variant="primary" size="sm" onClick={onSearch} className="h-8">
           <SearchIcon />
           검색
         </Button>
-        <Button variant="outline" size="sm" onClick={handleResetAll} className="h-8">
+        <Button variant="outline-gray" size="sm" onClick={handleResetAll} className="h-8">
           <RefreshIcon />
           초기화
         </Button>
@@ -345,12 +346,8 @@ export default function DynamicSearchFields({
       {dynamicFields.length > 0 && (
         <div className="mt-3">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-muted-foreground hover:text-foreground"
-              >
+            <DropdownMenuTrigger>
+              <Button variant="ghost" size="sm" className="h-8 text-dl-fg-muted hover:text-dl-fg">
                 <AddIcon />
                 검색 조건 추가
               </Button>
@@ -360,10 +357,10 @@ export default function DynamicSearchFields({
                 const key = getFieldKey(field);
                 const isActive = activeFields.includes(key);
                 return (
-                  <DropdownMenuItem key={key} onClick={() => handleAddField(field)}>
+                  <DropdownMenuItem key={key} onSelect={() => handleAddField(field)}>
                     <span className="flex items-center gap-2 w-full">
                       {isActive ? (
-                        <CheckIcon className="size-4 text-primary" />
+                        <CheckIcon className="size-4 text-dl-primary" />
                       ) : (
                         <span className="size-4" />
                       )}
@@ -390,12 +387,12 @@ export default function DynamicSearchFields({
                 }}
                 className="flex items-end gap-1"
               >
-                {renderField(field, searchInputs, onInputChange, onKeyPress, spacingConfig)}
+                {renderField(field, searchInputs, onInputChange, handleKeyDown)}
                 <Button
                   variant="ghost"
-                  size="icon-sm"
+                  size="sm"
                   onClick={() => handleRemoveField(field)}
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive mb-0"
+                  className="aspect-square p-0 h-8 w-8 text-dl-fg-muted hover:text-dl-danger mb-0"
                 >
                   <CloseIcon className="size-4" />
                 </Button>

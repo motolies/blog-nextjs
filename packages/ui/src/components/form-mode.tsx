@@ -5,11 +5,13 @@ import { createContext, type ReactNode, useContext } from 'react';
 /**
  * 폼 수준 모드 축 — `edit`(편집) · `view`(값 텍스트) · `disabled`(비활성 컨트롤).
  *
- * 읽기 전용 축은 셋이고 서로 직교한다:
+ * **비활성 표기는 이 축 하나다** — 컨트롤의 `disabled` boolean prop 은 타입에서 제거됐다.
+ * 읽기 전용 축은 넷이고 서로 직교한다(합성 규칙 정본은 fieldState.ts):
  *   · `FieldValue` — 애초에 **고칠 대상이 아닌** 값. 시간 개념이 없다 (field.tsx)
- *   · `lock` — 마스킹/자동입력/조건부 잠금. **칸** 수준 (input.tsx)
+ *   · `lock` — 시스템 채움 영구 불변. **칸** 수준, 모든 mode 를 이긴다
+ *   · `masking` — 서버가 마스킹한 개인정보 값 선언. **칸** 수준, 전송 제외
  *   · `mode` — 조회↔수정을 오가는 **폼** 수준의 현재 상태 (여기)
- * mode≠edit 이어도 lock 은 지워지지 않고 잠복한다 — edit 로 돌아오면 그대로 복원된다.
+ * mode≠edit 이어도 lock/masking 은 지워지지 않고 잠복한다 — edit 로 돌아오면 그대로 복원된다.
  *
  * `FormGrid` 가 아니라 별도 Provider 인 이유: FormGrid 는 `'use client'` 가 없는
  * 레이아웃 상자라 RSC 에서 렌더된다 — 컨텍스트를 얹는 순간 모든 사용처에 클라이언트

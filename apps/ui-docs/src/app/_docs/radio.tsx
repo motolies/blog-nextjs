@@ -16,13 +16,13 @@ export const radioDoc: DocEntry = {
   category: 'components',
   title: 'Radio',
   description:
-    '20px 규격 라디오. Radix RadioGroup 기반이라 키보드 이동·roving tabindex 가 붙어 있고, name 지정 시 hidden input 으로 폼에 실린다(view 모드에서는 Radix Root 자체가 안 그려져 hidden input 도 없다). 그룹 label 이 없으면 스크린리더가 그룹을 못 읽는다.',
+    '20px 규격 라디오. Radix RadioGroup 기반이라 키보드 이동·roving tabindex 가 붙어 있고, name 지정 시 hidden input 으로 폼에 실린다(view 모드에서는 Radix Root 자체가 안 그려져 hidden input 도 없다). 그룹 비활성은 mode="disabled" 하나로 표기한다 — 그룹의 disabled boolean prop 은 타입에서 제거됐고, 항목 단위 Radio.disabled 만 남는다. 그룹 label 이 없으면 스크린리더가 그룹을 못 읽는다.',
   usage: USAGE,
   examples: [
     {
       id: 'states',
       title: '상태 전수',
-      note: 'checked+disabled 조합은 그룹을 분리해야 값이 살아 있다 — 데모 코드의 두 번째 그룹이 그 예다.',
+      note: '항목 하나만 잠그면 Radio.disabled(항목 단위 — 유지된 prop), 그룹 전체를 잠그면 mode="disabled". checked+비활성 조합은 그룹을 분리해야 값이 살아 있다 — 데모 코드의 두 번째 그룹이 그 예다.',
       file: 'src/client/ui-test/docs/demos/radio/states.tsx',
       Component: RadioStatesDemo,
     },
@@ -38,6 +38,12 @@ export const radioDoc: DocEntry = {
     {
       title: 'RadioGroup',
       rows: definePropRows<RadioGroupProps>()([
+        {
+          name: 'children',
+          type: 'ReactNode',
+          required: true,
+          description: 'Radio 항목들.',
+        },
         {
           name: 'label',
           type: 'string',
@@ -63,12 +69,13 @@ export const radioDoc: DocEntry = {
           name: 'name',
           type: 'string',
           description:
-            '있으면 폼 전송에 실린다(Radix 가 hidden input 을 만든다 — 그룹이 disabled 면 빠진다).',
+            '있으면 폼 전송에 실린다(Radix 가 hidden input 을 만든다 — 그룹이 disabled 모드면 빠진다).',
         },
         {
-          name: 'id',
-          type: 'string',
-          description: '생략하면 감싼 Field 의 htmlFor 가 자동 연결된다(useFieldControl).',
+          name: 'mode',
+          type: "'edit' | 'view' | 'disabled'",
+          description:
+            '폼 상태 — 그룹 전체 비활성은 mode="disabled" 로 표기한다(그룹 disabled prop 은 제거). 생략하면 감싼 Field/FormMode 를 따르고, 명시하면 폼이 view 여도 이긴다.',
         },
         {
           name: 'invalid',
@@ -83,16 +90,21 @@ export const radioDoc: DocEntry = {
           description: '배치 방향.',
         },
         {
-          name: 'disabled',
-          type: 'boolean',
-          description: '그룹 전체 비활성.',
-        },
-        {
           name: 'size',
           type: "'xs' | 'sm' | 'md' | 'lg' | 'xl'",
           defaultValue: "'md'",
           description:
             '그룹의 모든 Radio 에 내려간다 — 개별 Radio 의 명시 size 가 이긴다. 생략하면 감싼 Field 의 size 를 따른다(다른 컨트롤과 같은 계약).',
+        },
+        {
+          name: 'id',
+          type: 'string',
+          description: '생략하면 감싼 Field 의 htmlFor 가 자동 연결된다(useFieldControl).',
+        },
+        {
+          name: 'className',
+          type: 'string',
+          description: '그룹 루트에 병합되는 클래스.',
         },
       ]),
     },
@@ -114,7 +126,18 @@ export const radioDoc: DocEntry = {
         {
           name: 'disabled',
           type: 'boolean',
-          description: '항목 단위 비활성.',
+          description:
+            '항목 단위 비활성 — mode 축으로 옮기지 않고 남긴 예외다(선택지 하나만 잠그는 용도라 폼 상태가 아니다).',
+        },
+        {
+          name: 'size',
+          type: "'xs' | 'sm' | 'md' | 'lg' | 'xl'",
+          description: '생략하면 그룹(RadioGroup)의 size 를 따른다.',
+        },
+        {
+          name: 'className',
+          type: 'string',
+          description: '항목 라벨(label 요소)에 병합되는 클래스.',
         },
       ]),
     },

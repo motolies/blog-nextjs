@@ -1,0 +1,17 @@
+{
+  "name": "blog-front",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "pnpm -F blog dev",
+    "build": "pnpm -F blog build",
+    "start": "pnpm -F blog start",
+    "test": "pnpm -F blog test:util",
+    "typecheck": "pnpm -r --parallel exec tsc --noEmit"
+  }
+}

@@ -1,0 +1,13 @@
+packages:
+  - apps/*
+  - packages/*
+
+# pnpm 11 은 postinstall 을 기본 차단한다. 패키지별로 명시적으로 판단한다.
+allowBuilds:
+  # next 이미지 최적화 네이티브 바이너리 — standalone 런타임에 필요하다.
+  sharp: true
+  # postinstall 이 브라우저 서비스워커 자산(mockServiceWorker.js)을 배치한다.
+  # Node 사이드 목만 쓰므로 불필요하다. (현재는 eslint-config-next 트리 — ESLint 제거 시 소멸)
+  msw: false
+  # eslint-config-next 의존 트리의 네이티브 리졸버 — prebuilt 바이너리로 충분. ESLint 제거 시 소멸.
+  unrs-resolver: false

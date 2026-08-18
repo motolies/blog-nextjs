@@ -7,10 +7,8 @@ allowBuilds:
   # next 이미지 최적화 네이티브 바이너리 — standalone 런타임에 필요하다.
   sharp: true
   # postinstall 이 브라우저 서비스워커 자산(mockServiceWorker.js)을 배치한다.
-  # Node 사이드 목만 쓰므로 불필요하다. (현재는 eslint-config-next 트리 — ESLint 제거 시 소멸)
+  # Node 사이드 목만 쓰므로 불필요하다. (shadcn CLI 의존 트리에도 존재 — shadcn 제거 후에도 mock 용도로 유지)
   msw: false
-  # eslint-config-next 의존 트리의 네이티브 리졸버 — prebuilt 바이너리로 충분. ESLint 제거 시 소멸.
-  unrs-resolver: false
 
 # 인스턴스가 둘이면 캐시/컨텍스트가 조용히 분리되어 오작동한다.
 # deleo-one-ui 기술스택 결정과 동일 취지 — 루트에서 단일 버전을 강제한다.

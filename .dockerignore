@@ -1,4 +1,8 @@
-node_modules
+**/node_modules
+**/.next
+**/out
+**/tsconfig.tsbuildinfo
+**/next-env.d.ts
 npm-debug.log
 .npm
 Dockerfile*
@@ -9,3 +13,9 @@ docker-compose*
 README.md
 LICENSE
 .vscode
+.claude
+claudedocs
+docs
+# 주의: apps/ui-docs 는 컨텍스트에서 제외하지 않는다 —
+# pnpm install --frozen-lockfile 이 워크스페이스 전체 importer 를 요구한다 (deleo 관례와 동일).
+# ui-docs 는 빌드 단계에서 pnpm -F blog build 로 빌드만 제외된다.

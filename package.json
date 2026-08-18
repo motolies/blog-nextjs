@@ -14,7 +14,8 @@
     "test": "pnpm -F blog test:util",
     "typecheck": "pnpm -r --parallel exec tsc --noEmit",
     "check": "biome check",
-    "check:fix": "biome check --write"
+    "check:fix": "biome check --write",
+    "verify": "pnpm check && pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:"

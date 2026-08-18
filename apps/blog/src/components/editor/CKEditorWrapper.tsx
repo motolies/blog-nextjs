@@ -1,9 +1,7 @@
-import {
-  MarkdownGfmDataProcessor,
-  MarkdownGfmHtmlToMd,
-  MarkdownGfmMdToHtml,
-} from '@ckeditor/ckeditor5-markdown-gfm';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
+
+// MarkdownGfm* 은 통합 ckeditor5 패키지가 재수출한다 — 단독 @ckeditor/ckeditor5-markdown-gfm 을
+// 따로 의존하면 코어 버전이 갈라져 ckeditor-duplicated-modules 가 난다(pnpm 격리에서 실제 발생).
 import {
   Alignment,
   Autoformat,
@@ -46,6 +44,9 @@ import {
   LinkImage,
   List,
   ListProperties,
+  MarkdownGfmDataProcessor,
+  MarkdownGfmHtmlToMd,
+  MarkdownGfmMdToHtml,
   MediaEmbed,
   Mention,
   Paragraph,
@@ -112,7 +113,8 @@ function createEditorConfig({
   uploadServer,
   onChangeDataRef,
 }: CreateEditorConfigParams) {
-  const customImageUploadPlugin = (editor: any) => {
+  // biome-ignore lint/complexity/useArrowFunction: CKEditor 가 플러그인을 new 로 인스턴스화한다 — 화살표 함수는 생성자가 될 수 없다
+  const customImageUploadPlugin = function (editor: any) {
     editor.plugins.get('FileRepository').createUploadAdapter = (loader: unknown) => {
       return imageUploadAdapter(loader);
     };
@@ -121,7 +123,8 @@ function createEditorConfig({
   // 클립보드에 text/plain만 있는 붙여넣기(마크다운 원문 복사 등)를 GFM으로 해석해 리치 콘텐츠로 변환하는 플러그인.
   // PasteFromMarkdownExperimental은 span 래핑 HTML까지 마크다운으로 재해석해 에디터 내부 복사 서식(fontColor 등)을
   // 유실시키는 부작용이 있어, 공개 API(MarkdownGfmDataProcessor)로 text/plain 전용 변환만 직접 구현한다.
-  const markdownPastePlugin = (editor: any) => {
+  // biome-ignore lint/complexity/useArrowFunction: CKEditor 가 플러그인을 new 로 인스턴스화한다 — 화살표 함수는 생성자가 될 수 없다
+  const markdownPastePlugin = function (editor: any) {
     const gfmProcessor = new MarkdownGfmDataProcessor(editor.data.viewDocument);
     let shiftPressed = false;
     editor.editing.view.document.on('keydown', (_evt: unknown, data: any) => {
@@ -144,7 +147,8 @@ function createEditorConfig({
   // 외부(MD 뷰어, 웹페이지 등)에서 복사한 콘텐츠의 테마 적대적 인라인 스타일을 붙여넣기 시점에 제거하는 플러그인.
   // - PasteFromOffice(high)와 파이프라인 최종 변환(low) 사이의 기본 우선순위에서 실행.
   // - 에디터 내부 복사(sourceEditorId 존재)는 툴바로 설정한 의도된 서식이므로 정화하지 않는다.
-  const pasteSanitizerPlugin = (editor: any) => {
+  // biome-ignore lint/complexity/useArrowFunction: CKEditor 가 플러그인을 new 로 인스턴스화한다 — 화살표 함수는 생성자가 될 수 없다
+  const pasteSanitizerPlugin = function (editor: any) {
     editor.plugins
       .get('ClipboardPipeline')
       .on('inputTransformation', (_evt: unknown, data: any) => {
@@ -166,7 +170,8 @@ function createEditorConfig({
   // HTML 소스 편집 버튼 교체 플러그인. 내장 sourceEditing 버튼은 autosave 대기(pending action) 중
   // 비활성화되어 편집 후 waitingTime(30초) 동안 누를 수 없으므로, pending action과 무관하게 동작하는
   // 버튼으로 교체한다. 단, 파일 업로드 진행 중에는 전환을 차단한다.
-  const htmlSourceEditingButtonPlugin = (editor: any) => {
+  // biome-ignore lint/complexity/useArrowFunction: CKEditor 가 플러그인을 new 로 인스턴스화한다 — 화살표 함수는 생성자가 될 수 없다
+  const htmlSourceEditingButtonPlugin = function (editor: any) {
     editor.ui.componentFactory.add('htmlSourceEditing', (locale: any) => {
       const sourceEditing = editor.plugins.get('SourceEditing');
       const buttonView = new ButtonView(locale) as any;
@@ -203,7 +208,8 @@ function createEditorConfig({
   // - textarea 값이 진입 시점 스냅샷과 같으면 setData를 생략해 GFM 미지원 서식(글자색·표 속성 등) 손실을 방지.
   // - 모드 활성 중 editor.getData() 호출(Ctrl+S·미리보기·autosave) 시 편집분을 먼저 커밋(내장 SourceEditing 패턴).
   // - 내장 SourceEditing과 상호배제: 마크다운 모드 중 소스 편집 비활성화, 소스 편집 중 마크다운 버튼 비활성화.
-  const markdownSourceEditingPlugin = (editor: any) => {
+  // biome-ignore lint/complexity/useArrowFunction: CKEditor 가 플러그인을 new 로 인스턴스화한다 — 화살표 함수는 생성자가 될 수 없다
+  const markdownSourceEditingPlugin = function (editor: any) {
     const LOCK_ID = 'markdown-source-editing';
     // 마크다운 로고 SVG (패키지에 IconMarkdown이 없어 커스텀 아이콘 사용)
     const markdownIcon =
@@ -323,7 +329,8 @@ function createEditorConfig({
     });
   };
 
-  const fileUploadPlugin = (editor: any) => {
+  // biome-ignore lint/complexity/useArrowFunction: CKEditor 가 플러그인을 new 로 인스턴스화한다 — 화살표 함수는 생성자가 될 수 없다
+  const fileUploadPlugin = function (editor: any) {
     editor.editing.view.document.on(
       'drop',
       async (event: any, data: any) => {

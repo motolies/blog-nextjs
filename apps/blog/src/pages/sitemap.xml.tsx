@@ -30,7 +30,8 @@ export async function getServerSideProps({req, res}: GetServerSidePropsContext) 
     const request = await fetch(getBackendBaseUrl() + '/api/post/public-content', {
         headers: buildForwardedHeaders(req),
     });
-    const posts = await request.json();
+    // 백엔드 응답은 {timestamp, path, status, data} 봉투 — raw fetch 라 axios 인터셉터 평탄화가 없다
+    const posts = (await request.json()).data;
 
     const sitemap = generateSiteMap(posts);
 

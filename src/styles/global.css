@@ -31,6 +31,11 @@
     --ring: 208 83% 52%;
     --radius: 1rem;
 
+    /* 고정 헤더(.top, 4.5rem + 보더 1px) 아래로 헤딩이 안착하도록 하는 스크롤 여백.
+       TableOfContents의 IntersectionObserver rootMargin 상단값(-80px)보다 커야
+       목차 클릭으로 이동한 헤딩이 활성 항목으로 잡힌다. */
+    --reading-scroll-offset: 6rem;
+
     --surface-hero: #f3f8fb;
     --surface-panel: rgba(255, 255, 255, 0.86);
     --surface-panel-strong: rgba(255, 255, 255, 0.96);

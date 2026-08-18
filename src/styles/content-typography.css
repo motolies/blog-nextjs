@@ -52,6 +52,15 @@
   font-size: clamp(1.25rem, 2.4vw, 1.7rem);
 }
 
+/* 목차 클릭 · URL 해시 진입 시 고정 헤더에 헤딩이 가리지 않도록 하는 여백.
+   에디터(.ck-content)는 입력 중 자체적으로 scrollIntoView를 호출하므로 본문에만 적용한다. */
+:where(.content) h1,
+:where(.content) h2,
+:where(.content) h3,
+:where(.content) h4 {
+  scroll-margin-top: var(--reading-scroll-offset);
+}
+
 /* ── Block elements ── */
 
 :where(.content, .ck-content) p,

@@ -6,6 +6,8 @@ process.env.JIRA_BROWSE_URL ||= 'https://deleokorea.atlassian.net/browse'
 
 module.exports = {
     output: 'standalone',
+    // next dev 가 앱마다 AGENTS.md/CLAUDE.md 를 자동 생성하는 것을 차단 — 루트 문서를 단일 소스로 유지
+    agentRules: false,
     env: {
         META_URL: process.env.META_URL,
         JIRA_BROWSE_URL: process.env.JIRA_BROWSE_URL,

@@ -546,7 +546,7 @@ export default function MermaidPage() {
           startOnLoad: false,
           theme: isDark ? 'dark' : 'default',
           securityLevel: 'loose',
-          fontFamily: 'D2Coding, monospace',
+          fontFamily: '"JetBrains Mono", "D2Coding", monospace',
         });
         setIsMermaidReady(true);
       } catch (e: any) {

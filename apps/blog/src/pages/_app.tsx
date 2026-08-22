@@ -1,5 +1,5 @@
 import '../styles/global.css';
-import '../styles/d2coding-subset.css';
+import '../styles/fonts.css';
 import '../styles/rainbow.css';
 import '../styles/ckeditor.css';
 import '../styles/ckeditor-theme.css';

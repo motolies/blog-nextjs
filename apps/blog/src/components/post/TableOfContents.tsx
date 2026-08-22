@@ -23,7 +23,7 @@ interface TableOfContentsProps {
 // Tailwind는 소스에 문자 그대로 등장하는 클래스만 생성하므로 반드시 리터럴 문자열로 유지한다.
 // 색을 .public-muted-text 같은 커스텀 클래스로 주면 안 된다. 그 규칙들은 @layer 밖에 있어
 // @layer utilities 안의 hover:text-dl-primary-ink을 이겨버려 hover가 죽는다. 같은 토큰을 유틸리티로 참조한다.
-// 굵기는 2단계뿐이다. D2Coding에 400/700 페이스만 있어 font-medium(500)은 400으로 내려간다.
+// 굵기는 2단계뿐이다. JetBrains Mono·D2Coding 모두 400/700 페이스만 실어 font-medium(500)은 400으로 내려간다.
 // depth 0에 본문 전경색 토큰을 쓰면 안 된다. 다크 모드의 본문색이 --public-text-muted와
 // 같은 값이라 depth 1과 색이 구분되지 않는다. Metadata 패널과 같은 강조 색 관례를 따른다.
 const DEPTH_STYLES = [

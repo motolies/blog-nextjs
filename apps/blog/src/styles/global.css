@@ -14,12 +14,14 @@
 /* Tailwind dark: variant 를 next-themes 의 data-theme 스탬프에 연결한다 (.dark 클래스 불사용) */
 @custom-variant dark (&:is([data-theme='blog-dark'] *));
 
-/* D2Coding — @hvy/ui 토큰의 폰트 축을 blog 폰트로 재선언(deleo 폰트 패턴:
-   패키지는 이름만 알고, 파일·@font-face 는 앱이 소유한다). */
+/* JetBrains Mono(Latin) + D2Coding(한글) — @hvy/ui 토큰의 폰트 축을 blog 폰트로 재선언
+   (deleo 폰트 패턴: 패키지는 이름만 알고, 파일·@font-face 는 앱이 소유한다).
+   스택 리터럴은 --font-dl-sans 한 곳에만 두고 나머지 축은 var() 로 참조한다. */
 @theme {
-  --font-dl-sans: "D2Coding", monospace;
-  --font-dl-mono: "D2Coding", monospace;
-  --font-mono: "D2Coding", monospace;
+  --font-dl-sans: "JetBrains Mono", "D2Coding", ui-monospace, monospace;
+  --font-dl-mono: var(--font-dl-sans);
+  --font-mono: var(--font-dl-sans);
+  --font-sans: var(--font-dl-sans);
 
   /* 구 shadcn --radius(1rem) 파생 스케일의 리터럴 고정 — rounded-md/lg/xl/2xl 사용처의 모서리 유지 */
   --radius-md: 0.75rem;
@@ -98,9 +100,9 @@
     --regex-hl-7: #00bcd4;
     --regex-hl-8: #8bc34a;
     --regex-hl-fg: #14181d;
-    --font-display: "D2Coding", monospace;
-    --font-body: "D2Coding", monospace;
-    --font-code: "D2Coding", monospace;
+    --font-display: var(--font-dl-sans);
+    --font-body: var(--font-dl-sans);
+    --font-code: var(--font-dl-mono);
   }
 
   [data-theme='blog-dark'] {
@@ -156,6 +158,8 @@
       radial-gradient(ellipse 70% 40% at 100% 80%, rgba(14, 165, 233, 0.04) 0%, transparent 55%),
       linear-gradient(180deg, #f8fbfd 0%, #f0f5f9 50%, #e8eef3 100%);
     font-family: var(--font-body);
+    /* JetBrains Mono 의 calt 리가처(=>, != …)는 본문 산문에서는 끈다 — 코드에서만 켠다 */
+    font-variant-ligatures: no-contextual;
     /* dvh — 모바일 브라우저 주소창 수축/확장에도 실제 표시 영역을 따른다 */
     min-height: 100dvh;
   }
@@ -213,6 +217,7 @@
   kbd,
   samp {
     font-family: var(--font-code);
+    font-variant-ligatures: contextual;
   }
 }
 

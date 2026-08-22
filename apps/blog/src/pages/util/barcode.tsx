@@ -62,7 +62,8 @@ export default function BarcodePage() {
         width: barcodeWidth,
         height: barcodeHeight,
         displayValue: displayValue,
-        font: 'D2Coding',
+        // canvas font 축약형으로 이어붙여지므로 공백 포함 family 명은 내장 따옴표 필수
+        font: '"JetBrains Mono", "D2Coding", monospace',
         fontSize: 16,
         margin: 10,
         // token-exempt: 바코드 스캐너는 흑백 대비로 읽는다 — 테마색을 넣으면 인식률이 떨어진다

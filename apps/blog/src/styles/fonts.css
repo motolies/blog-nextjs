@@ -1,0 +1,40 @@
+/* 사이트 전역 폰트 — Latin: JetBrains Mono / 한글: D2Coding (둘 다 OFL).
+   JetBrains Mono 에는 한글 글리프가 없어 스택 순서만으로 한글이 D2Coding 으로 떨어진다.
+   URL 은 public/ 절대 경로만 사용 — 상대 경로(../../public/...)는 번들러가
+   .next/static/media 에 해시 사본을 만들어 파일이 두 번 실린다(ui-docs theme.css 패턴). */
+
+@font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: local('JetBrains Mono Regular'),
+    url('/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: local('JetBrains Mono Bold'),
+    url('/fonts/JetBrainsMono-Bold.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'D2Coding';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: local('D2Coding Regular'),
+    url('/fonts/d2coding-subset.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'D2Coding';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: local('D2Coding Bold'),
+    url('/fonts/d2coding-bold-subset.woff2') format('woff2');
+}

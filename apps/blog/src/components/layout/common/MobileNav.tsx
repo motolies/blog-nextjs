@@ -52,7 +52,7 @@ export default function MobileNav({ open, onClose, actions }: MobileNavProps) {
         type="button"
         aria-label="메뉴 닫기"
         onClick={onClose}
-        className="fixed inset-0 z-10 cursor-default bg-[rgba(15,23,42,0.35)]"
+        className="public-scrim fixed inset-0 z-10 cursor-default"
       />
       <nav
         id="mobile-nav"

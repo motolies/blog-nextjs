@@ -80,9 +80,9 @@
     --public-card-hover-border: rgba(125, 211, 252, 0.52);
     --public-header-bg: rgba(248, 251, 253, 0.84);
     --public-header-border: rgba(148, 163, 184, 0.16);
-    /* 대시보드형 페이지(홈·검색·유틸) 폭 상한 / 포스트 상세는 읽기 폭으로 더 좁게 */
+    /* 대시보드형 페이지(홈·검색·유틸) 폭 상한 / 포스트 상세는 구 레이아웃과 같은 넓은 읽기 폭 */
     --public-max-width: 90rem;
-    --public-post-width: 75rem;
+    --public-post-width: 120rem;
 
     /* 정규식 매치 하이라이트 — 브랜드색이 아니라 **서로 구분되는 것**이 목적인 기능색이다.
        그래서 dl 팔레트로 대체할 수 없고, @hvy/ui 테마(Tier 1 색 33키)에도 넣지 않는다 —
@@ -364,6 +364,11 @@ a.file-link {
 .public-card-surface:hover {
   border-color: var(--public-card-hover-border);
   background: var(--public-card-hover-bg);
+}
+
+/* 모바일 내비 등 오버레이 뒤를 어둡게 덮는 스크림 — 색 함수는 tsx에서 금지라 여기서 정의한다 */
+.public-scrim {
+  background: rgba(15, 23, 42, 0.35);
 }
 
 html[data-admin-ui="admin"] {

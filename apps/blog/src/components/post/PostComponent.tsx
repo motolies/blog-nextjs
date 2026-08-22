@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useCodeHighlight } from '@/hooks/useCodeHighlight';
 import { searchObjectInit } from '@/model/searchObject';
@@ -144,6 +144,20 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
     wrapTables(doc);
     setPostBody(doc.head.innerHTML + doc.body.innerHTML);
   }, [post?.body]);
+
+  // React 19는 재렌더 커밋마다 같은 __html이라도 innerHTML을 재세팅해, 렌더 후 DOM에 주입한
+  // 헤딩 id(목차)·IntersectionObserver 관찰 노드·이미지 팝업 리스너가 전부 소멸한다.
+  // 요소 참조를 고정해 postBody가 바뀔 때만 서브트리가 다시 커밋되도록 한다.
+  const postContent = useMemo(
+    () => (
+      <div
+        className="content break-words"
+        id="post-content"
+        dangerouslySetInnerHTML={{ __html: postBody }}
+      />
+    ),
+    [postBody],
+  );
 
   // 넓은 표가 모바일에서 잘리지 않도록 가로 스크롤 래퍼(.table-scroll)로 감싼다.
   // CSS 만으로는 래퍼를 만들 수 없어 기존 DOM 후처리 파이프라인에서 처리한다.
@@ -371,7 +385,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
           <article className="surface-panel-strong overflow-hidden rounded-(--radius-panel)">
             <div className="px-(--public-gutter) py-8">
               <div className="flex flex-wrap items-start justify-between gap-6">
-                <div className="max-w-3xl">
+                <div>
                   <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                     Article
                   </p>
@@ -504,11 +518,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
             )}
 
             <div className="border-t border-[color:var(--line-soft)] px-(--public-gutter) py-8">
-              <div
-                className="content break-words"
-                id="post-content"
-                dangerouslySetInnerHTML={{ __html: postBody }}
-              />
+              {postContent}
             </div>
 
             <div className="border-t border-[color:var(--line-soft)] px-(--public-gutter) py-6">
@@ -582,7 +592,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
             )}
           </article>
 
-          <aside className="hidden space-y-5 lg:sticky lg:top-(--sticky-top) lg:block lg:max-h-[calc(100dvh-var(--sticky-top)-2rem)] lg:self-start lg:overflow-y-auto">
+          <aside className="hidden space-y-5 lg:sticky lg:top-(--sticky-top) lg:block lg:self-start">
             <div className="surface-panel-strong rounded-(--radius-panel) p-6">
               <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                 Reading Context

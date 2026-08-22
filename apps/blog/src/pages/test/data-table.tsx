@@ -8,7 +8,7 @@ import {
   useGridEditing,
   useGridSelection,
 } from '@hvy/ui';
-import { FlaskConical, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
 import { GRID_EMPTY, SELECTION_LABELS } from '@/components/common/grid/gridLabels';
@@ -217,16 +217,8 @@ export default function DataTableTestPage() {
   );
 
   return (
+    // 페이지 타이틀은 상단 헤더 브레드크럼(h1, adminRouteMeta '/test/data-table')이 정본
     <section className="admin-page-frame">
-      <div className="admin-page-header">
-        <div className="admin-page-copy">
-          <h1 className="admin-page-title">
-            <FlaskConical className="admin-page-title-icon" />
-            DataGrid 직접 배선 테스트
-          </h1>
-        </div>
-      </div>
-
       <div className="admin-workspace">
         <div className="admin-panel admin-panel-pad mb-4">
           <h2 className="text-sm font-semibold text-[color:var(--admin-text-secondary)] mb-2">

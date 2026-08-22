@@ -37,9 +37,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center" style={{ minHeight: '50vh' }}>
+    <div className="public-container flex min-h-[50dvh] items-center justify-center">
       <h1 className="visually-hidden">로그인</h1>
-      <form noValidate onSubmit={handleSubmit} className="mt-1 p-10 w-full max-w-sm space-y-4">
+      <form
+        noValidate
+        onSubmit={handleSubmit}
+        className="mt-1 w-full max-w-sm space-y-4 p-6 sm:p-10"
+      >
         <Field label="UserName" htmlFor="username">
           <Input
             id="username"

@@ -5,6 +5,7 @@ import {
   BookOpen,
   BookOpenText,
   Flame,
+  FlaskConical,
   FolderTree,
   LayoutDashboard,
   NotebookPen,
@@ -170,6 +171,10 @@ export const adminRouteMeta: Record<string, AdminRouteMeta> = {
     title: 'API 로그',
     icon: Activity,
   },
+  '/test/data-table': {
+    title: 'DataGrid 테스트',
+    icon: FlaskConical,
+  },
 };
 
 export function getAdminRouteMeta(pathname: string): AdminRouteMeta {
@@ -187,6 +192,28 @@ export function isActiveAdminItem(item: AdminNavigationItem, pathname: string): 
   }
 
   return pathname === item.href;
+}
+
+export interface AdminBreadcrumb {
+  section?: string;
+  title: string;
+}
+
+/**
+ * 경로에서 헤더 브레드크럼(섹션 / 페이지)을 역조회한다.
+ * 섹션은 내비 항목의 match/href 매칭으로 찾고, 페이지 타이틀은 adminRouteMeta 를 정본으로 쓴다
+ * (동적 라우트 '글 수정' 등 내비 라벨보다 구체적인 타이틀을 유지하기 위함).
+ */
+export function getAdminBreadcrumb(pathname: string): AdminBreadcrumb {
+  const title = getAdminRouteMeta(pathname).title;
+  for (const section of adminNavigationSections) {
+    for (const item of section.items) {
+      if (isActiveAdminItem(item, pathname)) {
+        return { section: section.title, title };
+      }
+    }
+  }
+  return { title };
 }
 
 export interface AdminQuickLink {

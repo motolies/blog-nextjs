@@ -1,8 +1,7 @@
 .top {
-    position: fixed;
+    /* sticky — 문서 흐름에 참여하므로 페이지들이 pt-28 같은 보상 여백을 가질 필요가 없다 */
+    position: sticky;
     top: 0;
-    right: 0;
-    left: 0;
     z-index: 60;
 }
 

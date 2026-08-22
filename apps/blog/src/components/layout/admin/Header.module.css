@@ -70,12 +70,42 @@
   letter-spacing: -0.02em;
 }
 
-.brandText span {
-  font-size: 0.76rem;
+/* 브레드크럼 — 현재 페이지(h1)가 admin 페이지 타이틀의 정본이라 전 구간 노출한다.
+   lg 미만에서는 섹션 부분만 숨기고 현재 페이지 타이틀을 유지한다. */
+.breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
   color: var(--admin-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.breadcrumbTrail {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.breadcrumbSep {
+  color: var(--admin-text-faint);
+}
+
+.breadcrumbCurrent {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: inherit;
+  font-weight: inherit;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+@media (min-width: 1025px) {
+  .breadcrumbTrail {
+    display: inline-flex;
+  }
 }
 
 .menuToggleBtn {
@@ -86,7 +116,8 @@
   padding: 0.55rem;
   cursor: pointer;
   border-radius: 0.9rem;
-  display: none;
+  /* 데스크톱은 사이드바 collapse, 모바일은 오프캔버스 토글 — 전 구간 노출 */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
@@ -142,10 +173,6 @@
 }
 
 @media (max-width: 1024px) {
-  .menuToggleBtn {
-    display: inline-flex;
-  }
-
   .statusChip {
     display: none;
   }
@@ -156,7 +183,8 @@
     padding: 0 0.9rem;
   }
 
-  .brandText span {
+  /* 좁은 화면에서 브레드크럼(페이지 타이틀) 공간 확보 — B 마크만 남긴다 */
+  .brandText {
     display: none;
   }
 

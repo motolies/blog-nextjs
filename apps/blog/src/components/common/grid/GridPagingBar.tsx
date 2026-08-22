@@ -42,7 +42,9 @@ export function GridPagingBar({
   selection?: GridToolbarSelection;
 }) {
   return (
+    // 좁은 화면에서 총건수·페이저·페이지크기·액션이 넘치지 않도록 줄바꿈 허용
     <GridToolbar
+      className="flex-wrap"
       paging={
         <>
           <TotalCount

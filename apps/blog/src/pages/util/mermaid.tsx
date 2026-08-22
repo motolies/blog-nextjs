@@ -861,7 +861,7 @@ export default function MermaidPage() {
   // 일반 모드
   return (
     <>
-      <div className="p-2 sm:p-4">
+      <div>
         <div className="flex items-center gap-2 mb-4">
           <Button
             className="aspect-square p-0"

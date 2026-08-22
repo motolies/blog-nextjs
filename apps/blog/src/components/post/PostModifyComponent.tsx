@@ -220,6 +220,36 @@ export default function PostModifyComponent() {
     }
   };
 
+  // 저장/발행/취소 핸들러 — 데스크톱 설정 패널과 모바일 sticky 하단 바가 공유한다
+  const onTempSave = () => {
+    if (isSavingRef.current) {
+      return;
+    }
+    pendingStatusRef.current = 'TEMP';
+    setTriggerGetData(getTsid().toString());
+  };
+
+  const onPublish = () => {
+    if (isSavingRef.current) {
+      return;
+    }
+    pendingStatusRef.current = 'PUBLISH';
+    setTriggerGetData(getTsid().toString());
+  };
+
+  const onCancel = async () => {
+    const hasChanges =
+      post.body !== initialBodyRef.current || post.subject !== initialSubjectRef.current;
+    if (hasChanges) {
+      const ok = await askConfirm({
+        message: '저장하지 않은 내용이 있습니다. 정말 나가시겠습니까?',
+        confirmLabel: '나가기',
+      });
+      if (!ok) return;
+    }
+    post.id ? router.push(`/post/${post.id}`) : router.back();
+  };
+
   return (
     <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
       {/* 에디터 영역 */}
@@ -256,7 +286,7 @@ export default function PostModifyComponent() {
       </div>
 
       {/* 사이드바 영역 */}
-      <div className="admin-panel admin-panel-pad space-y-3 xl:max-h-[calc(100vh-15rem)] xl:overflow-y-auto">
+      <div className="admin-panel admin-panel-pad space-y-3 xl:max-h-[calc(100dvh-15rem)] xl:overflow-y-auto">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">
             Settings
@@ -363,51 +393,17 @@ export default function PostModifyComponent() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <Button
-            size="lg"
-            variant="outline-gray"
-            onClick={() => {
-              if (isSavingRef.current) {
-                return;
-              }
-              pendingStatusRef.current = 'TEMP';
-              setTriggerGetData(getTsid().toString());
-            }}
-          >
+        {/* 데스크톱 전용 액션 — xl 미만에서는 하단 sticky 바가 대신한다 */}
+        <div className="hidden gap-3 xl:grid xl:grid-cols-3">
+          <Button size="lg" variant="outline-gray" onClick={onTempSave}>
             <Save size={16} className="mr-1" />
             임시저장
           </Button>
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={() => {
-              if (isSavingRef.current) {
-                return;
-              }
-              pendingStatusRef.current = 'PUBLISH';
-              setTriggerGetData(getTsid().toString());
-            }}
-          >
+          <Button variant="primary" size="lg" onClick={onPublish}>
             <Send size={16} className="mr-1" />
             발행
           </Button>
-          <Button
-            size="lg"
-            variant="outline-red"
-            onClick={async () => {
-              const hasChanges =
-                post.body !== initialBodyRef.current || post.subject !== initialSubjectRef.current;
-              if (hasChanges) {
-                const ok = await askConfirm({
-                  message: '저장하지 않은 내용이 있습니다. 정말 나가시겠습니까?',
-                  confirmLabel: '나가기',
-                });
-                if (!ok) return;
-              }
-              post.id ? router.push(`/post/${post.id}`) : router.back();
-            }}
-          >
+          <Button size="lg" variant="outline-red" onClick={onCancel}>
             취소
           </Button>
         </div>
@@ -418,6 +414,28 @@ export default function PostModifyComponent() {
           body={previewBody}
           onClose={() => setPreviewOpen(false)}
         />
+      </div>
+
+      {/* 모바일/태블릿 sticky 하단 액션 바 — 긴 스크롤 없이 핵심 CTA 에 도달한다 */}
+      <div className="admin-panel sticky bottom-[calc(0.5rem+var(--safe-bottom))] z-30 space-y-2 p-3 xl:hidden">
+        {(saveStatus === 'saving' || (saveStatus === 'saved' && lastSavedTime)) && (
+          <p className="text-right text-xs text-[color:var(--admin-text-faint)]">
+            {saveStatus === 'saving' ? '저장 중...' : `마지막 저장: ${lastSavedTime}`}
+          </p>
+        )}
+        <div className="grid grid-cols-3 gap-2">
+          <Button variant="outline-gray" onClick={onTempSave}>
+            <Save size={16} className="mr-1" />
+            임시저장
+          </Button>
+          <Button variant="primary" onClick={onPublish}>
+            <Send size={16} className="mr-1" />
+            발행
+          </Button>
+          <Button variant="outline-red" onClick={onCancel}>
+            취소
+          </Button>
+        </div>
       </div>
     </div>
   );

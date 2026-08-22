@@ -39,7 +39,7 @@ export const SearchEngineComponent = ({ engines = [] }: SearchEngineComponentPro
   };
 
   return (
-    <div className="surface-panel-strong w-full rounded-[1.75rem] p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-6">
+    <div className="surface-panel-strong w-full rounded-(--radius-panel) p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-6">
       <div className="mb-5 flex items-start justify-between gap-3">
         <div>
           <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
@@ -54,7 +54,7 @@ export const SearchEngineComponent = ({ engines = [] }: SearchEngineComponentPro
         </span>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-[minmax(160px,220px)_minmax(0,1fr)_140px]">
+      <div className="grid gap-3 md:grid-cols-[minmax(10rem,13.75rem)_minmax(0,1fr)_8.75rem]">
         <Select
           value={selectedEngine?.url ?? ''}
           onValueChange={setSelectedUrl}

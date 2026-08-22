@@ -120,7 +120,7 @@ export default function RegexTester() {
   const currentLang = languages.find((l) => l.id === tabValue) || languages[0];
 
   return (
-    <div className="p-2 sm:p-4">
+    <div>
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <Button className="aspect-square p-0" variant="ghost" onClick={() => router.push('/util')}>
           <ArrowLeft className="h-5 w-5" />

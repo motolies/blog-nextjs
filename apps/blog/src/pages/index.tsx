@@ -1,4 +1,4 @@
-import { ArrowUpRight, Link2 } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import type { GetServerSideProps } from 'next';
 import { SearchEngineComponent } from '@/components/SearchEngineComponent';
 import { buildBackendAuthConfig } from '@/lib/ssrRequestAuth';
@@ -15,15 +15,11 @@ export default function IndexPage({ engines, favorites }: IndexPageProps) {
   return (
     <>
       <h1 className="visually-hidden">Skyscape - 홈</h1>
-      <section>
-        <div className="public-container px-4 pb-10 pt-28 sm:px-6 lg:px-8 lg:pb-12">
-          <div className="w-full">
-            <SearchEngineComponent engines={engines} />
-          </div>
-        </div>
+      <section className="public-container pb-10 pt-6 sm:pt-10 lg:pb-12">
+        <SearchEngineComponent engines={engines} />
       </section>
 
-      <section className="public-container px-4 pb-14 pt-6 sm:px-6 lg:px-8">
+      <section className="public-container pb-14 pt-6">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <p className="public-label-text text-sm font-semibold uppercase tracking-[0.18em]">
@@ -32,25 +28,14 @@ export default function IndexPage({ engines, favorites }: IndexPageProps) {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+        {/* 행 우선 배치 + 행 높이 stretch — 짧은 카드도 옆 카드 높이만큼 늘어나 빈 공간이 카드 안에 담긴다 */}
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
           {favorites.map((group) => (
             <section
               key={group.name}
-              className="surface-panel-strong overflow-hidden rounded-[1.75rem] p-6"
+              className="surface-panel-strong overflow-hidden rounded-(--radius-panel) p-6"
             >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
-                    Collection
-                  </p>
-                  <h3 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-dl-fg">
-                    {group.name}
-                  </h3>
-                </div>
-                <span className="public-chip-surface flex size-11 items-center justify-center rounded-2xl border">
-                  <Link2 className="h-5 w-5" />
-                </span>
-              </div>
+              <h3 className="text-2xl font-semibold tracking-[-0.03em] text-dl-fg">{group.name}</h3>
               <ul className="mt-6 grid gap-3">
                 {group.links.map((favorite) => (
                   <li key={favorite.name}>

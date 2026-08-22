@@ -8,6 +8,7 @@ interface CommonLayoutProps {
   children: React.ReactNode;
 }
 
+// 공개 영역 셸 — sticky 헤더 + 본문(flex:1) + 푸터의 세로 flex 단일 컬럼
 export default function CommonLayout({ children }: CommonLayoutProps) {
   return (
     <>
@@ -15,18 +16,10 @@ export default function CommonLayout({ children }: CommonLayoutProps) {
         본문으로 건너뛰기
       </a>
       <MetaHeader />
-      <div className="public-page isolate min-h-screen">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
-        >
-          <div className="absolute inset-0" />
-        </div>
-        <div className="relative z-10 flex min-h-screen flex-col">
-          <Header />
-          <Section>{children}</Section>
-          <Footer />
-        </div>
+      <div className="public-page flex min-h-dvh flex-col">
+        <Header />
+        <Section>{children}</Section>
+        <Footer />
       </div>
     </>
   );

@@ -1,11 +1,16 @@
 .layoutWrapper {
-  min-height: 100vh;
+  min-height: 100dvh;
   background: transparent;
+}
+
+/* 데스크톱 collapse(아이콘 레일) — 변수 하나로 사이드바 폭과 본문 margin 이 동시에 따라온다 */
+.layoutWrapper[data-sidebar='collapsed'] {
+  --admin-sidebar-width: 4.75rem;
 }
 
 .layoutContainer {
   display: flex;
-  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
 }
 
@@ -18,7 +23,7 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 250, 253, 0.96));
   border-right: 1px solid var(--admin-border);
   z-index: 50;
-  transition: transform 0.24s ease;
+  transition: transform 0.24s ease, width 0.2s ease;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -140,21 +145,30 @@
   flex: 1;
   margin-left: var(--admin-sidebar-width);
   padding-top: var(--admin-header-height);
-  min-height: 100vh;
+  min-height: 100dvh;
   min-width: 0;
+  transition: margin-left 0.2s ease;
 }
 
 .contentWrapper {
-  height: calc(100vh - var(--admin-header-height));
+  height: calc(100dvh - var(--admin-header-height));
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 1.15rem;
+  /* 계단식 미디어쿼리 대신 뷰포트 유동 패딩 — fixed 프레임 높이 계산과 같은 토큰 */
+  padding: var(--admin-content-pad);
   min-width: 0;
+}
+
+/* 오프캔버스 열림 중 본문 스크롤 잠금 */
+.scrollLocked {
+  overflow: hidden;
 }
 
 .containerFluid {
   min-height: 100%;
   width: 100%;
+  max-width: var(--admin-content-max);
+  margin-inline: auto;
 }
 
 .backdrop {
@@ -186,10 +200,16 @@
   .layoutMenu {
     transform: translateX(-100%);
     width: min(21rem, calc(100vw - 1.5rem));
+    /* 닫힌 사이드바에 Tab 포커스가 들어가지 않도록 — transition 지연으로
+       슬라이드 아웃 애니메이션이 끝난 뒤 visibility 가 꺼진다 */
+    visibility: hidden;
+    transition: transform 0.24s ease, visibility 0s linear 0.24s;
   }
 
   .menuOpen {
     transform: translateX(0);
+    visibility: visible;
+    transition: transform 0.24s ease;
   }
 
   .layoutPage {
@@ -199,11 +219,48 @@
   .closeButton {
     display: inline-flex;
   }
+
+  /* 모바일 브라우저 하단 메뉴가 최하단 콘텐츠를 가리지 않도록 —
+     fixed 프레임은 lg 이상 전용이라 이 여백과 충돌하지 않는다 */
+  .contentWrapper {
+    padding-bottom: calc(var(--admin-content-pad) + 1.25rem + var(--safe-bottom));
+  }
 }
 
-@media (max-width: 640px) {
-  .contentWrapper {
-    padding: 0.85rem;
+/* ── 데스크톱 collapse(아이콘 레일) — 오프캔버스 경계(1024px)와 배타 구간 ── */
+
+@media (min-width: 1025px) {
+  .layoutWrapper[data-sidebar='collapsed'] .menuTop {
+    display: none;
+  }
+
+  .layoutWrapper[data-sidebar='collapsed'] .menuSectionTitle,
+  .layoutWrapper[data-sidebar='collapsed'] .menuLabel {
+    display: none;
+  }
+
+  .layoutWrapper[data-sidebar='collapsed'] .menuInner {
+    padding: 0.75rem 0.6rem 1.25rem;
+  }
+
+  .layoutWrapper[data-sidebar='collapsed'] .menuSection {
+    padding-top: 0.75rem;
+  }
+
+  /* 섹션 타이틀 대신 얇은 divider 로 구획 */
+  .layoutWrapper[data-sidebar='collapsed'] .menuSection + .menuSection {
+    margin-top: 0.75rem;
+    border-top: 1px solid var(--admin-border);
+  }
+
+  .layoutWrapper[data-sidebar='collapsed'] .menuLink {
+    justify-content: center;
+    gap: 0;
+    padding: 0.6rem 0;
+  }
+
+  .layoutWrapper[data-sidebar='collapsed'] .menuLink:hover {
+    transform: none;
   }
 }
 

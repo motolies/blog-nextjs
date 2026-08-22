@@ -76,7 +76,8 @@ const utilities = [
 
 export default function UtilIndexPage() {
   return (
-    <div className="p-5 sm:p-7">
+    <div>
+      <h1 className="visually-hidden">개발자 유틸리티</h1>
       <div className="max-w-3xl">
         <span className="section-eyebrow">
           <Braces className="h-3.5 w-3.5" />
@@ -84,7 +85,7 @@ export default function UtilIndexPage() {
         </span>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {utilities.map((util) => {
           const Icon = util.icon;
           return (

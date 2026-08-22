@@ -194,7 +194,7 @@ export default function BarcodePage() {
   const currentFormat = BARCODE_FORMATS.find((f) => f.value === barcodeFormat);
 
   return (
-    <div className="p-2 sm:p-4">
+    <div>
       <div className="flex items-center gap-2 mb-4">
         <Button className="aspect-square p-0" variant="ghost" onClick={() => router.push('/util')}>
           <ArrowLeft className="h-5 w-5" />

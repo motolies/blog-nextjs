@@ -12,6 +12,11 @@ interface TocItem {
 
 interface TableOfContentsProps {
   postBody: string;
+  /**
+   * sidebar: 항상 펼침(데스크톱 aside 전용) / collapse: 접기 버튼(모바일 본문 상단 전용).
+   * 배치·표시 분기는 부모가 결정한다 — 헤딩 id 부여는 결정적이라 두 인스턴스가 공존해도 안전하다.
+   */
+  variant?: 'sidebar' | 'collapse';
 }
 
 // depth(글 안에서 정규화된 0부터의 상대 깊이)별 들여쓰기 · 크기 · 굵기 · 색상.
@@ -71,10 +76,10 @@ function slugify(text: string): string {
     .replace(/^-|-$/g, '');
 }
 
-export default function TableOfContents({ postBody }: TableOfContentsProps) {
+export default function TableOfContents({ postBody, variant = 'sidebar' }: TableOfContentsProps) {
   const [items, setItems] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
-  // 모바일(xl 미만) 목차 접기 상태 — 기본 접힘
+  // collapse variant 의 접기 상태 — 기본 접힘
   const [tocOpen, setTocOpen] = useState(false);
 
   // 본문 렌더 후 heading 수집 및 id 부여
@@ -151,8 +156,8 @@ export default function TableOfContents({ postBody }: TableOfContentsProps) {
         }
       },
       {
-        // 상단 -80px은 헤딩의 scroll-margin-top(--reading-scroll-offset, 96px)보다 작아야 한다.
-        // 그래야 목차를 눌러 이동한 헤딩이 관측 영역 안에 들어와 활성 항목으로 잡힌다.
+        // 상단 -80px은 헤딩의 scroll-margin-top(--reading-scroll-offset = --header-h + 2rem, 최소 88px)보다
+        // 작아야 한다. 그래야 목차를 눌러 이동한 헤딩이 관측 영역 안에 들어와 활성 항목으로 잡힌다.
         rootMargin: '-80px 0px -70% 0px',
         threshold: 0,
       },
@@ -210,27 +215,28 @@ export default function TableOfContents({ postBody }: TableOfContentsProps) {
     </nav>
   );
 
-  return (
-    <>
-      {/* 데스크톱(xl 이상): 항상 표시 */}
-      <div className="hidden xl:block">{tocList}</div>
+  // sidebar: 항상 펼침 — 표시/숨김은 부모(aside)가 결정한다
+  if (variant === 'sidebar') {
+    return tocList;
+  }
 
-      {/* 모바일(xl 미만): 접기/펼치기 */}
-      <div className="xl:hidden">
-        <button
-          type="button"
-          aria-expanded={tocOpen}
-          onClick={() => setTocOpen((open) => !open)}
-          className="mt-3 flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-sm text-[color:var(--public-text-muted)] transition hover:bg-[color:var(--public-chip-bg)] hover:text-dl-fg"
-        >
-          <span className="flex items-center gap-2">
-            <List className="h-4 w-4" />
-            목차 보기
-          </span>
-          <ChevronDown className={cn('h-4 w-4 transition-transform', tocOpen && 'rotate-180')} />
-        </button>
-        {tocOpen && tocList}
-      </div>
-    </>
+  // collapse: 접기/펼치기 버튼. pb-5 는 렌더될 때만 아래 블록과의 간격을 만든다.
+  // 버튼의 -mx-2 는 자체 px-2 를 상쇄해 텍스트 시작점을 거터 라인에 맞춘다.
+  return (
+    <div className="pb-5">
+      <button
+        type="button"
+        aria-expanded={tocOpen}
+        onClick={() => setTocOpen((open) => !open)}
+        className="-mx-2 flex w-[calc(100%+1rem)] items-center justify-between rounded-lg px-2 py-1.5 text-sm text-[color:var(--public-text-muted)] transition hover:bg-[color:var(--public-chip-bg)] hover:text-dl-fg"
+      >
+        <span className="flex items-center gap-2">
+          <List className="h-4 w-4" />
+          목차 보기
+        </span>
+        <ChevronDown className={cn('h-4 w-4 transition-transform', tocOpen && 'rotate-180')} />
+      </button>
+      {tocOpen && tocList}
+    </div>
   );
 }

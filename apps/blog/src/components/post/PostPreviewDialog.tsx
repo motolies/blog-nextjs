@@ -34,7 +34,7 @@ export default function PostPreviewDialog({
       title="미리보기"
       size="xl"
     >
-      <div className="max-h-[calc(100vh-14rem)] overflow-y-auto">
+      <div className="max-h-[calc(100dvh-14rem)] overflow-y-auto">
         <div className="surface-panel-strong rounded-[1.5rem] px-6 py-8 sm:px-8">
           {subject && <h1 className="mb-6 font-bold text-2xl">{subject}</h1>}
           <div

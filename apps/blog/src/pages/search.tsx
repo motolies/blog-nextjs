@@ -1,9 +1,10 @@
-import { Button } from '@hvy/ui';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { cn } from '@hvy/ui';
+import { ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { getTsid } from 'tsid-ts';
 import SearchFilter from '@/components/search/SearchFilter';
+import SearchPagination from '@/components/search/SearchPagination';
 import SearchResult from '@/components/search/SearchResult';
 import { usePostSearch } from '@/hooks/usePostSearch';
 import { searchObjectInit } from '@/model/searchObject';
@@ -13,6 +14,8 @@ const SEARCH_PAGE_SIZE = 10;
 
 export default function SearchPage() {
   const router = useRouter();
+  // lg 미만에서 필터 패널 접기 — 기본 접힘이라 결과가 요약 바로 아래 노출된다
+  const [filtersOpen, setFiltersOpen] = useState<boolean>(false);
 
   const queryParam = useMemo(() => {
     if (router.query?.q) {
@@ -61,12 +64,12 @@ export default function SearchPage() {
   const totalPage = searchedPostState?.totalPage || 0;
   const currentPage = page + 1; // 1-based for display
   const resultCount = searchedPostState?.list?.length || 0;
-  const keywordSummary = keywords.map((keyword: any) => keyword.name).join(', ');
+  const activeFilterCount = keywords.length + categories.length + tags.length;
 
   return (
-    <div className="public-container px-4 pb-8 pt-28 sm:px-6 lg:px-8">
+    <div className="public-container pb-8 pt-6 sm:pt-10">
       <h1 className="visually-hidden">검색 결과</h1>
-      <section className="public-card-surface mb-6 flex flex-wrap items-center gap-3 rounded-[1.4rem] border px-4 py-3 shadow-[0_14px_40px_rgba(15,23,42,0.05)] sm:px-5">
+      <section className="public-card-surface mb-6 flex flex-wrap items-center gap-3 rounded-(--radius-card) border px-5 py-3 shadow-[0_14px_40px_rgba(15,23,42,0.05)]">
         <span className="public-label-text text-[11px] font-semibold uppercase tracking-[0.2em]">
           Search Summary
         </span>
@@ -86,84 +89,48 @@ export default function SearchPage() {
         </div>
       </section>
 
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(0,440px)_minmax(0,1fr)]">
-        <div className="xl:sticky xl:top-28 xl:self-start">
-          <SearchFilter
-            defaultLogic={logic}
-            defaultSearchType={searchType}
-            defaultKeyword={keywords}
-            defaultCategories={categories}
-            defaultTags={tags}
-            pageSize={SEARCH_PAGE_SIZE}
-          />
+      <div className="grid gap-6 lg:grid-cols-[var(--search-filter-w)_minmax(0,1fr)] lg:gap-8">
+        <div className="lg:sticky lg:top-(--sticky-top) lg:max-h-[calc(100dvh-var(--sticky-top)-2rem)] lg:self-start lg:overflow-y-auto">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((v) => !v)}
+            aria-expanded={filtersOpen}
+            aria-controls="search-filter-panel"
+            className="public-control-surface flex w-full items-center justify-between rounded-full border px-4 py-2.5 text-sm font-semibold lg:hidden"
+          >
+            <span className="flex items-center gap-2">
+              <SlidersHorizontal className="h-4 w-4" />
+              검색 필터
+            </span>
+            <span className="flex items-center gap-2">
+              {activeFilterCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-dl-primary px-1.5 text-[11px] font-bold text-dl-primary-fg">
+                  {activeFilterCount}
+                </span>
+              )}
+              <ChevronDown className={cn('h-4 w-4 transition', filtersOpen && 'rotate-180')} />
+            </span>
+          </button>
+          <div
+            id="search-filter-panel"
+            className={cn('mt-3 lg:mt-0 lg:block', filtersOpen ? 'block' : 'hidden')}
+          >
+            <SearchFilter
+              defaultLogic={logic}
+              defaultSearchType={searchType}
+              defaultKeyword={keywords}
+              defaultCategories={categories}
+              defaultTags={tags}
+              pageSize={SEARCH_PAGE_SIZE}
+            />
+          </div>
         </div>
         <div className="space-y-6">
           <SearchResult posts={searchedPostState?.list} />
+          {/* 결과 컬럼 내부에 두어야 lg 이상에서 버튼 묶음이 결과 중심에 정렬된다 */}
+          <SearchPagination currentPage={currentPage} totalPage={totalPage} onPageChange={goPage} />
         </div>
       </div>
-
-      {totalPage > 0 && (
-        <div className="public-card-surface mt-8 flex flex-wrap items-center justify-center gap-2 rounded-[1.5rem] border px-4 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
-          <Button
-            variant="outline-gray"
-            onClick={() => goPage(1)}
-            disabled={currentPage === 1}
-            title="첫 페이지입니다"
-            aria-label="첫 페이지"
-            className="aspect-square p-0 public-control-surface rounded-full border"
-          >
-            <ChevronsLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline-gray"
-            onClick={() => goPage(currentPage - 1)}
-            disabled={currentPage === 1}
-            title="첫 페이지입니다"
-            aria-label="이전 페이지"
-            className="aspect-square p-0 public-control-surface rounded-full border"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-
-          {Array.from({ length: totalPage }, (_, i) => i + 1)
-            .filter((p: number) => Math.abs(p - currentPage) <= 2)
-            .map((p: number) => (
-              <Button
-                key={p}
-                variant={p === currentPage ? 'primary' : 'outline-gray'}
-                onClick={() => goPage(p)}
-                className={
-                  p === currentPage
-                    ? 'aspect-square p-0 rounded-full bg-dl-primary text-dl-primary-fg'
-                    : 'aspect-square p-0 public-control-surface rounded-full border'
-                }
-              >
-                {p}
-              </Button>
-            ))}
-
-          <Button
-            variant="outline-gray"
-            onClick={() => goPage(currentPage + 1)}
-            disabled={currentPage === totalPage}
-            title="마지막 페이지입니다"
-            aria-label="다음 페이지"
-            className="aspect-square p-0 public-control-surface rounded-full border"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline-gray"
-            onClick={() => goPage(totalPage)}
-            disabled={currentPage === totalPage}
-            title="마지막 페이지입니다"
-            aria-label="마지막 페이지"
-            className="aspect-square p-0 public-control-surface rounded-full border"
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

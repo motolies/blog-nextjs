@@ -141,8 +141,27 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
     initJetbrains(doc);
     initIntellij(doc);
     initLinkNewTab(doc);
+    wrapTables(doc);
     setPostBody(doc.head.innerHTML + doc.body.innerHTML);
   }, [post?.body]);
+
+  // 넓은 표가 모바일에서 잘리지 않도록 가로 스크롤 래퍼(.table-scroll)로 감싼다.
+  // CSS 만으로는 래퍼를 만들 수 없어 기존 DOM 후처리 파이프라인에서 처리한다.
+  const wrapTables = (doc: Document) => {
+    doc.body.querySelectorAll('table').forEach((table) => {
+      // 중첩 표는 바깥 표의 스크롤 컨테이너를 따르므로 건너뛴다
+      if (table.parentElement?.closest('table')) {
+        return;
+      }
+      if (table.parentElement?.classList.contains('table-scroll')) {
+        return;
+      }
+      const wrapper = doc.createElement('div');
+      wrapper.className = 'table-scroll';
+      table.parentNode?.insertBefore(wrapper, table);
+      wrapper.appendChild(table);
+    });
+  };
 
   const postIconChange = () => {
     document.querySelectorAll('i.fa-file').forEach((icon) => {
@@ -347,16 +366,16 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
 
   if (post?.id !== 0 && post?.id > 0) {
     return (
-      <div className="public-container px-4 pb-8 pt-28 sm:px-6 lg:px-8">
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <article className="surface-panel-strong overflow-hidden rounded-[2rem]">
-            <div className="border-b border-[color:var(--line-soft)] px-6 py-8 sm:px-8">
+      <div className="public-container public-container--post pb-8 pt-6 sm:pt-10">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_var(--post-aside-w)]">
+          <article className="surface-panel-strong overflow-hidden rounded-(--radius-panel)">
+            <div className="px-(--public-gutter) py-8">
               <div className="flex flex-wrap items-start justify-between gap-6">
                 <div className="max-w-3xl">
                   <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                     Article
                   </p>
-                  <h1 className="section-title mt-3 text-4xl font-semibold leading-tight tracking-[-0.045em] text-dl-fg sm:text-5xl">
+                  <h1 className="section-title mt-3 text-[clamp(1.75rem,1.2rem+2.2vw,3rem)] font-semibold leading-tight tracking-[-0.045em] text-dl-fg">
                     {post.subject}
                   </h1>
                   <div className="public-muted-text mt-5 flex flex-wrap items-center gap-3 text-sm">
@@ -422,8 +441,13 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
               </div>
             </div>
 
+            {/* 모바일 목차 — lg 미만에서 본문 위에 접기 형태로 노출 (데스크톱은 aside 가 담당) */}
+            <div className="px-(--public-gutter) lg:hidden">
+              <TableOfContents postBody={postBody} variant="collapse" />
+            </div>
+
             {series && (
-              <div className="border-b border-[color:var(--line-soft)] px-6 py-5 sm:px-8">
+              <div className="px-(--public-gutter) py-5">
                 <div className="rounded-2xl border border-dl-tonal-border bg-dl-tonal p-4">
                   <button
                     type="button"
@@ -470,7 +494,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
             )}
 
             {(tags?.length > 0 || (userState.isAuthenticated && userState.user.username)) && (
-              <div className="px-6 py-6 sm:px-8">
+              <div className="px-(--public-gutter) py-6">
                 <TagGroupComponent
                   postId={post?.id?.toString() ?? null}
                   tagList={tags}
@@ -479,7 +503,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
               </div>
             )}
 
-            <div className="border-t border-[color:var(--line-soft)] px-6 py-8 sm:px-8">
+            <div className="border-t border-[color:var(--line-soft)] px-(--public-gutter) py-8">
               <div
                 className="content break-words"
                 id="post-content"
@@ -487,7 +511,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
               />
             </div>
 
-            <div className="border-t border-[color:var(--line-soft)] px-6 py-6 sm:px-8">
+            <div className="border-t border-[color:var(--line-soft)] px-(--public-gutter) py-6">
               <div className="grid gap-4 md:grid-cols-2">
                 {prevPostId === 0 ? (
                   <div className="public-muted-panel public-muted-text rounded-[1.5rem] border border-dashed px-5 py-6 text-sm">
@@ -529,7 +553,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
             </div>
 
             {relatedPosts.length > 0 && (
-              <div className="border-t border-[color:var(--line-soft)] px-6 py-6 sm:px-8">
+              <div className="px-(--public-gutter) pb-8 pt-2">
                 <p className="public-label-text mb-4 text-xs font-semibold uppercase tracking-[0.18em]">
                   Related Posts
                 </p>
@@ -558,14 +582,14 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
             )}
           </article>
 
-          <aside className="space-y-5 xl:sticky xl:top-28 xl:self-start">
-            <div className="surface-panel-strong rounded-[1.75rem] p-6">
+          <aside className="hidden space-y-5 lg:sticky lg:top-(--sticky-top) lg:block lg:max-h-[calc(100dvh-var(--sticky-top)-2rem)] lg:self-start lg:overflow-y-auto">
+            <div className="surface-panel-strong rounded-(--radius-panel) p-6">
               <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                 Reading Context
               </p>
-              <TableOfContents postBody={postBody} />
+              <TableOfContents postBody={postBody} variant="sidebar" />
             </div>
-            <div className="surface-panel-strong rounded-[1.75rem] p-6">
+            <div className="surface-panel-strong rounded-(--radius-panel) p-6">
               <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                 Metadata
               </p>
@@ -591,8 +615,8 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
   }
 
   return (
-    <article className="mx-auto max-w-4xl px-4 pb-16 pt-28 sm:px-6 lg:px-8">
-      <div className="surface-panel-strong rounded-[2rem] px-6 py-12 text-center sm:px-8">
+    <article className="public-container public-container--post pb-16 pt-6 sm:pt-10">
+      <div className="surface-panel-strong rounded-(--radius-panel) px-(--public-gutter) py-12 text-center">
         <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
           Missing Article
         </p>

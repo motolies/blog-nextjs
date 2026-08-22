@@ -1,45 +1,68 @@
-import { ArrowUpRight, Menu, Moon, Sun } from 'lucide-react';
+import { ArrowUpRight, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { getAdminBreadcrumb } from './adminNavigation';
 import styles from './Header.module.css';
 
-interface AdminRouteMeta {
-  title: string;
-  icon?: React.ComponentType<{ className?: string }>;
-}
-
 interface HeaderProps {
+  /** lg 미만: 오프캔버스 토글 / lg 이상: 사이드바 collapse 토글 (AdminLayout 이 분기) */
   toggleMenu: () => void;
-  meta: AdminRouteMeta;
+  isCollapsed: boolean;
 }
 
-export default function Header({ toggleMenu, meta }: HeaderProps) {
+/**
+ * 관리자 fixed 헤더 — 토글 버튼(전 구간 노출) + 브랜드 + 브레드크럼 + 테마 토글 + 블로그 보기.
+ * 브레드크럼의 현재 페이지(h1)가 admin 페이지 타이틀의 정본이다 —
+ * 본문(AdminPageFrame)은 타이틀을 렌더하지 않는다. lg 미만에서는 섹션을 숨기고 현재 페이지만 보여준다.
+ */
+export default function Header({ toggleMenu, isCollapsed }: HeaderProps) {
+  const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const crumb = getAdminBreadcrumb(router.pathname);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   return (
-    <nav className={styles.layoutNavbar}>
+    <header className={styles.layoutNavbar}>
       <div className={styles.navbarContent}>
         <div className={styles.navbarStart}>
           <button
             type="button"
             className={styles.menuToggleBtn}
             onClick={toggleMenu}
-            aria-label="관리자 메뉴 열기"
+            aria-label="관리자 메뉴 토글"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-5 w-5 lg:hidden" />
+            {isCollapsed ? (
+              <PanelLeftOpen className="hidden h-5 w-5 lg:block" />
+            ) : (
+              <PanelLeftClose className="hidden h-5 w-5 lg:block" />
+            )}
           </button>
           <Link href="/admin" className={styles.brandLink}>
             <span className={styles.brandMark}>B</span>
             <span className={styles.brandText}>
               <strong>Blog Admin</strong>
-              <span>{meta?.title || '관리자'}</span>
             </span>
           </Link>
+          <nav aria-label="현재 위치" className={styles.breadcrumb}>
+            {crumb.section && (
+              <span className={styles.breadcrumbTrail}>
+                <span>{crumb.section}</span>
+                <span className={styles.breadcrumbSep} aria-hidden="true">
+                  /
+                </span>
+              </span>
+            )}
+            <h1 className={styles.breadcrumbCurrent} aria-current="page">
+              {crumb.title}
+            </h1>
+          </nav>
         </div>
 
         <div className={styles.navbarEnd}>
@@ -63,6 +86,6 @@ export default function Header({ toggleMenu, meta }: HeaderProps) {
           </Link>
         </div>
       </div>
-    </nav>
+    </header>
   );
 }

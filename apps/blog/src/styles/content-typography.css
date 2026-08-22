@@ -114,6 +114,18 @@
 
 /* ── Tables ── */
 
+/* 표시 파이프라인(PostComponent.wrapTables)이 표를 감싸는 가로 스크롤 래퍼 —
+   html { overflow-x: clip } 환경에서 넓은 표가 잘리지 않고 자체 스크롤된다.
+   .ck-content(에디터)는 래퍼가 생성되지 않으므로 적용 대상이 아니다. */
+:where(.content) .table-scroll {
+  overflow-x: auto;
+  margin: 1.1rem 0;
+}
+
+:where(.content) .table-scroll > table {
+  margin: 0;
+}
+
 :where(.content, .ck-content) table {
   width: 100%;
   border-collapse: collapse;

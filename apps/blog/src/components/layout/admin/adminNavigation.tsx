@@ -5,7 +5,6 @@ import {
   BookOpen,
   BookOpenText,
   Flame,
-  FlaskConical,
   FolderTree,
   LayoutDashboard,
   NotebookPen,
@@ -170,10 +169,6 @@ export const adminRouteMeta: Record<string, AdminRouteMeta> = {
   '/admin/api-log': {
     title: 'API 로그',
     icon: Activity,
-  },
-  '/test/data-table': {
-    title: 'DataGrid 테스트',
-    icon: FlaskConical,
   },
 };
 

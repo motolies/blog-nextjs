@@ -1,9 +1,10 @@
-import { Badge, DataGrid, defineColumns } from '@hvy/ui';
+import { Badge, defineColumns } from '@hvy/ui';
 import { format } from 'date-fns';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import DynamicSearchFields from '@/components/common/DynamicSearchFields';
 import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
 import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
+import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
 import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useServerGrid } from '@/hooks/useServerGrid';
@@ -17,10 +18,12 @@ interface SiteOption {
 }
 
 const COLUMNS = defineColumns<Record<string, unknown>>([
-  { id: 'siteName', headerWord: '사이트', width: 140, align: 'left' },
+  { id: 'siteName', headerWord: '사이트', width: 140 },
   {
     id: 'title',
     headerWord: '제목',
+    // grow 는 남는 폭을 더하기만 한다 — 좁은 화면에서는 이 base 폭이 최소 보장 폭이 된다.
+    width: 300,
     grow: 1,
     align: 'left',
     format: (value, row) => (
@@ -35,16 +38,15 @@ const COLUMNS = defineColumns<Record<string, unknown>>([
       </a>
     ),
   },
-  { id: 'price', headerWord: '가격', width: 200, align: 'left' },
+  { id: 'price', headerWord: '가격', width: 140, align: 'right' },
   { id: 'recommendationCount', headerWord: '추천', width: 80, align: 'right' },
-  { id: 'unrecommendationCount', headerWord: '비추천', width: 80, align: 'right' },
+  { id: 'unrecommendationCount', headerWord: '비추천', width: 100, align: 'right' },
   { id: 'viewCount', headerWord: '조회', width: 80, align: 'right' },
   { id: 'commentCount', headerWord: '댓글', width: 80, align: 'right' },
   {
     id: 'notified',
     headerWord: '알림',
     width: 80,
-    align: 'left',
     format: (value) => (
       <Badge tone={value ? 'success' : 'neutral'}>{value ? '발송' : '미발송'}</Badge>
     ),
@@ -53,7 +55,6 @@ const COLUMNS = defineColumns<Record<string, unknown>>([
     id: 'scrapedAt',
     headerWord: '스크래핑일시',
     width: 200,
-    align: 'left',
     format: (value) => formatUtcToLocal(String(value), 'yyyy-MM-dd HH:mm:ss'),
   },
 ]);
@@ -91,7 +92,6 @@ export default function HotDealItemsPage() {
         name: 'siteId',
         label: '사이트',
         type: 'select',
-        pinned: true,
         options: siteOptions,
       },
       { name: 'title', label: '제목' },
@@ -141,39 +141,36 @@ export default function HotDealItemsPage() {
     defaultPageSize: 25,
   });
 
-  const { visibleColumns, openSettings, dialog } = useColumnSettings(COLUMNS);
+  const settings = useColumnSettings(COLUMNS, 'hotDealItems');
 
   return (
     <AdminPageFrame>
       <div className="admin-panel admin-table-shell">
-        <div className="flex flex-col gap-2">
-          <DynamicSearchFields
-            searchFields={searchFields as Parameters<typeof DynamicSearchFields>[0]['searchFields']}
-            defaultSearchParams={defaultSearchParams}
-            enableDynamic
-            {...grid.search}
-          />
-          <DataGrid<Record<string, unknown>>
-            columns={visibleColumns}
-            rows={grid.rows}
-            getRowId={(row) => String(row.id)}
-            isFetching={grid.loading}
-            empty={GRID_EMPTY}
-            sortOf={grid.sortOf}
-            onToggleSort={grid.toggleSort}
-            attachedToolbar
-          />
-          <GridPagingBar
-            pageIndex={grid.pageIndex}
-            pageCount={grid.pageCount}
-            onPageChange={grid.setPageIndex}
-            total={grid.totalCount}
-            pageSize={grid.pageSize}
-            onPageSizeChange={grid.setPageSize}
-            onColumnSettings={openSettings}
-          />
-          {dialog}
-        </div>
+        <DynamicSearchFields
+          searchFields={searchFields as Parameters<typeof DynamicSearchFields>[0]['searchFields']}
+          defaultSearchParams={defaultSearchParams}
+          enableDynamic
+          {...grid.search}
+        />
+        <PersistedDataGrid<Record<string, unknown>>
+          settings={settings}
+          rows={grid.rows}
+          getRowId={(row) => String(row.id)}
+          isFetching={grid.loading}
+          empty={GRID_EMPTY}
+          sortOf={grid.sortOf}
+          onToggleSort={grid.toggleSort}
+          attachedToolbar
+        />
+        <GridPagingBar
+          pageIndex={grid.pageIndex}
+          pageCount={grid.pageCount}
+          onPageChange={grid.setPageIndex}
+          total={grid.totalCount}
+          pageSize={grid.pageSize}
+          onPageSizeChange={grid.setPageSize}
+          onColumnSettings={settings.openSettings}
+        />
       </div>
     </AdminPageFrame>
   );

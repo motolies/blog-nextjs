@@ -93,6 +93,49 @@
           }
         }
       }
+    },
+    {
+      "includes": ["**/apps/blog/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "@hvy/ui": {
+                    "importNames": ["DataGrid"],
+                    "message": "apps/blog 에서 DataGrid 직접 사용 금지 — PersistedDataGrid(components/common/grid)를 쓰세요. 직접 쓰면 컬럼 폭·숨김·순서 영속이 빠집니다."
+                  }
+                }
+              }
+            }
+          },
+          "correctness": {
+            "noRestrictedElements": {
+              "level": "error",
+              "options": {
+                "elements": {
+                  "DataGrid": "apps/blog 에서 DataGrid 직접 사용 금지 — PersistedDataGrid 를 쓰세요 (네임스페이스 import 우회 방지용 이중 검사)."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/apps/blog/src/components/common/grid/PersistedDataGrid.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": "off"
+          },
+          "correctness": {
+            "noRestrictedElements": "off"
+          }
+        }
+      }
     }
   ]
 }

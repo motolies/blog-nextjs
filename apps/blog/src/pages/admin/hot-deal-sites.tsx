@@ -2,7 +2,6 @@ import {
   Badge,
   Button,
   ContentDialog,
-  DataGrid,
   defineColumns,
   Input,
   Label,
@@ -13,6 +12,7 @@ import { Pencil, Play, Save } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
 import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
+import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
 import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useClientGrid } from '@/hooks/useClientGrid';
@@ -94,19 +94,18 @@ export default function HotDealSitesPage() {
     () =>
       defineColumns<Record<string, unknown>>([
         { id: 'siteName', headerWord: '사이트명', grow: 1, align: 'left' },
-        { id: 'siteCode', headerWord: '코드', width: 140, align: 'left' },
+        { id: 'siteCode', headerWord: '코드', width: 140 },
         {
           id: 'enabled',
           headerWord: '활성',
           width: 140,
-          align: 'left',
           format: (value) => (
             <Badge tone={value ? 'success' : 'neutral'}>{value ? '활성' : '비활성'}</Badge>
           ),
         },
-        { id: 'minRecommendation', headerWord: '최소 추천', width: 100, align: 'left' },
-        { id: 'minViewCount', headerWord: '최소 조회', width: 100, align: 'left' },
-        { id: 'minCommentCount', headerWord: '최소 댓글', width: 100, align: 'left' },
+        { id: 'minRecommendation', headerWord: '최소 추천', width: 140, align: 'right' },
+        { id: 'minViewCount', headerWord: '최소 조회', width: 140, align: 'right' },
+        { id: 'minCommentCount', headerWord: '최소 댓글', width: 140, align: 'right' },
         {
           id: 'actions',
           headerWord: ' ',
@@ -132,7 +131,7 @@ export default function HotDealSitesPage() {
   );
 
   const grid = useClientGrid<Record<string, unknown>>(sites, { pageSize: 20 });
-  const { visibleColumns, openSettings, dialog } = useColumnSettings(columns);
+  const settings = useColumnSettings(columns, 'hotDealSites');
 
   return (
     <AdminPageFrame>
@@ -155,8 +154,8 @@ export default function HotDealSitesPage() {
 
       {/* 사이트 테이블 */}
       <div className="admin-panel admin-table-shell">
-        <DataGrid<Record<string, unknown>>
-          columns={visibleColumns}
+        <PersistedDataGrid<Record<string, unknown>>
+          settings={settings}
           rows={grid.rows}
           getRowId={(row) => String(row.id)}
           empty={GRID_EMPTY}
@@ -171,9 +170,8 @@ export default function HotDealSitesPage() {
           total={grid.totalCount}
           pageSize={grid.pageSize}
           onPageSizeChange={grid.setPageSize}
-          onColumnSettings={openSettings}
+          onColumnSettings={settings.openSettings}
         />
-        {dialog}
       </div>
 
       {/* 수정 다이얼로그 */}

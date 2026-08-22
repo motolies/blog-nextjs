@@ -2,7 +2,6 @@ import {
   Badge,
   Button,
   ContentDialog,
-  DataGrid,
   defineColumns,
   Input,
   Label,
@@ -16,6 +15,7 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
 import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
+import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
 import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useClientGrid } from '@/hooks/useClientGrid';
@@ -214,7 +214,7 @@ export default function TagsPage() {
           id: 'postCount',
           headerWord: '포스트 수',
           width: 120,
-          align: 'left',
+          align: 'right',
           format: (value, row) =>
             Number(value) > 0 ? (
               <button
@@ -272,7 +272,7 @@ export default function TagsPage() {
   );
 
   const grid = useClientGrid<TagItem>(filteredTags, { pageSize: 20 });
-  const { visibleColumns, openSettings, dialog } = useColumnSettings(columns);
+  const settings = useColumnSettings(columns, 'tags');
 
   return (
     <AdminPageFrame>
@@ -331,8 +331,8 @@ export default function TagsPage() {
 
       {/* 태그 테이블 */}
       <div className="admin-panel admin-table-shell">
-        <DataGrid<TagItem>
-          columns={visibleColumns}
+        <PersistedDataGrid<TagItem>
+          settings={settings}
           rows={grid.rows}
           getRowId={(row) => String(row.id)}
           empty={GRID_EMPTY}
@@ -347,9 +347,8 @@ export default function TagsPage() {
           total={grid.totalCount}
           pageSize={grid.pageSize}
           onPageSizeChange={grid.setPageSize}
-          onColumnSettings={openSettings}
+          onColumnSettings={settings.openSettings}
         />
-        {dialog}
       </div>
 
       {/* 생성/수정 다이얼로그 */}

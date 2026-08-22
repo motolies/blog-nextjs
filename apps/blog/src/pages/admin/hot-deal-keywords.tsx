@@ -2,7 +2,6 @@ import {
   Badge,
   Button,
   ContentDialog,
-  DataGrid,
   defineColumns,
   Input,
   Label,
@@ -14,6 +13,7 @@ import { Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
 import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
+import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
 import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useClientGrid } from '@/hooks/useClientGrid';
@@ -171,11 +171,11 @@ export default function HotDealKeywordsPage() {
   const columns = useMemo(
     () =>
       defineColumns<Record<string, unknown>>([
-        { id: 'keyword', headerWord: '키워드', grow: 1, align: 'left' },
+        { id: 'keyword', headerWord: '키워드', width: 300 },
         {
           id: 'normalizedKeyword',
           headerWord: '매칭 문자열',
-          width: 200,
+          grow: 1,
           align: 'left',
           format: (value) => (
             <span className="font-mono text-xs text-[color:var(--admin-text-muted)]">
@@ -187,7 +187,6 @@ export default function HotDealKeywordsPage() {
           id: 'enabled',
           headerWord: '활성',
           width: 100,
-          align: 'left',
           format: (value, row) => (
             <button
               type="button"
@@ -241,7 +240,7 @@ export default function HotDealKeywordsPage() {
     filteredKeywords as unknown as Record<string, unknown>[],
     { pageSize: 20 },
   );
-  const { visibleColumns, openSettings, dialog } = useColumnSettings(columns);
+  const settings = useColumnSettings(columns, 'hotDealKeywords');
 
   return (
     <AdminPageFrame>
@@ -299,8 +298,8 @@ export default function HotDealKeywordsPage() {
 
       {/* 키워드 테이블 */}
       <div className="admin-panel admin-table-shell">
-        <DataGrid<Record<string, unknown>>
-          columns={visibleColumns}
+        <PersistedDataGrid<Record<string, unknown>>
+          settings={settings}
           rows={grid.rows}
           getRowId={(row) => String(row.id)}
           empty={GRID_EMPTY}
@@ -315,9 +314,8 @@ export default function HotDealKeywordsPage() {
           total={grid.totalCount}
           pageSize={grid.pageSize}
           onPageSizeChange={grid.setPageSize}
-          onColumnSettings={openSettings}
+          onColumnSettings={settings.openSettings}
         />
-        {dialog}
       </div>
 
       {/* 생성/수정 다이얼로그 */}

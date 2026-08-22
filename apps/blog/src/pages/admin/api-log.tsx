@@ -1,9 +1,10 @@
-import { Badge, Button, ContentDialog, DataGrid, defineColumns } from '@hvy/ui';
+import { Badge, Button, ContentDialog, defineColumns } from '@hvy/ui';
 import { format } from 'date-fns';
 import { useCallback, useMemo, useState } from 'react';
 import DynamicSearchFields from '@/components/common/DynamicSearchFields';
 import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
 import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
+import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
 import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useServerGrid } from '@/hooks/useServerGrid';
@@ -94,8 +95,8 @@ export default function ApiLog() {
     });
 
     return defineColumns<Record<string, unknown>>([
-      { id: 'id', headerWord: 'ID', width: 130, align: 'left' },
-      { id: 'traceId', headerWord: 'Trace ID', width: 260, align: 'left' },
+      { id: 'id', headerWord: 'ID', width: 130 },
+      { id: 'traceId', headerWord: 'Trace ID', width: 260 },
       { id: 'requestUri', headerWord: 'Request URI', width: 260, grow: 1, align: 'left' },
       {
         id: 'httpMethodType',
@@ -139,45 +140,41 @@ export default function ApiLog() {
         id: 'createdAt',
         headerWord: 'Created At',
         width: 200,
-        align: 'left',
         format: (value) => formatUtcToLocal(String(value)),
       },
     ]);
   }, [handleDetailClick, truncateText]);
 
-  const { visibleColumns, openSettings, dialog } = useColumnSettings(columns);
+  const settings = useColumnSettings(columns, 'apiLogs');
 
   return (
     <AdminPageFrame>
       <div className="admin-panel admin-table-shell">
-        <div className="flex flex-col gap-2">
-          <DynamicSearchFields
-            searchFields={searchFields as Parameters<typeof DynamicSearchFields>[0]['searchFields']}
-            defaultSearchParams={defaultSearchParams}
-            enableDynamic
-            {...grid.search}
-          />
-          <DataGrid<Record<string, unknown>>
-            columns={visibleColumns}
-            rows={grid.rows}
-            getRowId={(row) => String(row.id)}
-            isFetching={grid.loading}
-            empty={GRID_EMPTY}
-            sortOf={grid.sortOf}
-            onToggleSort={grid.toggleSort}
-            attachedToolbar
-          />
-          <GridPagingBar
-            pageIndex={grid.pageIndex}
-            pageCount={grid.pageCount}
-            onPageChange={grid.setPageIndex}
-            total={grid.totalCount}
-            pageSize={grid.pageSize}
-            onPageSizeChange={grid.setPageSize}
-            onColumnSettings={openSettings}
-          />
-          {dialog}
-        </div>
+        <DynamicSearchFields
+          searchFields={searchFields as Parameters<typeof DynamicSearchFields>[0]['searchFields']}
+          defaultSearchParams={defaultSearchParams}
+          enableDynamic
+          {...grid.search}
+        />
+        <PersistedDataGrid<Record<string, unknown>>
+          settings={settings}
+          rows={grid.rows}
+          getRowId={(row) => String(row.id)}
+          isFetching={grid.loading}
+          empty={GRID_EMPTY}
+          sortOf={grid.sortOf}
+          onToggleSort={grid.toggleSort}
+          attachedToolbar
+        />
+        <GridPagingBar
+          pageIndex={grid.pageIndex}
+          pageCount={grid.pageCount}
+          onPageChange={grid.setPageIndex}
+          total={grid.totalCount}
+          pageSize={grid.pageSize}
+          onPageSizeChange={grid.setPageSize}
+          onColumnSettings={settings.openSettings}
+        />
       </div>
       <ContentDialog
         open={dialogOpen}

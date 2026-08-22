@@ -73,7 +73,10 @@ export function GridToolbar({
           className,
         )}
       >
-        <div className="flex items-center gap-2">{paging}</div>
+        {/* paging 은 래퍼 없이 루트에 직접 흘린다 — 래퍼로 감싸면 하나의 flex 아이템이 되어
+            좁은 화면에서 내부적으로만 접히고 오른쪽 그룹이 셋째 줄로 밀린다. 직접 흘리면
+            총건수·페이저·페이지크기가 오른쪽 그룹과 줄을 나눠 가져 두 줄로 정리된다. */}
+        {paging}
 
         {selecting ? (
           <span className="ml-3 inline-flex items-center gap-1 whitespace-nowrap font-semibold text-dl-md text-dl-primary-ink">
@@ -208,7 +211,8 @@ export function Pager({
         // 안 그러면 화면에 보이는 숫자와 실제 페이지가 어긋난 채 남는다.
         onBlur={() => setJump('')}
       />
-      <span className="mr-0.5 text-dl-sm text-dl-fg-muted">/ {pageCount}</span>
+      {/* nowrap 이 없으면 좁은 화면에서 "/"와 숫자 사이 공백이 줄바꿈 지점이 된다 — TotalCount 와 같은 규약. */}
+      <span className="mr-0.5 whitespace-nowrap text-dl-sm text-dl-fg-muted">/ {pageCount}</span>
 
       <PagerButton
         label={labels.next}

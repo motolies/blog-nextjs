@@ -24,11 +24,9 @@ function Skyscape({ Component, pageProps }: AppProps) {
   const { isLoading } = useLoadingStore();
   const hasBootstrappedProfileRef = useRef(false);
   const isAdminRoute = router.pathname.startsWith('/admin');
-  const isTestRoute = router.pathname.startsWith('/test');
-  const isAdminLikeRoute = isAdminRoute || isTestRoute;
   const isUtilRoute = router.pathname.startsWith('/util');
   const isLoginRoute = router.pathname === '/login';
-  const shouldCheckClientAuth = isAdminLikeRoute || isLoginRoute;
+  const shouldCheckClientAuth = isAdminRoute || isLoginRoute;
 
   useEffect(() => {
     if (typeof window === 'undefined' || hasBootstrappedProfileRef.current) {
@@ -44,7 +42,7 @@ function Skyscape({ Component, pageProps }: AppProps) {
       return;
     }
 
-    if (isAdminLikeRoute) {
+    if (isAdminRoute) {
       if (isAuthenticated === false) {
         router.replace('/login');
       }
@@ -54,7 +52,7 @@ function Skyscape({ Component, pageProps }: AppProps) {
     if (isLoginRoute && isAuthenticated === true) {
       router.replace('/admin');
     }
-  }, [isAdminLikeRoute, isAuthenticated, isLoginRoute, router, shouldCheckClientAuth]);
+  }, [isAdminRoute, isAuthenticated, isLoginRoute, router, shouldCheckClientAuth]);
 
   useEffect(() => {
     if (typeof document === 'undefined') {
@@ -63,7 +61,7 @@ function Skyscape({ Component, pageProps }: AppProps) {
 
     const { body, documentElement } = document;
 
-    if (isAdminLikeRoute) {
+    if (isAdminRoute) {
       body.dataset.adminUi = 'admin';
       body.classList.add('admin-route');
       documentElement.dataset.adminUi = 'admin';
@@ -73,7 +71,7 @@ function Skyscape({ Component, pageProps }: AppProps) {
     delete body.dataset.adminUi;
     body.classList.remove('admin-route');
     delete documentElement.dataset.adminUi;
-  }, [isAdminLikeRoute]);
+  }, [isAdminRoute]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -88,7 +86,7 @@ function Skyscape({ Component, pageProps }: AppProps) {
           <HydrationBoundary state={pageProps.dehydratedState}>
             <ToastViewport />
             {isLoading && <Loading />}
-            {isAdminLikeRoute ? (
+            {isAdminRoute ? (
               <AdminLayout>
                 <Component {...pageProps} />
               </AdminLayout>

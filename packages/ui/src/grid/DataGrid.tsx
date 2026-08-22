@@ -83,34 +83,8 @@ export type GridFooter = {
  */
 const DEFAULT_EMPTY: GridEmpty = { state: 'empty', title: '데이터가 없습니다' };
 
-export function DataGrid<T extends Record<string, unknown>>({
-  columns,
-  rows,
-  getRowId,
-  isFetching,
-  density = 'md',
-  empty = DEFAULT_EMPTY,
-  loadingLabel = '불러오는 중',
-  translateHeader,
-  sortOf,
-  onToggleSort,
-  onRowPrimaryAction,
-  onRowActivate,
-  rowClassName,
-  selection,
-  editing,
-  dirtyCells,
-  footer,
-  invalid,
-  attachedToolbar = false,
-  maxHeight = 560,
-  defaultColumnWidth,
-  columnWidths,
-  onColumnWidthsChange,
-  resizableColumns = true,
-  resizeColumnLabel = '컬럼 너비 조절',
-  revertCellLabel = '수정 원복',
-}: {
+/** 공개 props — 앱 컴포지트가 `Omit` 으로 일부만 걷어내고 그대로 통과시킬 수 있게 이름을 붙여 export 한다. */
+export type DataGridProps<T extends Record<string, unknown>> = {
   readonly columns: readonly ColumnDef<T>[];
   readonly rows: readonly T[];
   readonly getRowId: (row: T) => string;
@@ -198,7 +172,36 @@ export function DataGrid<T extends Record<string, unknown>>({
   readonly resizeColumnLabel?: string;
   /** dirty 셀 초기화 아이콘의 스크린리더 이름. */
   readonly revertCellLabel?: string;
-}) {
+};
+
+export function DataGrid<T extends Record<string, unknown>>({
+  columns,
+  rows,
+  getRowId,
+  isFetching,
+  density = 'md',
+  empty = DEFAULT_EMPTY,
+  loadingLabel = '불러오는 중',
+  translateHeader,
+  sortOf,
+  onToggleSort,
+  onRowPrimaryAction,
+  onRowActivate,
+  rowClassName,
+  selection,
+  editing,
+  dirtyCells,
+  footer,
+  invalid,
+  attachedToolbar = false,
+  maxHeight = 560,
+  defaultColumnWidth,
+  columnWidths,
+  onColumnWidthsChange,
+  resizableColumns = true,
+  resizeColumnLabel = '컬럼 너비 조절',
+  revertCellLabel = '수정 원복',
+}: DataGridProps<T>) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   /**

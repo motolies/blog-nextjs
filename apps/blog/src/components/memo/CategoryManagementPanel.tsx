@@ -1,17 +1,19 @@
 import {
   Button,
   ContentDialog,
-  DataGrid,
   defineColumns,
+  IconButton,
   Input,
   Label,
   showToast,
   useConfirm,
 } from '@hvy/ui';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Columns3, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
+import { COLUMN_SETTINGS_LABELS, GRID_EMPTY } from '@/components/common/grid/gridLabels';
+import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
+import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
 import { useClientGrid } from '@/hooks/useClientGrid';
 import service from '@/service';
 
@@ -82,6 +84,8 @@ export default function CategoryManagementPanel() {
   );
 
   const grid = useClientGrid<MemoCategory>(categories, { paginate: false });
+  // memo 탭 그리드와 같은 경로(/admin/memo)를 공유하므로 gridId 로 저장 키를 가른다.
+  const settings = useColumnSettings(columns, 'memoCategories');
 
   const handleAdd = () => {
     setEditingCategory(null);
@@ -139,15 +143,22 @@ export default function CategoryManagementPanel() {
 
   return (
     <div>
-      <div className="mb-2 flex justify-end">
+      <div className="mb-2 flex justify-end gap-1">
+        {/* 페이징 바가 없는 그리드라 컬럼 설정 진입점을 상단 버튼 줄에 둔다 (GridPagingBar 와 동일 패턴) */}
+        <IconButton
+          icon={Columns3}
+          label={COLUMN_SETTINGS_LABELS.title}
+          size="sm"
+          onClick={settings.openSettings}
+        />
         <Button variant="primary" size="sm" onClick={handleAdd}>
           <Plus className="h-4 w-4 mr-1" />
           카테고리 추가
         </Button>
       </div>
 
-      <DataGrid<MemoCategory>
-        columns={columns}
+      <PersistedDataGrid<MemoCategory>
+        settings={settings}
         rows={grid.rows}
         getRowId={(row) => String(row.id)}
         empty={GRID_EMPTY}

@@ -179,7 +179,12 @@ export {
   orderColumns,
   pinnedCount,
 } from './grid/columns';
-export { DataGrid, type GridFooter, type GridSelection } from './grid/DataGrid';
+export {
+  DataGrid,
+  type DataGridProps,
+  type GridFooter,
+  type GridSelection,
+} from './grid/DataGrid';
 export {
   type GridEmpty,
   GridEmptyContent,

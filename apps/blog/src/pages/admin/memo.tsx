@@ -1,6 +1,5 @@
 import {
   Button,
-  DataGrid,
   defineColumns,
   showToast,
   Tab,
@@ -14,6 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import DynamicSearchFields from '@/components/common/DynamicSearchFields';
 import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
 import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
+import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
 import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import CategoryManagementPanel from '@/components/memo/CategoryManagementPanel';
@@ -149,7 +149,7 @@ export default function MemoPage() {
     defaultPageSize: 10,
   });
 
-  const { visibleColumns, openSettings, dialog } = useColumnSettings(columns);
+  const settings = useColumnSettings(columns, 'memos');
 
   const handleEdit = (row: any) => {
     setEditingMemoId(row.id);
@@ -193,36 +193,33 @@ export default function MemoPage() {
         </TabList>
         <TabPanel value="memos">
           <div className="admin-panel admin-table-shell">
-            <div className="flex flex-col gap-2">
-              <DynamicSearchFields
-                searchFields={
-                  searchFields as Parameters<typeof DynamicSearchFields>[0]['searchFields']
-                }
-                defaultSearchParams={{}}
-                enableDynamic
-                {...grid.search}
-              />
-              <DataGrid<Record<string, unknown>>
-                columns={visibleColumns}
-                rows={grid.rows}
-                getRowId={(row) => String(row.id)}
-                isFetching={grid.loading}
-                empty={GRID_EMPTY}
-                sortOf={grid.sortOf}
-                onToggleSort={grid.toggleSort}
-                attachedToolbar
-              />
-              <GridPagingBar
-                pageIndex={grid.pageIndex}
-                pageCount={grid.pageCount}
-                onPageChange={grid.setPageIndex}
-                total={grid.totalCount}
-                pageSize={grid.pageSize}
-                onPageSizeChange={grid.setPageSize}
-                onColumnSettings={openSettings}
-              />
-              {dialog}
-            </div>
+            <DynamicSearchFields
+              searchFields={
+                searchFields as Parameters<typeof DynamicSearchFields>[0]['searchFields']
+              }
+              defaultSearchParams={{}}
+              enableDynamic
+              {...grid.search}
+            />
+            <PersistedDataGrid<Record<string, unknown>>
+              settings={settings}
+              rows={grid.rows}
+              getRowId={(row) => String(row.id)}
+              isFetching={grid.loading}
+              empty={GRID_EMPTY}
+              sortOf={grid.sortOf}
+              onToggleSort={grid.toggleSort}
+              attachedToolbar
+            />
+            <GridPagingBar
+              pageIndex={grid.pageIndex}
+              pageCount={grid.pageCount}
+              onPageChange={grid.setPageIndex}
+              total={grid.totalCount}
+              pageSize={grid.pageSize}
+              onPageSizeChange={grid.setPageSize}
+              onColumnSettings={settings.openSettings}
+            />
           </div>
         </TabPanel>
         <TabPanel value="categories">

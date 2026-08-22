@@ -371,6 +371,43 @@ a.file-link {
   background: rgba(15, 23, 42, 0.35);
 }
 
+/* 목차 카드 내부 스크롤 — 리스트가 넘칠 때만 얇은 스크롤바를 보이고,
+   목차 끝에서 본문으로 스크롤이 번지지 않게 막는다 (admin-shell 스크롤바 관례 축소판) */
+.toc-scroll {
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
+}
+
+.toc-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.toc-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.toc-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.5);
+  border-radius: 9999px;
+}
+
+.toc-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
+}
+
+[data-theme='blog-dark'] .toc-scroll {
+  scrollbar-color: rgba(99, 109, 131, 0.55) transparent;
+}
+
+[data-theme='blog-dark'] .toc-scroll::-webkit-scrollbar-thumb {
+  background: rgba(99, 109, 131, 0.55);
+}
+
+[data-theme='blog-dark'] .toc-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(125, 137, 161, 0.7);
+}
+
 html[data-admin-ui="admin"] {
   color-scheme: light;
 }

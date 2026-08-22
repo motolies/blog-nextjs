@@ -592,14 +592,16 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
             )}
           </article>
 
-          <aside className="hidden space-y-5 lg:sticky lg:top-(--sticky-top) lg:block lg:self-start">
-            <div className="surface-panel-strong rounded-(--radius-panel) p-6">
+          {/* 세로가 짧은 화면에서 목차가 길면 카드 안의 리스트만 스크롤한다 — aside 자체를
+              스크롤 컨테이너로 만들면 카드가 뷰포트 경계에서 잘리고 backdrop blur 도 깨진다 */}
+          <aside className="hidden lg:sticky lg:top-(--sticky-top) lg:flex lg:max-h-[calc(100dvh-var(--sticky-top)-2rem)] lg:flex-col lg:gap-5 lg:self-start">
+            <div className="surface-panel-strong rounded-(--radius-panel) p-6 lg:flex lg:min-h-0 lg:flex-col">
               <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                 Reading Context
               </p>
               <TableOfContents postBody={postBody} variant="sidebar" />
             </div>
-            <div className="surface-panel-strong rounded-(--radius-panel) p-6">
+            <div className="surface-panel-strong rounded-(--radius-panel) p-6 lg:shrink-0">
               <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
                 Metadata
               </p>

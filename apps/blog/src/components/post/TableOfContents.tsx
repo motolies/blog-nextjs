@@ -1,6 +1,6 @@
 import { cn } from '@hvy/ui';
 import { ChevronDown, List } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { normalizeHeadingDepths } from '@/util/tocUtils';
 
 interface TocItem {
@@ -81,6 +81,8 @@ export default function TableOfContents({ postBody, variant = 'sidebar' }: Table
   const [activeId, setActiveId] = useState<string>('');
   // collapse variant 의 접기 상태 — 기본 접힘
   const [tocOpen, setTocOpen] = useState(false);
+  // sidebar variant 의 내부 스크롤 컨테이너 — 목차가 길면 카드 안에서만 스크롤한다
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // 본문 렌더 후 heading 수집 및 id 부여
   useEffect(() => {
@@ -170,6 +172,22 @@ export default function TableOfContents({ postBody, variant = 'sidebar' }: Table
     return () => observer.disconnect();
   }, [items]);
 
+  // 본문 스크롤로 활성 항목이 바뀌면 내부 스크롤포트 밖에 있을 때만 리스트를 따라가게 한다.
+  // scrollIntoView 는 조상(윈도우)까지 스크롤할 수 있어 컨테이너 scrollTop 만 직접 보정한다
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container || !activeId) return;
+    const active = container.querySelector<HTMLElement>('[aria-current="location"]');
+    if (!active) return;
+    const containerRect = container.getBoundingClientRect();
+    const activeRect = active.getBoundingClientRect();
+    if (activeRect.top < containerRect.top) {
+      container.scrollTop += activeRect.top - containerRect.top;
+    } else if (activeRect.bottom > containerRect.bottom) {
+      container.scrollTop += activeRect.bottom - containerRect.bottom;
+    }
+  }, [activeId]);
+
   // 헤딩으로 스크롤. 고정 헤더에 가리지 않도록 하는 여백은 CSS scroll-margin-top이 담당한다
   const handleClick = useCallback((id: string) => {
     const el = document.getElementById(id);
@@ -215,9 +233,14 @@ export default function TableOfContents({ postBody, variant = 'sidebar' }: Table
     </nav>
   );
 
-  // sidebar: 항상 펼침 — 표시/숨김은 부모(aside)가 결정한다
+  // sidebar: 항상 펼침 — 표시/숨김은 부모(aside)가, 높이 상한은 부모 카드(flex min-h-0)가 결정하고
+  // 넘칠 때의 스크롤은 이 래퍼가 담당한다
   if (variant === 'sidebar') {
-    return tocList;
+    return (
+      <div ref={scrollRef} className="toc-scroll min-h-0 overflow-y-auto">
+        {tocList}
+      </div>
+    );
   }
 
   // collapse: 접기/펼치기 버튼. pb-5 는 렌더될 때만 아래 블록과의 간격을 만든다.

@@ -4,6 +4,7 @@ import '../styles/rainbow.css';
 import '../styles/ckeditor.css';
 import '../styles/ckeditor-theme.css';
 import { ConfirmProvider, ToastViewport } from '@hvy/ui';
+import * as Sentry from '@sentry/nextjs';
 import { HydrationBoundary, QueryClientProvider } from '@tanstack/react-query';
 import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
@@ -73,38 +74,51 @@ function Skyscape({ Component, pageProps }: AppProps) {
     delete documentElement.dataset.adminUi;
   }, [isAdminRoute]);
 
+  // React 19 는 boundary 가 잡은 에러를 window 로 재전파하지 않아 ErrorBoundary 단계의
+  // 명시 캡처가 필요하다 — Sentry.ErrorBoundary 가 componentStack 첨부까지 담당한다.
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="data-theme"
-        value={{ light: 'blog', dark: 'blog-dark' }}
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <ConfirmProvider labels={{ cancel: '취소' }}>
-          <HydrationBoundary state={pageProps.dehydratedState}>
-            <ToastViewport />
-            {isLoading && <Loading />}
-            {isAdminRoute ? (
-              <AdminLayout>
-                <Component {...pageProps} />
-              </AdminLayout>
-            ) : (
-              <CommonLayout>
-                {isUtilRoute ? (
-                  <UtilityLayout>
-                    <Component {...pageProps} />
-                  </UtilityLayout>
-                ) : (
+    <Sentry.ErrorBoundary
+      fallback={
+        <div style={{ padding: '5rem 1rem', textAlign: 'center' }}>
+          <p>일시적인 오류가 발생했습니다.</p>
+          <button type="button" onClick={() => window.location.reload()}>
+            새로고침
+          </button>
+        </div>
+      }
+    >
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          attribute="data-theme"
+          value={{ light: 'blog', dark: 'blog-dark' }}
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ConfirmProvider labels={{ cancel: '취소' }}>
+            <HydrationBoundary state={pageProps.dehydratedState}>
+              <ToastViewport />
+              {isLoading && <Loading />}
+              {isAdminRoute ? (
+                <AdminLayout>
                   <Component {...pageProps} />
-                )}
-              </CommonLayout>
-            )}
-          </HydrationBoundary>
-        </ConfirmProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+                </AdminLayout>
+              ) : (
+                <CommonLayout>
+                  {isUtilRoute ? (
+                    <UtilityLayout>
+                      <Component {...pageProps} />
+                    </UtilityLayout>
+                  ) : (
+                    <Component {...pageProps} />
+                  )}
+                </CommonLayout>
+              )}
+            </HydrationBoundary>
+          </ConfirmProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </Sentry.ErrorBoundary>
   );
 }
 

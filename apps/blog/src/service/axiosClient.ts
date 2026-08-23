@@ -1,5 +1,7 @@
+import * as Sentry from '@sentry/nextjs';
 import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 import { getBackendBaseUrl } from '@/lib/backendUrl';
+import { sentryTraceToTraceparent } from '@/lib/traceparent';
 
 const CLIENT_TIMEZONE_HEADER = 'X-Client-Timezone';
 const CLIENT_UTC_OFFSET_HEADER = 'X-Client-Utc-Offset-Minutes';
@@ -22,6 +24,14 @@ axiosClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     config.headers[CLIENT_UTC_OFFSET_HEADER] = String(offsetMinutes);
   }
 
+  // 트레이스 전파는 W3C traceparent 단일 헤더로 통일한다 — Sentry 이벤트의 trace_id 와
+  // 백엔드(Brave/W3C 수신) 로그의 MDC traceId 가 같은 값이 되어 Loki/Zipkin 검색이 이어진다.
+  // getTraceData() 는 브라우저(pageload)/SSR(요청 isolation scope) 양쪽에서 동작한다.
+  const traceparent = sentryTraceToTraceparent(Sentry.getTraceData()['sentry-trace']);
+  if (traceparent) {
+    config.headers.traceparent = traceparent;
+  }
+
   return config;
 });
 
@@ -33,8 +43,28 @@ axiosClient.interceptors.response.use(
     return response;
   },
   (error) => {
+    // 브라우저에서만 캡처한다 — SSR 측 실패는 onRequestError/_error.tsx 가 담당해 중복을 막는다.
+    // react-query 가 에러를 상태로 삼키므로 이 인터셉터가 클라이언트 API 실패의 유일한 캡처 지점이다.
+    if (typeof window !== 'undefined' && isReportableAxiosError(error)) {
+      Sentry.captureException(error, {
+        tags: { source: 'axios' },
+        extra: {
+          url: error.config?.url,
+          method: error.config?.method,
+          status: error.response?.status,
+        },
+      });
+    }
     return Promise.reject(error);
   },
 );
+
+// 4xx 는 기대된 사용자 오류(검증 실패·권한 등)라 제외하고, 서버 장애 신호만 보고한다
+function isReportableAxiosError(error: unknown): boolean {
+  if (!axios.isAxiosError(error)) return true; // 예기치 못한 비-axios 오류
+  if (error.code === 'ERR_CANCELED') return false; // 요청 취소는 정상 흐름
+  if (!error.response) return true; // 네트워크 단절/타임아웃
+  return error.response.status >= 500;
+}
 
 export default axiosClient;

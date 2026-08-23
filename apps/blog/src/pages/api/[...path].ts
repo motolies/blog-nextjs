@@ -1,7 +1,9 @@
 import { Readable } from 'node:stream';
+import * as Sentry from '@sentry/nextjs';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getAuthTokenFromRequest } from '@/lib/authCookie';
 import { getBackendBaseUrl } from '@/lib/backendUrl';
+import { traceparentToSentryTrace } from '@/lib/traceparent';
 
 export const config = {
   api: {
@@ -31,6 +33,16 @@ async function ensureMocksArmed(): Promise<void> {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   await ensureMocksArmed();
 
+  // 인바운드 W3C traceparent 로 Sentry 트레이스를 이어 — 여기서 캡처되는 에러가
+  // 브라우저 이벤트·백엔드 로그와 같은 traceId 를 갖는다 (없으면 새 트레이스로 실행).
+  const sentryTrace = traceparentToSentryTrace(req.headers.traceparent);
+  // baggage 는 와이어에서 배제한다 — 전파는 W3C traceparent 단일 헤더 원칙
+  return Sentry.continueTrace({ sentryTrace, baggage: undefined }, () => proxyRequest(req, res));
+}
+
+// 요청 바디/응답을 스트리밍으로 백엔드에 중계한다 — cookie/host 외 헤더는 그대로 전달
+// (traceparent 도 이 경로로 백엔드까지 흘러간다)
+async function proxyRequest(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   const token = getAuthTokenFromRequest(req);
   const target = getBackendBaseUrl();
   const url = `${target}${req.url}`;
@@ -75,6 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     res.end();
   } catch (error) {
+    Sentry.captureException(error, { tags: { source: 'bff-proxy' } });
     console.error('BFF proxy failed:', error);
     if (!res.headersSent) {
       res.status(502).json({ message: 'Bad Gateway' });

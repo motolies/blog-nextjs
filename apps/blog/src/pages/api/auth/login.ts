@@ -1,7 +1,9 @@
+import * as Sentry from '@sentry/nextjs';
 import axios from 'axios';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { buildAuthCookie, extractBackendAuthCookie } from '@/lib/authCookie';
 import { getBackendBaseUrl } from '@/lib/backendUrl';
+import { traceparentToSentryTrace } from '@/lib/traceparent';
 
 /**
  * 목 다운스트림 재확인 — 개발 전용.
@@ -25,11 +27,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).end();
   }
 
+  // 인바운드 W3C traceparent 로 Sentry 트레이스를 이어 — 캡처 이벤트가 브라우저와 같은 traceId 를 갖는다
+  const sentryTrace = traceparentToSentryTrace(req.headers.traceparent);
+  // baggage 는 와이어에서 배제한다 — 전파는 W3C traceparent 단일 헤더 원칙
+  return Sentry.continueTrace({ sentryTrace, baggage: undefined }, () => proxyLogin(req, res));
+}
+
+// 백엔드 로그인 결과의 Authorization 쿠키를 프론트 httpOnly 쿠키로 변환해 내려준다
+async function proxyLogin(req: NextApiRequest, res: NextApiResponse) {
   try {
     const response = await axios.post(`${getBackendBaseUrl()}/api/auth/login`, req.body, {
       headers: {
         Accept: (req.headers.accept as string) || 'application/json',
         'Content-Type': (req.headers['content-type'] as string) || 'application/json',
+        // 트레이스 전파는 W3C traceparent 로 통일 — 브라우저가 정한 값을 그대로 백엔드에 넘긴다
+        ...(typeof req.headers.traceparent === 'string'
+          ? { traceparent: req.headers.traceparent }
+          : {}),
       },
       validateStatus: () => true,
     });
@@ -47,6 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return sendBackendResponse(res, response.status, response.data);
   } catch (error) {
+    Sentry.captureException(error, { tags: { source: 'bff-login' } });
     console.error('BFF login proxy failed:', error);
     return res.status(502).json({ message: 'Bad Gateway' });
   }

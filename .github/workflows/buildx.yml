@@ -61,6 +61,9 @@ jobs:
           build-args: |
             VERSION=${{ env.COMMIT_HASH }}
             BUILD_TIMESTAMP=${{ github.run_id }}
+          # GlitchTip 소스맵 업로드 토큰 — BuildKit secret 이라 이미지 레이어에 남지 않는다 (hvy-blog ghp_token 패턴)
+          secrets: |
+            sentry_auth_token=${{ secrets.SENTRY_AUTH_TOKEN }}
           outputs: type=image,"name=${{ env.DOCKER_IMAGE }},${{ env.GHCR_IMAGE }}",push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=${{ matrix.arch }}

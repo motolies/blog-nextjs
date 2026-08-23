@@ -13,14 +13,20 @@ FROM deps AS build
 COPY . .
 RUN pnpm install --frozen-lockfile --offline
 ENV NEXT_TELEMETRY_DISABLED=1
+# VERSION(커밋 SHA 7자리)은 GlitchTip release 식별자로도 쓴다 — 이미지 태그·이벤트·소스맵 정렬
+ARG VERSION
+ARG SENTRY_URL=https://glitchtip.hvy.kr
 # ui-docs 는 로컬 전용 — blog 앱만 빌드한다
-RUN pnpm -F blog build
+# SENTRY_AUTH_TOKEN 은 BuildKit secret — 이미지 레이어에 남지 않고, 없으면 소스맵 업로드만 스킵된다
+RUN --mount=type=secret,id=sentry_auth_token \
+    SENTRY_AUTH_TOKEN="$(cat /run/secrets/sentry_auth_token 2>/dev/null || true)" \
+    pnpm -F blog build
 
 FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG} AS runner
 WORKDIR /app
 
-# 기본값: 외부 설정이 없으면 힙 메모리 256MB로 제한 (보수적 설정)
-ENV NODE_OPTIONS="--max-old-space-size=256" \
+# 기본값: 외부 설정이 없으면 힙 메모리 384MB로 제한 (Sentry SDK+OTel 상주 메모리 감안, docker stats 로 재검증)
+ENV NODE_OPTIONS="--max-old-space-size=384" \
     NODE_ENV=production \
     PORT=3000 \
     NEXT_TELEMETRY_DISABLED=1

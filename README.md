@@ -18,6 +18,14 @@
 - [인증 시스템 (Authentication)](./docs/authentication.md) - 쿠키 기반 인증 구조 및 SSR/CSR 플로우
 - [디버깅 가이드 (Debug)](./docs/debug.md) - IntelliJ에서 Turbopack 서버/클라이언트 디버깅 설정
 
+## 모니터링
+
+브라우저/BFF 에러는 `@sentry/nextjs` SDK 로 셀프호스트 **GlitchTip** 에 수집된다.
+모든 API 요청에 W3C `traceparent` 헤더를 실어 백엔드(Spring/Brave)와 traceId 를 통일하므로,
+GlitchTip 이벤트의 trace ID 로 Loki 로그·Zipkin 트레이스를 바로 검색할 수 있다.
+DSN 이 비어 있으면 SDK 는 조용히 꺼진다(`apps/blog/next.config.ts`).
+배포·운영 절차는 [blog-back/claudedocs/glitchtip-deployment.md](../claudedocs/glitchtip-deployment.md) 참고.
+
 ## 사용법
 
 요구사항: Node ≥ 24, pnpm 11.20.0 (`npm i -g pnpm@11.20.0`)

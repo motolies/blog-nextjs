@@ -9,6 +9,8 @@ allowBuilds:
   # postinstall 이 브라우저 서비스워커 자산(mockServiceWorker.js)을 배치한다.
   # Node 사이드 목만 쓰므로 불필요하다. (shadcn CLI 의존 트리에도 존재 — shadcn 제거 후에도 mock 용도로 유지)
   msw: false
+  # postinstall 이 sentry-cli 바이너리를 내려받는다 — 차단하면 소스맵 업로드가 조용히 실패한다.
+  '@sentry/cli': true
 
 # 인스턴스가 둘이면 캐시/컨텍스트가 조용히 분리되어 오작동한다.
 # deleo-one-ui 기술스택 결정과 동일 취지 — 루트에서 단일 버전을 강제한다.
@@ -27,6 +29,9 @@ catalog:
   react: 19.2.8
   react-dom: 19.2.8
   server-only: 0.0.1
+
+  # 관측 — GlitchTip(Sentry SDK 호환)으로 에러 수집, W3C traceparent 로 백엔드 traceId 연동
+  '@sentry/nextjs': 10.70.0
 
   # 데이터 / 그리드
   '@tanstack/react-query': 5.101.4

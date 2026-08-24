@@ -19,6 +19,7 @@ import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
 import { useGridSettings } from '@/components/common/grid/useGridSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useClientGrid } from '@/hooks/useClientGrid';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import { searchObjectInit } from '@/model/searchObject';
 import service from '@/service';
 import { base64Encode } from '@/util/base64Util';
@@ -53,8 +54,8 @@ export default function TagsPage() {
     try {
       const res = await service.tag.allTags();
       setTags(res.data ?? []);
-    } catch {
-      showToast('태그 목록을 불러오지 못했습니다.', 'error');
+    } catch (error) {
+      showApiErrorToast('태그 목록을 불러오지 못했습니다.', error);
     } finally {
       setLoading(false);
     }
@@ -127,10 +128,10 @@ export default function TagsPage() {
       }
       setOpenDialog(false);
       await loadTags();
-    } catch {
-      showToast(
+    } catch (error) {
+      showApiErrorToast(
         dialogMode === 'create' ? '태그 생성에 실패했습니다.' : '태그 수정에 실패했습니다.',
-        'error',
+        error,
       );
     }
   };
@@ -146,8 +147,8 @@ export default function TagsPage() {
       await service.tag.deleteTag(String(tag.id));
       showToast('태그가 삭제되었습니다.');
       await loadTags();
-    } catch {
-      showToast('태그 삭제에 실패했습니다.', 'error');
+    } catch (error) {
+      showApiErrorToast('태그 삭제에 실패했습니다.', error);
     }
   };
 
@@ -166,8 +167,8 @@ export default function TagsPage() {
       await service.tag.deleteUnusedTags();
       showToast('미사용 태그가 일괄 삭제되었습니다.');
       await loadTags();
-    } catch {
-      showToast('미사용 태그 삭제에 실패했습니다.', 'error');
+    } catch (error) {
+      showApiErrorToast('미사용 태그 삭제에 실패했습니다.', error);
     }
   };
 
@@ -190,8 +191,8 @@ export default function TagsPage() {
       showToast('태그가 병합되었습니다.');
       setOpenMergeDialog(false);
       await loadTags();
-    } catch {
-      showToast('태그 병합에 실패했습니다.', 'error');
+    } catch (error) {
+      showApiErrorToast('태그 병합에 실패했습니다.', error);
     }
   };
 

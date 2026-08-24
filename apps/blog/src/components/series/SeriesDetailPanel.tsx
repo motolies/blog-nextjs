@@ -1,6 +1,7 @@
 import { Badge, Button, EmptyState, FieldValue, FormGrid, Spinner, showToast } from '@hvy/ui';
 import { BookOpen, Pencil, Trash2 } from 'lucide-react';
 import type React from 'react';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import service from '@/service';
 import type { Series } from '@/types/series';
 import { parseServerDate } from '@/util/dateTimeUtil';
@@ -68,8 +69,8 @@ export default function SeriesDetailPanel({
       await service.series.addPost({ seriesId: String(series.id), postId: String(post.postId) });
       showToast('포스트가 추가되었습니다.');
       onRefresh();
-    } catch {
-      showToast('포스트 추가에 실패했습니다.', 'error');
+    } catch (error) {
+      showApiErrorToast('포스트 추가에 실패했습니다.', error);
     }
   };
 

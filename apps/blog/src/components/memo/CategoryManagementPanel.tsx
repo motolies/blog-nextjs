@@ -15,6 +15,7 @@ import { COLUMN_SETTINGS_LABELS, GRID_EMPTY } from '@/components/common/grid/gri
 import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
 import { useGridSettings } from '@/components/common/grid/useGridSettings';
 import { useClientGrid } from '@/hooks/useClientGrid';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import service from '@/service';
 
 interface MemoCategory {
@@ -41,7 +42,7 @@ export default function CategoryManagementPanel() {
       const data = await service.memo.getCategories();
       setCategories(data || []);
     } catch (error) {
-      showToast('카테고리 목록을 불러오는데 실패했습니다.', 'error');
+      showApiErrorToast('카테고리 목록을 불러오는데 실패했습니다.', error);
     }
   };
 
@@ -122,7 +123,7 @@ export default function CategoryManagementPanel() {
       setDialogOpen(false);
       loadCategories();
     } catch (error) {
-      showToast('카테고리 저장에 실패했습니다.', 'error');
+      showApiErrorToast('카테고리 저장에 실패했습니다.', error);
     }
   };
 
@@ -138,7 +139,7 @@ export default function CategoryManagementPanel() {
       showToast('카테고리가 삭제되었습니다.');
       loadCategories();
     } catch (error) {
-      showToast('카테고리 삭제에 실패했습니다. 연결된 메모가 있는지 확인해주세요.', 'error');
+      showApiErrorToast('카테고리 삭제에 실패했습니다. 연결된 메모가 있는지 확인해주세요.', error);
     }
   };
 

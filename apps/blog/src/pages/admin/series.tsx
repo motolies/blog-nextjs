@@ -13,6 +13,7 @@ import { BookOpen, Plus, Save, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import SeriesDetailPanel from '@/components/series/SeriesDetailPanel';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import service from '@/service';
 import type { Series, SeriesSummary } from '@/types/series';
 
@@ -38,8 +39,8 @@ export default function SeriesPage() {
     try {
       const res = await service.series.getAll();
       setSeriesList(res.data ?? []);
-    } catch {
-      showToast('시리즈 목록을 불러오지 못했습니다.', 'error');
+    } catch (error) {
+      showApiErrorToast('시리즈 목록을 불러오지 못했습니다.', error);
     } finally {
       setLoading(false);
     }
@@ -50,8 +51,8 @@ export default function SeriesPage() {
     try {
       const res = await service.series.getDetail({ seriesId: String(id) });
       setSelectedSeries(res.data);
-    } catch {
-      showToast('시리즈 상세를 불러오지 못했습니다.', 'error');
+    } catch (error) {
+      showApiErrorToast('시리즈 상세를 불러오지 못했습니다.', error);
       setSelectedSeries(null);
     } finally {
       setDetailLoading(false);
@@ -129,10 +130,10 @@ export default function SeriesPage() {
         setOpenDialog(false);
         await Promise.all([loadSeriesList(), loadSeriesDetail(selectedSeries!.id)]);
       }
-    } catch {
-      showToast(
+    } catch (error) {
+      showApiErrorToast(
         dialogMode === 'create' ? '시리즈 생성에 실패했습니다.' : '시리즈 수정에 실패했습니다.',
-        'error',
+        error,
       );
     }
   };
@@ -157,8 +158,8 @@ export default function SeriesPage() {
         setSelectedSeries(null);
       }
       await loadSeriesList();
-    } catch {
-      showToast('시리즈 삭제에 실패했습니다.', 'error');
+    } catch (error) {
+      showApiErrorToast('시리즈 삭제에 실패했습니다.', error);
     }
   };
 

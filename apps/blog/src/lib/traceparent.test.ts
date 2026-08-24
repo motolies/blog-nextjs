@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { sentryTraceToTraceparent, traceparentToSentryTrace } from './traceparent';
+import {
+  sentryTraceToTraceparent,
+  traceIdFromTraceparent,
+  traceparentToSentryTrace,
+} from './traceparent';
 
 const TRACE_ID = 'aabbccddeeff00112233445566778899';
 const SPAN_ID = '1122334455667788';
@@ -57,5 +61,25 @@ describe('traceparentToSentryTrace', () => {
   it('두 함수는 라운드트립이 성립한다', () => {
     const traceparent = sentryTraceToTraceparent(`${TRACE_ID}-${SPAN_ID}`);
     expect(traceparentToSentryTrace(traceparent)).toBe(`${TRACE_ID}-${SPAN_ID}-1`);
+  });
+});
+
+describe('traceIdFromTraceparent', () => {
+  it('정상 traceparent 에서 32hex traceId 만 꺼낸다', () => {
+    expect(traceIdFromTraceparent(`00-${TRACE_ID}-${SPAN_ID}-01`)).toBe(TRACE_ID);
+    expect(traceIdFromTraceparent(`00-${TRACE_ID}-${SPAN_ID}-00`)).toBe(TRACE_ID);
+  });
+
+  it('문자열이 아니면 undefined 를 반환한다', () => {
+    expect(traceIdFromTraceparent(undefined)).toBeUndefined();
+    expect(traceIdFromTraceparent(null)).toBeUndefined();
+    expect(traceIdFromTraceparent(['00', TRACE_ID, SPAN_ID, '01'])).toBeUndefined();
+  });
+
+  it('형식이 어긋나면 undefined 를 반환한다', () => {
+    expect(traceIdFromTraceparent('not-a-traceparent')).toBeUndefined();
+    expect(traceIdFromTraceparent(`01-${TRACE_ID}-${SPAN_ID}-01`)).toBeUndefined(); // 미지원 version
+    expect(traceIdFromTraceparent(`00-${TRACE_ID}-${SPAN_ID}`)).toBeUndefined(); // flags 누락
+    expect(traceIdFromTraceparent(`00-${'0'.repeat(32)}-${SPAN_ID}-01`)).toBeUndefined();
   });
 });

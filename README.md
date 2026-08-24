@@ -21,8 +21,9 @@
 ## 모니터링
 
 브라우저/BFF 에러는 `@sentry/nextjs` SDK 로 셀프호스트 **GlitchTip** 에 수집된다.
-모든 API 요청에 W3C `traceparent` 헤더를 실어 백엔드(Spring/Brave)와 traceId 를 통일하므로,
+모든 API 요청에 W3C `traceparent` 헤더를 실어 백엔드(Spring/Micrometer OTel)와 traceId 를 통일하므로,
 GlitchTip 이벤트의 trace ID 로 Loki 로그·Zipkin 트레이스를 바로 검색할 수 있다.
+GlitchTip 이벤트의 `traceId` 태그 = `tb_system_log.trace_id` — 같은 값으로 admin 시스템 로그 화면에서 검색된다.
 DSN 이 비어 있으면 SDK 는 조용히 꺼진다(`apps/blog/next.config.ts`).
 배포·운영 절차는 [blog-back/claudedocs/glitchtip-deployment.md](../claudedocs/glitchtip-deployment.md) 참고.
 

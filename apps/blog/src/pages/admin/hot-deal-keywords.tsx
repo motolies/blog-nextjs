@@ -17,6 +17,7 @@ import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
 import { useGridSettings } from '@/components/common/grid/useGridSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useClientGrid } from '@/hooks/useClientGrid';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import service from '@/service';
 import type { HotDealKeyword } from '@/types/hotDeal';
 
@@ -50,8 +51,8 @@ export default function HotDealKeywordsPage() {
     try {
       const data = await service.hotDeal.getKeywords();
       setKeywords(data ?? []);
-    } catch {
-      showToast('키워드 목록을 불러오지 못했습니다.', 'error');
+    } catch (error) {
+      showApiErrorToast('키워드 목록을 불러오지 못했습니다.', error);
     } finally {
       setLoading(false);
     }
@@ -130,7 +131,7 @@ export default function HotDealKeywordsPage() {
       setOpenDialog(false);
       await loadKeywords();
     } catch (err) {
-      showToast(extractErrorMessage(err, '키워드 저장에 실패했습니다.'), 'error');
+      showApiErrorToast(extractErrorMessage(err, '키워드 저장에 실패했습니다.'), err);
     } finally {
       setSaving(false);
     }
@@ -148,7 +149,7 @@ export default function HotDealKeywordsPage() {
       showToast('키워드가 삭제되었습니다.');
       await loadKeywords();
     } catch (err) {
-      showToast(extractErrorMessage(err, '키워드 삭제에 실패했습니다.'), 'error');
+      showApiErrorToast(extractErrorMessage(err, '키워드 삭제에 실패했습니다.'), err);
     }
   };
 
@@ -162,7 +163,7 @@ export default function HotDealKeywordsPage() {
       showToast(keyword.enabled ? '키워드를 비활성화했습니다.' : '키워드를 활성화했습니다.');
       await loadKeywords();
     } catch (err) {
-      showToast(extractErrorMessage(err, '상태 변경에 실패했습니다.'), 'error');
+      showApiErrorToast(extractErrorMessage(err, '상태 변경에 실패했습니다.'), err);
     }
   };
 

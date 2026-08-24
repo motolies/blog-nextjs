@@ -3,6 +3,7 @@ import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useTags } from '@/hooks/useTags';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import { isSameEntityId } from '@/lib/combobox';
 import service from '@/service';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -87,8 +88,8 @@ export default function TagGroupComponent({
           showToast('태그 삭제에 성공하였습니다.');
         }
       })
-      .catch(() => {
-        showToast('태그 삭제에 실패하였습니다.', 'error');
+      .catch((error) => {
+        showApiErrorToast('태그 삭제에 실패하였습니다.', error);
       });
   };
 

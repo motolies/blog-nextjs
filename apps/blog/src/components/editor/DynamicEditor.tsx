@@ -2,6 +2,7 @@ import { showToast } from '@hvy/ui';
 import dynamic from 'next/dynamic';
 import { useCallback, useRef } from 'react';
 import { useInvalidateFiles } from '@/hooks/useFiles';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import service from '@/service';
 import { useLoadingStore } from '@/store/useLoadingStore';
 import { fileLink } from '@/util/fileLink';
@@ -86,7 +87,7 @@ export default function DynamicEditor({
                   resolve({ default: res.data.resourceUri });
                 })
                 .catch((err: Error) => {
-                  showToast('파일 업로드에 실패하였습니다.', 'error');
+                  showApiErrorToast('파일 업로드에 실패하였습니다.', err);
                   reject(err);
                 })
                 .finally(() => {
@@ -122,8 +123,8 @@ export default function DynamicEditor({
           const modelFragment = editor.data.toModel(viewFragment);
           editor.model.insertContent(modelFragment, editor.model.document.selection);
         })
-        .catch(() => {
-          showToast('파일 업로드에 실패하였습니다.', 'error');
+        .catch((error) => {
+          showApiErrorToast('파일 업로드에 실패하였습니다.', error);
         })
         .finally(() => {
           cancelLoading();

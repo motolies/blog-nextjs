@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import TreeSearchBar from '@/components/common/tree/TreeSearchBar';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useTreeSearch } from '@/hooks/useTreeSearch';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import service from '@/service';
 import MasterCodeTree from './MasterCodeTree';
 import NodeDetailPanel from './NodeDetailPanel';
@@ -103,7 +104,10 @@ export default function MasterCodePage() {
       const data = await service.masterCode.getTree();
       setTreeData(data || []);
     } catch (error: any) {
-      showToast(`데이터 로드 실패: ${error.response?.data?.message || error.message}`, 'error');
+      showApiErrorToast(
+        `데이터 로드 실패: ${error.response?.data?.message || error.message}`,
+        error,
+      );
       setTreeData([]);
     } finally {
       setLoading(false);
@@ -191,7 +195,7 @@ export default function MasterCodePage() {
         }
         await loadData();
       } catch (error: any) {
-        showToast(`삭제 실패: ${error.response?.data?.message || error.message}`, 'error');
+        showApiErrorToast(`삭제 실패: ${error.response?.data?.message || error.message}`, error);
       } finally {
         setLoading(false);
       }
@@ -270,7 +274,7 @@ export default function MasterCodePage() {
       setOpenDialog(false);
       await loadData();
     } catch (error: any) {
-      showToast(`저장 실패: ${error.response?.data?.message || error.message}`, 'error');
+      showApiErrorToast(`저장 실패: ${error.response?.data?.message || error.message}`, error);
     } finally {
       setLoading(false);
     }
@@ -289,7 +293,7 @@ export default function MasterCodePage() {
       const result = await service.masterCode.evictAllCaches();
       showToast(`${result.message} (${result.evictedCacheCount}개 캐시 삭제됨)`);
     } catch (error: any) {
-      showToast(`캐시 삭제 실패: ${error.response?.data?.message || error.message}`, 'error');
+      showApiErrorToast(`캐시 삭제 실패: ${error.response?.data?.message || error.message}`, error);
     } finally {
       setLoading(false);
     }

@@ -18,6 +18,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Button, cn, showToast } from '@hvy/ui';
 import { GripVertical, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import service from '@/service';
 import type { SeriesPost } from '@/types/series';
 
@@ -119,9 +120,9 @@ export default function SortablePostList({
         });
         showToast('포스트 순서가 변경되었습니다.');
         onPostsReordered();
-      } catch {
+      } catch (error) {
         setPosts(previousPosts);
-        showToast('순서 변경에 실패했습니다.', 'error');
+        showApiErrorToast('순서 변경에 실패했습니다.', error);
       }
     },
     [posts, seriesId, onPostsReordered],
@@ -134,8 +135,8 @@ export default function SortablePostList({
         await service.series.removePost({ seriesId: String(seriesId), postId: String(postId) });
         showToast('포스트가 시리즈에서 제거되었습니다.');
         onPostRemoved();
-      } catch {
-        showToast('포스트 제거에 실패했습니다.', 'error');
+      } catch (error) {
+        showApiErrorToast('포스트 제거에 실패했습니다.', error);
       } finally {
         setRemovingId(null);
       }

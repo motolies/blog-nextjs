@@ -7,7 +7,7 @@ process.env.BLOG_URL_PROD ||= 'http://blogback:8080';
 process.env.META_URL ||= 'https://hvy.kr';
 process.env.JIRA_BROWSE_URL ||= 'https://deleokorea.atlassian.net/browse';
 // GlitchTip DSN — 공개키라 비밀이 아니다. 발급 후 아래 주석을 실값으로 교체한다.
-// process.env.SENTRY_DSN ||= 'https://<publicKey>@glitchtip.hvy.kr/<projectId>';
+process.env.SENTRY_DSN ||= 'https://42171b5b42454852bc5300892d4d7334@glitchtip.hvy.kr/1';
 
 const nextConfig: NextConfig = {
   output: 'standalone',

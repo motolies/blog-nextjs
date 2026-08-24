@@ -108,7 +108,7 @@ export default function TagGroupComponent({
           emptyLabel="일치하는 태그가 없습니다."
           className={
             writePage
-              ? 'h-11 w-full rounded-full border-dl-border bg-dl-surface text-[color:var(--admin-text)] hover:bg-dl-tonal '
+              ? 'w-full border-dl-border bg-dl-surface text-[color:var(--admin-text)] hover:bg-dl-tonal'
               : 'public-control-surface public-muted-text h-11 w-full rounded-full'
           }
         />

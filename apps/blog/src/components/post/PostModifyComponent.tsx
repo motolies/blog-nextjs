@@ -1,5 +1,5 @@
 import { Button, Input, Select, showToast, useConfirm } from '@hvy/ui';
-import { Eye, Save, Send, Undo2 } from 'lucide-react';
+import { Undo2 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getTsid } from 'tsid-ts';
@@ -364,7 +364,6 @@ export default function PostModifyComponent() {
           className="w-full"
           onClick={() => setTriggerGetDataForPreview(getTsid().toString())}
         >
-          <Eye size={16} className="mr-2" />
           미리보기
         </Button>
 
@@ -397,11 +396,9 @@ export default function PostModifyComponent() {
         {/* 데스크톱 전용 액션 — xl 미만에서는 하단 sticky 바가 대신한다 */}
         <div className="hidden gap-3 xl:grid xl:grid-cols-3">
           <Button size="lg" variant="outline-gray" onClick={onTempSave}>
-            <Save size={16} className="mr-1" />
             임시저장
           </Button>
           <Button variant="primary" size="lg" onClick={onPublish}>
-            <Send size={16} className="mr-1" />
             발행
           </Button>
           <Button size="lg" variant="outline-red" onClick={onCancel}>
@@ -426,11 +423,9 @@ export default function PostModifyComponent() {
         )}
         <div className="grid grid-cols-3 gap-2">
           <Button variant="outline-gray" onClick={onTempSave}>
-            <Save size={16} className="mr-1" />
             임시저장
           </Button>
           <Button variant="primary" onClick={onPublish}>
-            <Send size={16} className="mr-1" />
             발행
           </Button>
           <Button variant="outline-red" onClick={onCancel}>

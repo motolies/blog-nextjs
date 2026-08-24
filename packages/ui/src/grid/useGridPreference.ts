@@ -3,16 +3,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { warnOnce } from '../lib/warnOnce';
 import type { GridPreference } from './columns';
+import {
+  emptyPreference,
+  parsePreference,
+  resetColumnPreference,
+  withPageSize,
+} from './gridPreference';
 import type { ColumnWidths } from './useColumnLayout';
 
 /**
- * 그리드 표시 설정(폭·숨김·순서)의 브라우저 영속.
+ * 그리드 표시 설정(폭·숨김·순서·페이지 크기)의 브라우저 영속.
  *
  * `ui` 는 사전도 라우터도 모르지만 `localStorage` 는 웹 표준이라 여기 둔다.
  * **다만 키는 앱이 만든다** — 어떤 사용자·어떤 메뉴인지는 이 패키지가 알 수 없다.
+ *
+ * 문자열 ↔ 설정 변환과 "이전 값에서 다음 값" 규칙은 `gridPreference.ts`(순수)에 있다 —
+ * 이 훅은 저장소 I/O·디바운스·키 전환만 맡는다(vitest 가 node 라 훅은 테스트할 수 없다).
  */
 
-const PREFERENCE_VERSION = 1;
 const KEY_PREFIX = 'nx:grid';
 
 /**
@@ -63,8 +71,12 @@ export function useGridPreference(scope: GridPreferenceScope): {
    * `undefined` 가 되면 그리드가 uncontrolled 로 전환되어 폭의 진실이 두 곳으로 갈린다.
    */
   readonly widths: ColumnWidths;
+  /** 저장된 페이지 크기. **없으면 undefined** — 기본값과 허용 목록은 앱이 정한다(`ui` 는 계약을 모른다). */
+  readonly pageSize: number | undefined;
   readonly setWidths: (widths: ColumnWidths) => void;
   readonly setPreference: (next: Pick<GridPreference, 'hidden' | 'order'>) => void;
+  readonly setPageSize: (next: number) => void;
+  /** 컬럼 설정(폭·숨김·순서)만 지운다 — 페이지 크기는 남는다(`resetColumnPreference` 참조). */
   readonly reset: () => void;
 } {
   const key = gridStorageKey(scope);
@@ -136,80 +148,51 @@ export function useGridPreference(scope: GridPreferenceScope): {
     [preference, write],
   );
 
+  const setPageSize = useCallback(
+    // 클릭 한 번이지만 같은 write(디바운스+flush)를 탄다 — 저장 경로가 둘이면 flush·reset 이 갈린다.
+    (next: number) => write(withPageSize(preference, next)),
+    [preference, write],
+  );
+
   const reset = useCallback(() => {
     // 미뤄 둔 쓰기를 버린다 — 안 버리면 지운 직후 옛 값이 되살아난다.
     if (timer.current !== null) clearTimeout(timer.current);
     timer.current = null;
     pending.current = null;
 
-    setStored(null);
+    // 컬럼만 지우고 페이지 크기는 남긴다(resetColumnPreference). 한 번 누르는 조작이라 즉시 쓴다.
+    const next = resetColumnPreference(preference);
+    setStored(next);
     try {
-      localStorage.removeItem(key);
+      if (next === null) localStorage.removeItem(key);
+      else localStorage.setItem(key, JSON.stringify(next));
     } catch {
       // 위와 같다.
     }
-  }, [key]);
+  }, [key, preference]);
 
   return useMemo(
     () => ({
       preference,
       widths: preference?.widths ?? EMPTY_WIDTHS,
+      pageSize: preference?.pageSize,
       setWidths,
       setPreference,
+      setPageSize,
       reset,
     }),
-    [preference, setWidths, setPreference, reset],
+    [preference, setWidths, setPreference, setPageSize, reset],
   );
 }
 
-function emptyPreference(): GridPreference {
-  return { version: PREFERENCE_VERSION, widths: {}, hidden: [], order: [] };
-}
-
 /**
- * 저장된 값을 읽어 검증한다. **조금이라도 어긋나면 폐기하고 기본값으로 간다.**
- *
- * 저장소는 사용자가 손댈 수 있는 곳이고, `version` 이 다르면 컬럼 스키마가 이미 바뀐 뒤다 —
- * 그 상태로 순서·숨김을 적용하면 "없는 컬럼만 남은 표"가 된다.
+ * 저장소에서 읽어 검증한다. 검증 규칙은 `parsePreference`(순수) — 여기서는 `localStorage`
+ * 접근 자체가 던지는 경우(프라이빗 모드·차단된 저장소)만 받아 null 로 만든다.
  */
 function readPreference(key: string): GridPreference | null {
-  let raw: string | null = null;
   try {
-    raw = localStorage.getItem(key);
+    return parsePreference(localStorage.getItem(key));
   } catch {
     return null;
   }
-  if (!raw) return null;
-
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed !== 'object' || parsed === null) return null;
-
-    const candidate = parsed as Record<string, unknown>;
-    if (candidate.version !== PREFERENCE_VERSION) return null;
-
-    return {
-      version: PREFERENCE_VERSION,
-      widths: toWidths(candidate.widths),
-      hidden: toStringList(candidate.hidden),
-      order: toStringList(candidate.order),
-    };
-  } catch {
-    return null;
-  }
-}
-
-/** 폭은 양수만 받는다 — 0 이나 음수가 섞이면 컬럼이 사라진 표가 된다. */
-function toWidths(value: unknown): ColumnWidths {
-  if (typeof value !== 'object' || value === null) return {};
-  const result: Record<string, number> = {};
-  for (const [id, width] of Object.entries(value)) {
-    if (typeof width === 'number' && Number.isFinite(width) && width > 0) result[id] = width;
-  }
-  return result;
-}
-
-function toStringList(value: unknown): readonly string[] {
-  if (!Array.isArray(value)) return [];
-  return value.filter((item): item is string => typeof item === 'string');
 }

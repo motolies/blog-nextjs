@@ -13,7 +13,7 @@ import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { COLUMN_SETTINGS_LABELS, GRID_EMPTY } from '@/components/common/grid/gridLabels';
 import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
-import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
+import { useGridSettings } from '@/components/common/grid/useGridSettings';
 import { useClientGrid } from '@/hooks/useClientGrid';
 import service from '@/service';
 
@@ -83,9 +83,10 @@ export default function CategoryManagementPanel() {
     [],
   );
 
-  const grid = useClientGrid<MemoCategory>(categories, { paginate: false });
   // memo 탭 그리드와 같은 경로(/admin/memo)를 공유하므로 gridId 로 저장 키를 가른다.
-  const settings = useColumnSettings(columns, 'memoCategories');
+  // settings.paging 은 쓰지 않는다 — 페이징 없는 집계표라 페이지 크기가 없다.
+  const settings = useGridSettings(columns, 'memoCategories');
+  const grid = useClientGrid<MemoCategory>(categories, { paginate: false });
 
   const handleAdd = () => {
     setEditingCategory(null);
@@ -157,6 +158,7 @@ export default function CategoryManagementPanel() {
         </Button>
       </div>
 
+      {/* 페이징 없이 전 행을 한눈에 — 스크롤은 탭 패널(admin-fill)이 맡는다. 기본 560 이면 10행에서 잘린다 */}
       <PersistedDataGrid<MemoCategory>
         settings={settings}
         rows={grid.rows}
@@ -164,6 +166,7 @@ export default function CategoryManagementPanel() {
         empty={GRID_EMPTY}
         sortOf={grid.sortOf}
         onToggleSort={grid.toggleSort}
+        maxHeight="auto"
       />
 
       <ContentDialog

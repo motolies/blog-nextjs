@@ -13,7 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
 import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
 import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
-import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
+import { useGridSettings } from '@/components/common/grid/useGridSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useClientGrid } from '@/hooks/useClientGrid';
 import service from '@/service';
@@ -130,11 +130,12 @@ export default function HotDealSitesPage() {
     [],
   );
 
-  const grid = useClientGrid<Record<string, unknown>>(sites, { pageSize: 20 });
-  const settings = useColumnSettings(columns, 'hotDealSites');
+  // settings 가 grid 보다 먼저다 — 저장된 페이지 크기(paging)를 grid 에 넘겨야 한다.
+  const settings = useGridSettings(columns, 'hotDealSites');
+  const grid = useClientGrid<Record<string, unknown>>(sites, { paging: settings.paging });
 
   return (
-    <AdminPageFrame>
+    <AdminPageFrame className="admin-page-frame--fixed">
       {/* 상단 액션 바 */}
       <div className="admin-panel admin-panel-pad mb-2">
         <div className="flex flex-wrap items-center gap-3">
@@ -162,6 +163,7 @@ export default function HotDealSitesPage() {
           sortOf={grid.sortOf}
           onToggleSort={grid.toggleSort}
           attachedToolbar
+          maxHeight="fill"
         />
         <GridPagingBar
           pageIndex={grid.pageIndex}

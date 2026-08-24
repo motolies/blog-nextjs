@@ -217,6 +217,8 @@ export {
   type RowStatus,
   type SaveRequestData,
 } from './grid/gridEditing';
+/** `DataGrid.maxHeight` 의 네 모양. resolver 는 내부 구현이라 내보내지 않는다. */
+export type { GridMaxHeight } from './grid/gridHeight';
 export { TreeGrid } from './grid/TreeGrid';
 export { type ColumnWidths, useColumnLayout } from './grid/useColumnLayout';
 export { type GridEditingApi, useGridEditing } from './grid/useGridEditing';

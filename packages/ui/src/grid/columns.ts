@@ -178,6 +178,13 @@ export type GridPreference = {
   readonly hidden: readonly string[];
   /** 사용자가 정한 컬럼 순서(id 목록). 여기에 없는 컬럼은 원래 순서로 뒤에 붙는다. */
   readonly order: readonly string[];
+  /**
+   * 페이지당 건수. 컬럼 설정과 **같은 저장 항목**에 두는 이유: 키 3축(사용자·메뉴·그리드)이
+   * 정확히 같은 스코프라, 따로 키를 파면 같은 축을 두 번 관리하게 된다.
+   * 선택 항목이고 `version` 을 올리지 않는다 — 없으면 "앱 기본값"이라는 뜻이며,
+   * 이미 저장된 컬럼 설정을 폐기할 이유가 없다. 허용 목록은 앱이 안다(`ui` 는 계약을 모른다).
+   */
+  readonly pageSize?: number;
 };
 
 /**

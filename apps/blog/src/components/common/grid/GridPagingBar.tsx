@@ -8,7 +8,8 @@ import {
 } from '@hvy/ui';
 import { Columns3 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { COLUMN_SETTINGS_LABELS, PAGE_SIZE_OPTIONS, PAGER_LABELS } from './gridLabels';
+import { PAGE_SIZE_OPTIONS } from '@/lib/gridPaging';
+import { COLUMN_SETTINGS_LABELS, PAGER_LABELS } from './gridLabels';
 
 /**
  * 그리드 하단 페이징 바 — GridToolbar+Pager+TotalCount+PageSizeSelect 를
@@ -37,14 +38,16 @@ export function GridPagingBar({
   onPageSizeChange: (next: number) => void;
   /** 화면 액션 슬롯 — 행 추가·저장 등. 표시 컨트롤(컬럼 설정)은 여기가 아니다. */
   actions?: ReactNode;
-  /** 컬럼 설정 열기 — useColumnSettings 의 openSettings 를 넘기면 표시 컨트롤에 아이콘이 뜬다. */
+  /** 컬럼 설정 열기 — useGridSettings 의 openSettings 를 넘기면 표시 컨트롤에 아이콘이 뜬다. */
   onColumnSettings?: () => void;
   selection?: GridToolbarSelection;
 }) {
   return (
-    // 좁은 화면에서 총건수·페이저·페이지크기·액션이 넘치지 않도록 줄바꿈 허용
+    // 좁은 화면에서 총건수·페이저·페이지크기·액션이 넘치지 않도록 줄바꿈 허용.
+    // shrink-0: 표 셸(.admin-table-shell)이 column flex 라 그리드가 남은 높이를 먹을 때
+    // 페이징 바까지 눌리지 않게 — fill 밖에서는 무해하다.
     <GridToolbar
-      className="flex-wrap"
+      className="shrink-0 flex-wrap"
       paging={
         <>
           <TotalCount

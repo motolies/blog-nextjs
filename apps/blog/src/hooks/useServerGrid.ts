@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { DEFAULT_PAGE_SIZE, type GridPagingControl } from '@/lib/gridPaging';
 import {
   type OrderBy,
   type PageResponse,
@@ -18,7 +19,12 @@ export interface UseServerGridOptions<T> {
   fetchData: (params: SearchRequest) => Promise<PageResponse<T>>;
   searchFields?: SearchField[];
   defaultSearchParams?: Record<string, unknown>;
-  defaultPageSize?: number;
+  /**
+   * 페이지 크기 controlled 배선 — `useGridSettings().paging` 을 그대로 넘긴다(저장소가 진실).
+   * 생략하면 훅 내부 상태(DEFAULT_PAGE_SIZE)로 동작한다 — 영속이 필요 없는 임시 그리드용.
+   * (`defaultPageSize` 옵션은 제거 — 화면마다 다른 기본값이 페이지 크기 통일을 깨뜨렸다.)
+   */
+  paging?: GridPagingControl;
 }
 
 const EMPTY_FIELDS: SearchField[] = [];
@@ -28,14 +34,17 @@ export function useServerGrid<T>({
   fetchData,
   searchFields = EMPTY_FIELDS,
   defaultSearchParams = EMPTY_PARAMS,
-  defaultPageSize = 10,
+  paging,
 }: UseServerGridOptions<T>) {
   const [rows, setRows] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [sort, setSort] = useState<{ column: string; desc: boolean } | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSizeState] = useState(defaultPageSize);
+  // controlled(paging) 면 저장소 값, 아니면 훅 내부 상태 — 둘 중 하나만 진실이다.
+  const [ownPageSize, setOwnPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
+  const pageSize = paging?.pageSize ?? ownPageSize;
+  const onPageSizeChange = paging?.onPageSizeChange;
   const [searchParams, setSearchParams] = useState<Record<string, unknown>>(defaultSearchParams);
   const [searchInputs, setSearchInputs] = useState<Record<string, unknown>>(defaultSearchParams);
   const [searchTrigger, setSearchTrigger] = useState(0);
@@ -74,13 +83,22 @@ export function useServerGrid<T>({
      * 이 값을 별도 effect 에서 `requestRef` 만 올리는 형태로 두면 더 나빠진다:
      * 진행 중이던 응답이 레이스 가드에 걸려 버려지면서 `setLoading(false)` 까지
      * 건너뛰어 **스피너가 영원히 돈다**.
+     *
+     * deps 는 숫자 `pageSize` 만 본다 — `paging` 객체를 넣으면 useGridPreference 의
+     * setPageSize 참조가 preference 마다 바뀌어 폭 드래그마다 재조회가 생긴다.
      */
   }, [fetchData, pageIndex, pageSize, searchFields, searchParams, sort, searchTrigger]);
 
-  const setPageSize = useCallback((next: number) => {
-    setPageSizeState(next);
-    setPageIndex(0);
-  }, []);
+  const setPageSize = useCallback(
+    (next: number) => {
+      // 사용자가 바꾼 경로에서만 1페이지로 — 저장소 로드로 pageSize 가 바뀌는 경로는
+      // 이 함수를 타지 않는다(그때는 어차피 0).
+      if (onPageSizeChange) onPageSizeChange(next);
+      else setOwnPageSize(next);
+      setPageIndex(0);
+    },
+    [onPageSizeChange],
+  );
 
   const sortOf = useCallback(
     (columnId: string) => (sort?.column === columnId ? (sort.desc ? 'desc' : 'asc') : null),

@@ -85,10 +85,13 @@ export function ColumnSettingsDialog<T extends Record<string, unknown>>({
   useEffect(() => {
     if (!open) return;
     const hidden = new Set<string>(preference?.hidden ?? []);
+    // applyColumnPreference 와 같은 규칙 — 저장 당시 없던 컬럼(order 에 없음)은 정의의 hidden 을 따른다.
+    // 컬럼 초기화 후(order 비어 있고 pageSize 만 남은 상태)에도 표와 목록이 같은 것을 보여준다.
+    const known = new Set<string>(preference?.order ?? []);
     setDraft(
       orderColumns(columns, preference?.order ?? []).map((column) => ({
         id: column.id,
-        visible: preference ? !hidden.has(column.id) : column.hidden !== true,
+        visible: known.has(column.id) ? !hidden.has(column.id) : column.hidden !== true,
         pinned: column.pinned === true,
       })),
     );

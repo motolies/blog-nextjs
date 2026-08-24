@@ -265,7 +265,7 @@ export default function DynamicSearchFields({
   // 기존 방식 (enableDynamic=false)
   if (!enableDynamic) {
     return (
-      <div className="rounded-lg border bg-dl-surface p-3 mb-3">
+      <div className="shrink-0 rounded-lg border bg-dl-surface p-3 mb-3">
         <div className="flex flex-wrap items-end gap-2">
           {searchFields.map((field) =>
             renderField(field, searchInputs, onInputChange, handleKeyDown),
@@ -326,7 +326,7 @@ export default function DynamicSearchFields({
   };
 
   return (
-    <div className="rounded-lg border bg-dl-surface p-3 mb-3">
+    <div className="shrink-0 rounded-lg border bg-dl-surface p-3 mb-3">
       {/* Row 1: Pinned 필드 + 검색/초기화 버튼 */}
       <div className="flex flex-wrap items-end gap-2">
         {pinnedFields.map((field) =>

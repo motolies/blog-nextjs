@@ -5,7 +5,7 @@ import DynamicSearchFields from '@/components/common/DynamicSearchFields';
 import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
 import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
 import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
-import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
+import { useGridSettings } from '@/components/common/grid/useGridSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useServerGrid } from '@/hooks/useServerGrid';
 import type { SearchField, SearchRequest } from '@/lib/gridSearch';
@@ -73,13 +73,6 @@ export default function SystemLog() {
     [today],
   );
 
-  const grid = useServerGrid<Record<string, unknown>>({
-    fetchData: fetchSystemLogs,
-    searchFields,
-    defaultSearchParams,
-    defaultPageSize: 25,
-  });
-
   // 컬럼 정의 — 상세 클릭 컬럼이 handleDetailClick 클로저를 쓰므로 컴포넌트 안 useMemo 로 유지
   const columns = useMemo(() => {
     const detailColumn = (id: string, headerWord: string, width: number, grow?: number) => ({
@@ -146,10 +139,17 @@ export default function SystemLog() {
     ]);
   }, [handleDetailClick, truncateText]);
 
-  const settings = useColumnSettings(columns, 'systemLogs');
+  // settings 가 grid 보다 먼저다 — 저장된 페이지 크기(paging)를 grid 에 넘겨야 한다.
+  const settings = useGridSettings(columns, 'systemLogs');
+  const grid = useServerGrid<Record<string, unknown>>({
+    fetchData: fetchSystemLogs,
+    searchFields,
+    defaultSearchParams,
+    paging: settings.paging,
+  });
 
   return (
-    <AdminPageFrame>
+    <AdminPageFrame className="admin-page-frame--fixed">
       <div className="admin-panel admin-table-shell">
         <DynamicSearchFields
           searchFields={searchFields as Parameters<typeof DynamicSearchFields>[0]['searchFields']}
@@ -166,6 +166,7 @@ export default function SystemLog() {
           sortOf={grid.sortOf}
           onToggleSort={grid.toggleSort}
           attachedToolbar
+          maxHeight="fill"
         />
         <GridPagingBar
           pageIndex={grid.pageIndex}

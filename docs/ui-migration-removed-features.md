@@ -102,7 +102,7 @@
 - **`post/PostPreviewDialog.tsx`**: 래퍼가 아니라 sanitize 로직을 가진 앱 조합물(Composite).
 - **`common/DynamicSearchFields.tsx`**: 앱 소유 검색 폼 Composite — @hvy/ui DateRangePicker 직결,
   Enter 검색 내재화, shadcn 센티널 리네임(`__SELECT_EMPTY__`) 등 정비 후 유지.
-- **새 grid 헬퍼들**(`gridSearch`/`useServerGrid`/`useClientGrid`/`GridPagingBar`/`useColumnSettings`):
+- **새 grid 헬퍼들**(`gridSearch`/`useServerGrid`/`useClientGrid`/`GridPagingBar`/`useGridSettings`):
   packages/ui README 의 Primitive/Composite 원칙상 "데이터 계층 배선"은 앱 소유가 맞다 —
   어댑터가 아니라 @hvy/ui 타입을 직접 노출하는 앱 컴포지트다.
 

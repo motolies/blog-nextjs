@@ -3,6 +3,12 @@ import { DataGridEditingDemo } from '../../client/ui-test/docs/demos/data-grid/e
 import { DataGridEmptyStatesDemo } from '../../client/ui-test/docs/demos/data-grid/empty-states';
 import { DataGridFooterDemo } from '../../client/ui-test/docs/demos/data-grid/footer';
 import { DataGridFullDemo } from '../../client/ui-test/docs/demos/data-grid/full';
+import { DataGridHeightAutoPxDemo } from '../../client/ui-test/docs/demos/data-grid/height-auto-px';
+import { DataGridHeightFillDemo } from '../../client/ui-test/docs/demos/data-grid/height-fill';
+import { DataGridHeightFillChainDemo } from '../../client/ui-test/docs/demos/data-grid/height-fill-chain';
+import { DataGridHeightRowsDemo } from '../../client/ui-test/docs/demos/data-grid/height-rows';
+import { DataGridPageSizeFallbackDemo } from '../../client/ui-test/docs/demos/data-grid/page-size-fallback';
+import { DataGridPageSizePreferenceDemo } from '../../client/ui-test/docs/demos/data-grid/page-size-preference';
 import { DataGridSelectionToolbarDemo } from '../../client/ui-test/docs/demos/data-grid/selection-toolbar';
 import type { DocEntry } from './types';
 
@@ -21,13 +27,13 @@ export const dataGridDoc: DocEntry = {
   category: 'components',
   title: 'DataGrid',
   description:
-    '가상 스크롤 데이터 그리드와 그 부속(GridToolbar · Pager · PageSizeSelect · TotalCount · ColumnSettingsDialog · useGridPreference · useGridSelection). 그리드는 표시만 맡고, 정렬·페이징의 진실 소스는 호출부(실전에서는 URL)다. 고정열은 sticky 인데 가상 스크롤 행을 translateY 가 아니라 top 으로 배치하는 이유가 이 sticky 때문이다(조상 transform 이 containing block 을 만든다). 밀도는 축이 둘이다 — 테마(--dl-scale-* 5키)가 전체를 옮기고 density prop 이 그 안에서 단계를 고른다. 둘은 곱해진다.',
+    '가상 스크롤 데이터 그리드와 그 부속(GridToolbar · Pager · PageSizeSelect · TotalCount · ColumnSettingsDialog · useGridPreference · useGridSelection). 그리드는 표시만 맡고, 정렬·페이징의 진실 소스는 호출부(실전에서는 URL)다. 고정열은 sticky 인데 가상 스크롤 행을 translateY 가 아니라 top 으로 배치하는 이유가 이 sticky 때문이다(조상 transform 이 containing block 을 만든다). 밀도는 축이 둘이다 — 테마(--dl-scale-* 5키)가 전체를 옮기고 density prop 이 그 안에서 단계를 고른다. 둘은 곱해진다. 높이는 네 모양(px · auto · fill · rows)이다 — fill 은 부모 flex 사슬(column flex + min-height:0)이 조건이고, 사슬이 끊기면 에러 없이 auto 로 퇴화한다.',
   usage: USAGE,
   examples: [
     {
       id: 'full',
       title: '메인 화면 재현 — 정렬 · 선택 · 페이징 · 컬럼 설정',
-      note: '컬럼 설정(폭·숨김·순서)은 localStorage 에 저장된다 — 바꾼 뒤 새로고침해서 유지되는지 확인해 볼 것. 결과가 교체되면(정렬·페이징) 선택이 비워지는 resetKey 배선도 핵심이다. 주문번호 클릭·행 액션은 토스트로 배선했다.',
+      note: '컬럼 설정(폭·숨김·순서)은 localStorage 에 저장된다 — 바꾼 뒤 새로고침해서 유지되는지 확인해 볼 것. 페이지 크기도 같은 항목에 저장된다 — 바꾸고 새로고침. 결과가 교체되면(정렬·페이징) 선택이 비워지는 resetKey 배선도 핵심이다. 주문번호 클릭·행 액션은 토스트로 배선했다.',
       file: 'src/client/ui-test/docs/demos/data-grid/full.tsx',
       Component: DataGridFullDemo,
     },
@@ -65,6 +71,48 @@ export const dataGridDoc: DocEntry = {
       note: 'idle(아직 조회 안 함) · empty(0건) · error(조회 실패) · 로딩(조회 중 — 첫 조회든 재조회든)은 서로 다른 사실이라 문구·색·다음 행동이 다르다. state 로 가르므로 앱마다 error ? … : … 삼항식을 복제할 필요가 없다. 가로로 끝까지 스크롤해도 문구가 화면 중앙에 남는 것(오버레이가 스크롤 컨테이너 밖이다)과, 행이 0인데 세로 스크롤바가 생기지 않는 것을 함께 확인한다. empty 를 아예 넘기지 않으면 기본 문구가 나온다 — 예전에는 헤더만 남은 빈 껍데기였다.',
       file: 'src/client/ui-test/docs/demos/data-grid/empty-states.tsx',
       Component: DataGridEmptyStatesDemo,
+    },
+    {
+      id: 'height-fill',
+      title: '높이 ① fill — 남은 높이를 채운다',
+      note: '점선 상자가 목록 화면의 표 패널(column flex + 확정 높이) 역할이다. "행 3개만"이면 그리드가 3행 높이로 끝나고 상자 아래가 빈다 — fill 은 grow 하지 않는다. 57건이면 상자를 채우며 내부 스크롤·헤더 sticky·툴바 고정이 유지된다. 우하단 핸들로 상자를 늘리면 행이 더 보이고, 줄이면 헤더+2행 하한에서 그리드가 멈춘다. 강제 빈 상태는 2~5행 높이이고 세로 스크롤바가 없어야 한다.',
+      file: 'src/client/ui-test/docs/demos/data-grid/height-fill.tsx',
+      Component: DataGridHeightFillDemo,
+    },
+    {
+      id: 'height-rows',
+      title: '높이 ② { rows: N } — 다중 그리드 화면의 행 단위 고정',
+      note: '행 수 3/5/8 × density 5단 × 합계행 × 상단 테마 4종 어느 조합에서도 정확히 N행이 보이고 N+1행 윗선이 비치지 않아야 한다. 오른쪽에 합계행을 켜면 그리드가 정확히 한 줄만큼 높아지되 데이터 행은 그대로 N행이다(합계행은 스크롤 영역 안 sticky 라 그만큼 더한다). 합계행을 끄면 두 그리드 높이가 같다. px 가 아니라 행 단위라 밀도·테마 토큰 실측을 따라간다.',
+      file: 'src/client/ui-test/docs/demos/data-grid/height-rows.tsx',
+      Component: DataGridHeightRowsDemo,
+    },
+    {
+      id: 'height-auto-px',
+      title: '높이 ③ auto vs px — 스크롤이 어디에 생기는가',
+      note: '57건에서 auto 는 행 수만큼 늘어 페이지 스크롤이 생기고 헤더가 뷰포트에 붙지 않는다. px(320)는 안에서 스크롤하고 헤더 sticky 가 유지된다. "행 3개만"이면 둘 다 내용 높이로 같아진다. auto 는 페이징 없는 집계표 전용이다 — 모든 행이 뷰포트 안이라 가상 스크롤이 사실상 꺼지므로 수백 행에는 쓰지 않는다.',
+      file: 'src/client/ui-test/docs/demos/data-grid/height-auto-px.tsx',
+      Component: DataGridHeightAutoPxDemo,
+    },
+    {
+      id: 'height-fill-chain',
+      title: '높이 ④ fill 이 조용히 실패하는 조건 — flex 사슬',
+      note: '(a) flex-column 부모는 채움+내부 스크롤, (b) block 부모는 내용 높이로 늘어나 상자 밖(툴바 포함)이 잘린다 — 에러 없이 조용히 어긋나는 실패다. "부모 min-height:0 제거"를 켜면 (a) 안의 중간 래퍼에서 min-h-0 만 빠지는데, flex 아이템의 자동 최소 높이가 내용 높이라 (b) 와 똑같이 넘쳐 잘린다. 앱의 .admin-table-shell 이 column flex + min-height:0 이어야 하는 이유이고, admin-page-frame--fixed 가 lg 미만에서 풀리면 같은 방식으로 auto 로 퇴화한다(그때는 의도된 페이지 스크롤).',
+      file: 'src/client/ui-test/docs/demos/data-grid/height-fill-chain.tsx',
+      Component: DataGridHeightFillChainDemo,
+    },
+    {
+      id: 'page-size-preference',
+      title: '페이지 크기 영속 — 컬럼 설정과 같은 항목, 초기화에도 남는다',
+      note: '50 을 고르면 오른쪽 패널의 JSON 에 "pageSize":50 이 나타나고(디바운스 300ms 뒤) 새로고침해도 50 이다. 컬럼을 숨긴 뒤 컬럼 설정의 "초기화"를 누르면 컬럼만 되돌고 JSON 에는 pageSize 만 남는다 — 초기화 후 다시 연 다이얼로그에서 정의상 숨김인 서비스타입이 체크 해제로 보여야 한다. 컬럼 폭을 드래그하면 widths 만 갱신되고 pageSize 는 그대로다. 저장값이 목록 밖이면 첫 옵션으로 떨어뜨리는 판단은 앱(데모)의 몫이다.',
+      file: 'src/client/ui-test/docs/demos/data-grid/page-size-preference.tsx',
+      Component: DataGridPageSizePreferenceDemo,
+    },
+    {
+      id: 'page-size-fallback',
+      title: '페이지 크기 검증 — 레거시·목록 밖·불량 값',
+      note: '버튼이 localStorage 에 원문 JSON 을 직접 쓰고 그리드 블록을 리마운트한다. 레거시(pageSize 없음)는 undefined 이고 주문번호 폭 180 이 유지된다. 25 는 ui 가 그대로 주지만 셀렉트는 10 이다(허용 목록은 앱이 안다). 0 과 문자열 "20" 은 pageSize 항목만 탈락하고 폭은 유지된다. version 2 는 전부 폐기되어 폭도 기본 140 으로 돌아간다.',
+      file: 'src/client/ui-test/docs/demos/data-grid/page-size-fallback.tsx',
+      Component: DataGridPageSizeFallbackDemo,
     },
   ],
   propsTables: [
@@ -141,6 +189,13 @@ export const dataGridDoc: DocEntry = {
           type: 'boolean',
           description: '바로 아래 GridToolbar 와 보더를 이어 붙인다.',
         },
+        {
+          name: 'maxHeight',
+          type: "number | 'auto' | 'fill' | { rows: number }",
+          defaultValue: '560',
+          description:
+            "본문 높이 규칙. number 는 스크롤 상한(px). 'auto' 는 상한 없음 — 페이징 없는 집계표 전용. 'fill' 은 flex-column 부모의 남은 높이 안에서 줄어든다(CSS 만) — 행이 적으면 내용 높이, 넘치면 내부 스크롤이며 부모 사슬이 전부 column flex + min-height:0 이어야 성립하고 아니면 'auto' 와 같다. { rows: N } 은 헤더 + N행(+합계행) 고정 — px 가 아니라 행 단위라 밀도·테마를 따라간다. 한 화면에 그리드가 둘이거나 다이얼로그 안일 때.",
+        },
       ],
     },
     {
@@ -154,8 +209,9 @@ export const dataGridDoc: DocEntry = {
         },
         {
           name: '반환',
-          type: '{ preference, widths, setWidths, setPreference, reset }',
-          description: '컬럼 표시·순서·폭의 브라우저 영속.',
+          type: '{ preference, widths, pageSize, setWidths, setPreference, setPageSize, reset }',
+          description:
+            '컬럼 표시·순서·폭·페이지 크기의 브라우저 영속(같은 저장 항목). pageSize 는 저장값 그대로(양의 정수 검증만)이고 없으면 undefined — 기본값과 허용 목록은 앱이 정한다. reset 은 컬럼만 지우고 pageSize 는 남긴다.',
         },
       ],
     },

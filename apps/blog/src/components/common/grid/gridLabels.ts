@@ -33,5 +33,3 @@ export const SELECTION_LABELS = {
 };
 
 export const GRID_EMPTY = { title: '데이터가 없습니다' };
-
-export const PAGE_SIZE_OPTIONS = [10, 20, 25, 50, 100] as const;

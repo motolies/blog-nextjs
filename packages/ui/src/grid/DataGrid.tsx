@@ -31,6 +31,7 @@ import {
   GRID_ROW_TOKEN,
 } from './gridDensity';
 import { type ActiveCell, cellKey, findNextEditableCell, type GridEditing } from './gridEditing';
+import { type GridMaxHeight, resolveEmptyBodyHeight, resolveGridMaxHeight } from './gridHeight';
 import { type ColumnWidths, useColumnLayout } from './useColumnLayout';
 import type { SelectAllState } from './useGridSelection';
 
@@ -44,6 +45,12 @@ import type { SelectAllState } from './useGridSelection';
  *    transform 은 containing block 을 만들어 그 안의 `position: sticky` 가
  *    뷰포트가 아니라 그 요소를 기준으로 동작한다 — 고정열이 가로 스크롤에 딸려간다.
  *    100~500행 규모에서 둘의 성능 차이는 측정되지 않는다.
+ *
+ * **높이 정책(`maxHeight`) 네 모양** — 정본은 `gridHeight.ts`.
+ *   `number` 는 px 상한, `'auto'` 는 상한 없음, `{ rows: N }` 은 헤더+N행(+합계행) px 로 환산,
+ *   `'fill'` 은 바깥 상자를 `flex flex-col` 로 만들어 **flex-column 부모의 남은 높이 안에서
+ *   줄어들게** 한다(CSS 만, JS 측정 없음). 스크롤 div 에 max-height 를 두지 않는 것은
+ *   `'auto'` 와 같고, 차이는 바깥 상자의 flex 수축뿐이다 — 부모 사슬이 끊기면 조용히 auto 가 된다.
  */
 
 export type GridSelection<T> = {
@@ -153,11 +160,17 @@ export type DataGridProps<T extends Record<string, unknown>> = {
   /** 아래에 툴바가 이어 붙으면 아래 모서리를 각지게 한다. */
   readonly attachedToolbar?: boolean;
   /**
-   * 본문 스크롤 상한(px). `'auto'` 면 상한을 두지 않고 행 수만큼 늘어난다 —
-   * 페이징 없이 전체를 한눈에 보는 집계표가 그렇다. 그 경우 가상 스크롤은
-   * 사실상 꺼진다(모든 행이 뷰포트 안이므로) — 수백 행짜리 목록에는 쓰지 않는다.
+   * 본문 높이 규칙.
+   * - `number`      스크롤 상한(px). 기본 560.
+   * - `'auto'`      상한 없음 — 행 수만큼. 페이징 없는 집계표용(가상 스크롤이 사실상 꺼진다 —
+   *                 모든 행이 뷰포트 안이므로. 수백 행짜리 목록에는 쓰지 않는다).
+   * - `'fill'`      flex-column 부모의 **남은 높이** 안에서 줄어든다(CSS 만, JS 측정 없음).
+   *                 행이 적으면 내용 높이, 넘치면 안에서 스크롤. 부모 사슬이 전부 min-height:0 이어야
+   *                 성립하고(apps 의 `.admin-table-shell` 참조), 제약 없는 부모 아래서는 'auto' 와 같다.
+   * - `{ rows: N }` 헤더 + N행(+합계행). 한 화면에 그리드가 둘이거나 다이얼로그 안일 때 —
+   *                 px 가 아니라 행 단위라 밀도·테마를 따라간다. 정본은 gridHeight.ts.
    */
-  readonly maxHeight?: number | 'auto';
+  readonly maxHeight?: GridMaxHeight;
   /** 컬럼 정의에 `width` 가 없을 때의 폭. 없으면 `--spacing-dl-grid-col`. */
   readonly defaultColumnWidth?: number;
   /**
@@ -311,12 +324,16 @@ export function DataGrid<T extends Record<string, unknown>>({
    * 여기서 만들어 준다 — 안에서 만들면 절대배치가 오버플로가 되어 행이 0인데
    * 세로 스크롤바가 생긴다(`GridEmptyOverlay` 헤더 주석 §2).
    * 하한 2행은 문구+힌트+액션이 눌리지 않는 최소치, 상한은 `maxHeight` 를 넘지 않게 한다.
+   * 계산 규칙은 `gridHeight.ts`(순수 — 테스트가 못 박는다).
    */
-  // maxHeight 가 'auto'(blog 확장 — 내용만큼 늘어남)면 상한 클램프를 생략한다.
-  const emptyBodyHeight = Math.max(
-    rowHeight * 2,
-    Math.min(rowHeight * 5, maxHeight === 'auto' ? rowHeight * 5 : maxHeight - headerHeight),
-  );
+  const fill = maxHeight === 'fill';
+  // 합계행은 스크롤 영역 안의 sticky 라 보이는 행 수에서 한 줄을 먹는다 — rows:N 이 N행을 실제로 보이게 하려면 더한다.
+  const resolvedMaxHeight = resolveGridMaxHeight(maxHeight, {
+    rowHeight,
+    headerHeight,
+    footerHeight: footer && !isEmpty ? rowHeight : 0,
+  });
+  const emptyBodyHeight = resolveEmptyBodyHeight(resolvedMaxHeight, { rowHeight, headerHeight });
 
   return (
     /* 그리드 크롬은 폼이 아니다 — 화면을 FormMode(view/disabled)로 감싸도
@@ -325,16 +342,23 @@ export function DataGrid<T extends Record<string, unknown>>({
       <div
         className={cn(
           'relative border border-dl-border bg-dl-surface',
+          /* 'fill' — flex 부모의 남은 높이 안에서 줄어든다. 자식(스크롤 div)은 overflow:auto 라
+             자동 최소 높이가 0 이지만 이 상자는 아니라서, min-height 를 명시하지 않으면
+             내용 높이(min-height:auto)가 수축을 막는다. 하한은 헤더+2행 — 빈 상태 오버레이의 최소치와 같다.
+             grow 는 주지 않는다(flex 0 1 auto) — 행이 적을 때는 내용 높이, 부족할 때만 줄어든다. */
+          fill && 'flex flex-col',
           attachedToolbar ? 'rounded-t-dl-container border-b-0' : 'rounded-dl-container',
           invalid && 'border-dl-error',
         )}
+        style={fill ? { minHeight: headerHeight + rowHeight * 2 } : undefined}
       >
         <div
           ref={scrollRef}
           className="overflow-auto"
           // 빈 상태에서는 높이를 확정한다 — 오버레이가 컨테이너 밖이라 자리를 만들지 않는다.
+          // fill 안에서도 그대로다 — 부모가 더 작으면 바깥 상자의 하한까지 줄어든다.
           style={{
-            ...(maxHeight === 'auto' ? null : { maxHeight }),
+            ...(resolvedMaxHeight === null ? null : { maxHeight: resolvedMaxHeight }),
             ...(isEmpty ? { height: headerHeight + emptyBodyHeight } : null),
           }}
         >

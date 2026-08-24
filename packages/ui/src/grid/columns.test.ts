@@ -42,6 +42,15 @@ describe('applyColumnPreference', () => {
     expect(ids(result)).toContain('a');
   });
 
+  it('컬럼 초기화 후 형태({ hidden: [], order: [] })는 설정 없음(null)과 같다 — 정의의 hidden 유지', () => {
+    // 컬럼 "초기화" 뒤 pageSize 만 남으면 preference 는 비-null 인데 order 가 비어 있다.
+    // order 가 비었다 = 알려진 컬럼이 없다 = 전부 정의의 hidden 을 따라야 한다.
+    const columns: readonly ColumnDef<Row>[] = [{ id: 'a' }, { id: 'b', hidden: true }];
+    expect(ids(applyColumnPreference(columns, { hidden: [], order: [] }))).toEqual(
+      ids(applyColumnPreference(columns, null)),
+    );
+  });
+
   it('저장 이후 추가된 컬럼은 컬럼 정의의 hidden 을 따른다', () => {
     // order 에 'd' 가 없다 = 설정을 저장한 뒤에 추가된 컬럼이다.
     const columns: readonly ColumnDef<Row>[] = [{ id: 'c' }, { id: 'd', hidden: true }];

@@ -18,7 +18,7 @@ deleo-one-ui 의 `@deleo/ui` 에서 분기했다 (2026-08 원본 HEAD 기준 동
 | 디렉터리 | 내용 |
 |---|---|
 | `src/components/` | 버튼·셀렉트·데이트피커·파일업로드·숫자입력·토스트 등 29종 + blog 추가 2종(Accordion·Combobox). **표는 셋으로 가른다**: 수백 행 조회·서버 페이징은 `DataGrid`, 라벨·값 쌍 상세 폼은 `FormGrid`, 열 머리가 있는 5~20행 참조 데이터만 정적 `Table` 이다. 지속 안내 배너는 `InlineNotice`(토스트=휘발·ErrorState=전면 대체와 다른 층), 행 액션·오버플로 메뉴는 `DropdownMenu`(내비게이션 금지 — 아이템이 하나뿐이면 패널을 열지 않고 트리거가 그대로 그 아이템의 버튼이 된다), 상세 폼 섹션 3중주(Card+CardHeader+FormGrid)는 `FormSection` 이 흡수한다. 기간 프리셋 산식은 `presetRange`(datePresets.ts) 가 중앙 소유한다 — 라벨은 앱이 붙인다. 모달은 Confirm/Content/Picker **3유형** — 규격이 서로 달라 아무거나 골라 쓰면 명세와 어긋난다. Confirm 창은 훅이 둘로 갈린다: 취소+확인은 `useConfirm()`, 취소 없는 단일 버튼 알림은 `useAlert()` 다. 상세 폼은 `FormGrid` + `Field`/`FieldValue` |
-| `src/grid/` | DataGrid(가상 스크롤)·TreeGrid·툴바·컬럼 설정·인라인 편집·빈 상태(GridEmptyOverlay)·밀도 5단(gridDensity). 순수 로직(`columnLayout.ts`·`gridEditing.ts`)은 React 무의존 — vitest 환경이 node(DOM 없음)라 **여기 있는 것만 단위 테스트가 가능**하다 |
+| `src/grid/` | DataGrid(가상 스크롤)·TreeGrid·툴바·컬럼 설정·인라인 편집·빈 상태(GridEmptyOverlay)·밀도 5단(gridDensity). 순수 로직(`columnLayout.ts`·`gridEditing.ts`·`gridHeight.ts`·`gridPreference.ts`)은 React 무의존 — vitest 환경이 node(DOM 없음)라 **여기 있는 것만 단위 테스트가 가능**하다 |
 | `src/worktabs/` | 작업 탭 바 — **밀집 카드 탭**(IDE 관례). 그리드 탭(`components/tabs.tsx`, 밑줄형)과는 한 화면에 함께 나올 수 있어 시각 언어를 합치지 않는다. 순수 상태 계산(`workTabsState.ts`, 테스트 있음) + 오버플로/드래그/컨텍스트 메뉴. URL·라우터는 앱이 배선한다 |
 | `src/icons/` | lucide-react 전달형 래퍼 `<Icon icon={X} size>` — 크기 토큰(size-dl-ic-*)과 a11y 규약만 강제. 문자열 레지스트리 없음(트리셰이킹 유지) |
 | `src/theme/` | 토큰 원본(`default.css`)과 테마 파일들 — 레포에서 hex가 허용되는 **유일한 예외 지점** |
@@ -70,5 +70,5 @@ deps: `radix-ui`·`class-variance-authority`·`clsx`·`tailwind-merge` / peer: `
 - **아이콘**: 자체 스프라이트 42종 대신 lucide-react 전달형(`<Icon icon={X}>`) — 앱이 이미 lucide 81종을 직접 쓴다. `Button.icon`·`IconButton.icon`·`Tab.icon`·`DropdownMenuItem.icon`·`GridEmpty.icon`·`ColumnDef.rowAction.icon` 이 전부 `LucideIcon` 타입이다. `ICON_NAMES` 레지스트리 미export.
 - **테마**: `oms.css` 미이식. 대신 `blog.css`(라이트, 파랑 브랜드)·`blog-dark.css`(One Dark 계열, 중립 램프 역전 + 채움 위 어두운 글자) 2종 추가.
 - **blog 추가 컴포넌트**: `Accordion`(조합형 4파트), `Combobox`(피커형 — onPick 콜백), Button `ghost` variant(hover 공통 규칙의 유일한 예외 — button.test.ts 에 못 박음).
-- **DataGrid 확장**: `onRowActivate`(행 클릭 보조 열기)·`rowClassName`·`maxHeight: number | 'auto'`.
+- **DataGrid 확장**: `onRowActivate`(행 클릭 보조 열기)·`rowClassName`·`maxHeight: number | 'auto' | 'fill' | { rows }`(`'fill'` 은 flex-column 부모의 남은 높이 안에서 줄어드는 CSS-only 모드, `{ rows: N }` 은 헤더+N행 고정 — 정본은 `gridHeight.ts`). `GridPreference.pageSize`(선택, `version` 불변)로 페이지 크기도 컬럼 설정과 같은 항목에 저장하며 `useGridPreference.reset` 은 컬럼만 지우고 pageSize 는 남긴다.
 - **미이식**: 원본의 `verify:boundaries`·GritQL raw 폼 요소 금지 규칙(앱 코드가 아직 raw 요소를 씀), `useWorkTabsPreference`(원본에서도 index 미export).

@@ -29,9 +29,19 @@ import { BoolControl } from '../../../playground';
  * 실전과 다른 점 하나: 정렬·페이징이 서버(useServerGrid + URL)가 아니라 **클라이언트
  * useMemo 파생**이다. 여기서 확인하는 것은 그리드 자체의 배선(정렬 토글 · 선택 초기화 ·
  * 컬럼 설정 저장 · 툴바 조합)이지 데이터 계층이 아니다.
+ *
+ * 페이지 크기는 실제 화면과 같은 계약으로 **컬럼 설정과 같은 저장 항목**에 영속된다 —
+ * 로컬 state 가 아니라 `useGridPreference().pageSize` 가 진실이고, 허용 목록 밖이면 첫 옵션이다.
  */
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100] as const;
+
+/** 저장값 → 페이지 크기. 목록 밖이면 첫 옵션 — ui 는 목록을 모르므로 이 판단은 호출부의 몫이다. */
+function resolvePageSize(saved: number | undefined): number {
+  return saved !== undefined && (PAGE_SIZE_OPTIONS as readonly number[]).includes(saved)
+    ? saved
+    : PAGE_SIZE_OPTIONS[0];
+}
 
 const PAGER_LABELS: PagerLabels = {
   first: '첫 페이지',
@@ -104,10 +114,21 @@ type SortState = { readonly columnId: string; readonly direction: 'asc' | 'desc'
 export function DataGridFullDemo() {
   const [sort, setSort] = useState<SortState>(null);
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
   const [forceEmpty, setForceEmpty] = useState(false);
   const [forceFetching, setForceFetching] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  /**
+   * 컬럼 폭·표시·순서·페이지 크기의 브라우저 영속. menuUrl 은 인가가 아니라 localStorage 키
+   * 스코프다 — 실제 메뉴 코드가 없는 화면이라 URL 리터럴을 그대로 쓴다.
+   */
+  const preference = useGridPreference({
+    userKey: 'ui-test',
+    menuUrl: '/',
+    gridId: 'demoOrders',
+  });
+  /** 페이지 크기의 진실은 저장소다 — 로컬 state 를 두지 않는다. */
+  const pageSize = resolvePageSize(preference.pageSize);
 
   /** asc → desc → 해제 순환. 정렬이 바뀌면 첫 페이지로 — 지금 보던 페이지 번호가 무의미해진다. */
   const toggleSort = (columnId: string) => {
@@ -144,16 +165,6 @@ export function DataGridFullDemo() {
     rows,
     getRowId: (row) => row.orderId,
     resetKey,
-  });
-
-  /**
-   * 컬럼 폭·표시·순서의 브라우저 영속. menuUrl 은 인가가 아니라 localStorage 키 스코프다 —
-   * 실제 메뉴 코드가 없는 화면이라 URL 리터럴을 그대로 쓴다.
-   */
-  const preference = useGridPreference({
-    userKey: 'ui-test',
-    menuUrl: '/',
-    gridId: 'demoOrders',
   });
 
   const columns = useMemo(
@@ -216,7 +227,8 @@ export function DataGridFullDemo() {
             <PageSizeSelect
               value={pageSize}
               onChange={(next) => {
-                setPageSize(next);
+                // 저장소에 쓰고(디바운스) 1페이지로 — 보던 페이지 번호가 무의미해진다.
+                preference.setPageSize(next);
                 setPageIndex(0);
               }}
               options={PAGE_SIZE_OPTIONS}

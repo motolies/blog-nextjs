@@ -521,8 +521,16 @@ body[data-admin-ui="admin"]::before {
   padding: 1.1rem;
 }
 
+/* 목록 화면의 표 패널 — DataGrid maxHeight='fill' 의 짝이다.
+   flex 컬럼이어야 그리드가 남은 높이를 받고, min-height:0 이 없으면 flex 아이템의
+   자동 최소 높이(=내용 높이)가 수축을 막아 패널이 프레임 밖으로 넘친다(overflow:hidden 에 잘림).
+   flex-grow 는 주지 않는다 — 행이 적을 때 패널이 화면 끝까지 늘어나면 안 되고, 넘칠 때만 줄어들면 된다.
+   높이 제약이 없는 곳(lg 미만, 프레임 비고정)에서는 block 과 같게 동작한다. */
 .admin-table-shell {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  min-height: 0;
   padding: 1rem;
 }
 

@@ -14,7 +14,7 @@ import DynamicSearchFields from '@/components/common/DynamicSearchFields';
 import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
 import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
 import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
-import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
+import { useGridSettings } from '@/components/common/grid/useGridSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import CategoryManagementPanel from '@/components/memo/CategoryManagementPanel';
 import MemoDialog from '@/components/memo/MemoDialog';
@@ -143,13 +143,13 @@ export default function MemoPage() {
     [refreshKey],
   );
 
+  // settings 가 grid 보다 먼저다 — 저장된 페이지 크기(paging)를 grid 에 넘겨야 한다.
+  const settings = useGridSettings(columns, 'memos');
   const grid = useServerGrid<Record<string, unknown>>({
     fetchData: fetchMemos,
     searchFields,
-    defaultPageSize: 10,
+    paging: settings.paging,
   });
-
-  const settings = useColumnSettings(columns, 'memos');
 
   const handleEdit = (row: any) => {
     setEditingMemoId(row.id);
@@ -178,6 +178,7 @@ export default function MemoPage() {
 
   return (
     <AdminPageFrame
+      className="admin-page-frame--fixed"
       actions={
         <Button variant="primary" onClick={() => setMemoDialogOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />
@@ -185,13 +186,14 @@ export default function MemoPage() {
         </Button>
       }
     >
-      <Tabs defaultValue="memos" className="mb-2">
+      {/* 고정 프레임 안에서 탭 본문이 남은 높이를 받도록 flex 사슬을 잇는다 — Tabs root 와 TabPanel 둘 다 min-h-0 이 필요하다 */}
+      <Tabs defaultValue="memos" className="flex min-h-0 flex-col">
         {/* 시각은 @hvy/ui Tabs 기본(밑줄형)을 그대로 쓴다 — 알약형은 WorkTabs 의 언어다. */}
-        <TabList label="메모 관리 탭">
+        <TabList label="메모 관리 탭" className="shrink-0">
           <Tab value="memos">메모 목록</Tab>
           <Tab value="categories">카테고리 관리</Tab>
         </TabList>
-        <TabPanel value="memos">
+        <TabPanel value="memos" className="flex min-h-0 flex-col pt-2">
           <div className="admin-panel admin-table-shell">
             <DynamicSearchFields
               searchFields={
@@ -210,6 +212,7 @@ export default function MemoPage() {
               sortOf={grid.sortOf}
               onToggleSort={grid.toggleSort}
               attachedToolbar
+              maxHeight="fill"
             />
             <GridPagingBar
               pageIndex={grid.pageIndex}
@@ -222,7 +225,8 @@ export default function MemoPage() {
             />
           </div>
         </TabPanel>
-        <TabPanel value="categories">
+        {/* 집계표는 'auto'(전 행)라 길어질 수 있다 — 탭 패널 자체가 스크롤한다(admin-fill). 프레임이 overflow:hidden 이라 이게 없으면 잘린다 */}
+        <TabPanel value="categories" className="admin-fill pt-2">
           <div className="admin-panel admin-panel-pad">
             <CategoryManagementPanel />
           </div>

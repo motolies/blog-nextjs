@@ -12,6 +12,7 @@ import TreeSearchBar from '@/components/common/tree/TreeSearchBar';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useCategoryTree, useInvalidateCategories } from '@/hooks/useCategories';
 import { useTreeSearch } from '@/hooks/useTreeSearch';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import { isSameEntityId } from '@/lib/combobox';
 import service from '@/service';
 
@@ -99,8 +100,8 @@ export default function CategoriesPage() {
         setSelectedNodeId(null);
       }
       refresh();
-    } catch {
-      showToast('카테고리 삭제에 실패하였습니다.', 'error');
+    } catch (error) {
+      showApiErrorToast('카테고리 삭제에 실패하였습니다.', error);
     }
   };
 
@@ -145,12 +146,12 @@ export default function CategoriesPage() {
 
       setOpenDialog(false);
       refresh();
-    } catch {
-      showToast(
+    } catch (error) {
+      showApiErrorToast(
         dialogMode === 'edit'
           ? '카테고리 수정에 실패하였습니다.'
           : '카테고리 저장에 실패하였습니다.',
-        'error',
+        error,
       );
     }
   };

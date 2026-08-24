@@ -13,8 +13,8 @@ const ALL_ZERO_SPAN_ID = '0'.repeat(16);
 /**
  * sentry-trace → W3C traceparent.
  *
- * flags 는 항상 '01'(sampled) 고정 — 백엔드 Brave 는 인바운드 sampled 플래그를 로컬 샘플링
- * 확률(prod 1.0)보다 우선하므로 '00' 을 보내면 prod Zipkin 스팬이 유실된다. 또한 TwP 모드의
+ * flags 는 항상 '01'(sampled) 고정 — 백엔드(Micrometer OTel 의 ParentBased 샘플러)는 인바운드 sampled
+ * 플래그를 로컬 샘플링 확률(prod 1.0)보다 우선하므로 '00' 을 보내면 prod Zipkin 스팬이 유실된다. 또한 TwP 모드의
  * sentry-trace 는 sampled 자리가 비어 있을 수(deferred) 있어 변환 시 강제로 채운다.
  */
 export function sentryTraceToTraceparent(sentryTrace: string | undefined): string | undefined {
@@ -48,4 +48,10 @@ function isValidIds(traceId: string | undefined, spanId: string | undefined): bo
     traceId !== ALL_ZERO_TRACE_ID &&
     spanId !== ALL_ZERO_SPAN_ID
   );
+}
+
+/** traceparent 에서 32hex traceId 만 꺼낸다 — 토스트/로그 노출용. 형식이 어긋나면 undefined. */
+export function traceIdFromTraceparent(traceparent: unknown): string | undefined {
+  const sentryTrace = traceparentToSentryTrace(traceparent);
+  return sentryTrace?.split('-')[0];
 }

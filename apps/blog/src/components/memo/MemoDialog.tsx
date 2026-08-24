@@ -1,6 +1,7 @@
 import { Button, ContentDialog, Label, Select, showToast, Textarea } from '@hvy/ui';
 import type React from 'react';
 import { useEffect, useState } from 'react';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import service from '@/service';
 
 interface MemoCategory {
@@ -61,7 +62,7 @@ export default function MemoDialog({ open, onClose, memoId = null, onSaved }: Me
         setCategoryId(null);
       }
     } catch (error) {
-      showToast('메모를 불러오는데 실패했습니다.', 'error');
+      showApiErrorToast('메모를 불러오는데 실패했습니다.', error);
     }
   };
 
@@ -84,7 +85,7 @@ export default function MemoDialog({ open, onClose, memoId = null, onSaved }: Me
       onSaved?.();
       onClose();
     } catch (error) {
-      showToast('메모 저장에 실패했습니다.', 'error');
+      showApiErrorToast('메모 저장에 실패했습니다.', error);
     } finally {
       setLoading(false);
     }

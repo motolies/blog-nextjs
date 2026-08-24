@@ -18,6 +18,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useCodeHighlight } from '@/hooks/useCodeHighlight';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import { searchObjectInit } from '@/model/searchObject';
 import service from '@/service';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -312,8 +313,8 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
           router.push('/');
         }
       })
-      .catch(() => {
-        showToast('삭제에 실패하였습니다.', 'error');
+      .catch((error) => {
+        showApiErrorToast('삭제에 실패하였습니다.', error);
       });
   };
 
@@ -331,8 +332,8 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
             showToast('공개를 비공개로 변경하였습니다.');
           }
         })
-        .catch(() => {
-          showToast('공개를 비공개로 변경하지 못했습니다.', 'error');
+        .catch((error) => {
+          showApiErrorToast('공개를 비공개로 변경하지 못했습니다.', error);
         });
     } else {
       await service.post
@@ -343,8 +344,8 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
             showToast('비공개를 공개로 변경하였습니다.');
           }
         })
-        .catch(() => {
-          showToast('비공개를 공개로 변경하지 못했습니다.', 'error');
+        .catch((error) => {
+          showApiErrorToast('비공개를 공개로 변경하지 못했습니다.', error);
         });
     }
   };

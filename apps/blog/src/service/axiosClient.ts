@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/nextjs';
 import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
 import { getBackendBaseUrl } from '@/lib/backendUrl';
-import { sentryTraceToTraceparent } from '@/lib/traceparent';
+import { currentTraceparent } from '@/lib/sentryTrace';
 
 const CLIENT_TIMEZONE_HEADER = 'X-Client-Timezone';
 const CLIENT_UTC_OFFSET_HEADER = 'X-Client-Utc-Offset-Minutes';
@@ -25,9 +25,8 @@ axiosClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   }
 
   // 트레이스 전파는 W3C traceparent 단일 헤더로 통일한다 — Sentry 이벤트의 trace_id 와
-  // 백엔드(Brave/W3C 수신) 로그의 MDC traceId 가 같은 값이 되어 Loki/Zipkin 검색이 이어진다.
-  // getTraceData() 는 브라우저(pageload)/SSR(요청 isolation scope) 양쪽에서 동작한다.
-  const traceparent = sentryTraceToTraceparent(Sentry.getTraceData()['sentry-trace']);
+  // 백엔드(Micrometer OTel/W3C 수신) 로그 MDC·tb_system_log.trace_id 가 같은 값이 되어 검색이 이어진다.
+  const traceparent = currentTraceparent();
   if (traceparent) {
     config.headers.traceparent = traceparent;
   }

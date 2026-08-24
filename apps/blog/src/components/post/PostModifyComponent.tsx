@@ -7,6 +7,7 @@ import CategoryAutoComplete from '@/components/CategoryAutoComplete';
 import DynamicEditor from '@/components/editor/DynamicEditor';
 import FileUploadComponent from '@/components/editor/FileUploadComponent';
 import { useFiles, useInvalidateFiles } from '@/hooks/useFiles';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import service from '@/service';
 import { useLoadingStore } from '@/store/useLoadingStore';
 import { usePostFormStore } from '@/store/usePostFormStore';
@@ -106,7 +107,7 @@ export default function PostModifyComponent() {
           }
         })
         .catch((err: unknown) => {
-          showToast('저장에 실패하였습니다.', 'error');
+          showApiErrorToast('저장에 실패하였습니다.', err);
           console.error('content save error', err);
           if (isAutosave) {
             setSaveStatus('idle');
@@ -129,8 +130,8 @@ export default function PostModifyComponent() {
       await service.post.deleteDraft({ postId: String(post.id) });
       await loadForModify(String(post.id));
       showToast('초안이 폐기되었습니다.');
-    } catch {
-      showToast('초안 폐기에 실패하였습니다.', 'error');
+    } catch (error) {
+      showApiErrorToast('초안 폐기에 실패하였습니다.', error);
     } finally {
       cancelLoading();
     }
@@ -184,8 +185,8 @@ export default function PostModifyComponent() {
         .then(() => {
           showToast('파일 업로드에 성공하였습니다.');
         })
-        .catch(() => {
-          showToast('파일 업로드에 실패하였습니다.', 'error');
+        .catch((error) => {
+          showApiErrorToast('파일 업로드에 실패하였습니다.', error);
         });
     }
     cancelLoading();
@@ -199,8 +200,8 @@ export default function PostModifyComponent() {
       .then(() => {
         showToast('파일을 삭제하였습니다.');
       })
-      .catch(() => {
-        showToast('파일 삭제에 실패하였습니다.', 'error');
+      .catch((error) => {
+        showApiErrorToast('파일 삭제에 실패하였습니다.', error);
       })
       .finally(() => {
         cancelLoading();

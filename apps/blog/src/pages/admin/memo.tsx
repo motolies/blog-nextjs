@@ -19,6 +19,7 @@ import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import CategoryManagementPanel from '@/components/memo/CategoryManagementPanel';
 import MemoDialog from '@/components/memo/MemoDialog';
 import { useServerGrid } from '@/hooks/useServerGrid';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import type { SearchField, SearchRequest } from '@/lib/gridSearch';
 import service from '@/service';
 import { formatUtcToLocal } from '@/util/dateTimeUtil';
@@ -168,7 +169,7 @@ export default function MemoPage() {
       showToast('메모가 삭제되었습니다.');
       setRefreshKey((prev) => prev + 1);
     } catch (error) {
-      showToast('메모 삭제에 실패했습니다.', 'error');
+      showApiErrorToast('메모 삭제에 실패했습니다.', error);
     }
   };
 

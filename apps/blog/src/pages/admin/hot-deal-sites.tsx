@@ -16,6 +16,7 @@ import { PersistedDataGrid } from '@/components/common/grid/PersistedDataGrid';
 import { useColumnSettings } from '@/components/common/grid/useColumnSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useClientGrid } from '@/hooks/useClientGrid';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import service from '@/service';
 
 interface SiteFormData {
@@ -45,8 +46,8 @@ export default function HotDealSitesPage() {
     try {
       const data = await service.hotDeal.getAllSites();
       setSites(data ?? []);
-    } catch {
-      showToast('사이트 목록을 불러오지 못했습니다.', 'error');
+    } catch (error) {
+      showApiErrorToast('사이트 목록을 불러오지 못했습니다.', error);
     } finally {
       setLoading(false);
     }
@@ -73,8 +74,8 @@ export default function HotDealSitesPage() {
       showToast('사이트 설정이 수정되었습니다.');
       setOpenDialog(false);
       await loadSites();
-    } catch {
-      showToast('사이트 수정에 실패했습니다.', 'error');
+    } catch (error) {
+      showApiErrorToast('사이트 수정에 실패했습니다.', error);
     }
   };
 
@@ -83,8 +84,8 @@ export default function HotDealSitesPage() {
     try {
       await service.hotDeal.triggerScrape();
       showToast('스크래핑이 시작되었습니다.');
-    } catch {
-      showToast('스크래핑 실행에 실패했습니다.', 'error');
+    } catch (error) {
+      showApiErrorToast('스크래핑 실행에 실패했습니다.', error);
     } finally {
       setScraping(false);
     }

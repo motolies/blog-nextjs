@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { showApiErrorToast } from '@/lib/apiErrorToast';
 import {
   type OrderBy,
   type PageResponse,
@@ -57,9 +58,12 @@ export function useServerGrid<T>({
         }
       } catch (error) {
         console.error('데이터 로드 실패:', error);
+        // 레이스 가드 안에서만 알린다 — 이미 새 요청으로 대체된 옛 요청의 실패는 화면과 무관하다.
+        // (이 훅은 요청을 취소하지 않으므로 ERR_CANCELED 분기는 필요 없다)
         if (currentRequest === requestRef.current) {
           setRows([]);
           setTotalCount(0);
+          showApiErrorToast('데이터를 불러오지 못했습니다.', error);
         }
       } finally {
         if (currentRequest === requestRef.current) setLoading(false);

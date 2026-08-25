@@ -2,9 +2,11 @@ import type { UiDocsNavGroup } from '../../client/ui-test/shell';
 import { accordionDoc } from './accordion';
 import { badgeDoc } from './badge';
 import { buttonDoc } from './button';
+import { calendarDoc } from './calendar';
 import { cardDoc } from './card';
 import { checkboxDoc } from './checkbox';
 import { checkboxGroupDoc } from './checkbox-group';
+import { columnSettingsDoc } from './column-settings';
 import { comboboxDoc } from './combobox';
 import { dataGridDoc } from './data-grid';
 import { datePickerDoc } from './date-picker';
@@ -24,6 +26,7 @@ import { gridDoc } from './grid';
 import { iconsDoc } from './icons';
 import { inlineNoticeDoc } from './inline-notice';
 import { inputDoc } from './input';
+import { listReorderDoc } from './list-reorder';
 import { multiSelectDoc } from './multi-select';
 import { numberInputDoc } from './number-input';
 import { radioDoc } from './radio';
@@ -50,6 +53,7 @@ export const DOCS: readonly DocEntry[] = [
   inputDoc,
   numberInputDoc,
   fileUploadDoc,
+  calendarDoc,
   datePickerDoc,
   dateRangePickerDoc,
   dateTimePickerDoc,
@@ -78,10 +82,12 @@ export const DOCS: readonly DocEntry[] = [
   feedbackDoc,
   tableDoc,
   dataGridDoc,
+  columnSettingsDoc,
   treeGridDoc,
   gridDoc,
   iconsDoc,
   tokensDoc,
+  listReorderDoc,
   searchGridDoc,
   formSaveDoc,
   dialogPickerDoc,

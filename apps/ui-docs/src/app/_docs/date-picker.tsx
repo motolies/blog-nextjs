@@ -11,7 +11,7 @@ import { type DocEntry, definePropRows } from './types';
 const USAGE = `import { DatePicker } from '@hvy/ui';
 
 /* 값의 계약은 YYYY-MM-DD 문자열 — URL·FormData·zod 와 그대로 오간다 */
-<DatePicker name="orderDate" value={date} onValueChange={setDate} />`;
+<DatePicker name="writtenAt" value={date} onValueChange={setDate} />`;
 
 /** DatePicker 문서 — 타이핑 + 달력 팝업. 기간은 DateRangePicker 문서로 분리했다. */
 export const datePickerDoc: DocEntry = {

@@ -9,6 +9,7 @@ import { type ControlSize, FIELD_SIZE_CLASS } from '../lib/controlSize';
 import { useControllableState } from '../lib/useControllableState';
 import { FieldViewText, useFieldControl } from './field';
 import type { FieldMode } from './form-mode';
+import { OptionGroupHeader } from './option-group-header';
 import { groupHeaderBefore } from './optionGroups';
 import type { SelectOption } from './select';
 
@@ -22,8 +23,13 @@ import type { SelectOption } from './select';
  *   · `selectAllLabel` 을 주면 맨 위에 전체 토글 항목이 생긴다(QA "전체").
  *
  * 대량 목록(100개 중 20개)에서는 트리거가 잘려 **무엇을 골랐는지 확인할 길이 없고**
- * 하나를 빼려면 목록에서 그 항목을 다시 찾아야 한다. 그래서 선택이 `summaryThreshold`
- * 를 넘으면 패널 안에 **선택 요약(칩 + ✕)** 이 붙는다 — 고르는 중에 보이고, 거기서 뺀다.
+ * 하나를 빼려면 목록에서 그 항목을 다시 찾아야 한다. 그래서 하나라도 고르면 패널 안에
+ * **선택 요약(칩 + ✕)** 이 붙는다 — 고르는 중에 보이고, 거기서 뺀다.
+ *
+ * 한때 `summaryThreshold`(5) 를 두어 소량 선택에서는 요약을 감췄다 — 목록의 체크와 같은
+ * 정보가 두 번 나온다는 이유였다. 그런데 문턱이 있으면 **6개째에서 갑자기 패널이 자라**
+ * 규칙을 모르는 사용자에게는 고장으로 읽히고, 5개 이하라도 라벨이 길면 트리거는 이미
+ * 잘려 "무엇을 골랐는지"는 요약이 있어야 보였다. 그래서 문턱을 없애고 항상 낸다.
  *
  * 폼 전송: `name` 이 있으면 값마다 hidden input 을 낸다 —
  * `formData.getAll(name)` 으로 읽는 HTML 폼의 표준 다중값 규약이다.
@@ -47,12 +53,6 @@ export type MultiSelectProps = {
   readonly searchThreshold?: number;
   readonly searchPlaceholder?: string;
   readonly emptyLabel?: string;
-  /**
-   * 선택 개수가 이 값을 넘으면 패널 상단에 선택 요약(칩) 영역이 붙는다.
-   * 3~5개짜리 목록에서는 같은 정보가 목록의 체크와 두 번 나오는 낭비라 임계값을 둔다.
-   * `Number.POSITIVE_INFINITY` 를 주면 요약을 끈다.
-   */
-  readonly summaryThreshold?: number;
   /** 요약 헤더 문구 — 개수는 배지가 낸다. `ui` 는 사전을 모른다 — 주입받는다. */
   readonly summaryLabel?: string;
   readonly clearAllLabel?: string;
@@ -83,7 +83,6 @@ export function MultiSelect({
   searchThreshold = 10,
   searchPlaceholder = '검색',
   emptyLabel = '검색 결과가 없습니다',
-  summaryThreshold = 5,
   summaryLabel = '선택',
   clearAllLabel = '전체 해제',
   selectFilteredLabel = '검색 결과 전체',
@@ -415,8 +414,9 @@ export function MultiSelect({
             </div>
           ) : null}
 
-          {/* 선택 요약 — 리스트가 자체 스크롤 컨테이너라 그 **바깥**에 두면 sticky 없이 고정된다. */}
-          {value.length > summaryThreshold ? (
+          {/* 선택 요약 — 리스트가 자체 스크롤 컨테이너라 그 **바깥**에 두면 sticky 없이 고정된다.
+              0개면 내지 않는다 — 빈 칩 영역과 지울 것 없는 "전체 해제"는 뜻이 없다(트리거가 0개 배지를 감추는 규약과 같다). */}
+          {value.length > 0 ? (
             // biome-ignore lint/a11y/noStaticElementInteractions: 키 입력의 주체는 안쪽 버튼이다 — 이 래퍼는 Enter 버블링만 끊는다
             <div className="mb-1 border-dl-divider border-b pb-1.5" onKeyDown={stopEnterFromList}>
               <div className="flex items-center justify-between gap-2 px-2 py-1">
@@ -486,12 +486,11 @@ export function MultiSelect({
                 return (
                   <Fragment key={isAll ? ALL_ROW : row.value}>
                     {groupHeader !== null ? (
-                      <div
-                        aria-hidden
-                        className="px-4 pt-2 pb-1 font-semibold text-dl-fg-muted text-dl-xs"
-                      >
-                        {groupHeader}
-                      </div>
+                      <OptionGroupHeader
+                        label={groupHeader}
+                        // 전체 토글 행 뒤에는 긋지 않는다 — 그 행의 border-b 와 겹친다
+                        divided={previousRow !== undefined && previousRow !== ALL_ROW}
+                      />
                     ) : null}
                     {/**
                      * listbox 패턴 — 포커스는 검색 입력/리스트에 있고 `aria-activedescendant`

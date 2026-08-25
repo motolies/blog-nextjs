@@ -19,7 +19,7 @@ const MODES: readonly FieldMode[] = ['edit', 'view'];
 
 export function FieldMixedModeDemo() {
   const [mode, setMode] = useState<FieldMode>('view');
-  const [receiver, setReceiver] = useState('홍길동');
+  const [author, setAuthor] = useState('홍길동');
   const [adminNote, setAdminNote] = useState('상담원만 고치는 칸 — 조회 중에도 편집');
 
   return (
@@ -40,11 +40,11 @@ export function FieldMixedModeDemo() {
       <FormMode value={mode}>
         <FormGrid>
           {/* 폼 모드를 따라간다 — view 에서 값 텍스트, edit 에서 편집 */}
-          <Field label="수취인" htmlFor="mm-receiver">
+          <Field label="작성자" htmlFor="mm-author">
             <Input
-              id="mm-receiver"
-              value={receiver}
-              onChange={(event) => setReceiver(event.target.value)}
+              id="mm-author"
+              value={author}
+              onChange={(event) => setAuthor(event.target.value)}
             />
           </Field>
 
@@ -63,11 +63,11 @@ export function FieldMixedModeDemo() {
           </Field>
 
           {/* lock 은 모든 mode 를 이긴다 — 폼을 edit 로 바꿔도 이 칸은 계속 잠겨 있다 */}
-          <Field label="주문번호" htmlFor="mm-orderNo" help="lock — 폼이 edit 여도 불변">
+          <Field label="게시글 ID" htmlFor="mm-orderNo" help="lock — 폼이 edit 여도 불변">
             <Input
               id="mm-orderNo"
               lock
-              defaultValue="ORD-100024"
+              defaultValue="POST-100024"
               placeholder="자동 / 저장 시 발급"
             />
           </Field>

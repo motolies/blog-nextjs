@@ -8,8 +8,8 @@ import { type DocEntry, definePropRows } from './types';
 
 const USAGE = `import { Field, Input, Textarea } from '@hvy/ui';
 
-<Field label="수신자명" htmlFor="receiver" error={errors.receiver}>
-  <Input id="receiver" placeholder="수신자명 입력" />
+<Field label="제목" htmlFor="subject" error={errors.subject}>
+  <Input id="subject" placeholder="제목 입력" />
 </Field>`;
 
 /** Input · Textarea 문서 — 상태 계약(mode·lock·masking)과 어도먼트가 핵심이다. */

@@ -1,5 +1,4 @@
 import type { DropdownMenuItem } from '@hvy/ui';
-import { Menu } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { DropdownMenuBasicDemo } from '../../client/ui-test/docs/demos/dropdown-menu/basic';
 import { DropdownMenuSingleItemDemo } from '../../client/ui-test/docs/demos/dropdown-menu/single-item';
@@ -13,7 +12,7 @@ const USAGE = `import { DropdownMenu, DropdownMenuContent, DropdownMenuItem,
     <IconButton icon={Menu} label="더 보기" />
   </DropdownMenuTrigger>
   <DropdownMenuContent align="end">
-    <DropdownMenuItem onSelect={printInvoice}>송장 출력</DropdownMenuItem>
+    <DropdownMenuItem onSelect={printPreview}>인쇄 미리보기</DropdownMenuItem>
     <DropdownMenuSeparator />
     <DropdownMenuItem destructive onSelect={remove}>삭제</DropdownMenuItem>
   </DropdownMenuContent>

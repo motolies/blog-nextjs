@@ -20,15 +20,18 @@ import {
 } from '@hvy/ui';
 import { Columns3 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { DEMO_ORDERS, DEMO_STATUS_META, type DemoOrder } from '../../../mock-orders';
+import { DEMO_POSTS, DEMO_STATUS_META, type DemoPost } from '../../../mock-posts';
 import { BoolControl } from '../../../playground';
 
 /**
- * DataGrid 풀 배선 — 주문 목록 화면(orders-screen.tsx)의 그리드 배선을 목데이터로 재현한다.
+ * DataGrid 풀 배선 — 관리자 목록 화면(`apps/blog/src/pages/admin/*.tsx` 가 PersistedDataGrid 로
+ * 쓰는 그 배선)을 목데이터로 재현한다.
  *
- * 실전과 다른 점 하나: 정렬·페이징이 서버(useServerGrid + URL)가 아니라 **클라이언트
- * useMemo 파생**이다. 여기서 확인하는 것은 그리드 자체의 배선(정렬 토글 · 선택 초기화 ·
- * 컬럼 설정 저장 · 툴바 조합)이지 데이터 계층이 아니다.
+ * 실전과 다른 점 하나: 정렬·페이징이 서버(`useServerGrid`)가 아니라 **클라이언트 useMemo
+ * 파생**이다. 여기서 확인하는 것은 그리드 자체의 배선(정렬 토글 · 선택 초기화 · 컬럼 설정
+ * 저장 · 툴바 조합)이지 데이터 계층이 아니다. 참고로 blog 의 `useServerGrid` 는 조회 조건을
+ * URL 에 싣지 않는다(훅 내부 state 다) — 진실 소스를 URL 로 올릴지는 화면의 선택이고,
+ * 그리드는 어느 쪽이든 "표시만 맡는다"는 계약이 같다.
  *
  * 페이지 크기는 실제 화면과 같은 계약으로 **컬럼 설정과 같은 저장 항목**에 영속된다 —
  * 로컬 state 가 아니라 `useGridPreference().pageSize` 가 진실이고, 허용 목록 밖이면 첫 옵션이다.
@@ -71,7 +74,7 @@ const COLUMN_SETTINGS_LABELS: ColumnSettingsLabels = {
 const numberFormat = new Intl.NumberFormat('ko-KR');
 
 /** 원본 컬럼 정의 — 숨김 적용 전. 컬럼 설정 모달이 이걸 봐야 꺼진 컬럼도 다시 켠다. */
-const ALL_COLUMNS = defineColumns<DemoOrder>([
+const ALL_COLUMNS = defineColumns<DemoPost>([
   {
     id: 'rowNum',
     headerWord: 'No',
@@ -82,14 +85,14 @@ const ALL_COLUMNS = defineColumns<DemoOrder>([
     resizable: false,
   },
   {
-    id: 'orderId',
-    headerWord: '주문번호',
+    id: 'postId',
+    headerWord: '게시글 ID',
     width: 140,
     primary: true,
     pinned: true,
     hideable: false,
   },
-  { id: 'receiver', headerWord: '수신자', width: 110 },
+  { id: 'author', headerWord: '작성자', width: 110 },
   {
     id: 'status',
     headerWord: '상태',
@@ -98,15 +101,15 @@ const ALL_COLUMNS = defineColumns<DemoOrder>([
       <Badge tone={DEMO_STATUS_META[row.status].tone}>{DEMO_STATUS_META[row.status].label}</Badge>
     ),
   },
-  { id: 'serviceType', headerWord: '서비스타입', width: 96 },
+  { id: 'category', headerWord: '카테고리', width: 96 },
   {
-    id: 'amount',
-    headerWord: '금액',
+    id: 'viewCount',
+    headerWord: '조회수',
     width: 110,
     align: 'right',
     format: (value) => `${numberFormat.format(Number(value))} 원`,
   },
-  { id: 'orderDate', headerWord: '주문일', width: 120, grow: 1 },
+  { id: 'writtenAt', headerWord: '작성일', width: 120, grow: 1 },
 ]);
 
 type SortState = { readonly columnId: string; readonly direction: 'asc' | 'desc' } | null;
@@ -141,9 +144,9 @@ export function DataGridFullDemo() {
   };
 
   const sorted = useMemo(() => {
-    if (!sort) return DEMO_ORDERS;
+    if (!sort) return DEMO_POSTS;
     const factor = sort.direction === 'asc' ? 1 : -1;
-    return [...DEMO_ORDERS].sort((left, right) => {
+    return [...DEMO_POSTS].sort((left, right) => {
       const a = left[sort.columnId];
       const b = right[sort.columnId];
       if (typeof a === 'number' && typeof b === 'number') return (a - b) * factor;
@@ -163,7 +166,7 @@ export function DataGridFullDemo() {
 
   const selection = useGridSelection({
     rows,
-    getRowId: (row) => row.orderId,
+    getRowId: (row) => row.postId,
     resetKey,
   });
 
@@ -182,13 +185,13 @@ export function DataGridFullDemo() {
       <DataGrid
         columns={columns}
         rows={rows}
-        getRowId={(row) => row.orderId}
+        getRowId={(row) => row.postId}
         isFetching={forceFetching}
         sortOf={(columnId) => (sort?.columnId === columnId ? sort.direction : null)}
         onToggleSort={toggleSort}
         // headerWord 가 이미 한국어 리터럴이다 — 사전 코드를 지어내지 않고 항등 해석기를 쓴다.
         translateHeader={(code) => code}
-        onRowPrimaryAction={(row) => showToast(`${row.orderId} 상세 이동 (데모)`, 'info')}
+        onRowPrimaryAction={(row) => showToast(`${row.postId} 상세 이동 (데모)`, 'info')}
         columnWidths={preference.widths}
         onColumnWidthsChange={preference.setWidths}
         resizeColumnLabel="컬럼 너비 조절"

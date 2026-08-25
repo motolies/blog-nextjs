@@ -168,7 +168,9 @@ function DateTimePanel({
   return (
     <div className="flex flex-col">
       <div className="flex max-h-80 items-stretch">
+        {/* 프리셋 행이 더 넓을 때 남는 폭은 달력이 흡수한다(시간 열은 고정) — PresetRow 주석 */}
         <Calendar
+          className="min-w-64 flex-1"
           value={parts?.date}
           min={min}
           max={max}

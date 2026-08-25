@@ -8,9 +8,9 @@ import { type DocEntry, definePropRows } from './types';
 
 const USAGE = `import { Field, FormSection, Input } from '@hvy/ui';
 
-<FormSection title="주문 기본 정보" actions={<Button size="sm">저장</Button>}>
-  <Field label="주문번호" htmlFor="orderId">
-    <Input id="orderId" lock placeholder="자동 / 저장 시 발급" />
+<FormSection title="게시글 기본 정보" actions={<Button size="sm">저장</Button>}>
+  <Field label="게시글 ID" htmlFor="postId">
+    <Input id="postId" lock placeholder="자동 / 저장 시 발급" />
   </Field>
 </FormSection>`;
 

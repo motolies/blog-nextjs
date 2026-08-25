@@ -67,7 +67,7 @@ function GridGuideBody() {
               <td>
                 <code className="font-dl-mono">grid gap-3 md:grid-cols-2</code>
               </td>
-              <td>12 분할이 필요 없으면 필요한 만큼만 — 주문 상세가 실제로 이렇게 쓴다</td>
+              <td>12 분할이 필요 없으면 필요한 만큼만 — 게시글 상세가 실제로 이렇게 쓴다</td>
             </tr>
           </tbody>
         </table>

@@ -2,7 +2,7 @@
 
 import { DataGrid, defineColumns, GridToolbar, TotalCount } from '@hvy/ui';
 import { useState } from 'react';
-import { DEMO_ORDERS, type DemoOrder } from '../../../mock-orders';
+import { DEMO_POSTS, type DemoPost } from '../../../mock-posts';
 import { BoolControl } from '../../../playground';
 
 /**
@@ -23,11 +23,11 @@ import { BoolControl } from '../../../playground';
  * 퇴화한다(그때는 의도된 동작 — 페이지 스크롤).
  */
 
-const COLUMNS = defineColumns<DemoOrder>([
+const COLUMNS = defineColumns<DemoPost>([
   { id: 'rowNum', headerWord: 'No', width: 56, sortable: false, resizable: false, pinned: true },
-  { id: 'orderId', headerWord: '주문번호', width: 130, pinned: true },
-  { id: 'receiver', headerWord: '수신자', width: 100 },
-  { id: 'orderDate', headerWord: '주문일', width: 110, grow: 1 },
+  { id: 'postId', headerWord: '게시글 ID', width: 130, pinned: true },
+  { id: 'author', headerWord: '작성자', width: 100 },
+  { id: 'writtenAt', headerWord: '작성일', width: 110, grow: 1 },
 ]);
 
 const numberFormat = new Intl.NumberFormat('ko-KR');
@@ -38,8 +38,8 @@ function FillGrid() {
     <>
       <DataGrid
         columns={COLUMNS}
-        rows={DEMO_ORDERS}
-        getRowId={(row) => row.orderId}
+        rows={DEMO_POSTS}
+        getRowId={(row) => row.postId}
         translateHeader={(code) => code}
         maxHeight="fill"
         attachedToolbar
@@ -48,7 +48,7 @@ function FillGrid() {
         className="shrink-0"
         paging={
           <TotalCount
-            total={DEMO_ORDERS.length}
+            total={DEMO_POSTS.length}
             prefix="총"
             suffix="건"
             format={numberFormat.format}

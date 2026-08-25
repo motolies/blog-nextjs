@@ -32,7 +32,7 @@ export function NumberInputBasicDemo() {
             onValueChange={setQuantity}
           />
         </Field>
-        <Field label="결제금액" htmlFor="ni-amount" help="천단위 구분 · 소수 2자리 고정(반올림)">
+        <Field label="첨부 용량" htmlFor="ni-amount" help="천단위 구분 · 소수 2자리 고정(반올림)">
           <NumberInput
             id="ni-amount"
             align="left"

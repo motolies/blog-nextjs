@@ -18,7 +18,7 @@ export function InputShowCountDemo() {
         onChange={(event) => setMemo(event.target.value)}
         maxLength={20}
         showCount
-        placeholder="배송 메모 (20자)"
+        placeholder="요약 (20자)"
       />
       <Textarea
         value={note}

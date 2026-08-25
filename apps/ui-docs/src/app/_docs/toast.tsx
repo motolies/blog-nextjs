@@ -13,6 +13,14 @@ showToast('보류 처리되었습니다', 'info', {              // 액션 — �
 });`;
 
 /** Toast 문서 — 완료 안내 전용, 기본 3초 자동 소멸. */
+/**
+ * 이 문서의 props 표만 `definePropRows` 가드를 쓰지 않는다.
+ *
+ * 행이 컴포넌트 prop 이 아니라 **함수 인자**이고(`showToast(message, tone, options)`),
+ * `options.title` 처럼 점 표기 경로가 섞인다 — `keyof P & string` 으로는 표현할 수 없다.
+ * 표를 인자별로 쪼개면 가드는 걸리지만 "한 함수의 시그니처"라는 사실이 흩어진다.
+ * 대신 `showToast` 의 시그니처가 바뀌면 아래 usage 코드블록이 먼저 어긋나 보인다.
+ */
 export const toastDoc: DocEntry = {
   slug: 'toast',
   category: 'components',

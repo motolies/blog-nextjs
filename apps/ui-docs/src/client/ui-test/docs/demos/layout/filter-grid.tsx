@@ -33,8 +33,8 @@ export function FilterGridDemo() {
         }`}
       >
         <div className="dl-filter-grid">
-          <span className={label}>주문번호</span>
-          <Input placeholder="ORD-..." />
+          <span className={label}>게시글 ID</span>
+          <Input placeholder="POST-..." />
           <span className={label}>상태</span>
           <Select options={[...OPTIONS]} placeholder="전체" />
           <span className={label}>고객명</span>

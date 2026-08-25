@@ -22,16 +22,16 @@ export function InputModesDemo() {
         <FormMode key={mode} value={mode}>
           <div className="flex flex-col gap-4">
             <p className="text-dl-xs font-semibold text-dl-fg-muted">{mode}</p>
-            <Field label="수취인" htmlFor={`im-${mode}-receiver`}>
-              <Input id={`im-${mode}-receiver`} defaultValue="홍길동" />
+            <Field label="작성자" htmlFor={`im-${mode}-author`}>
+              <Input id={`im-${mode}-author`} defaultValue="홍길동" />
             </Field>
             <Field label="통관 비밀번호" htmlFor={`im-${mode}-pw`}>
               <Input id={`im-${mode}-pw`} type="password" defaultValue="secret-1234" />
             </Field>
-            <Field label="주문번호" htmlFor={`im-${mode}-orderNo`}>
+            <Field label="게시글 ID" htmlFor={`im-${mode}-orderNo`}>
               <Input id={`im-${mode}-orderNo`} lock placeholder="자동 / 저장 시 발급" />
             </Field>
-            <Field label="배송 메모" htmlFor={`im-${mode}-memo`}>
+            <Field label="요약" htmlFor={`im-${mode}-memo`}>
               <Textarea
                 id={`im-${mode}-memo`}
                 defaultValue={'경비실에 맡겨 주세요.\n부재 시 연락 바랍니다.'}

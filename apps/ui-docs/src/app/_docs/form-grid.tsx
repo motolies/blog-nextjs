@@ -10,10 +10,10 @@ import { type DocEntry, definePropRows } from './types';
 const USAGE = `import { Field, FieldValue, FormGrid, Input, Textarea } from '@hvy/ui';
 
 <FormGrid>
-  <Field label="수신자명" htmlFor="name" required>
+  <Field label="제목" htmlFor="name" required>
     <Input id="name" />
   </Field>
-  <Field label="주문일" htmlFor="date" required>
+  <Field label="작성일" htmlFor="date" required>
     <DatePicker id="date" />
   </Field>
 
@@ -23,7 +23,7 @@ const USAGE = `import { Field, FieldValue, FormGrid, Input, Textarea } from '@hv
   </Field>
 
   {/* 읽기 전용 값 */}
-  <FieldValue label="주문번호">ORD-100024</FieldValue>
+  <FieldValue label="게시글 ID">POST-100024</FieldValue>
 </FormGrid>`;
 
 /**
@@ -52,7 +52,7 @@ function FormGridModesBody() {
             <tbody className="[&_td]:px-4 [&_td]:py-2 [&_tr]:border-b [&_tr]:border-dl-divider">
               <tr>
                 <td>영구 조회</td>
-                <td>애초에 고칠 대상이 아니다 — 시간 개념이 없다(주문번호·등록일시)</td>
+                <td>애초에 고칠 대상이 아니다 — 시간 개념이 없다(게시글 ID·등록일시)</td>
                 <td>
                   <code className="font-dl-mono">FieldValue</code>
                 </td>
@@ -161,14 +161,14 @@ export const formGridDoc: DocEntry = {
     {
       id: 'basic',
       title: '상세 폼',
-      note: '카드 + 격자 + Field(라벨 위). 배송지·메모는 col-span-full, 주문번호는 lock(시스템 채움 영구 불변)이다. 카드 폭이 좁아지면 열이 스스로 줄어든다 — 컨테이너 쿼리 래퍼가 필요 없다. 저장을 누르면 필수 네 칸과 형식(연락처·금액)을 검사한다: 타이핑은 막지 않고 칸을 벗어날 때 정리하며(연락처는 숫자와 -, 금액은 천단위 콤마), 소수 자릿수를 넘긴 금액은 값을 자르지 않고 오류로 알린다 — 돈이 조용히 바뀌면 잘려나간 사실이 화면에 남지 않는다. 금액은 표시값과 전송값이 달라 hidden 입력이 콤마 없는 값을 싣는다(폼 아래 전송값 표시 참조).',
+      note: '카드 + 격자 + Field(라벨 위). 요약·본문은 col-span-full, 게시글 ID는 lock(시스템 채움 영구 불변)이다. 카드 폭이 좁아지면 열이 스스로 줄어든다 — 컨테이너 쿼리 래퍼가 필요 없다. 저장을 누르면 필수 다섯 칸과 형식(태그·첨부 용량)을 검사한다: 타이핑은 막지 않고 칸을 벗어날 때 정리하며(태그는 소문자·중복 정리, 용량은 천단위 콤마), 소수 자릿수를 넘긴 용량은 값을 자르지 않고 오류로 알린다 — 조용히 자르면 잘려나간 사실이 화면 어디에도 남지 않는다. 용량은 표시값과 전송값이 달라 hidden 입력이 콤마 없는 값을 싣는다(폼 아래 전송값 표시 참조).',
       file: 'src/client/ui-test/docs/demos/form-grid/basic.tsx',
       Component: FormGridBasicDemo,
     },
     {
       id: 'sections',
       title: '섹션 분리',
-      note: '카드 셋 · 격자 셋 · 폼 하나. 의미가 다른 덩어리는 격자를 나누지 않고 카드를 나눈다 — FormGrid 에 섹션 API 가 없는 이유다. 폭을 카드가 아니라 바깥 폼이 쥐므로(max-w-4xl) 세 카드가 같은 폭이 되고, auto-fit 이 세 곳에서 같은 열 수를 뽑는다: 창을 줄이면 셋이 동시에 접힌다. 카드마다 폭을 따로 주면 이 정렬이 조용히 깨져 한 폼이 아니라 격자 세 벌처럼 읽힌다. 보내는 사람과 받는 사람의 필드 순서를 같게 둔 것도 같은 이유다 — 이름·연락처·국가가 두 카드에서 같은 세로선 위에 온다. col-span-full 은 세 가지 이유로만 쓴다: 값이 길어서(주소) · 한 칸에 컨트롤이 여럿이라 220px 트랙에 못 들어가서(박스규격 가로×세로×높이) · 여러 줄이라서(배송 요청사항). 우편번호는 컨트롤이 둘(입력 + 검색)인데도 전폭이 아니다 — 기준은 컨트롤 개수가 아니라 최소 트랙 폭에 들어가는가다. 저장·취소는 카드 밖 마지막 한 줄에 둔다: 저장 단위가 폼 전체 하나라서, 카드 안에 넣으면 그 카드만 저장된다는 뜻이 된다(카드가 하나뿐인 상세 폼 예제는 카드 안 하단이 맞았다). 상태와 검증은 넣지 않았다 — 이 예제가 증명하는 것은 배치이고 배치는 값이 바뀌어도 변하지 않는다. 값 배선은 상세 폼 예제가 갖는다.',
+      note: '카드 셋 · 격자 셋 · 폼 하나. 의미가 다른 덩어리는 격자를 나누지 않고 카드를 나눈다 — FormGrid 에 섹션 API 가 없는 이유다. 폭을 카드가 아니라 바깥 폼이 쥐므로(max-w-4xl) 세 카드가 같은 폭이 되고, auto-fit 이 세 곳에서 같은 열 수를 뽑는다: 창을 줄이면 셋이 동시에 접힌다. 카드마다 폭을 따로 주면 이 정렬이 조용히 깨져 한 폼이 아니라 격자 세 벌처럼 읽힌다. 앞의 두 카드는 필드 순서를 같게 둔 것도 같은 이유다 — 제목계열·URL계열·분류(Select)·날짜가 두 카드에서 같은 세로선 위에 온다. col-span-full 은 세 가지 이유로만 쓴다: 값이 길어서(요약·메타 설명) · 한 칸에 컨트롤이 여럿이라 220px 트랙에 못 들어가서(이미지 규격 가로×세로) · 여러 줄이라서(대체 텍스트). 컨트롤이 둘인 칸이 두 개 있는데 판정이 갈린다 — 태그(입력 + 아이콘 버튼)는 트랙에 들어가 전폭이 아니고, 이미지 규격(입력 + × + 입력 + 단위)은 못 들어가 전폭이다. 기준은 컨트롤 개수가 아니라 최소 트랙 폭에 들어가는가다. 저장·취소는 카드 밖 마지막 한 줄에 둔다: 저장 단위가 폼 전체 하나라서, 카드 안에 넣으면 그 카드만 저장된다는 뜻이 된다(카드가 하나뿐인 상세 폼 예제는 카드 안 하단이 맞았다). 상태와 검증은 넣지 않았다 — 이 예제가 증명하는 것은 배치이고 배치는 값이 바뀌어도 변하지 않는다. 값 배선은 상세 폼 예제가 갖는다.',
       file: 'src/client/ui-test/docs/demos/form-grid/sections.tsx',
       Component: FormGridSectionsDemo,
     },
@@ -189,7 +189,7 @@ export const formGridDoc: DocEntry = {
     {
       id: 'detail-modes',
       title: '상세 폼 조회↔수정 — FormMode',
-      note: '실전형 상세 폼: FormMode 하나로 카드·격자 전체가 전환된다. 한 격자 안에 FieldValue(영구 조회 — 주문번호·등록일시), Field(모드 조회), Field mode="edit"(조회 중에도 열린 관리 메모)가 공존하고, 모드를 토글해도 행이 계속 맞는다 — FieldValue 와 view 모드가 같은 값 칸 규격(VALUE_MIN_H 파리티)을 쓰기 때문이다. 표시값≠편집값인 주문상태는 Field 의 view 가 Badge 로 덮는다. view 는 입력 DOM 을 없애 폼 값이 안 나오므로 이 폼은 제어형이다 — 비제어(FormData) + disabled 전환의 실례는 폼 저장·검증 시나리오 참조.',
+      note: '실전형 상세 폼: FormMode 하나로 카드·격자 전체가 전환된다. 한 격자 안에 FieldValue(영구 조회 — 게시글 ID·등록일시), Field(모드 조회), Field mode="edit"(조회 중에도 열린 관리 메모)가 공존하고, 모드를 토글해도 행이 계속 맞는다 — FieldValue 와 view 모드가 같은 값 칸 규격(VALUE_MIN_H 파리티)을 쓰기 때문이다. 표시값≠편집값인 게시글 상태는 Field 의 view 가 Badge 로 덮는다. view 는 입력 DOM 을 없애 폼 값이 안 나오므로 이 폼은 제어형이다 — 비제어(FormData) + disabled 전환의 실례는 폼 저장·검증 시나리오 참조.',
       file: 'src/client/ui-test/docs/demos/form-grid/detail-modes.tsx',
       Component: FormGridDetailModesDemo,
     },

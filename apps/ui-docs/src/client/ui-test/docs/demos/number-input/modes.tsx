@@ -20,7 +20,7 @@ export function NumberInputModesDemo() {
         <FormMode key={mode} value={mode}>
           <div className="flex flex-col gap-4">
             <p className="text-dl-xs font-semibold text-dl-fg-muted">{mode}</p>
-            <Field label="결제금액" htmlFor={`nim-${mode}-amount`}>
+            <Field label="첨부 용량" htmlFor={`nim-${mode}-amount`}>
               <NumberInput
                 id={`nim-${mode}-amount`}
                 align="left"

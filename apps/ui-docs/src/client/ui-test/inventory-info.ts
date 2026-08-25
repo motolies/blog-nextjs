@@ -2,8 +2,12 @@
  * 개요(전체 목록)의 export → 문서 위치 매핑 — **순수 데이터 모듈**이다.
  *
  * inventory-gallery(화면)와 registry.test.ts(정합 검사)가 함께 쓰므로 컴포넌트와
- * 분리해 둔다 — 테스트가 next/link · @hvy/ui 전체를 끌고 오지 않기 위해서다.
- * href 가 실제 등록된 문서를 가리키는지는 registry.test.ts 가 검사한다.
+ * 분리해 둔다 — 테스트가 next/link 와 React 컴포넌트를 끌고 오지 않기 위해서다
+ * (`@hvy/ui` 자체는 이미 문서 정의 → 데모 경로로 테스트에 들어온다).
+ *
+ * **이 맵은 barrel 전량을 덮어야 한다.** 빠지면 개요 화면에 빨간 "데모 없음" 배지가 뜨고,
+ * registry.test.ts 가 CI 에서 먼저 깨뜨린다 — 배지는 사람이 볼 때만 드러나기 때문이다.
+ * href 가 실제 등록된 문서를 가리키는지도 같은 테스트가 검사한다.
  */
 
 export type ExportInfo = {
@@ -59,13 +63,19 @@ export const EXPORT_INFO: Readonly<Record<string, ExportInfo>> = {
   FormGrid: { href: `${C}/form-grid` },
   FormMode: { href: `${C}/field` },
   FormSection: { href: '/layout/form-section' },
-  Calendar: { href: `${C}/date-picker` },
+  Calendar: { href: `${C}/calendar` },
   DatePicker: { href: `${C}/date-picker` },
   DateRangePicker: { href: `${C}/date-range-picker` },
   DateTimePicker: { href: `${C}/date-time-picker` },
   DateTimeRangePicker: { href: `${C}/date-time-range-picker` },
-  parseIsoDate: { note: 'YYYY-MM-DD → Date(로컬). 무효·오버플로 날짜는 null' },
-  toIsoDate: { note: 'Date → YYYY-MM-DD. toISOString 의 UTC 밀림이 없다' },
+  parseIsoDate: {
+    href: `${C}/calendar#iso-utils`,
+    note: 'YYYY-MM-DD → Date(로컬). 무효·오버플로 날짜는 null',
+  },
+  toIsoDate: {
+    href: `${C}/calendar#iso-utils`,
+    note: 'Date → YYYY-MM-DD. toISOString 의 UTC 밀림이 없다',
+  },
   presetRange: { href: `${C}/date-range-picker` },
   toDateTimeRange: { href: `${C}/date-time-range-picker` },
   DATE_PRESET_KINDS: { note: '기간 프리셋 종류 6개 목록 — 앱이 라벨을 붙여 presets 로 조립한다' },
@@ -92,15 +102,23 @@ export const EXPORT_INFO: Readonly<Record<string, ExportInfo>> = {
   TabPanel: { href: `${C}/tabs` },
   showToast: { href: `${C}/toast` },
   ToastViewport: { note: '셸이 콘텐츠 래퍼 안에 마운트한다 — absolute 기준면 규칙' },
-  clampToGroup: { note: '재정렬 시 그룹 경계 제한 (순수 함수) — 고정열 규칙에 쓰인다' },
-  findDropIndex: { note: '드래그 좌표 → 드롭 위치 계산 (순수 함수)' },
-  moveItem: { note: '배열 항목 이동 (순수 함수)' },
-  shiftFor: { note: '키보드 이동량 계산 (순수 함수)' },
-  useListReorder: { note: '드래그+키보드 목록 재정렬 훅 — ColumnSettingsDialog 내부' },
+  clampToGroup: {
+    href: `${F}/list-reorder`,
+    note: '재정렬 시 그룹 경계 제한 (순수 함수) — 고정열 규칙에 쓰인다',
+  },
+  findDropIndex: { href: `${F}/list-reorder`, note: '드래그 좌표 → 드롭 위치 계산 (순수 함수)' },
+  moveItem: { href: `${F}/list-reorder`, note: '배열 항목 이동 (순수 함수)' },
+  shiftFor: { href: `${F}/list-reorder`, note: '드래그 중 각 항목이 비켜날 거리 (순수 함수)' },
+  useListReorder: {
+    href: `${F}/list-reorder`,
+    note: '드래그+키보드 목록 재정렬 훅 — 컬럼 설정·작업 탭 바가 쓴다',
+  },
   useFieldErrors: { href: `${EX}/form-save` },
-  ColumnSettingsDialog: { href: `${C}/data-grid` },
+  ColumnSettingsDialog: { href: `${C}/column-settings` },
   applyColumnPreference: { href: `${C}/data-grid` },
-  applyLockedColumns: { note: '마스킹 잠금 컬럼의 editable 강제 해제 — 주문 목록이 쓴다' },
+  applyLockedColumns: {
+    note: '마스킹 잠금 컬럼의 editable 강제 해제 — 잠금 컬럼이 있는 목록이 쓴다',
+  },
   defineColumns: { href: `${C}/data-grid` },
   orderColumns: { note: '저장된 컬럼 순서 적용 (순수 함수) — 컬럼 설정 모달 내부' },
   pinnedCount: { note: '선두 고정열 개수 계산 (순수 함수)' },
@@ -129,4 +147,35 @@ export const EXPORT_INFO: Readonly<Record<string, ExportInfo>> = {
   cn: { note: 'twMerge(clsx(...)) 클래스 병합' },
   useBeforeUnloadGuard: { href: `${C}/data-grid` },
   useTokenPx: { note: 'CSS 토큰을 px 숫자로 읽는 훅 — 그리드 행 높이 등' },
+
+  // 작업 탭 — 컴포넌트 1 + 상태 순수 함수 9. 계산은 전부 순수 함수 쪽에 있고
+  // 바(bar)는 그리기만 한다. 그래서 함수들도 화면 없이 검증할 수 있다.
+  WorkTabsBar: { href: `${C}/work-tabs` },
+  WORK_TABS_MAX: {
+    href: `${C}/work-tabs#state-fns`,
+    note: '탭 개수 상한 — 도달하면 새 탭을 거부한다(자동 퇴출이 아니다)',
+  },
+  canOpenTab: {
+    href: `${C}/work-tabs#state-fns`,
+    note: '이 id 로 탭을 열 수 있는가 (순수 함수) — 상한 판정을 미리 노출한다',
+  },
+  upsertTab: {
+    href: `${C}/work-tabs#state-fns`,
+    note: '열기 또는 갱신 (순수 함수) — 내용이 같으면 같은 참조를 돌려준다',
+  },
+  closeTab: { href: `${C}/work-tabs#state-fns`, note: '탭 하나 닫기 (순수 함수)' },
+  closeOthers: { href: `${C}/work-tabs#state-fns`, note: '지목한 탭과 핀 탭만 남긴다 (순수 함수)' },
+  closeRightOf: {
+    href: `${C}/work-tabs#state-fns`,
+    note: '오른쪽 탭 닫기 — 핀 탭은 남는다 (순수 함수)',
+  },
+  closeUnpinned: { href: `${C}/work-tabs#state-fns`, note: '핀 제외 전체 닫기 (순수 함수)' },
+  togglePin: {
+    href: `${C}/work-tabs#state-fns`,
+    note: '핀 전환 (순수 함수) — 핀 그룹이 앞쪽 연속 구간이라는 불변식을 유지한다',
+  },
+  nextActiveAfterClose: {
+    href: `${C}/work-tabs#state-fns`,
+    note: '닫은 뒤 이동할 이웃 (순수 함수) — 오른쪽 우선, 없으면 왼쪽',
+  },
 };

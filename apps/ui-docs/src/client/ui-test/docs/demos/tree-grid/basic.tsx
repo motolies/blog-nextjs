@@ -4,46 +4,55 @@ import { Badge, TreeGrid } from '@hvy/ui';
 import { useState } from 'react';
 
 /**
- * TreeGrid — 주문이력 트리 모달(trace-modal.tsx)의 렌더 구조를 정적 노드로 재현한다.
+ * TreeGrid — 계층 자료의 렌더 구조를 정적 노드로 재현한다(블로그의 카테고리 트리와 같은 모양:
+ * `apps/blog/src/components/.../CategoryTreeView.tsx`).
  * 가상 스크롤도 컬럼도 없는 재귀 렌더러라 DataGrid 와 완전히 다른 컴포넌트다.
  * expanded 가 controlled Set 이라 "모두 펼치기/접기"가 상태 교체 한 번이다.
  */
 type DemoNode = {
   readonly id: string;
-  readonly step: string;
+  readonly name: string;
   readonly description: string;
-  readonly at: string;
+  /** 하위를 합친 게시글 수 — 우측 정렬 메타 자리다. */
+  readonly postCount: number;
   readonly children?: readonly DemoNode[];
 };
 
 const NODES: readonly DemoNode[] = [
   {
     id: 'n1',
-    step: '주문접수',
-    description: 'ORD-100001 접수 완료',
-    at: '07-01 09:12',
+    name: '개발',
+    description: '코드와 도구에 대한 글',
+    postCount: 128,
     children: [
-      { id: 'n1-1', step: '결제', description: '카드 결제 승인', at: '07-01 09:13' },
+      { id: 'n1-1', name: '프론트엔드', description: 'React · Next.js · CSS', postCount: 74 },
       {
         id: 'n1-2',
-        step: '검수',
-        description: '상품 검수 통과',
-        at: '07-01 14:02',
-        children: [{ id: 'n1-2-1', step: '재검수', description: '수량 재확인', at: '07-01 15:40' }],
+        name: '백엔드',
+        description: 'Spring · 데이터베이스',
+        postCount: 41,
+        children: [
+          {
+            id: 'n1-2-1',
+            name: '데이터베이스',
+            description: '쿼리 튜닝 · 마이그레이션',
+            postCount: 17,
+          },
+        ],
       },
     ],
   },
   {
     id: 'n2',
-    step: '출고',
-    description: '센터 출고 처리',
-    at: '07-02 08:30',
+    name: '에세이',
+    description: '기술 밖의 글',
+    postCount: 36,
     children: [
-      { id: 'n2-1', step: '송장발행', description: '운송장 CJ-5501 발행', at: '07-02 08:31' },
-      { id: 'n2-2', step: '집화', description: '택배사 집화 완료', at: '07-02 11:05' },
+      { id: 'n2-1', name: '회고', description: '분기·연간 돌아보기', postCount: 12 },
+      { id: 'n2-2', name: '번역', description: '원문 링크와 함께', postCount: 9 },
     ],
   },
-  { id: 'n3', step: '배송완료', description: '수취인 서명 확인', at: '07-04 16:22' },
+  { id: 'n3', name: '리뷰', description: '읽은 것과 써 본 것', postCount: 22 },
 ];
 
 function collectIds(nodes: readonly DemoNode[]): string[] {
@@ -92,7 +101,7 @@ export function TreeGridBasicDemo() {
 
       <TreeGrid
         nodes={showEmpty ? [] : NODES}
-        empty={{ title: '이력이 없습니다', hint: '주문이 아직 처리 단계에 들어가지 않았습니다' }}
+        empty={{ title: '카테고리가 없습니다', hint: '아직 만들어 둔 카테고리가 없습니다' }}
         getRowId={(node) => node.id}
         expanded={expanded}
         onToggle={toggle}
@@ -100,9 +109,9 @@ export function TreeGridBasicDemo() {
         expandLabel="펼치기"
         renderRow={(node) => (
           <div className="flex items-center gap-2">
-            <Badge tone="primary">{node.step}</Badge>
+            <Badge tone="primary">{node.name}</Badge>
             <span className="truncate text-dl-fg">{node.description}</span>
-            <span className="ml-auto shrink-0 text-dl-xs text-dl-fg-muted">{node.at}</span>
+            <span className="ml-auto shrink-0 text-dl-xs text-dl-fg-muted">{node.postCount}건</span>
           </div>
         )}
       />

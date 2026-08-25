@@ -2,7 +2,7 @@
 
 import { DataGrid, defineColumns, GridToolbar, TotalCount } from '@hvy/ui';
 import { useState } from 'react';
-import { DEMO_ORDERS, type DemoOrder } from '../../../mock-orders';
+import { DEMO_POSTS, type DemoPost } from '../../../mock-posts';
 import { BoolControl } from '../../../playground';
 
 /**
@@ -18,16 +18,16 @@ import { BoolControl } from '../../../playground';
  *  4. "강제 빈 상태" — 빈 상태 본문은 2~5행 높이이고 세로 스크롤바가 생기지 않는다.
  */
 
-const COLUMNS = defineColumns<DemoOrder>([
+const COLUMNS = defineColumns<DemoPost>([
   { id: 'rowNum', headerWord: 'No', width: 56, sortable: false, resizable: false, pinned: true },
-  { id: 'orderId', headerWord: '주문번호', width: 140, pinned: true },
-  { id: 'receiver', headerWord: '수신자', width: 110 },
-  { id: 'serviceType', headerWord: '서비스타입', width: 96 },
-  { id: 'orderDate', headerWord: '주문일', width: 120, grow: 1 },
+  { id: 'postId', headerWord: '게시글 ID', width: 140, pinned: true },
+  { id: 'author', headerWord: '작성자', width: 110 },
+  { id: 'category', headerWord: '카테고리', width: 96 },
+  { id: 'writtenAt', headerWord: '작성일', width: 120, grow: 1 },
 ]);
 
-const FEW_ROWS = DEMO_ORDERS.slice(0, 3);
-const NO_ROWS: readonly DemoOrder[] = [];
+const FEW_ROWS = DEMO_POSTS.slice(0, 3);
+const NO_ROWS: readonly DemoPost[] = [];
 
 const numberFormat = new Intl.NumberFormat('ko-KR');
 
@@ -35,7 +35,7 @@ export function DataGridHeightFillDemo() {
   const [fewRows, setFewRows] = useState(false);
   const [forceEmpty, setForceEmpty] = useState(false);
 
-  const source = fewRows ? FEW_ROWS : DEMO_ORDERS;
+  const source = fewRows ? FEW_ROWS : DEMO_POSTS;
   const rows = forceEmpty ? NO_ROWS : source;
 
   return (
@@ -57,7 +57,7 @@ export function DataGridHeightFillDemo() {
         <DataGrid
           columns={COLUMNS}
           rows={rows}
-          getRowId={(row) => row.orderId}
+          getRowId={(row) => row.postId}
           translateHeader={(code) => code}
           maxHeight="fill"
           attachedToolbar

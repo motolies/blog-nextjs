@@ -19,7 +19,7 @@ import {
 } from '@hvy/ui';
 import { Columns3 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { DEMO_ORDERS, DEMO_STATUS_META, type DemoOrder } from '../../../mock-orders';
+import { DEMO_POSTS, DEMO_STATUS_META, type DemoPost } from '../../../mock-posts';
 
 /**
  * 페이지 크기 영속 — 컬럼 설정과 **같은 localStorage 항목**(`nx:grid:{user}:{menu}:{grid}`)에 저장된다.
@@ -29,7 +29,7 @@ import { DEMO_ORDERS, DEMO_STATUS_META, type DemoOrder } from '../../../mock-ord
  *  1. 50 선택 → 패널에 `"pageSize":50` → 새로고침해도 50.
  *  2. 컬럼 설정에서 컬럼을 숨긴 뒤 **초기화** → 컬럼만 되돌고 JSON 에는 `pageSize` 만 남는다.
  *     "표를 어떻게 보느냐"(컬럼)와 "몇 건씩 조회하느냐"(페이지 크기)는 다른 결정이다.
- *     초기화 후 다시 연 다이얼로그에서 정의상 `hidden: true` 인 서비스타입이 체크 해제로 보여야 한다
+ *     초기화 후 다시 연 다이얼로그에서 정의상 `hidden: true` 인 카테고리가 체크 해제로 보여야 한다
  *     (order 가 비어도 정의의 hidden 을 따르는 draft 규칙).
  *  3. 컬럼 폭 드래그 → widths 만 갱신되고 pageSize 는 그대로.
  *
@@ -77,8 +77,8 @@ const COLUMN_SETTINGS_LABELS: ColumnSettingsLabels = {
 
 const numberFormat = new Intl.NumberFormat('ko-KR');
 
-/** 원본 컬럼 정의 — 숨김 적용 전. 서비스타입은 정의상 숨김(초기화 후 다이얼로그 표시 확인용). */
-const ALL_COLUMNS = defineColumns<DemoOrder>([
+/** 원본 컬럼 정의 — 숨김 적용 전. 카테고리는 정의상 숨김(초기화 후 다이얼로그 표시 확인용). */
+const ALL_COLUMNS = defineColumns<DemoPost>([
   {
     id: 'rowNum',
     headerWord: 'No',
@@ -89,14 +89,14 @@ const ALL_COLUMNS = defineColumns<DemoOrder>([
     resizable: false,
   },
   {
-    id: 'orderId',
-    headerWord: '주문번호',
+    id: 'postId',
+    headerWord: '게시글 ID',
     width: 140,
     primary: true,
     pinned: true,
     hideable: false,
   },
-  { id: 'receiver', headerWord: '수신자', width: 110 },
+  { id: 'author', headerWord: '작성자', width: 110 },
   {
     id: 'status',
     headerWord: '상태',
@@ -105,8 +105,8 @@ const ALL_COLUMNS = defineColumns<DemoOrder>([
       <Badge tone={DEMO_STATUS_META[row.status].tone}>{DEMO_STATUS_META[row.status].label}</Badge>
     ),
   },
-  { id: 'serviceType', headerWord: '서비스타입', width: 96, hidden: true },
-  { id: 'orderDate', headerWord: '주문일', width: 120, grow: 1 },
+  { id: 'category', headerWord: '카테고리', width: 96, hidden: true },
+  { id: 'writtenAt', headerWord: '작성일', width: 120, grow: 1 },
 ]);
 
 /** 저장소 원문을 사람이 읽게 — JSON 이면 들여쓰고, 아니면(없거나 깨짐) 그대로 보여준다. */
@@ -128,10 +128,10 @@ export function DataGridPageSizePreferenceDemo() {
   const pageSize = resolvePageSize(preference.pageSize);
 
   // 저장소 로드로 pageSize 가 바뀌면 보던 페이지 번호가 범위를 벗어날 수 있다 — 마지막 페이지로 붙인다.
-  const pageCount = Math.max(1, Math.ceil(DEMO_ORDERS.length / pageSize));
+  const pageCount = Math.max(1, Math.ceil(DEMO_POSTS.length / pageSize));
   const safePageIndex = Math.min(pageIndex, pageCount - 1);
   const rows = useMemo(
-    () => DEMO_ORDERS.slice(safePageIndex * pageSize, (safePageIndex + 1) * pageSize),
+    () => DEMO_POSTS.slice(safePageIndex * pageSize, (safePageIndex + 1) * pageSize),
     [safePageIndex, pageSize],
   );
 
@@ -162,7 +162,7 @@ export function DataGridPageSizePreferenceDemo() {
         <DataGrid
           columns={columns}
           rows={rows}
-          getRowId={(row) => row.orderId}
+          getRowId={(row) => row.postId}
           translateHeader={(code) => code}
           columnWidths={preference.widths}
           onColumnWidthsChange={preference.setWidths}
@@ -175,7 +175,7 @@ export function DataGridPageSizePreferenceDemo() {
           paging={
             <>
               <TotalCount
-                total={DEMO_ORDERS.length}
+                total={DEMO_POSTS.length}
                 prefix="총"
                 suffix="건"
                 format={numberFormat.format}

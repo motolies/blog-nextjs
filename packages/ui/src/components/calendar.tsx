@@ -154,6 +154,8 @@ export function Calendar({
   const hasRange = Boolean(rangeStart && rangeEnd && rangeStart <= rangeEnd);
 
   return (
+    // 기본은 고정 폭 — 인라인(문서 데모 등)에서 flex/grid 부모를 따라 늘어나지 않게.
+    // 프리셋 행이 더 넓어질 수 있는 피커는 `className="w-auto min-w-64"` 로 덮어쓴다(PresetRow 주석).
     <div className={cn('w-64 select-none p-2', className)}>
       <div className="mb-1.5 flex items-center justify-between">
         <span className="flex">

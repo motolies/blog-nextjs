@@ -15,7 +15,7 @@ import {
   useConfirm,
 } from '@hvy/ui';
 import { useState } from 'react';
-import { DEMO_ORDERS, DEMO_STATUS_META, type DemoOrder } from '../../../mock-orders';
+import { DEMO_POSTS, DEMO_STATUS_META, type DemoPost } from '../../../mock-posts';
 
 /**
  * 시나리오 3 — 다이얼로그 결합: PickerDialog 안의 DataGrid → 부모 폼 반영.
@@ -30,11 +30,11 @@ import { DEMO_ORDERS, DEMO_STATUS_META, type DemoOrder } from '../../../mock-ord
 
 const numberFormat = new Intl.NumberFormat('ko-KR');
 
-const PICK_ROWS = DEMO_ORDERS.slice(0, 15);
+const PICK_ROWS = DEMO_POSTS.slice(0, 15);
 
-const PICK_COLUMNS = defineColumns<DemoOrder>([
-  { id: 'orderId', headerWord: '주문번호', width: 140, primary: true, pinned: true },
-  { id: 'receiver', headerWord: '수신자', width: 110 },
+const PICK_COLUMNS = defineColumns<DemoPost>([
+  { id: 'postId', headerWord: '게시글 ID', width: 140, primary: true, pinned: true },
+  { id: 'author', headerWord: '작성자', width: 110 },
   {
     id: 'status',
     headerWord: '상태',
@@ -44,8 +44,8 @@ const PICK_COLUMNS = defineColumns<DemoOrder>([
     ),
   },
   {
-    id: 'amount',
-    headerWord: '금액',
+    id: 'viewCount',
+    headerWord: '조회수',
     width: 110,
     align: 'right',
     format: (value) => `${numberFormat.format(Number(value))} 원`,
@@ -56,12 +56,12 @@ export function DialogPickerScenario() {
   const askConfirm = useConfirm();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [picked, setPicked] = useState<DemoOrder | null>(null);
+  const [picked, setPicked] = useState<DemoPost | null>(null);
 
   const remove = async () => {
     if (!picked) return;
     const ok = await askConfirm({
-      message: `${picked.orderId} 선택을 해제하시겠습니까?`,
+      message: `${picked.postId} 선택을 해제하시겠습니까?`,
       confirmLabel: '해제',
       cancelLabel: '취소',
       destructive: true,
@@ -75,7 +75,7 @@ export function DialogPickerScenario() {
     <div className="w-full">
       <div className="flex flex-wrap items-end gap-3">
         <Field
-          label="선택된 주문"
+          label="선택된 게시글"
           htmlFor="dpk-picked"
           help="시스템이 채우는 칸 — 직접 입력할 수 없다"
           className="w-64"
@@ -84,7 +84,7 @@ export function DialogPickerScenario() {
             id="dpk-picked"
             lock
             placeholder="자동 / 찾아보기로 선택"
-            value={picked?.orderId ?? ''}
+            value={picked?.postId ?? ''}
           />
         </Field>
 
@@ -93,7 +93,7 @@ export function DialogPickerScenario() {
         </Button>
         <Button
           disabled={!picked}
-          title="주문을 먼저 선택하세요"
+          title="게시글을 먼저 선택하세요"
           onClick={() => setDetailOpen(true)}
         >
           상세 보기
@@ -101,7 +101,7 @@ export function DialogPickerScenario() {
         <Button
           variant="outline-red"
           disabled={!picked}
-          title="주문을 먼저 선택하세요"
+          title="게시글을 먼저 선택하세요"
           onClick={remove}
         >
           선택 해제
@@ -111,7 +111,7 @@ export function DialogPickerScenario() {
       <PickerDialog
         open={pickerOpen}
         onOpenChange={setPickerOpen}
-        title="주문 선택"
+        title="게시글 선택"
         footer={
           <Button variant="outline-strong" onClick={() => setPickerOpen(false)}>
             닫기
@@ -120,17 +120,17 @@ export function DialogPickerScenario() {
       >
         <div className="rounded-dl-container border border-dl-border-soft bg-dl-surface p-3 shadow-dl-card">
           <p className="mb-2 text-dl-xs text-dl-fg-muted">
-            주문번호(파란 링크)를 클릭하면 선택되고 모달이 닫힌다.
+            게시글 ID(파란 링크)를 클릭하면 선택되고 모달이 닫힌다.
           </p>
           <DataGrid
             columns={PICK_COLUMNS}
             rows={PICK_ROWS}
-            getRowId={(row) => row.orderId}
+            getRowId={(row) => row.postId}
             translateHeader={(code) => code}
             onRowPrimaryAction={(row) => {
               setPicked(row);
               setPickerOpen(false);
-              showToast(`${row.orderId} 선택됨`);
+              showToast(`${row.postId} 선택됨`);
             }}
             maxHeight={300}
           />
@@ -140,8 +140,8 @@ export function DialogPickerScenario() {
       <ContentDialog
         open={detailOpen}
         onOpenChange={setDetailOpen}
-        title="주문 상세"
-        description={picked?.orderId}
+        title="게시글 상세"
+        description={picked?.postId}
         size="md"
         footer={
           <Button variant="outline-strong" onClick={() => setDetailOpen(false)}>
@@ -151,14 +151,14 @@ export function DialogPickerScenario() {
       >
         {picked ? (
           <FormGrid>
-            <FieldValue label="주문번호">{picked.orderId}</FieldValue>
-            <FieldValue label="수신자">{picked.receiver}</FieldValue>
+            <FieldValue label="게시글 ID">{picked.postId}</FieldValue>
+            <FieldValue label="작성자">{picked.author}</FieldValue>
             <FieldValue label="상태">
               <Badge tone={DEMO_STATUS_META[picked.status].tone}>
                 {DEMO_STATUS_META[picked.status].label}
               </Badge>
             </FieldValue>
-            <FieldValue label="금액">{numberFormat.format(picked.amount)} 원</FieldValue>
+            <FieldValue label="조회수">{numberFormat.format(picked.viewCount)} 회</FieldValue>
           </FormGrid>
         ) : null}
       </ContentDialog>

@@ -25,7 +25,7 @@ export function MultiSelectModesDemo() {
         <FormMode key={mode} value={mode}>
           <div className="flex flex-col gap-4">
             <p className="text-dl-xs font-semibold text-dl-fg-muted">{mode}</p>
-            <Field label="배송사" htmlFor={`mm-${mode}-carriers`}>
+            <Field label="태그" htmlFor={`mm-${mode}-carriers`}>
               <MultiSelect
                 id={`mm-${mode}-carriers`}
                 placeholder="전체"
@@ -33,7 +33,7 @@ export function MultiSelectModesDemo() {
                 defaultValue={['CJ', 'HJ']}
               />
             </Field>
-            <Field label="제외 배송사 (0개)" htmlFor={`mm-${mode}-excluded`}>
+            <Field label="제외 태그 (0개)" htmlFor={`mm-${mode}-excluded`}>
               <MultiSelect
                 id={`mm-${mode}-excluded`}
                 placeholder="전체"

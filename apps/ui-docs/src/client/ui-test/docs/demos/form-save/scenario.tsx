@@ -30,12 +30,12 @@ import { type FormEvent, useRef, useState } from 'react';
  */
 
 const SERVICE_OPTIONS = [
-  { value: 'AIR', label: '항공' },
-  { value: 'SEA', label: '해상' },
-  { value: 'EXP', label: '특송' },
+  { value: 'DEV', label: '개발' },
+  { value: 'ESSAY', label: '에세이' },
+  { value: 'REVIEW', label: '리뷰' },
 ];
 
-type FieldName = 'receiver' | 'orderDate' | 'serviceType';
+type FieldName = 'author' | 'writtenAt' | 'category';
 
 export function FormSaveScenario() {
   const errors = useFieldErrors<FieldName>();
@@ -46,16 +46,16 @@ export function FormSaveScenario() {
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const receiver = String(data.get('receiver') ?? '').trim();
-    const orderDate = String(data.get('orderDate') ?? '').trim();
-    const serviceType = String(data.get('serviceType') ?? '').trim();
+    const author = String(data.get('author') ?? '').trim();
+    const writtenAt = String(data.get('writtenAt') ?? '').trim();
+    const category = String(data.get('category') ?? '').trim();
 
     const next: Partial<Record<FieldName, string>> = {};
-    if (receiver === '') next.receiver = '수신자명을 입력해 주세요';
-    if (orderDate === '') next.orderDate = '주문일을 입력해 주세요';
-    else if (!/^\d{4}-\d{2}-\d{2}$/.test(orderDate))
-      next.orderDate = 'YYYY-MM-DD 형식으로 입력해 주세요';
-    if (serviceType === '') next.serviceType = '서비스타입을 선택해 주세요';
+    if (author === '') next.author = '작성자명을 입력해 주세요';
+    if (writtenAt === '') next.writtenAt = '작성일을 입력해 주세요';
+    else if (!/^\d{4}-\d{2}-\d{2}$/.test(writtenAt))
+      next.writtenAt = 'YYYY-MM-DD 형식으로 입력해 주세요';
+    if (category === '') next.category = '카테고리를 선택해 주세요';
 
     // setAll 은 오류가 없을 때 true — 오류가 있으면 표시·포커스까지 끝났으니 여기서 멈춘다.
     if (!errors.setAll(next, formRef)) return;
@@ -82,23 +82,18 @@ export function FormSaveScenario() {
          */}
         <FormMode value={saved ? 'disabled' : 'edit'}>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-            <Field {...errors.bind('receiver')} label="수신자명" htmlFor="fs-receiver" required>
-              <Input id="fs-receiver" name="receiver" placeholder="수신자명 입력" />
+            <Field {...errors.bind('author')} label="작성자명" htmlFor="fs-author" required>
+              <Input id="fs-author" name="author" placeholder="작성자명 입력" />
             </Field>
 
-            <Field {...errors.bind('orderDate')} label="주문일" htmlFor="fs-orderDate" required>
-              <DatePicker id="fs-orderDate" name="orderDate" />
+            <Field {...errors.bind('writtenAt')} label="작성일" htmlFor="fs-writtenAt" required>
+              <DatePicker id="fs-writtenAt" name="writtenAt" />
             </Field>
 
-            <Field
-              {...errors.bind('serviceType')}
-              label="서비스타입"
-              htmlFor="fs-serviceType"
-              required
-            >
+            <Field {...errors.bind('category')} label="카테고리" htmlFor="fs-category" required>
               <Select
-                id="fs-serviceType"
-                name="serviceType"
+                id="fs-category"
+                name="category"
                 placeholder="선택"
                 options={SERVICE_OPTIONS}
               />

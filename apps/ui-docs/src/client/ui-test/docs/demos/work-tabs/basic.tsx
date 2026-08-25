@@ -27,7 +27,7 @@ import { useState } from 'react';
  */
 
 const LABELS: WorkTabsLabels = {
-  tabBar: '주문 작업 탭',
+  tabBar: '게시글 작업 탭',
   close: '닫기',
   closeOthers: '다른 탭 모두 닫기',
   closeRight: '오른쪽 탭 닫기',
@@ -42,7 +42,7 @@ const LABELS: WorkTabsLabels = {
   reorderDone: (title, position, total) => `${title}, ${position}번째로 이동. 전체 ${total}개.`,
 };
 
-const LIST_ID = '/client/orders';
+const LIST_ID = '/admin/posts';
 
 /** 메뉴 스코프 상한 — 전역 20 과 달리 로컬 탭은 좁게 잡는다. 초과 시연용으로 상세를 더 만든다. */
 const LOCAL_TABS_MAX = 10;
@@ -57,8 +57,8 @@ const ANCHOR_TAB: WorkTab = {
 };
 
 const DETAILS = Array.from({ length: LOCAL_TABS_MAX + 1 }, (_, index) => ({
-  id: `${LIST_ID}/ORD-2408${String(index + 1).padStart(4, '0')}`,
-  title: `ORD-2408${String(index + 1).padStart(4, '0')}`,
+  id: `${LIST_ID}/POST-2408${String(index + 1).padStart(4, '0')}`,
+  title: `POST-2408${String(index + 1).padStart(4, '0')}`,
 }));
 
 export function WorkTabsBasicDemo() {
@@ -134,7 +134,7 @@ export function WorkTabsBasicDemo() {
         {activeTab ? (
           <>
             <h3 className="text-dl-sm font-semibold text-dl-fg">
-              {activeTab.id === LIST_ID ? '주문 목록' : `주문 상세 — ${activeTab.title}`}
+              {activeTab.id === LIST_ID ? '게시글 목록' : `게시글 상세 — ${activeTab.title}`}
             </h3>
             <p className="mt-1 text-dl-xs text-dl-fg-muted">
               현재 URL: {activeTab.href} — 실제 앱에서는 내비게이션이 이 탭을 열고, 이 자리에

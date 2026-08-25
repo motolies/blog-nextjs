@@ -36,7 +36,7 @@ export function SelectModesDemo() {
                 defaultValue="KR"
               />
             </Field>
-            <Field label="창고 (미선택)" htmlFor={`slm-${mode}-warehouse`}>
+            <Field label="시리즈 (미선택)" htmlFor={`slm-${mode}-warehouse`}>
               <Select
                 id={`slm-${mode}-warehouse`}
                 placeholder="선택"
@@ -48,8 +48,8 @@ export function SelectModesDemo() {
             </Field>
             <Field label="정렬 기준 (NativeSelect)" htmlFor={`slm-${mode}-sort`}>
               <NativeSelect id={`slm-${mode}-sort`} defaultValue="date">
-                <option value="date">주문일순</option>
-                <option value="name">수취인순</option>
+                <option value="date">작성일순</option>
+                <option value="name">작성자순</option>
               </NativeSelect>
             </Field>
           </div>

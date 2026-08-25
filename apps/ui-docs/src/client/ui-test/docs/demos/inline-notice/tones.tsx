@@ -10,10 +10,10 @@ export function InlineNoticeTonesDemo() {
   return (
     <div className="flex flex-col gap-2">
       <InlineNotice tone="muted">개인정보 항목은 권한에 따라 마스킹되어 표시됩니다.</InlineNotice>
-      <InlineNotice tone="info">주문 상태가 변경되면 자동으로 갱신됩니다.</InlineNotice>
-      <InlineNotice tone="success">전송이 완료된 주문입니다.</InlineNotice>
+      <InlineNotice tone="info">게시글 상태가 변경되면 자동으로 갱신됩니다.</InlineNotice>
+      <InlineNotice tone="success">발행이 완료된 게시글입니다.</InlineNotice>
       <InlineNotice tone="warning">3건이 누락된 채 저장되었습니다.</InlineNotice>
-      <InlineNotice tone="error">배송지 정보가 유효하지 않아 출고가 보류되었습니다.</InlineNotice>
+      <InlineNotice tone="error">카테고리가 지정되지 않아 발행이 보류되었습니다.</InlineNotice>
     </div>
   );
 }

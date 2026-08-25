@@ -2,7 +2,7 @@
 
 import { DataGrid, defineColumns, type GridEmpty, showToast } from '@hvy/ui';
 import { useState } from 'react';
-import type { DemoOrder } from '../../../mock-orders';
+import type { DemoPost } from '../../../mock-posts';
 import { EnumControl } from '../../../playground';
 
 /**
@@ -20,14 +20,14 @@ import { EnumControl } from '../../../playground';
  */
 
 /** 폭을 넉넉히 잡아 **총폭 > 데모 폭**을 만든다 — 가로 스크롤이 있어야 볼 수 있는 결함이다. */
-const COLUMNS = defineColumns<DemoOrder>([
+const COLUMNS = defineColumns<DemoPost>([
   { id: 'rowNum', headerWord: 'No', width: 56, sortable: false, pinned: true },
-  { id: 'orderId', headerWord: '주문번호', width: 180, pinned: true },
-  { id: 'receiver', headerWord: '수신자', width: 180 },
+  { id: 'postId', headerWord: '게시글 ID', width: 180, pinned: true },
+  { id: 'author', headerWord: '작성자', width: 180 },
   { id: 'status', headerWord: '상태', width: 180 },
-  { id: 'serviceType', headerWord: '서비스타입', width: 180 },
-  { id: 'amount', headerWord: '금액', width: 180, align: 'right' },
-  { id: 'orderDate', headerWord: '주문일', width: 240 },
+  { id: 'category', headerWord: '카테고리', width: 180 },
+  { id: 'viewCount', headerWord: '조회수', width: 180, align: 'right' },
+  { id: 'writtenAt', headerWord: '작성일', width: 240 },
 ]);
 
 /** `default` 는 `empty` 를 **아예 넘기지 않는** 경우다 — 예전에는 여기가 빈 껍데기였다. */
@@ -39,7 +39,7 @@ const EMPTY_BY_STATE: Readonly<Record<Exclude<DemoState, 'default'>, GridEmpty>>
   idle: {
     state: 'idle',
     title: '조회 조건을 입력하세요',
-    hint: '기간과 주문상태를 고른 뒤 조회를 누릅니다',
+    hint: '기간과 게시글 상태를 고른 뒤 조회를 누릅니다',
   },
   empty: {
     state: 'empty',
@@ -67,7 +67,7 @@ export function DataGridEmptyStatesDemo() {
       <DataGrid
         columns={COLUMNS}
         rows={[]}
-        getRowId={(row) => row.orderId}
+        getRowId={(row) => row.postId}
         // 'default' 는 prop 자체를 넘기지 않는다 — 그리드가 스스로 기본 문구를 그린다.
         empty={state === 'default' ? undefined : EMPTY_BY_STATE[state]}
         isFetching={state === 'loading'}

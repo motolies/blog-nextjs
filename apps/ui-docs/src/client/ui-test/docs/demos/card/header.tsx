@@ -11,7 +11,7 @@ export function CardHeaderDemo() {
   return (
     <Card className="max-w-2xl">
       <CardHeader
-        title="주문 요약"
+        title="게시글 요약"
         aside={<Badge tone="primary">데모</Badge>}
         destructive={
           <Button variant="outline-red" icon={Trash2}>

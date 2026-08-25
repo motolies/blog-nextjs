@@ -18,10 +18,10 @@ const SHORTCUTS: readonly {
   readonly tone: StatTileTone;
 }[] = [
   { key: 'all', label: '전체', value: 1240, tone: 'neutral' },
-  { key: 'O01', label: '주문접수', value: 214, tone: 'primary' },
-  { key: 'O03', label: '출고대기', value: 86, tone: 'warning' },
-  { key: 'O06', label: '출고완료', value: 903, tone: 'success' },
-  { key: 'issue', label: '이슈', value: 4, tone: 'danger' },
+  { key: 'DRAFT', label: '초안', value: 214, tone: 'primary' },
+  { key: 'EDITING', label: '수정중', value: 86, tone: 'warning' },
+  { key: 'PUBLISHED', label: '발행', value: 903, tone: 'success' },
+  { key: 'ERROR', label: '색인오류', value: 4, tone: 'danger' },
 ];
 
 export function StatTilePlaygroundDemo() {
@@ -31,12 +31,12 @@ export function StatTilePlaygroundDemo() {
     <div className="flex flex-col gap-4">
       {/* 표시 전용 — 그리드와 같은 데이터에서 파생한 수치 + 집계 기준(hint) 명기 */}
       <section className="grid grid-cols-2 gap-dl-gutter md:grid-cols-4">
-        <StatTile label="총 재고수량" hint="조회 결과 기준" value={numberFormat.format(52180)} />
-        <StatTile label="할당수량" hint="조회 결과 기준" value={numberFormat.format(3120)} />
-        <StatTile label="가용수량" hint="조회 결과 기준" value={numberFormat.format(47960)} />
+        <StatTile label="총 조회수" hint="조회 결과 기준" value={numberFormat.format(52180)} />
+        <StatTile label="이번 주 조회수" hint="조회 결과 기준" value={numberFormat.format(3120)} />
+        <StatTile label="순 방문자" hint="조회 결과 기준" value={numberFormat.format(47960)} />
         <StatTile
-          label="유통기한 임박"
-          hint="30일 이내"
+          label="색인 실패"
+          hint="최근 30일"
           tone="danger"
           value={numberFormat.format(12)}
         />

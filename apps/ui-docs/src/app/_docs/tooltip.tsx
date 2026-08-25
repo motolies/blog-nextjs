@@ -1,5 +1,4 @@
 import type { Tooltip } from '@hvy/ui';
-import { CircleHelp } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { LabelTooltipDemo } from '../../client/ui-test/docs/demos/tooltip/label-tooltip';
 import { type DocEntry, definePropRows } from './types';

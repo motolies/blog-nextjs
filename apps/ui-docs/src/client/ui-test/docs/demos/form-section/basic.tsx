@@ -3,8 +3,8 @@
 import { Button, Field, FormSection, Input, Select, showToast } from '@hvy/ui';
 
 const SERVICE_OPTIONS = [
-  { value: 'AIR', label: '항공' },
-  { value: 'SEA', label: '해상' },
+  { value: 'DEV', label: '개발' },
+  { value: 'ESSAY', label: '에세이' },
 ];
 
 /**
@@ -14,14 +14,14 @@ const SERVICE_OPTIONS = [
 export function FormSectionBasicDemo() {
   return (
     <FormSection
-      title="주문 기본 정보"
+      title="게시글 기본 정보"
       actions={
         <Button size="sm" onClick={() => showToast('저장 (데모)', 'success')}>
           저장
         </Button>
       }
     >
-      <Field label="주문번호" htmlFor="fs-order">
+      <Field label="게시글 ID" htmlFor="fs-order">
         <Input id="fs-order" placeholder="자동 / 저장 시 발급" lock />
       </Field>
       <Field label="서비스 타입" htmlFor="fs-service" required>
@@ -49,12 +49,12 @@ export function FormSectionCollapsibleDemo() {
           <Input id="fs-sender-phone" inputMode="numeric" />
         </Field>
       </FormSection>
-      <FormSection title="수취인 정보" collapsible defaultOpen={false}>
-        <Field label="이름" htmlFor="fs-receiver-name">
-          <Input id="fs-receiver-name" />
+      <FormSection title="작성자 정보" collapsible defaultOpen={false}>
+        <Field label="이름" htmlFor="fs-author-name">
+          <Input id="fs-author-name" />
         </Field>
-        <Field label="연락처" htmlFor="fs-receiver-phone">
-          <Input id="fs-receiver-phone" inputMode="numeric" />
+        <Field label="연락처" htmlFor="fs-author-phone">
+          <Input id="fs-author-phone" inputMode="numeric" />
         </Field>
       </FormSection>
     </div>

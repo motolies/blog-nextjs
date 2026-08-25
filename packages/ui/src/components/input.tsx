@@ -155,7 +155,6 @@ export function Input({
 
   // 우측 슬롯은 최대 2개다 — lock 과 × 는 상호 배타(잠긴 값은 못 지운다)라 겹치지 않는다.
   const rightSlots = (lock || showClear ? 1 : 0) + (suffix != null ? 1 : 0);
-  const hasAdornment = rightSlots > 0 || prefix != null;
 
   const control = (
     <input
@@ -184,9 +183,15 @@ export function Input({
     />
   );
 
-  const decorated = !hasAdornment ? (
-    control
-  ) : (
+  /**
+   * ⚠️ 어도먼트 유무와 **무관하게 항상** 이 래퍼를 쓴다.
+   *
+   * 조건부로 감싸면 반환 트리가 `<input>` ↔ `<span><input>…</span>` 으로 바뀐다.
+   * `clearable` 의 × 는 값이 있을 때만 뜨므로 **빈 칸에 첫 글자를 치는 순간** 그 전환이
+   * 일어나고, React 가 위치가 달라진 입력 DOM 을 파괴하고 새로 만든다 —
+   * 포커스가 날아가 첫 글자만 남는다(실측 버그). 래퍼가 늘 있으면 자리가 고정된다.
+   */
+  const decorated = (
     <span className="relative block w-full">
       {control}
       {prefix != null ? (
@@ -233,15 +238,18 @@ export function Input({
     typeof props.value === 'string' &&
     props.maxLength !== undefined;
 
-  if (!showCounter) return decorated;
-
+  // 바깥 래퍼도 **항상** 있다 — 위와 같은 이유다(조건부 래핑은 입력 DOM 을 파괴한다).
+  // 두 겹인 이유: 안쪽은 어도먼트의 absolute 기준면이라, 카운터가 그 안에 들어가면
+  // 부모 높이가 늘어나 inset-y-0 아이콘이 세로 중앙에서 벗어난다.
   return (
     <span className="block w-full">
       {decorated}
       {/* 시각 보조다 — 상한 강제는 네이티브 maxLength 가 한다. 스크린리더에는 소음이라 숨긴다. */}
-      <span aria-hidden className="mt-0.5 flex justify-end text-dl-fg-muted text-dl-xs">
-        {String(props.value).length}/{props.maxLength}
-      </span>
+      {showCounter ? (
+        <span aria-hidden className="mt-0.5 flex justify-end text-dl-fg-muted text-dl-xs">
+          {String(props.value).length}/{props.maxLength}
+        </span>
+      ) : null}
     </span>
   );
 }
@@ -320,15 +328,17 @@ export function Textarea({
     />
   );
 
-  const decorated = !lock ? (
-    control
-  ) : (
+  // 래퍼는 lock 유무와 무관하게 **항상** 있다 — Input 과 같은 이유다(조건부 래핑은
+  // 반환 트리의 깊이를 바꿔 React 가 입력 DOM 을 파괴하고, 타이핑 중 포커스가 날아간다).
+  const decorated = (
     <span className="relative block w-full">
       {control}
       {/* 여러 줄 컨트롤이라 세로 중앙이 아니라 첫 줄 옆(우상단)에 붙인다. */}
-      <span className="pointer-events-none absolute top-2.5 right-3 flex text-dl-locked-icon">
-        <Icon icon={Lock} size="lock" />
-      </span>
+      {lock ? (
+        <span className="pointer-events-none absolute top-2.5 right-3 flex text-dl-locked-icon">
+          <Icon icon={Lock} size="lock" />
+        </span>
+      ) : null}
     </span>
   );
 
@@ -340,15 +350,15 @@ export function Textarea({
     typeof props.value === 'string' &&
     props.maxLength !== undefined;
 
-  if (!showCounter) return decorated;
-
   return (
     <span className="block w-full">
       {decorated}
       {/* 시각 보조다 — 상한 강제는 네이티브 maxLength 가 한다. 스크린리더에는 소음이라 숨긴다. */}
-      <span aria-hidden className="mt-0.5 flex justify-end text-dl-fg-muted text-dl-xs">
-        {String(props.value).length}/{props.maxLength}
-      </span>
+      {showCounter ? (
+        <span aria-hidden className="mt-0.5 flex justify-end text-dl-fg-muted text-dl-xs">
+          {String(props.value).length}/{props.maxLength}
+        </span>
+      ) : null}
     </span>
   );
 }

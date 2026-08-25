@@ -2,7 +2,7 @@
 
 import { CONTROL_SIZES, type ControlSize, DataGrid, defineColumns } from '@hvy/ui';
 import { useState } from 'react';
-import { DEMO_ORDERS, type DemoOrder } from '../../../mock-orders';
+import { DEMO_POSTS, type DemoPost } from '../../../mock-posts';
 import { BoolControl, EnumControl } from '../../../playground';
 
 /**
@@ -21,21 +21,21 @@ type RowOption = (typeof ROW_OPTIONS)[number];
 
 const numberFormat = new Intl.NumberFormat('ko-KR');
 
-const COLUMNS = defineColumns<DemoOrder>([
+const COLUMNS = defineColumns<DemoPost>([
   { id: 'rowNum', headerWord: 'No', width: 56, sortable: false, resizable: false, pinned: true },
-  { id: 'orderId', headerWord: '주문번호', width: 130, pinned: true },
+  { id: 'postId', headerWord: '게시글 ID', width: 130, pinned: true },
   {
-    id: 'amount',
-    headerWord: '금액',
+    id: 'viewCount',
+    headerWord: '조회수',
     width: 100,
     align: 'right',
     format: (value) => numberFormat.format(Number(value)),
   },
-  { id: 'orderDate', headerWord: '주문일', width: 110, grow: 1 },
+  { id: 'writtenAt', headerWord: '작성일', width: 110, grow: 1 },
 ]);
 
 /** 합계는 호출부가 계산한다(footer 데모와 같은 계약) — 페이징이 없어 전 행을 직접 합산했다. */
-const TOTAL_AMOUNT = DEMO_ORDERS.reduce((sum, row) => sum + row.amount, 0);
+const TOTAL_VIEWS = DEMO_POSTS.reduce((sum, row) => sum + row.viewCount, 0);
 
 export function DataGridHeightRowsDemo() {
   const [rowOption, setRowOption] = useState<RowOption>('5');
@@ -69,8 +69,8 @@ export function DataGridHeightRowsDemo() {
           </span>
           <DataGrid
             columns={COLUMNS}
-            rows={DEMO_ORDERS}
-            getRowId={(row) => row.orderId}
+            rows={DEMO_POSTS}
+            getRowId={(row) => row.postId}
             translateHeader={(code) => code}
             density={density}
             maxHeight={{ rows }}
@@ -83,14 +83,14 @@ export function DataGridHeightRowsDemo() {
           </span>
           <DataGrid
             columns={COLUMNS}
-            rows={DEMO_ORDERS}
-            getRowId={(row) => row.orderId}
+            rows={DEMO_POSTS}
+            getRowId={(row) => row.postId}
             translateHeader={(code) => code}
             density={density}
             maxHeight={{ rows }}
             footer={
               withFooter
-                ? { cells: { orderId: '합계', amount: numberFormat.format(TOTAL_AMOUNT) } }
+                ? { cells: { postId: '합계', viewCount: numberFormat.format(TOTAL_VIEWS) } }
                 : undefined
             }
           />

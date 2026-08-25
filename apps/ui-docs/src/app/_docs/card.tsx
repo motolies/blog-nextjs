@@ -6,7 +6,7 @@ import { type DocEntry, definePropRows } from './types';
 const USAGE = `import { Card, CardHeader } from '@hvy/ui';
 
 <Card>
-  <CardHeader title="주문 요약" actions={<Button variant="primary">저장</Button>} />
+  <CardHeader title="게시글 요약" actions={<Button variant="primary">저장</Button>} />
   본문
 </Card>`;
 

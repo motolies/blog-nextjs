@@ -14,7 +14,7 @@ export function ToastActionDemo() {
         size="sm"
         variant="outline-strong"
         onClick={() =>
-          showToast('주문 1건이 보류 처리되었습니다', 'info', {
+          showToast('게시글 1건을 비공개로 전환했습니다', 'info', {
             durationMs: 8000,
             action: { label: '실행 취소', onClick: () => showToast('취소했습니다 (데모)') },
           })

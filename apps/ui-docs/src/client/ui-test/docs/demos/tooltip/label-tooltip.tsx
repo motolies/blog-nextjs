@@ -13,7 +13,7 @@ export function LabelTooltipDemo() {
       label={
         <span className="inline-flex items-center gap-0.5">
           검색 기준
-          <Tooltip content={'검색 가능 기준값\n· 배송 ID\n· 전표번호\n· 출고송장번호'}>
+          <Tooltip content={'검색 가능 기준값\n· 게시글 ID\n· 제목\n· 태그명'}>
             <button type="button" className="flex text-dl-fg-muted" aria-label="도움말">
               <Icon icon={CircleHelp} size="sm" />
             </button>

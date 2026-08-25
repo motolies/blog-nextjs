@@ -20,8 +20,8 @@ export function DatePickerModesDemo() {
         <FormMode key={mode} value={mode}>
           <div className="flex flex-col gap-4">
             <p className="text-dl-xs font-semibold text-dl-fg-muted">{mode}</p>
-            <Field label="주문일" htmlFor={`dpm-${mode}-orderDate`}>
-              <DatePicker id={`dpm-${mode}-orderDate`} defaultValue="2026-08-18" />
+            <Field label="작성일" htmlFor={`dpm-${mode}-writtenAt`}>
+              <DatePicker id={`dpm-${mode}-writtenAt`} defaultValue="2026-08-18" />
             </Field>
             <Field label="미선택" htmlFor={`dpm-${mode}-empty`}>
               <DatePicker id={`dpm-${mode}-empty`} />

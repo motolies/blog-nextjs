@@ -53,6 +53,15 @@ export type DateRangePreset = {
  * 프리셋 버튼 행 — 달력 팝오버 상단. 기간 2종(날짜 · datetime)이 공유한다
  * (`CalendarButton`·`PANEL_CLASS` 를 date-picker 가 내주는 것과 같은 방식).
  * 패널엔 패딩이 없다(Calendar 가 자체 패딩을 가진다) — 이 행은 자기 패딩을 갖는다.
+ *
+ * **항상 한 줄**이다 — 행은 nowrap, 버튼은 `shrink-0 whitespace-nowrap`(라벨 "최근 7일"
+ * 의 공백에서 버튼 안쪽이 접히지 않게).
+ *
+ * 팝오버에는 폭 지정이 없어 자식 중 가장 넓은 것을 따라간다(shrink-to-fit). 프리셋이
+ * 달력보다 넓으면 팝오버 폭이 이 행의 폭이 되는데, 그때 달력이 고정 폭이면 **달력 오른쪽에
+ * 빈 공간**이 생기고 그리드가 왼쪽으로 쏠려 보인다(실측 292 vs 256 — 36px). 그래서
+ * `Calendar` 에 `w-auto min-w-64`(최소만 고정)를 넘겨 이 행의 폭을 **채운다** — 7열 그리드가
+ * 균등 분배되므로 쏠림이 없다. 그 덮어쓰기를 빼면(기본 `w-64`) 위 증상이 돌아온다.
  */
 export function PresetRow({
   presets,
@@ -63,13 +72,13 @@ export function PresetRow({
 }) {
   if (presets.length === 0) return null;
   return (
-    <div className="flex flex-wrap gap-1 border-b border-dl-divider px-2 pt-2 pb-2">
+    <div className="flex gap-1 border-b border-dl-divider px-2 pt-2 pb-2">
       {presets.map((preset) => (
         <button
           key={preset.label}
           type="button"
           onClick={() => onApply(preset)}
-          className="rounded-dl-control border border-dl-border bg-dl-surface px-2 py-1 text-dl-fg-muted text-dl-xs hover:bg-dl-option-hover"
+          className="shrink-0 whitespace-nowrap rounded-dl-control border border-dl-border bg-dl-surface px-2 py-1 text-dl-fg-muted text-dl-xs hover:bg-dl-option-hover"
         >
           {preset.label}
         </button>
@@ -305,6 +314,8 @@ export function DateRangePicker({
         >
           {presets ? <PresetRow presets={presets} onApply={applyPreset} /> : null}
           <Calendar
+            // 프리셋 행이 더 넓으면 그 폭을 채운다(기본 w-64 고정을 푼다) — PresetRow 주석
+            className="w-auto min-w-64"
             range={{ start: range.start || undefined, end: range.end || undefined }}
             value={soleValue || undefined}
             initialFocus={

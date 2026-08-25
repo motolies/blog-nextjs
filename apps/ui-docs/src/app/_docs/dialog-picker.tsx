@@ -12,7 +12,7 @@ export const dialogPickerDoc: DocEntry = {
     {
       id: 'scenario',
       title: '선택 모달에서 골라 폼에 채우기',
-      note: '찾아보기 → 그리드에서 주문번호 클릭 → 부모 칸에 반영. 해제는 파괴적 확인 모달을 거친다.',
+      note: '찾아보기 → 그리드에서 게시글 ID 클릭 → 부모 칸에 반영. 해제는 파괴적 확인 모달을 거친다.',
       file: 'src/client/ui-test/docs/demos/dialog-picker/scenario.tsx',
       Component: DialogPickerScenario,
     },

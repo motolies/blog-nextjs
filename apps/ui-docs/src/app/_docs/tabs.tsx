@@ -1,5 +1,4 @@
 import type { Tab, TabList, Tabs } from '@hvy/ui';
-import { Box } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { TabsBadgeDemo } from '../../client/ui-test/docs/demos/tabs/badge';
 import { TabsBasicDemo } from '../../client/ui-test/docs/demos/tabs/basic';
@@ -8,7 +7,7 @@ import { type DocEntry, definePropRows } from './types';
 const USAGE = `import { Tab, TabList, TabPanel, Tabs } from '@hvy/ui';
 
 <Tabs value={tab} onValueChange={setTab}>   // URL 연동은 useSearchParams 로 앱이 배선
-  <TabList label="주문 상세 탭">
+  <TabList label="게시글 상세 탭">
     <Tab value="summary" icon={Box}>요약</Tab>
     <Tab value="history">이력</Tab>
   </TabList>

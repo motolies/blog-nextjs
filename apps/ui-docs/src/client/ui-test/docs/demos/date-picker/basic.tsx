@@ -9,7 +9,7 @@ export function DatePickerBasicDemo() {
 
   return (
     <div className="flex max-w-80 flex-col gap-3">
-      <DatePicker value={value} onValueChange={setValue} name="orderDate" clearable />
+      <DatePicker value={value} onValueChange={setValue} name="writtenAt" clearable />
       <p className="text-dl-sm text-dl-fg-muted">
         값: <code className="font-dl-mono">{value === '' ? '(비어 있음)' : value}</code>
       </p>

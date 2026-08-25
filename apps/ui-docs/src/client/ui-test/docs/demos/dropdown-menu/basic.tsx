@@ -30,8 +30,11 @@ export function DropdownMenuBasicDemo() {
           <DropdownMenuItem icon={FileText} onSelect={() => showToast('상세 보기 (데모)', 'info')}>
             상세 보기
           </DropdownMenuItem>
-          <DropdownMenuItem icon={Printer} onSelect={() => showToast('송장 출력 (데모)', 'info')}>
-            송장 출력
+          <DropdownMenuItem
+            icon={Printer}
+            onSelect={() => showToast('인쇄 미리보기 (데모)', 'info')}
+          >
+            인쇄 미리보기
           </DropdownMenuItem>
           <DropdownMenuItem icon={Save} disabled onSelect={() => {}}>
             저장 (비활성)

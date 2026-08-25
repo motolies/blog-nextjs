@@ -15,13 +15,22 @@ import type { DocEntry } from './types';
 const USAGE = `import { DataGrid, defineColumns, GridToolbar, useGridPreference, useGridSelection } from '@hvy/ui';
 
 const ALL_COLUMNS = defineColumns<Order>([
-  { id: 'orderId', headerWord: 'orderid', width: 140, primary: true, pinned: true, hideable: false },
+  { id: 'postId', headerWord: 'postid', width: 140, primary: true, pinned: true, hideable: false },
   { id: 'amount', headerWord: 'amount', width: 110, align: 'right', format: (v) => money(v) },
 ]);
 
-<DataGrid columns={columns} rows={rows} getRowId={(r) => r.orderId} … />`;
+<DataGrid columns={columns} rows={rows} getRowId={(r) => r.postId} … />`;
 
 /** DataGrid 문서 — 목록 화면의 그리드 배선 전체(정렬·선택·페이징·컬럼 설정). */
+/**
+ * 이 문서의 props 표는 `definePropRows` 가드를 쓰지 않는다.
+ *
+ * 훅 표(useGridPreference·useGridEditing·useGridSelection)의 행 이름이 `'반환'`·
+ * `'반환 (저장 계약)'` 처럼 **한글 서술**이라 `keyof P & string` 을 만족할 수 없다.
+ * 반환값을 필드별로 쪼개면 가드가 걸리지만(`list-reorder` 문서가 그 방식이다),
+ * 여기서는 "이 훅이 무엇을 돌려주는가" 를 한 덩어리로 읽히게 하는 쪽을 택했다 —
+ * 그리드 훅은 반환 필드가 서로 맞물려 하나의 배선을 이루기 때문이다.
+ */
 export const dataGridDoc: DocEntry = {
   slug: 'data-grid',
   category: 'components',
@@ -33,14 +42,14 @@ export const dataGridDoc: DocEntry = {
     {
       id: 'full',
       title: '메인 화면 재현 — 정렬 · 선택 · 페이징 · 컬럼 설정',
-      note: '컬럼 설정(폭·숨김·순서)은 localStorage 에 저장된다 — 바꾼 뒤 새로고침해서 유지되는지 확인해 볼 것. 페이지 크기도 같은 항목에 저장된다 — 바꾸고 새로고침. 결과가 교체되면(정렬·페이징) 선택이 비워지는 resetKey 배선도 핵심이다. 주문번호 클릭·행 액션은 토스트로 배선했다.',
+      note: '컬럼 설정(폭·숨김·순서)은 localStorage 에 저장된다 — 바꾼 뒤 새로고침해서 유지되는지 확인해 볼 것. 페이지 크기도 같은 항목에 저장된다 — 바꾸고 새로고침. 결과가 교체되면(정렬·페이징) 선택이 비워지는 resetKey 배선도 핵심이다. 게시글 ID 클릭·행 액션은 토스트로 배선했다.',
       file: 'src/client/ui-test/docs/demos/data-grid/full.tsx',
       Component: DataGridFullDemo,
     },
     {
       id: 'editing',
       title: '인라인 편집 — 더블클릭 편집 · 행 추가/삭제 · 검증 · 저장 계약',
-      note: '셀을 더블클릭하면 에디터로 바뀌고(Enter 확정 후 아래 이동 · Tab 좌우 이동 · Esc 취소), 수정 셀은 dirty 배경과 함께 셀 안에 ✕(수정 원복) 아이콘이 나타난다 — 편집이 셀 단위이므로 원복도 셀 단위다. ✕를 누르거나 값을 원복하거나 저장하면 dirty 가 사라진다. 행 추가는 행 전체 dirty + 주문번호 링크 비활성, 저장은 validateAll() 통과 후 getSaveRequestData() — 현행 gridWrapper 의 { addList, updateList } 계약 그대로다. 미저장 상태의 재조회는 확인 모달, 새로고침·탭 닫기는 useBeforeUnloadGuard 가 막는다. 컬럼 설정(순서·숨김)도 편집과 공존한다 — useGridEditing 에는 숨김 적용 전 전체 컬럼을 넘기므로, 숨긴 편집 컬럼도 저장 전 검증에 포함된다.',
+      note: '셀을 더블클릭하면 에디터로 바뀌고(Enter 확정 후 아래 이동 · Tab 좌우 이동 · Esc 취소), 수정 셀은 dirty 배경과 함께 셀 안에 ✕(수정 원복) 아이콘이 나타난다 — 편집이 셀 단위이므로 원복도 셀 단위다. ✕를 누르거나 값을 원복하거나 저장하면 dirty 가 사라진다. 행 추가는 행 전체 dirty + 게시글 ID 링크 비활성, 저장은 validateAll() 통과 후 getSaveRequestData() — 추가·수정을 한 요청으로 받는 { addList, updateList } 형태다. 미저장 상태의 재조회는 확인 모달, 새로고침·탭 닫기는 useBeforeUnloadGuard 가 막는다. 컬럼 설정(순서·숨김)도 편집과 공존한다 — useGridEditing 에는 숨김 적용 전 전체 컬럼을 넘기므로, 숨긴 편집 컬럼도 저장 전 검증에 포함된다.',
       file: 'src/client/ui-test/docs/demos/data-grid/editing.tsx',
       Component: DataGridEditingDemo,
     },
@@ -61,7 +70,7 @@ export const dataGridDoc: DocEntry = {
     {
       id: 'footer',
       title: '합계행 (footer) — 하단 sticky 요약',
-      note: '값은 호출부가 계산해 넘긴다 — 서버 페이징이라 전체 합계는 서버만 알고, 그리드가 보이는 행을 합산하면 "페이지 합계"를 전체로 오독하는 사고가 된다. 헤더와 같은 sticky 크롬이라 세로 스크롤에도 하단에 남고 고정열(주문번호) 오프셋을 공유한다 — 가로 스크롤로 확인해 볼 것. 행이 0이면 그리지 않는다.',
+      note: '값은 호출부가 계산해 넘긴다 — 서버 페이징이라 전체 합계는 서버만 알고, 그리드가 보이는 행을 합산하면 "페이지 합계"를 전체로 오독하는 사고가 된다. 헤더와 같은 sticky 크롬이라 세로 스크롤에도 하단에 남고 고정열(게시글 ID) 오프셋을 공유한다 — 가로 스크롤로 확인해 볼 것. 행이 0이면 그리지 않는다.',
       file: 'src/client/ui-test/docs/demos/data-grid/footer.tsx',
       Component: DataGridFooterDemo,
     },
@@ -103,14 +112,14 @@ export const dataGridDoc: DocEntry = {
     {
       id: 'page-size-preference',
       title: '페이지 크기 영속 — 컬럼 설정과 같은 항목, 초기화에도 남는다',
-      note: '50 을 고르면 오른쪽 패널의 JSON 에 "pageSize":50 이 나타나고(디바운스 300ms 뒤) 새로고침해도 50 이다. 컬럼을 숨긴 뒤 컬럼 설정의 "초기화"를 누르면 컬럼만 되돌고 JSON 에는 pageSize 만 남는다 — 초기화 후 다시 연 다이얼로그에서 정의상 숨김인 서비스타입이 체크 해제로 보여야 한다. 컬럼 폭을 드래그하면 widths 만 갱신되고 pageSize 는 그대로다. 저장값이 목록 밖이면 첫 옵션으로 떨어뜨리는 판단은 앱(데모)의 몫이다.',
+      note: '50 을 고르면 오른쪽 패널의 JSON 에 "pageSize":50 이 나타나고(디바운스 300ms 뒤) 새로고침해도 50 이다. 컬럼을 숨긴 뒤 컬럼 설정의 "초기화"를 누르면 컬럼만 되돌고 JSON 에는 pageSize 만 남는다 — 초기화 후 다시 연 다이얼로그에서 정의상 숨김인 카테고리가 체크 해제로 보여야 한다. 컬럼 폭을 드래그하면 widths 만 갱신되고 pageSize 는 그대로다. 저장값이 목록 밖이면 첫 옵션으로 떨어뜨리는 판단은 앱(데모)의 몫이다.',
       file: 'src/client/ui-test/docs/demos/data-grid/page-size-preference.tsx',
       Component: DataGridPageSizePreferenceDemo,
     },
     {
       id: 'page-size-fallback',
       title: '페이지 크기 검증 — 레거시·목록 밖·불량 값',
-      note: '버튼이 localStorage 에 원문 JSON 을 직접 쓰고 그리드 블록을 리마운트한다. 레거시(pageSize 없음)는 undefined 이고 주문번호 폭 180 이 유지된다. 25 는 ui 가 그대로 주지만 셀렉트는 10 이다(허용 목록은 앱이 안다). 0 과 문자열 "20" 은 pageSize 항목만 탈락하고 폭은 유지된다. version 2 는 전부 폐기되어 폭도 기본 140 으로 돌아간다.',
+      note: '버튼이 localStorage 에 원문 JSON 을 직접 쓰고 그리드 블록을 리마운트한다. 레거시(pageSize 없음)는 undefined 이고 게시글 ID 폭 180 이 유지된다. 25 는 ui 가 그대로 주지만 셀렉트는 10 이다(허용 목록은 앱이 안다). 0 과 문자열 "20" 은 pageSize 항목만 탈락하고 폭은 유지된다. version 2 는 전부 폐기되어 폭도 기본 140 으로 돌아간다.',
       file: 'src/client/ui-test/docs/demos/data-grid/page-size-fallback.tsx',
       Component: DataGridPageSizeFallbackDemo,
     },

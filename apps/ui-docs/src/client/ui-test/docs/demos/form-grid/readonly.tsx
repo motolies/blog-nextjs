@@ -18,15 +18,15 @@ export function FormGridReadonlyDemo() {
   return (
     <div className="max-w-4xl">
       <FormGrid>
-        <FieldValue label="주문번호">ORD-100024</FieldValue>
-        <FieldValue label="수신자">김민준</FieldValue>
-        <FieldValue label="주문상태">
-          <Badge tone="primary">배송중</Badge>
+        <FieldValue label="게시글 ID">POST-100024</FieldValue>
+        <FieldValue label="작성자">김민준</FieldValue>
+        <FieldValue label="게시글 상태">
+          <Badge tone="success">발행</Badge>
         </FieldValue>
-        <FieldValue label="주문일">2026-07-15</FieldValue>
-        <FieldValue label="서비스타입">항공</FieldValue>
-        <FieldValue label="결제금액">24,500 원</FieldValue>
-        <FieldValue label="배송지" className="col-span-full">
+        <FieldValue label="작성일">2026-07-15</FieldValue>
+        <FieldValue label="카테고리">개발</FieldValue>
+        <FieldValue label="조회수">24,500 회</FieldValue>
+        <FieldValue label="요약" className="col-span-full">
           서울특별시 강남구 테헤란로 123, 4층
         </FieldValue>
       </FormGrid>

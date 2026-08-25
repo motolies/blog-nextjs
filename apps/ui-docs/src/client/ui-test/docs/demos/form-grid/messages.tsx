@@ -17,20 +17,20 @@ export function FormGridMessagesDemo() {
   return (
     <div className="max-w-4xl">
       <FormGrid>
-        <Field label="수신자명" htmlFor="fm-receiver" required error="수신자명을 입력해 주세요">
-          <Input id="fm-receiver" placeholder="수신자명 입력" />
+        <Field label="작성자명" htmlFor="fm-author" required error="작성자명을 입력해 주세요">
+          <Input id="fm-author" placeholder="작성자명 입력" />
         </Field>
 
         <Field label="연락처" htmlFor="fm-phone">
           <Input id="fm-phone" defaultValue="010-1234-5678" />
         </Field>
 
-        <Field label="주문일" htmlFor="fm-date" required error="YYYY-MM-DD 형식으로 입력해 주세요">
+        <Field label="작성일" htmlFor="fm-date" required error="YYYY-MM-DD 형식으로 입력해 주세요">
           <DatePicker id="fm-date" />
         </Field>
 
-        <Field label="서비스타입" htmlFor="fm-service" help="미선택은 전체를 뜻한다">
-          <Select id="fm-service" placeholder="선택" options={[{ value: 'AIR', label: '항공' }]} />
+        <Field label="카테고리" htmlFor="fm-service" help="미선택은 전체를 뜻한다">
+          <Select id="fm-service" placeholder="선택" options={[{ value: 'DEV', label: '개발' }]} />
         </Field>
       </FormGrid>
     </div>

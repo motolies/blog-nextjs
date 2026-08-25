@@ -6,7 +6,7 @@ import { type DocEntry, definePropRows } from './types';
 
 const USAGE = `import { Field, NumberInput } from '@hvy/ui';
 
-<Field label="결제금액" htmlFor="amount" error={errors.amount}>
+<Field label="첨부 용량" htmlFor="amount" error={errors.amount}>
   <NumberInput
     id="amount"
     name="amount"
@@ -29,7 +29,7 @@ export const numberInputDoc: DocEntry = {
     {
       id: 'basic',
       title: '기본 — 천단위 · 클램프 · 소수 자릿수',
-      note: '편집 중에는 친 그대로 두고 blur/Enter 에 확정한다 — 숫자가 아니면 이전 값으로 되돌아가고, min/max 는 확정 시 클램프된다(수량 칸에 1234 를 치고 벗어나 볼 것). ↑/↓ 는 step 만큼 증감한다. decimalPlaces 는 표시(0 채움)와 확정(반올림) 양쪽에 적용된다 — 결제금액에 1.999 를 치면 2.00 이 된다. 아래 확정값 표시가 값 계약(number | null)의 실증이다 — 빈 칸은 0 이 아니라 null 이다.',
+      note: '편집 중에는 친 그대로 두고 blur/Enter 에 확정한다 — 숫자가 아니면 이전 값으로 되돌아가고, min/max 는 확정 시 클램프된다(수량 칸에 1234 를 치고 벗어나 볼 것). ↑/↓ 는 step 만큼 증감한다. decimalPlaces 는 표시(0 채움)와 확정(반올림) 양쪽에 적용된다 — 첨부 용량에 1.999 를 치면 2.00 이 된다. 아래 확정값 표시가 값 계약(number | null)의 실증이다 — 빈 칸은 0 이 아니라 null 이다.',
       file: 'src/client/ui-test/docs/demos/number-input/basic.tsx',
       Component: NumberInputBasicDemo,
     },

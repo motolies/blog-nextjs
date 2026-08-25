@@ -4,7 +4,7 @@ import { type DocEntry, definePropRows } from './types';
 
 const USAGE = `import { Badge } from '@hvy/ui';
 
-<Badge tone="success">배송완료</Badge>`;
+<Badge tone="success">발행</Badge>`;
 
 /** Badge 문서 — 5톤을 진행 국면으로 나눈다. */
 export const badgeDoc: DocEntry = {
@@ -18,7 +18,7 @@ export const badgeDoc: DocEntry = {
     {
       id: 'playground',
       title: 'Badge',
-      note: '5톤 전환 + 주문상태 → tone 매핑 예시(목데이터의 DEMO_STATUS_META).',
+      note: '5톤 전환 + 게시글 상태 → tone 매핑 예시(목데이터의 DEMO_STATUS_META).',
       file: 'src/client/ui-test/docs/demos/badge/playground.tsx',
       Component: BadgePlaygroundDemo,
     },

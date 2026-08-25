@@ -12,7 +12,7 @@ export const searchGridDoc: DocEntry = {
     {
       id: 'scenario',
       title: '조회 흐름 한 바퀴',
-      note: "'수신자 없음' 같은 조건으로 0건을 만들면 빈 상태가, 에러 모의를 켜면 ErrorState 가 나온다. 재조회 후 이전 선택이 남아 있으면 버그다.",
+      note: "'작성자 없음' 같은 조건으로 0건을 만들면 빈 상태가, 에러 모의를 켜면 ErrorState 가 나온다. 재조회 후 이전 선택이 남아 있으면 버그다.",
       file: 'src/client/ui-test/docs/demos/search-grid/scenario.tsx',
       Component: SearchGridScenario,
     },

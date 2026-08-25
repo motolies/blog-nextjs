@@ -12,7 +12,7 @@ import { type DocEntry, definePropRows } from './types';
 const USAGE = `import { DateRangePicker } from '@hvy/ui';
 
 /* 검색 조건의 기간 — 시작·종료가 각자 name 을 가진다 */
-<DateRangePicker startName="orderDateFrom" endName="orderDateTo"
+<DateRangePicker startName="writtenAtFrom" endName="writtenAtTo"
   start={range.start} end={range.end} onRangeChange={setRange} />`;
 
 /** DateRangePicker 문서 — DatePicker 를 기반으로 조립한 기간 컨트롤. */

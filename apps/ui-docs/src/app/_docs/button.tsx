@@ -1,5 +1,4 @@
 import type { ButtonProps, IconButtonProps } from '@hvy/ui';
-import { Save, Trash2 } from 'lucide-react';
 import { IconButtonDemo } from '../../client/ui-test/docs/demos/button/icon-button';
 import { ButtonMatrixDemo } from '../../client/ui-test/docs/demos/button/matrix';
 import { ButtonPlaygroundDemo } from '../../client/ui-test/docs/demos/button/playground';

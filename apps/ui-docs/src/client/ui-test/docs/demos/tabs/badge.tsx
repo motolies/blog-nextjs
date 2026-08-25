@@ -9,15 +9,15 @@ import { Tab, TabList, TabPanel, Tabs } from '@hvy/ui';
 export function TabsBadgeDemo() {
   return (
     <Tabs defaultValue="all">
-      <TabList label="주문 상태별 목록">
+      <TabList label="게시글 상태별 목록">
         <Tab value="all" badge="128">
           전체
         </Tab>
         <Tab value="pending" badge="32">
-          접수
+          초안
         </Tab>
         <Tab value="shipped" badge="7">
-          출고완료
+          발행
         </Tab>
         <Tab value="canceled" disabled badge="0">
           취소
@@ -27,10 +27,10 @@ export function TabsBadgeDemo() {
         전체 128건
       </TabPanel>
       <TabPanel value="pending" className="py-4 text-dl-fg-muted text-dl-sm">
-        접수 32건
+        초안 32건
       </TabPanel>
       <TabPanel value="shipped" className="py-4 text-dl-fg-muted text-dl-sm">
-        출고완료 7건
+        발행 7건
       </TabPanel>
       <TabPanel value="canceled" className="py-4 text-dl-fg-muted text-dl-sm">
         취소 0건

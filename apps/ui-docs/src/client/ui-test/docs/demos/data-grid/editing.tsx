@@ -21,12 +21,12 @@ import {
 import { Columns3, Plus, Save, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
-  DEMO_ADDON_OPTIONS,
-  DEMO_EDITABLE_ORDERS,
+  DEMO_EDITABLE_POSTS,
   DEMO_STATUS_META,
   DEMO_STATUSES,
-  type DemoEditableOrder,
-} from '../../../mock-orders';
+  DEMO_TAG_OPTIONS,
+  type DemoEditablePost,
+} from '../../../mock-posts';
 
 /**
  * 인라인 편집 배선 — `useGridEditing` 3계층(훅 상태 → binding → DataGrid 렌더)의 표준 배선.
@@ -35,9 +35,9 @@ import {
  * - 셀 더블클릭 → 에디터 전환(레거시 dhtmlx 감각), 수정 셀은 dirty 배경 + 셀 안 ✕(초기화)
  * - ✕ 클릭 또는 값 원복 → 그 셀만 dirty 해제 (편집이 셀 단위이므로 원복도 셀 단위)
  * - Tab/Shift+Tab 좌우 이동 · Enter 확정 후 아래 이동 · Esc 취소
- * - 부가서비스 열(multiselect) — 고를 때마다 커밋하고 **닫지 않는다**. 옵션 12종이라 셀
- *   안에서도 검색이 붙고, 6개째부터 선택 요약(칩)이 붙어 팝오버가 커진다(첫 행이 7개다)
- * - 행 추가(행 전체 dirty 배경 + 주문번호 링크 비활성) → 저장 시 addList 로 나간다
+ * - 태그 열(multiselect) — 고를 때마다 커밋하고 **닫지 않는다**. 옵션 12종이라 셀
+ *   안에서도 검색이 붙고, 하나라도 고르면 선택 요약(칩)이 붙어 팝오버가 커진다(첫 행이 7개다)
+ * - 행 추가(행 전체 dirty 배경 + 게시글 ID 링크 비활성) → 저장 시 addList 로 나간다
  * - 저장 = validateAll() 통과 후 getSaveRequestData() — 레거시 gridWrapper 계약 그대로
  * - 미저장 상태의 재조회 가드(useConfirm)와 브라우저 이탈 가드(useBeforeUnloadGuard)
  * - 컬럼 설정(순서·숨김)과 편집의 공존 — **훅에는 숨김 적용 전 전체 컬럼**, DataGrid 에는
@@ -67,7 +67,7 @@ const STATUS_OPTIONS = DEMO_STATUSES.map((status) => ({
 }));
 
 /** multiselect 에디터의 옵션 — 12종이라 셀 안에서도 검색 입력이 붙는다(임계값 10). */
-const ADDON_OPTIONS = DEMO_ADDON_OPTIONS.map((addon) => ({
+const ADDON_OPTIONS = DEMO_TAG_OPTIONS.map((addon) => ({
   value: addon.value,
   label: addon.label,
 }));
@@ -85,7 +85,7 @@ const ADDON_LABELS = new Map<string, string>(
 const required = (value: unknown) =>
   value == null || String(value).trim() === '' ? '필수 입력입니다' : null;
 
-const ALL_COLUMNS = defineColumns<DemoEditableOrder>([
+const ALL_COLUMNS = defineColumns<DemoEditablePost>([
   {
     id: 'rowNum',
     headerWord: 'No',
@@ -96,16 +96,16 @@ const ALL_COLUMNS = defineColumns<DemoEditableOrder>([
     resizable: false,
   },
   {
-    id: 'orderId',
-    headerWord: '주문번호',
+    id: 'postId',
+    headerWord: '게시글 ID',
     width: 140,
     primary: true,
     pinned: true,
     hideable: false,
   },
   {
-    id: 'receiver',
-    headerWord: '수신자',
+    id: 'author',
+    headerWord: '작성자',
     width: 130,
     editor: { type: 'text', maxLength: 20 },
     validate: required,
@@ -121,8 +121,8 @@ const ALL_COLUMNS = defineColumns<DemoEditableOrder>([
     },
   },
   {
-    id: 'amount',
-    headerWord: '금액',
+    id: 'viewCount',
+    headerWord: '조회수',
     width: 120,
     align: 'right',
     editor: { type: 'number', min: 0 },
@@ -130,15 +130,15 @@ const ALL_COLUMNS = defineColumns<DemoEditableOrder>([
     format: (value) => (value == null ? '' : `${numberFormat.format(Number(value))} 원`),
   },
   {
-    id: 'orderDate',
-    headerWord: '주문일',
+    id: 'writtenAt',
+    headerWord: '작성일',
     width: 150,
     editor: { type: 'date' },
     validate: required,
   },
   {
-    id: 'addons',
-    headerWord: '부가서비스',
+    id: 'tags',
+    headerWord: '태그',
     width: 200,
     sortable: false,
     editor: { type: 'multiselect', options: ADDON_OPTIONS, placeholder: '없음' },
@@ -150,8 +150,8 @@ const ALL_COLUMNS = defineColumns<DemoEditableOrder>([
         : '',
   },
   {
-    id: 'useYn',
-    headerWord: '사용',
+    id: 'publicYn',
+    headerWord: '공개',
     width: 70,
     grow: 1,
     editor: { type: 'checkbox', checkedValue: 'Y', uncheckedValue: 'N' },
@@ -177,8 +177,8 @@ export function DataGridEditingDemo() {
   );
 
   const editing = useGridEditing({
-    data: DEMO_EDITABLE_ORDERS,
-    getRowId: (row) => row.orderId,
+    data: DEMO_EDITABLE_POSTS,
+    getRowId: (row) => row.postId,
     // 숨김 적용 전 전체 컬럼 — validate 의 소유자가 훅이다. 숨긴 컬럼도 검증에서 빠지면 안 된다.
     columns: ALL_COLUMNS,
   });
@@ -194,10 +194,10 @@ export function DataGridEditingDemo() {
 
   /** 툴바 "행 추가" — 맨 위에 넣고 첫 편집 컬럼을 바로 연다(더블클릭 없이 입력 시작). */
   const handleAddRow = () => {
-    // addons 를 빈 배열로 명시한다 — undefined 로 두면 편집기가 방어하긴 하지만,
+    // tags 를 빈 배열로 명시한다 — undefined 로 두면 편집기가 방어하긴 하지만,
     // 저장 요청(addList)에 그 키가 통째로 빠져 "미선택"과 "필드 없음"이 갈린다.
-    const rowId = editing.addRow({ useYn: 'Y', status: 'READY', addons: [] }, { at: 'start' });
-    editing.setActiveCell({ rowId, columnId: 'receiver' });
+    const rowId = editing.addRow({ publicYn: 'Y', status: 'DRAFT', tags: [] }, { at: 'start' });
+    editing.setActiveCell({ rowId, columnId: 'author' });
   };
 
   /** 선택 삭제 — removeRow 는 추가('A') 행만 지운다. 기존 행은 별도 삭제 API 의 영역이다. */
@@ -261,7 +261,7 @@ export function DataGridEditingDemo() {
         getRowId={editing.getRowId}
         editing={editing.binding}
         translateHeader={(code) => code}
-        onRowPrimaryAction={(row) => showToast(`${row.orderId} 상세 이동 (데모)`, 'info')}
+        onRowPrimaryAction={(row) => showToast(`${row.postId} 상세 이동 (데모)`, 'info')}
         selection={{
           selectedIds: selection.selectedIds,
           onChange: selection.onChange,

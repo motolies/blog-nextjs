@@ -2,19 +2,19 @@
 
 import { Button, DataGrid, defineColumns, GridToolbar, showToast, useGridSelection } from '@hvy/ui';
 
-type Row = { readonly id: string; readonly orderId: string; readonly status: string };
+type Row = { readonly id: string; readonly postId: string; readonly status: string };
 
 const ROWS: readonly Row[] = [
-  { id: '1', orderId: 'ORD-2026-0001', status: '접수' },
-  { id: '2', orderId: 'ORD-2026-0002', status: '출고대기' },
-  { id: '3', orderId: 'ORD-2026-0003', status: '출고완료' },
-  { id: '4', orderId: 'ORD-2026-0004', status: '접수' },
+  { id: '1', postId: 'POST-2026-0001', status: '초안' },
+  { id: '2', postId: 'POST-2026-0002', status: '수정중' },
+  { id: '3', postId: 'POST-2026-0003', status: '발행' },
+  { id: '4', postId: 'POST-2026-0004', status: '초안' },
 ];
 
-const HEADER: Record<string, string> = { orderid: '주문번호', status: '상태' };
+const HEADER: Record<string, string> = { postid: '게시글 ID', status: '상태' };
 
 const COLUMNS = defineColumns<Row>([
-  { id: 'orderId', headerWord: 'orderid', width: 180 },
+  { id: 'postId', headerWord: 'postid', width: 180 },
   { id: 'status', headerWord: 'status', width: 140 },
 ]);
 
@@ -71,10 +71,10 @@ export function DataGridSelectionToolbarDemo() {
                 size="sm"
                 variant="outline-strong"
                 onClick={() =>
-                  showToast(`${selection.selectedCount}건 출고 지시 (데모)`, 'success')
+                  showToast(`${selection.selectedCount}건 일괄 발행 (데모)`, 'success')
                 }
               >
-                출고 지시
+                일괄 발행
               </Button>
             </>
           ),

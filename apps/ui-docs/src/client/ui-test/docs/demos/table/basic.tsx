@@ -2,11 +2,11 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@hvy/ui';
 
-const CARRIERS = [
-  { code: 'CJT', name: 'CJ대한통운', type: '택배', lead: '1~2일' },
-  { code: 'LTT', name: '롯데택배', type: '택배', lead: '1~2일' },
-  { code: 'EMS', name: '우체국 EMS', type: '국제특송', lead: '3~7일' },
-  { code: 'FDX', name: 'FedEx', type: '국제특송', lead: '2~5일' },
+const CATEGORIES = [
+  { code: 'DEV', name: '개발', type: '기술', count: '128' },
+  { code: 'FE', name: '프론트엔드', type: '기술', count: '74' },
+  { code: 'ESSAY', name: '에세이', type: '일반', count: '36' },
+  { code: 'REVIEW', name: '리뷰', type: '일반', count: '22' },
 ] as const;
 
 /** 기본 표 — md 밀도 + 행 hover. 열 머리가 있고 행이 같은 축의 자료라 표다. */
@@ -17,18 +17,18 @@ export function TableBasicDemo() {
         <TableHead>
           <TableRow>
             <TableHeaderCell>코드</TableHeaderCell>
-            <TableHeaderCell>배송사</TableHeaderCell>
+            <TableHeaderCell>카테고리</TableHeaderCell>
             <TableHeaderCell>구분</TableHeaderCell>
-            <TableHeaderCell>리드타임</TableHeaderCell>
+            <TableHeaderCell>게시글 수</TableHeaderCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {CARRIERS.map((carrier) => (
-            <TableRow key={carrier.code}>
-              <TableCell className="font-dl-mono">{carrier.code}</TableCell>
-              <TableCell>{carrier.name}</TableCell>
-              <TableCell>{carrier.type}</TableCell>
-              <TableCell>{carrier.lead}</TableCell>
+          {CATEGORIES.map((category) => (
+            <TableRow key={category.code}>
+              <TableCell className="font-dl-mono">{category.code}</TableCell>
+              <TableCell>{category.name}</TableCell>
+              <TableCell>{category.type}</TableCell>
+              <TableCell>{category.count}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -45,16 +45,16 @@ export function TableDenseDemo() {
         <TableHead>
           <TableRow>
             <TableHeaderCell>코드</TableHeaderCell>
-            <TableHeaderCell>배송사</TableHeaderCell>
+            <TableHeaderCell>카테고리</TableHeaderCell>
             <TableHeaderCell>구분</TableHeaderCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {CARRIERS.map((carrier) => (
-            <TableRow key={carrier.code}>
-              <TableCell className="font-dl-mono">{carrier.code}</TableCell>
-              <TableCell>{carrier.name}</TableCell>
-              <TableCell>{carrier.type}</TableCell>
+          {CATEGORIES.map((category) => (
+            <TableRow key={category.code}>
+              <TableCell className="font-dl-mono">{category.code}</TableCell>
+              <TableCell>{category.name}</TableCell>
+              <TableCell>{category.type}</TableCell>
             </TableRow>
           ))}
         </TableBody>

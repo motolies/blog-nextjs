@@ -2,7 +2,7 @@
 
 import { DataGrid, defineColumns } from '@hvy/ui';
 import { useState } from 'react';
-import { DEMO_ORDERS, type DemoOrder } from '../../../mock-orders';
+import { DEMO_POSTS, type DemoPost } from '../../../mock-posts';
 import { BoolControl } from '../../../playground';
 
 /**
@@ -16,18 +16,18 @@ import { BoolControl } from '../../../playground';
  *  - "행 3개만" 을 켜면 둘 다 내용 높이로 같아진다 — 상한은 넘칠 때만 작용한다.
  */
 
-const COLUMNS = defineColumns<DemoOrder>([
+const COLUMNS = defineColumns<DemoPost>([
   { id: 'rowNum', headerWord: 'No', width: 56, sortable: false, resizable: false, pinned: true },
-  { id: 'orderId', headerWord: '주문번호', width: 130, pinned: true },
-  { id: 'receiver', headerWord: '수신자', width: 100 },
-  { id: 'orderDate', headerWord: '주문일', width: 110, grow: 1 },
+  { id: 'postId', headerWord: '게시글 ID', width: 130, pinned: true },
+  { id: 'author', headerWord: '작성자', width: 100 },
+  { id: 'writtenAt', headerWord: '작성일', width: 110, grow: 1 },
 ]);
 
-const FEW_ROWS = DEMO_ORDERS.slice(0, 3);
+const FEW_ROWS = DEMO_POSTS.slice(0, 3);
 
 export function DataGridHeightAutoPxDemo() {
   const [fewRows, setFewRows] = useState(false);
-  const rows = fewRows ? FEW_ROWS : DEMO_ORDERS;
+  const rows = fewRows ? FEW_ROWS : DEMO_POSTS;
 
   return (
     <div className="flex flex-col gap-3">
@@ -42,7 +42,7 @@ export function DataGridHeightAutoPxDemo() {
           <DataGrid
             columns={COLUMNS}
             rows={rows}
-            getRowId={(row) => row.orderId}
+            getRowId={(row) => row.postId}
             translateHeader={(code) => code}
             maxHeight="auto"
           />
@@ -54,7 +54,7 @@ export function DataGridHeightAutoPxDemo() {
           <DataGrid
             columns={COLUMNS}
             rows={rows}
-            getRowId={(row) => row.orderId}
+            getRowId={(row) => row.postId}
             translateHeader={(code) => code}
             maxHeight={320}
           />

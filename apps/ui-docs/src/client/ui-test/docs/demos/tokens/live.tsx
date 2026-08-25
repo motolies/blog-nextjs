@@ -232,7 +232,7 @@ function TokenPreview({ token }: { token: Token }) {
   if (token.group === 'text') {
     return (
       <span style={{ fontSize: reference }} className="text-dl-fg">
-        주문번호 ORD-100001 · 다람쥐 헌 쳇바퀴
+        게시글 ID POST-100001 · 다람쥐 헌 쳇바퀴
       </span>
     );
   }
@@ -240,7 +240,7 @@ function TokenPreview({ token }: { token: Token }) {
   if (token.group === 'font') {
     return (
       <span style={{ fontFamily: reference }} className="text-dl-sm text-dl-fg">
-        주문관리 Order Management 0123456789
+        블로그 관리 Blog Management 0123456789
       </span>
     );
   }

@@ -4,9 +4,9 @@ import { CheckboxGroup, type CheckboxGroupOption, Field, FormMode } from '@hvy/u
 import { useState } from 'react';
 
 const SERVICE_OPTIONS: readonly CheckboxGroupOption[] = [
-  { value: 'AIR', label: '항공' },
-  { value: 'SEA', label: '해상' },
-  { value: 'EXP', label: '특송' },
+  { value: 'DEV', label: '개발' },
+  { value: 'ESSAY', label: '에세이' },
+  { value: 'REVIEW', label: '리뷰' },
   { value: 'GRD', label: '지상', disabled: true },
 ];
 
@@ -22,7 +22,7 @@ export function CheckboxGroupBasicDemo() {
     <div className="flex flex-col gap-2">
       <CheckboxGroup
         label="서비스 타입"
-        name="serviceTypes"
+        name="categories"
         options={SERVICE_OPTIONS}
         value={value}
         onValueChange={setValue}

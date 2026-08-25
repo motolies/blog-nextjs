@@ -23,21 +23,21 @@ export function DatePickerMessagesDemo() {
     const data = new FormData(event.currentTarget);
     const next: Partial<Record<'pickedDate' | 'typedDate', string>> = {};
     if (String(data.get('pickedDate') ?? '').trim() === '')
-      next.pickedDate = '주문일을 선택해 주세요';
+      next.pickedDate = '작성일을 선택해 주세요';
     if (String(data.get('typedDate') ?? '').trim() === '')
-      next.typedDate = '출고일을 선택해 주세요';
+      next.typedDate = '발행일을 선택해 주세요';
     errors.setAll(next, formRef);
   };
 
   return (
     <form ref={formRef} onSubmit={submit} className="flex max-w-80 flex-col gap-4">
-      <Field {...errors.bind('pickedDate')} label="주문일" htmlFor="dpm-picked" required>
+      <Field {...errors.bind('pickedDate')} label="작성일" htmlFor="dpm-picked" required>
         <DatePicker id="dpm-picked" name="pickedDate" />
       </Field>
 
       <Field
         {...errors.bind('typedDate')}
-        label="출고일"
+        label="발행일"
         htmlFor="dpm-typed"
         required
         help="타이핑으로 채워도 같은 결과여야 한다"

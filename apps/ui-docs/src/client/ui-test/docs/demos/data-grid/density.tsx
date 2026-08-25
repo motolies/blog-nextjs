@@ -10,7 +10,7 @@ import {
   useTokenPx,
 } from '@hvy/ui';
 import { useState } from 'react';
-import { DEMO_ORDERS, type DemoOrder } from '../../../mock-orders';
+import { DEMO_POSTS, type DemoPost } from '../../../mock-posts';
 import { BoolControl } from '../../../playground';
 
 /**
@@ -24,14 +24,14 @@ import { BoolControl } from '../../../playground';
  *     density(그리드별)와 테마 스케일(전역)은 곱해지는 두 축이다.
  */
 
-const COLUMNS = defineColumns<DemoOrder>([
+const COLUMNS = defineColumns<DemoPost>([
   { id: 'rowNum', headerWord: 'No', width: 56, sortable: false, resizable: false, pinned: true },
-  { id: 'orderId', headerWord: '주문번호', width: 140, pinned: true },
-  { id: 'receiver', headerWord: '수신자', width: 110, editor: { type: 'text', maxLength: 20 } },
-  { id: 'orderDate', headerWord: '주문일', width: 120, editor: { type: 'date' }, grow: 1 },
+  { id: 'postId', headerWord: '게시글 ID', width: 140, pinned: true },
+  { id: 'author', headerWord: '작성자', width: 110, editor: { type: 'text', maxLength: 20 } },
+  { id: 'writtenAt', headerWord: '작성일', width: 120, editor: { type: 'date' }, grow: 1 },
 ]);
 
-const ROWS = DEMO_ORDERS.slice(0, 3);
+const ROWS = DEMO_POSTS.slice(0, 3);
 
 /**
  * 한 단계짜리 미니 그리드. **컴포넌트로 분리한 이유는 훅이다** —
@@ -46,7 +46,7 @@ function DensityRow({
 }) {
   // 토큰을 다시 읽어 화면에 숫자로 적는다 — 그리드가 실제로 쓰는 값과 같은 경로다.
   const rowHeight = useTokenPx(GRID_ROW_TOKEN[density], 50);
-  const editing = useGridEditing({ data: ROWS, getRowId: (row) => row.orderId, columns: COLUMNS });
+  const editing = useGridEditing({ data: ROWS, getRowId: (row) => row.postId, columns: COLUMNS });
 
   return (
     <div className="flex flex-col gap-1">
@@ -58,7 +58,7 @@ function DensityRow({
         density={density}
         columns={COLUMNS}
         rows={editable ? editing.rows : ROWS}
-        getRowId={(row) => row.orderId}
+        getRowId={(row) => row.postId}
         maxHeight={400}
         editing={editable ? editing.binding : undefined}
         selection={{

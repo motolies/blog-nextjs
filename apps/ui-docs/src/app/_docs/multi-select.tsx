@@ -20,13 +20,13 @@ export const multiSelectDoc: DocEntry = {
   category: 'components',
   title: 'MultiSelect',
   description:
-    '다중 선택 드롭다운. 골라도 패널이 닫히지 않고 선택 개수가 배지로 트리거에 남는다(QA multi-select). 옵션이 searchThreshold(기본 10)를 넘으면 패널 상단에 검색 입력이 붙고, 선택이 summaryThreshold(기본 5)를 넘으면 그 아래에 선택 요약(칩 + ✕)이 붙는다 — 120개짜리 목록에서 트리거는 "[20] 서울 1센터, 서울 반품…" 으로 잘리므로, 무엇을 골랐는지 보고 바로 빼는 자리가 패널 안에 필요하다. 검색 중에도 전체 토글은 사라지지 않고 사정권이 "검색 결과"로 바뀐다 — 누르면 검색 결과가 기존 선택에 더해지고(덮어쓰지 않는다) 다시 누르면 그 범위만 빠진다. 상태 축은 mode 하나다 — 비활성은 mode="disabled"(disabled boolean prop 은 타입에서 제거됐다). clearable 을 주면 선택이 있을 때 캐럿 왼쪽에 × 가 떠 전체 해제한다. 폼 전송은 name 지정 시 값마다 hidden input — formData.getAll(name) 로 읽는다(단 edit 모드가 아니면 내지 않는다). view 모드는 라벨을 value 순서로 쉼표 연결해 그린다.',
+    '다중 선택 드롭다운. 골라도 패널이 닫히지 않고 선택 개수가 배지로 트리거에 남는다(QA multi-select). 옵션이 searchThreshold(기본 10)를 넘으면 패널 상단에 검색 입력이 붙고, 하나라도 고르면 그 아래에 선택 요약(칩 + ✕)이 붙는다(문턱 없음, 0개면 사라진다) — 120개짜리 목록에서 트리거는 "[20] 서울 1센터, 서울 반품…" 으로 잘리므로, 무엇을 골랐는지 보고 바로 빼는 자리가 패널 안에 필요하다. 검색 중에도 전체 토글은 사라지지 않고 사정권이 "검색 결과"로 바뀐다 — 누르면 검색 결과가 기존 선택에 더해지고(덮어쓰지 않는다) 다시 누르면 그 범위만 빠진다. 상태 축은 mode 하나다 — 비활성은 mode="disabled"(disabled boolean prop 은 타입에서 제거됐다). clearable 을 주면 선택이 있을 때 캐럿 왼쪽에 × 가 떠 전체 해제한다. 폼 전송은 name 지정 시 값마다 hidden input — formData.getAll(name) 로 읽는다(단 edit 모드가 아니면 내지 않는다). view 모드는 라벨을 value 순서로 쉼표 연결해 그린다.',
   usage: USAGE,
   examples: [
     {
       id: 'playground',
       title: 'MultiSelect',
-      note: 'selectAllLabel 항목은 전체 선택/해제 토글이다. 옵션 개수 5 → 12 에서 검색 입력이 나타나고(searchThreshold 10 경계), 6개째를 고르면 패널 상단에 선택 요약 칩이 붙는다(summaryThreshold 5 경계). 여러 개 고른 뒤 트리거의 개수 배지를 확인한다. clearable 을 켜면 선택이 있을 때 캐럿 왼쪽에 × 가 뜬다 — 누르면 전체 해제된다(접근성 이름은 clearAllLabel).',
+      note: 'selectAllLabel 항목은 전체 선택/해제 토글이다. 옵션 개수 5 → 12 에서 검색 입력이 나타난다(searchThreshold 10 경계). 선택 요약 칩은 문턱 없이 하나만 골라도 패널 상단에 붙고 0개가 되면 사라진다. 여러 개 고른 뒤 트리거의 개수 배지를 확인한다. clearable 을 켜면 선택이 있을 때 캐럿 왼쪽에 × 가 뜬다 — 누르면 전체 해제된다(접근성 이름은 clearAllLabel).',
       file: 'src/client/ui-test/docs/demos/multi-select/playground.tsx',
       Component: MultiSelectPlaygroundDemo,
     },
@@ -122,17 +122,11 @@ export const multiSelectDoc: DocEntry = {
           description: '검색 결과가 없을 때 문구.',
         },
         {
-          name: 'summaryThreshold',
-          type: 'number',
-          defaultValue: '5',
-          description:
-            '선택 개수가 이 값을 넘으면 패널 상단(검색 입력 아래)에 선택 요약 영역이 붙는다. 3~5개짜리 목록에서는 트리거가 이미 다 보여주므로 기본값 아래에서는 나오지 않는다. 셀 편집기처럼 팝오버가 커지면 곤란한 자리는 Number.POSITIVE_INFINITY 로 끈다.',
-        },
-        {
           name: 'summaryLabel',
           type: 'string',
           defaultValue: "'선택'",
-          description: '요약 헤더 문구 — 개수는 배지가 내므로 이 문구에 숫자를 넣지 않는다.',
+          description:
+            '선택 요약(패널 상단, 검색 입력 아래) 헤더 문구 — 요약은 선택이 하나라도 있으면 문턱 없이 항상 붙는다. 개수는 배지가 내므로 이 문구에 숫자를 넣지 않는다.',
         },
         {
           name: 'clearAllLabel',

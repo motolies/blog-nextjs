@@ -33,10 +33,10 @@ export function SwitchModesDemo() {
                 viewLabels={{ on: '수신', off: '수신 안 함' }}
               />
             </Field>
-            <Field label="송장 자동 출력" htmlFor={`swm-${mode}-print`}>
+            <Field label="초안 자동 저장" htmlFor={`swm-${mode}-print`}>
               <Switch
                 id={`swm-${mode}-print`}
-                label="송장 자동 출력"
+                label="초안 자동 저장"
                 checked={autoPrint}
                 onCheckedChange={setAutoPrint}
                 viewLabels={{ on: '자동 출력', off: '수동 출력' }}

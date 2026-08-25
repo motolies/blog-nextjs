@@ -5,9 +5,9 @@ import { type DocEntry, definePropRows } from './types';
 
 const USAGE = `import { Radio, RadioGroup } from '@hvy/ui';
 
-<RadioGroup label="배송 방식" name="shipping" value={value} onValueChange={setValue}>
-  <Radio value="AIR">항공</Radio>
-  <Radio value="SEA">해상</Radio>
+<RadioGroup label="편집기" name="editor" value={value} onValueChange={setValue}>
+  <Radio value="rich">리치 텍스트</Radio>
+  <Radio value="markdown">마크다운</Radio>
 </RadioGroup>`;
 
 /** Radio · RadioGroup 문서 — Radix 기반, 그룹 label 필수 관행. */

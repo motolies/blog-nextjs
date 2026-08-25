@@ -8,7 +8,7 @@ import { type DocEntry, definePropRows } from './types';
 const USAGE = `import { Select } from '@hvy/ui';
 
 <Select
-  name="serviceType"
+  name="category"
   options={options}
   placeholder="전체"   // "전체"(거르지 않음) vs "선택"(아직 안 고름) — 뜻이 다르다
   searchPlaceholder="검색"

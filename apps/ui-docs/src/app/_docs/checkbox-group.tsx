@@ -7,20 +7,20 @@ import { type DocEntry, definePropRows } from './types';
 
 const USAGE = `import { CheckboxGroup } from '@hvy/ui';
 
-<Field label="서비스 타입" htmlFor="serviceTypes">
+<Field label="서비스 타입" htmlFor="categories">
   <CheckboxGroup
-    id="serviceTypes"
+    id="categories"
     label="서비스 타입"
-    name="serviceTypes"
+    name="categories"
     options={[
-      { value: 'AIR', label: '항공' },
-      { value: 'SEA', label: '해상' },
+      { value: 'DEV', label: '개발' },
+      { value: 'ESSAY', label: '에세이' },
     ]}
     value={value}
     onValueChange={setValue}
   />
 </Field>
-/* 서버: formData.getAll('serviceTypes') */`;
+/* 서버: formData.getAll('categories') */`;
 
 /** CheckboxGroup 문서 — RadioGroup 의 다중 선택 대칭. */
 export const checkboxGroupDoc: DocEntry = {
@@ -28,7 +28,7 @@ export const checkboxGroupDoc: DocEntry = {
   category: 'components',
   title: 'CheckboxGroup',
   description:
-    'RadioGroup 의 다중 선택 대칭 — 다중 코드값 검색조건(서비스타입 복수 선택 등)을 Checkbox 나열로 수동 조립하던 것을 흡수한다. 값 계약은 readonly string[] 이고 관리형이라 비제어에서도 view 가 성립한다(선택형 공통 규약). 폼 전송은 네이티브 체크박스의 name/value 규약 그대로다 — 체크된 항목만 formData.getAll(name) 에 실리고 disabled 모드의 미전송도 네이티브가 이행한다. RadioGroup 과 달리 children 합성이 아니라 options 배열인 이유: view 모드가 선택 라벨들을 join 해 그려야 해서 그룹이 라벨을 알아야 한다(Select 와 같은 이유). 항목 잠금은 option.disabled → 그 항목의 mode="disabled" 로 내려간다 — disabled boolean prop 은 타입에서 제거된 축이다.',
+    'RadioGroup 의 다중 선택 대칭 — 다중 코드값 검색조건(카테고리 복수 선택 등)을 Checkbox 나열로 수동 조립하던 것을 흡수한다. 값 계약은 readonly string[] 이고 관리형이라 비제어에서도 view 가 성립한다(선택형 공통 규약). 폼 전송은 네이티브 체크박스의 name/value 규약 그대로다 — 체크된 항목만 formData.getAll(name) 에 실리고 disabled 모드의 미전송도 네이티브가 이행한다. RadioGroup 과 달리 children 합성이 아니라 options 배열인 이유: view 모드가 선택 라벨들을 join 해 그려야 해서 그룹이 라벨을 알아야 한다(Select 와 같은 이유). 항목 잠금은 option.disabled → 그 항목의 mode="disabled" 로 내려간다 — disabled boolean prop 은 타입에서 제거된 축이다.',
   usage: USAGE,
   examples: [
     {

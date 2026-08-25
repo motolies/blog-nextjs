@@ -20,8 +20,8 @@ export function DateRangePickerBasicDemo() {
         start={range.start}
         end={range.end}
         onRangeChange={setRange}
-        startName="orderDateFrom"
-        endName="orderDateTo"
+        startName="writtenAtFrom"
+        endName="writtenAtTo"
       />
       <p className="text-dl-sm text-dl-fg-muted">
         값:{' '}

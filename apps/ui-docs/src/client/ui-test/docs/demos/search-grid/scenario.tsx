@@ -15,7 +15,7 @@ import {
 } from '@hvy/ui';
 import { Search } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
-import { DEMO_ORDERS, DEMO_STATUS_META, DEMO_STATUSES, type DemoOrder } from '../../../mock-orders';
+import { DEMO_POSTS, DEMO_STATUS_META, DEMO_STATUSES, type DemoPost } from '../../../mock-posts';
 import { BoolControl } from '../../../playground';
 
 /**
@@ -29,16 +29,16 @@ import { BoolControl } from '../../../playground';
 
 const numberFormat = new Intl.NumberFormat('ko-KR');
 
-const COLUMNS = defineColumns<DemoOrder>([
+const COLUMNS = defineColumns<DemoPost>([
   {
-    id: 'orderId',
-    headerWord: '주문번호',
+    id: 'postId',
+    headerWord: '게시글 ID',
     width: 140,
     primary: true,
     pinned: true,
     hideable: false,
   },
-  { id: 'receiver', headerWord: '수신자', width: 110 },
+  { id: 'author', headerWord: '작성자', width: 110 },
   {
     id: 'status',
     headerWord: '상태',
@@ -48,13 +48,13 @@ const COLUMNS = defineColumns<DemoOrder>([
     ),
   },
   {
-    id: 'amount',
-    headerWord: '금액',
+    id: 'viewCount',
+    headerWord: '조회수',
     width: 110,
     align: 'right',
     format: (value) => `${numberFormat.format(Number(value))} 원`,
   },
-  { id: 'orderDate', headerWord: '주문일', width: 120, grow: 1 },
+  { id: 'writtenAt', headerWord: '작성일', width: 120, grow: 1 },
 ]);
 
 type Phase = 'idle' | 'loading' | 'done' | 'error';
@@ -65,13 +65,13 @@ export function SearchGridScenario() {
   const [simulateError, setSimulateError] = useState(false);
 
   const [phase, setPhase] = useState<Phase>('idle');
-  const [results, setResults] = useState<readonly DemoOrder[]>([]);
+  const [results, setResults] = useState<readonly DemoPost[]>([]);
   /** 조회가 실행될 때마다 증가 — 결과가 같아 보여도 "새 목록"이므로 선택을 비운다. */
   const [searchSeq, setSearchSeq] = useState(0);
 
   const selection = useGridSelection({
     rows: results,
-    getRowId: (row) => row.orderId,
+    getRowId: (row) => row.postId,
     resetKey: String(searchSeq),
   });
 
@@ -83,10 +83,10 @@ export function SearchGridScenario() {
         return;
       }
       const trimmed = keyword.trim();
-      const filtered = DEMO_ORDERS.filter(
-        (order) =>
-          (trimmed === '' || order.orderId.includes(trimmed) || order.receiver.includes(trimmed)) &&
-          (statusFilter === '' || order.status === statusFilter),
+      const filtered = DEMO_POSTS.filter(
+        (post) =>
+          (trimmed === '' || post.postId.includes(trimmed) || post.author.includes(trimmed)) &&
+          (statusFilter === '' || post.status === statusFilter),
       );
       setResults(filtered);
       setSearchSeq((seq) => seq + 1);
@@ -113,12 +113,12 @@ export function SearchGridScenario() {
         onSubmit={submit}
         className="mb-3 flex flex-wrap items-end gap-3 rounded-dl-control bg-dl-canvas p-3"
       >
-        <Field label="주문번호 · 수신자" htmlFor="sg-keyword" className="w-56">
+        <Field label="게시글 ID · 작성자" htmlFor="sg-keyword" className="w-56">
           <Input
             id="sg-keyword"
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
-            placeholder="ORD-100001 · 김민준"
+            placeholder="POST-100001 · 김민준"
           />
         </Field>
 
@@ -174,10 +174,10 @@ export function SearchGridScenario() {
           <DataGrid
             columns={COLUMNS}
             rows={results}
-            getRowId={(row) => row.orderId}
+            getRowId={(row) => row.postId}
             isFetching={phase === 'loading'}
             translateHeader={(code) => code}
-            onRowPrimaryAction={(row) => showToast(`${row.orderId} 상세 이동 (데모)`, 'info')}
+            onRowPrimaryAction={(row) => showToast(`${row.postId} 상세 이동 (데모)`, 'info')}
             selection={{
               selectedIds: selection.selectedIds,
               onChange: selection.onChange,

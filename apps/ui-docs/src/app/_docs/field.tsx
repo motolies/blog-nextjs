@@ -6,8 +6,8 @@ import { type DocEntry, definePropRows } from './types';
 
 const USAGE = `import { Field, Input } from '@hvy/ui';
 
-<Field label="수신자명" htmlFor="receiver" required error={errors.receiver}>
-  <Input id="receiver" placeholder="수신자명 입력" />
+<Field label="제목" htmlFor="subject" required error={errors.subject}>
+  <Input id="subject" placeholder="제목 입력" />
 </Field>`;
 
 /** Field 문서 — 라벨·필수 표시·헬퍼·오류를 접근성 속성으로 배선하는 래퍼. */
@@ -102,7 +102,7 @@ export const fieldDoc: DocEntry = {
           name: 'view',
           type: 'ReactNode',
           description:
-            'view 모드 표시값 오버라이드 — 표시값≠편집값일 때(단위 붙은 금액, Badge 상태 등). 있으면 children 대신 그린다. edit/disabled 에서는 무시.',
+            'view 모드 표시값 오버라이드 — 표시값≠편집값일 때(단위 붙은 수치, Badge 상태 등). 있으면 children 대신 그린다. edit/disabled 에서는 무시.',
         },
         {
           name: 'className',

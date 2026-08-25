@@ -20,6 +20,7 @@ import { useControllableState } from '../lib/useControllableState';
 import { warnOnce } from '../lib/warnOnce';
 import { FieldViewText, useFieldControl } from './field';
 import type { FieldMode } from './form-mode';
+import { OptionGroupHeader } from './option-group-header';
 import { groupHeaderBefore } from './optionGroups';
 
 /**
@@ -362,12 +363,7 @@ export function Select({
                 return (
                   <Fragment key={option.value}>
                     {groupHeader !== null ? (
-                      <div
-                        aria-hidden
-                        className="px-4 pt-2 pb-1 font-semibold text-dl-fg-muted text-dl-xs"
-                      >
-                        {groupHeader}
-                      </div>
+                      <OptionGroupHeader label={groupHeader} divided={index > 0} />
                     ) : null}
                     {/**
                      * listbox 패턴에서 option 은 **focusable 이 아니다** — 포커스는 검색 입력이나

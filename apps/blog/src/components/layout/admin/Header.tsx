@@ -1,3 +1,4 @@
+import { Icon } from '@hvy/ui';
 import { ArrowUpRight, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -37,11 +38,11 @@ export default function Header({ toggleMenu, isCollapsed }: HeaderProps) {
             onClick={toggleMenu}
             aria-label="관리자 메뉴 토글"
           >
-            <Menu className="h-5 w-5 lg:hidden" />
+            <Icon icon={Menu} size="md" className="lg:hidden" />
             {isCollapsed ? (
-              <PanelLeftOpen className="hidden h-5 w-5 lg:block" />
+              <Icon icon={PanelLeftOpen} size="md" className="hidden lg:block" />
             ) : (
-              <PanelLeftClose className="hidden h-5 w-5 lg:block" />
+              <Icon icon={PanelLeftClose} size="md" className="hidden lg:block" />
             )}
           </button>
           <Link href="/admin" className={styles.brandLink}>
@@ -74,15 +75,15 @@ export default function Header({ toggleMenu, isCollapsed }: HeaderProps) {
               aria-label={resolvedTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
             >
               {resolvedTheme === 'dark' ? (
-                <Sun className="h-4 w-4" />
+                <Icon icon={Sun} size="md" />
               ) : (
-                <Moon className="h-4 w-4" />
+                <Icon icon={Moon} size="md" />
               )}
             </button>
           )}
           <Link href="/" className={styles.siteLink}>
             블로그 보기
-            <ArrowUpRight className="h-4 w-4" />
+            <Icon icon={ArrowUpRight} />
           </Link>
         </div>
       </div>

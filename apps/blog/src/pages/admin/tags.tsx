@@ -3,6 +3,8 @@ import {
   Button,
   ContentDialog,
   defineColumns,
+  Icon,
+  IconButton,
   Input,
   Label,
   Select,
@@ -235,36 +237,38 @@ export default function TagsPage() {
         {
           id: 'actions' as keyof TagItem & string,
           headerWord: ' ',
-          width: 120,
+          // 아이콘 버튼 3개(xs 32) + gap-1 2칸 + 셀 좌우 패딩 20 = 124
+          width: 128,
           resizable: false,
           sortable: false,
           hideable: false,
           format: (_value, row) => (
             <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                className="aspect-square p-0 h-7 w-7 cursor-pointer"
+              <IconButton
+                icon={Pencil}
+                label={`${row.name} 수정`}
+                size="xs"
+                iconSize="sm"
+                className="cursor-pointer"
                 onClick={() => handleEdit(row)}
-                aria-label={`${row.name} 수정`}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                className="aspect-square p-0 h-7 w-7 cursor-pointer"
+              />
+              <IconButton
+                icon={Merge}
+                label={`${row.name} 병합`}
+                size="xs"
+                iconSize="sm"
+                className="cursor-pointer"
                 onClick={() => handleMerge(row)}
-                aria-label={`${row.name} 병합`}
-              >
-                <Merge className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                className="aspect-square p-0 h-7 w-7 cursor-pointer text-dl-danger hover:text-dl-danger"
+              />
+              <IconButton
+                icon={Trash2}
+                label={`${row.name} 삭제`}
+                tone="danger"
+                size="xs"
+                iconSize="sm"
+                className="cursor-pointer"
                 onClick={() => handleDelete(row)}
-                aria-label={`${row.name} 삭제`}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              />
             </div>
           ),
         },
@@ -279,10 +283,13 @@ export default function TagsPage() {
   return (
     <AdminPageFrame className="admin-page-frame--fixed">
       {/* 상단 액션 바 */}
-      <div className="admin-panel admin-panel-pad mb-2">
+      <div className="admin-panel admin-panel-pad">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-dl-fg-muted" />
+            <Icon
+              icon={Search}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-dl-fg-muted"
+            />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -297,14 +304,14 @@ export default function TagsPage() {
                 onClick={() => setSearchQuery('')}
                 aria-label="검색어 지우기"
               >
-                <X className="h-3.5 w-3.5 text-dl-fg-muted" />
+                <Icon icon={X} className="text-dl-fg-muted" />
               </button>
             )}
           </div>
 
           {/* Switch 는 <button role="switch"> 라 <label> 이 감쌀 수 없다(labelable 요소가 아니다).
               옆 문구는 설명이고, 접근성 이름은 Switch 의 label prop 이 갖는다. */}
-          <span className="inline-flex items-center gap-2 whitespace-nowrap text-sm text-[color:var(--admin-text-muted)]">
+          <span className="inline-flex items-center gap-2 whitespace-nowrap text-dl-sm text-[color:var(--admin-text-muted)]">
             <Switch
               checked={unusedOnly}
               onCheckedChange={setUnusedOnly}
@@ -320,12 +327,12 @@ export default function TagsPage() {
               onClick={handleBulkDelete}
               disabled={unusedCount === 0}
               title="미사용 태그가 있을 때 눌러진다"
+              icon={Trash2}
             >
-              <Trash2 className="h-4 w-4 mr-1" />
               미사용 일괄삭제{unusedCount > 0 && ` (${unusedCount})`}
             </Button>
-            <Button variant="primary" className="cursor-pointer" onClick={handleCreate}>
-              <Plus className="h-4 w-4 mr-1" />새 태그
+            <Button variant="primary" className="cursor-pointer" onClick={handleCreate} icon={Plus}>
+              새 태그
             </Button>
           </div>
         </div>
@@ -365,8 +372,7 @@ export default function TagsPage() {
             <Button variant="outline-gray" onClick={() => setOpenDialog(false)}>
               취소
             </Button>
-            <Button variant="primary" onClick={handleSave}>
-              <Save className="h-4 w-4 mr-1" />
+            <Button variant="primary" onClick={handleSave} icon={Save}>
               저장
             </Button>
           </>
@@ -405,15 +411,15 @@ export default function TagsPage() {
               onClick={confirmMerge}
               disabled={!mergeTargetId}
               title="대상 태그를 고르면 눌러진다"
+              icon={Merge}
             >
-              <Merge className="h-4 w-4 mr-1" />
               병합
             </Button>
           </>
         }
       >
         <div className="space-y-4 pt-2">
-          <div className="rounded-lg border border-dl-tonal-border bg-dl-tonal p-3 text-sm">
+          <div className="rounded-dl-container border border-dl-tonal-border bg-dl-tonal p-3 text-dl-sm">
             <span className="text-[color:var(--admin-text-faint)]">병합할 태그: </span>
             <strong className="text-[color:var(--admin-text)]">{mergeSource?.name}</strong>
             {mergeSource && mergeSource.postCount > 0 && (
@@ -437,7 +443,7 @@ export default function TagsPage() {
               className="w-full"
             />
           </div>
-          <p className="text-sm text-[color:var(--admin-text-muted)]">
+          <p className="text-dl-sm text-[color:var(--admin-text-muted)]">
             <strong>{mergeSource?.name}</strong>의 포스트가 선택한 대상 태그로 이동되고,{' '}
             <strong>{mergeSource?.name}</strong>은 삭제됩니다.
           </p>

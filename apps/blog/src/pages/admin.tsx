@@ -1,3 +1,4 @@
+import { Icon } from '@hvy/ui';
 import type { LucideIcon } from 'lucide-react';
 import {
   ArrowRight,
@@ -64,19 +65,19 @@ export default function AdminPage() {
       actions={
         <Link
           href="/admin/write"
-          className="inline-flex items-center gap-2 rounded-2xl border border-dl-tonal-border bg-dl-tonal px-4 py-2 text-sm font-semibold text-dl-primary-ink transition hover:bg-dl-tonal-hover"
+          className="inline-flex items-center gap-2 rounded-dl-container border border-dl-tonal-border bg-dl-tonal px-4 py-2 text-dl-sm font-semibold text-dl-primary-ink transition hover:bg-dl-tonal-hover"
         >
           새 글 작성
-          <ArrowRight className="h-4 w-4" />
+          <Icon icon={ArrowRight} />
         </Link>
       }
     >
       <div className="admin-stat-grid">
-        {dashboardStats.map(({ label, value, meta, icon: Icon }) => (
+        {dashboardStats.map(({ label, value, meta, icon: StatIcon }) => (
           <div className="admin-stat-card col-span-12 sm:col-span-6 xl:col-span-4" key={label}>
             <div className="flex items-center justify-between gap-3">
               <span className="admin-stat-label">{label}</span>
-              <Icon className="h-5 w-5 text-dl-primary-ink" />
+              <Icon icon={StatIcon} size="md" className="text-dl-primary-ink" />
             </div>
             <strong className="admin-stat-value">{value}</strong>
             <span className="admin-stat-meta">{meta}</span>
@@ -88,10 +89,10 @@ export default function AdminPage() {
         <section className="admin-panel admin-panel-pad">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">
+              <p className="text-dl-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">
                 Quick Access
               </p>
-              <h2 className="mt-1 text-xl font-semibold text-[color:var(--admin-text)]">
+              <h2 className="mt-1 text-dl-title font-semibold text-[color:var(--admin-text)]">
                 주요 관리 화면
               </h2>
             </div>
@@ -99,18 +100,21 @@ export default function AdminPage() {
           </div>
 
           <div className="grid gap-3 md:grid-cols-2">
-            {adminQuickLinks.map(({ href, label, description, icon: Icon }) => (
+            {adminQuickLinks.map(({ href, label, description, icon: LinkIcon }) => (
               <Link href={href} key={href} className="admin-link-card group p-4">
                 <div className="admin-icon-chip mb-4 p-3">
-                  <Icon className="h-5 w-5" />
+                  <Icon icon={LinkIcon} size="md" />
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-base font-semibold text-[color:var(--admin-text)]">
+                  <h3 className="text-dl-xl font-semibold text-[color:var(--admin-text)]">
                     {label}
                   </h3>
-                  <ArrowRight className="h-4 w-4 text-[color:var(--admin-text-faint)] transition group-hover:text-dl-primary-ink" />
+                  <Icon
+                    icon={ArrowRight}
+                    className="text-[color:var(--admin-text-faint)] transition group-hover:text-dl-primary-ink"
+                  />
                 </div>
-                <p className="mt-2 text-sm leading-6 text-[color:var(--admin-text-muted)]">
+                <p className="mt-2 text-dl-sm leading-6 text-[color:var(--admin-text-muted)]">
                   {description}
                 </p>
               </Link>
@@ -120,32 +124,29 @@ export default function AdminPage() {
 
         <section className="admin-panel admin-panel-pad">
           <div className="mb-4 flex items-center gap-3">
-            <NotebookPen className="h-5 w-5 text-dl-primary-ink" />
+            <Icon icon={NotebookPen} size="md" className="text-dl-primary-ink" />
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">
+              <p className="text-dl-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">
                 Workspace Notes
               </p>
-              <h2 className="mt-1 text-xl font-semibold text-[color:var(--admin-text)]">
+              <h2 className="mt-1 text-dl-title font-semibold text-[color:var(--admin-text)]">
                 이번 셸 방향
               </h2>
             </div>
           </div>
 
           <div className="space-y-3">
-            {statusCards.map(({ title, description, icon: Icon }) => (
-              <div
-                className="rounded-[1.1rem] border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)] px-4 py-4"
-                key={title}
-              >
+            {statusCards.map(({ title, description, icon: CardIcon }) => (
+              <div className="admin-panel-soft px-4 py-4" key={title}>
                 <div className="mb-2 flex items-center gap-3">
-                  <span className="admin-icon-chip rounded-xl p-2">
-                    <Icon className="h-4 w-4" />
+                  <span className="admin-icon-chip p-2">
+                    <Icon icon={CardIcon} />
                   </span>
-                  <strong className="text-sm font-semibold text-[color:var(--admin-text)]">
+                  <strong className="text-dl-sm font-semibold text-[color:var(--admin-text)]">
                     {title}
                   </strong>
                 </div>
-                <p className="text-sm leading-6 text-[color:var(--admin-text-muted)]">
+                <p className="text-dl-sm leading-6 text-[color:var(--admin-text-muted)]">
                   {description}
                 </p>
               </div>

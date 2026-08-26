@@ -15,7 +15,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Button, cn, showToast } from '@hvy/ui';
+import { Button, cn, Icon, IconButton, showToast } from '@hvy/ui';
 import { GripVertical, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { showApiErrorToast } from '@/lib/apiErrorToast';
@@ -52,7 +52,7 @@ function SortablePostItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors',
+        'flex items-center gap-2 rounded-dl-container border px-3 py-2 transition-colors',
         'border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)]',
         isDragging && 'opacity-50 shadow-lg ring-2 ring-dl-primary',
       )}
@@ -64,20 +64,22 @@ function SortablePostItem({
         {...attributes}
         {...listeners}
       >
-        <GripVertical className="h-4 w-4" />
+        <Icon icon={GripVertical} />
       </button>
-      <span className="w-5 shrink-0 text-right text-xs font-medium tabular-nums text-[color:var(--admin-text-faint)]">
+      <span className="w-5 shrink-0 text-right text-dl-xs font-medium tabular-nums text-[color:var(--admin-text-faint)]">
         {index + 1}.
       </span>
-      <span className="flex-1 truncate text-sm text-[color:var(--admin-text)]">{post.subject}</span>
-      <Button
-        variant="ghost"
-        className="aspect-square p-0 h-6 w-6 shrink-0 cursor-pointer text-[color:var(--admin-text-faint)] hover:text-dl-danger"
+      <span className="flex-1 truncate text-dl-sm text-[color:var(--admin-text)]">
+        {post.subject}
+      </span>
+      <IconButton
+        icon={X}
+        label={`${post.subject} 시리즈에서 제거`}
+        size="xs"
+        iconSize="sm"
+        className="cursor-pointer text-[color:var(--admin-text-faint)]"
         onClick={() => onRemove(post.postId)}
-        aria-label={`${post.subject} 시리즈에서 제거`}
-      >
-        <X className="h-3.5 w-3.5" />
-      </Button>
+      />
     </div>
   );
 }
@@ -146,7 +148,7 @@ export default function SortablePostList({
 
   if (posts.length === 0) {
     return (
-      <p className="py-4 text-center text-sm text-[color:var(--admin-text-faint)]">
+      <p className="py-4 text-center text-dl-sm text-[color:var(--admin-text-faint)]">
         포스트가 없습니다. 아래에서 포스트를 검색하여 추가하세요.
       </p>
     );

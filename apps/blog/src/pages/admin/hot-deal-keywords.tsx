@@ -3,6 +3,8 @@ import {
   Button,
   ContentDialog,
   defineColumns,
+  Icon,
+  IconButton,
   Input,
   Label,
   Switch,
@@ -179,7 +181,7 @@ export default function HotDealKeywordsPage() {
           grow: 1,
           align: 'left',
           format: (value) => (
-            <span className="font-mono text-xs text-[color:var(--admin-text-muted)]">
+            <span className="font-mono text-dl-xs text-[color:var(--admin-text-muted)]">
               {String(value)}
             </span>
           ),
@@ -213,22 +215,23 @@ export default function HotDealKeywordsPage() {
             const keyword = row as unknown as HotDealKeyword;
             return (
               <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  className="aspect-square p-0 h-7 w-7 cursor-pointer"
+                <IconButton
+                  icon={Pencil}
+                  label={`${keyword.keyword} 수정`}
+                  size="xs"
+                  iconSize="sm"
+                  className="cursor-pointer"
                   onClick={() => handleEdit(keyword)}
-                  aria-label={`${keyword.keyword} 수정`}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="aspect-square p-0 h-7 w-7 cursor-pointer text-dl-danger hover:text-dl-danger"
+                />
+                <IconButton
+                  icon={Trash2}
+                  label={`${keyword.keyword} 삭제`}
+                  tone="danger"
+                  size="xs"
+                  iconSize="sm"
+                  className="cursor-pointer"
                   onClick={() => handleDelete(keyword)}
-                  aria-label={`${keyword.keyword} 삭제`}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                />
               </div>
             );
           },
@@ -247,10 +250,13 @@ export default function HotDealKeywordsPage() {
   return (
     <AdminPageFrame className="admin-page-frame--fixed">
       {/* 상단 액션 바 */}
-      <div className="admin-panel admin-panel-pad mb-2">
+      <div className="admin-panel admin-panel-pad">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-dl-fg-muted" />
+            <Icon
+              icon={Search}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-dl-fg-muted"
+            />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -265,14 +271,14 @@ export default function HotDealKeywordsPage() {
                 onClick={() => setSearchQuery('')}
                 aria-label="검색어 지우기"
               >
-                <X className="h-3.5 w-3.5 text-dl-fg-muted" />
+                <Icon icon={X} className="text-dl-fg-muted" />
               </button>
             )}
           </div>
 
           {/* Switch 는 <button role="switch"> 라 <label> 이 감쌀 수 없다(labelable 요소가 아니다).
               옆 문구는 설명이고, 접근성 이름은 Switch 의 label prop 이 갖는다. */}
-          <span className="inline-flex items-center gap-2 whitespace-nowrap text-sm text-[color:var(--admin-text-muted)]">
+          <span className="inline-flex items-center gap-2 whitespace-nowrap text-dl-sm text-[color:var(--admin-text-muted)]">
             <Switch
               checked={enabledOnly}
               onCheckedChange={setEnabledOnly}
@@ -282,16 +288,16 @@ export default function HotDealKeywordsPage() {
           </span>
 
           <div className="flex items-center gap-2 ml-auto">
-            <Button variant="primary" className="cursor-pointer" onClick={handleCreate}>
-              <Plus className="h-4 w-4 mr-1" />새 키워드
+            <Button variant="primary" className="cursor-pointer" onClick={handleCreate} icon={Plus}>
+              새 키워드
             </Button>
           </div>
         </div>
       </div>
 
       {/* 안내 */}
-      <div className="admin-panel admin-panel-pad mb-2">
-        <p className="text-sm text-[color:var(--admin-text-muted)]">
+      <div className="admin-panel admin-panel-pad">
+        <p className="text-dl-sm text-[color:var(--admin-text-muted)]">
           등록한 키워드가 핫딜 제목에 포함되면 <strong>추천·조회·댓글 임계값을 무시</strong>하고
           Slack에 <strong>@channel 멘션</strong>으로 알림이 전송됩니다. 대소문자와 공백은 무시하고
           부분일치로 판단합니다.
@@ -332,15 +338,14 @@ export default function HotDealKeywordsPage() {
             <Button variant="outline-gray" onClick={() => setOpenDialog(false)}>
               취소
             </Button>
-            <Button variant="primary" onClick={handleSave} busy={saving}>
-              <Save className="h-4 w-4 mr-1" />
+            <Button variant="primary" onClick={handleSave} busy={saving} icon={Save}>
               {saving ? '저장 중...' : '저장'}
             </Button>
           </>
         }
       >
         <div className="space-y-4 pt-2">
-          <div className="rounded-lg border border-dl-warning bg-dl-warning-bg p-3 text-sm">
+          <div className="rounded-dl-container border border-dl-warning bg-dl-warning-bg p-3 text-dl-sm">
             이 키워드에 매칭되면 <strong>임계값을 무시</strong>하고 <strong>@channel 멘션</strong>
             으로 알림이 갑니다. 짧거나 흔한 단어는 알림이 과도하게 발생할 수 있습니다.
           </div>
@@ -357,7 +362,7 @@ export default function HotDealKeywordsPage() {
               }}
             />
             {normalizedPreview && (
-              <p className="text-xs text-[color:var(--admin-text-muted)]">
+              <p className="text-dl-xs text-[color:var(--admin-text-muted)]">
                 매칭 문자열: <code className="font-mono">{normalizedPreview}</code>
                 {normalizedPreview.length < MIN_KEYWORD_LENGTH && (
                   <span className="text-dl-danger"> (2자 이상 필요)</span>

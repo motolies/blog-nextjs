@@ -190,7 +190,7 @@ export default function SystemLog() {
           </Button>
         }
       >
-        <pre className="m-0 max-h-[65vh] overflow-auto whitespace-pre-wrap break-all rounded-dl-container bg-dl-surface p-4 font-dl-mono text-dl-fg text-sm">
+        <pre className="m-0 max-h-[65vh] overflow-auto whitespace-pre-wrap break-all rounded-dl-container bg-dl-surface p-4 font-dl-mono text-dl-fg text-dl-sm">
           {dialogContent || '-'}
         </pre>
       </ContentDialog>

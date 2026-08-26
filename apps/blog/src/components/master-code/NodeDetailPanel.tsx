@@ -1,4 +1,4 @@
-import { Badge, Button, EmptyState, FieldValue, FormGrid } from '@hvy/ui';
+import { Badge, Button, EmptyState, FieldValue, FormGrid, Icon } from '@hvy/ui';
 import { Code, Folder, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 
@@ -39,7 +39,7 @@ export default function NodeDetailPanel({
 }: NodeDetailPanelProps) {
   if (!selectedNode) {
     return (
-      <div className="flex h-full items-center justify-center rounded-[1.1rem] border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)]">
+      <div className="flex h-full items-center justify-center admin-panel-soft">
         <EmptyState message="항목을 선택하세요" />
       </div>
     );
@@ -67,7 +67,7 @@ export default function NodeDetailPanel({
     ['정렬순서', selectedNode.sort ?? 0],
     [
       '상태',
-      <Badge key="status" tone={selectedNode.isActive ? 'success' : 'neutral'} className="text-xs">
+      <Badge key="status" tone={selectedNode.isActive ? 'success' : 'neutral'}>
         {selectedNode.isActive ? '활성' : '비활성'}
       </Badge>,
     ],
@@ -79,11 +79,11 @@ export default function NodeDetailPanel({
       ? selectedNode.attributeSchema.map((s, idx) => [
           `속성${idx + 1}`,
           <span key={idx}>
-            <code className="rounded bg-dl-option-hover px-1 py-0.5 text-xs font-mono">
+            <code className="rounded bg-dl-option-hover px-1 py-0.5 text-dl-xs font-mono">
               {s.key}
             </code>
             <span className="ml-1.5 text-dl-fg-muted">{s.label}</span>
-            <Badge tone="neutral" className="ml-1.5 text-[10px]">
+            <Badge tone="neutral" className="ml-1.5">
               {s.type}
             </Badge>
           </span>,
@@ -114,20 +114,18 @@ export default function NodeDetailPanel({
   ];
 
   return (
-    <div className="flex h-full flex-col rounded-[1.1rem] border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)]">
+    <div className="flex h-full flex-col admin-panel-soft">
       {/* 헤더 */}
       <div className="flex items-center gap-2 px-3 py-3">
         {isRoot ? (
-          <Folder className="h-4 w-4 text-dl-primary-ink" />
+          <Icon icon={Folder} className="text-dl-primary-ink" />
         ) : (
-          <Code className="h-4 w-4 text-dl-fg-muted" />
+          <Icon icon={Code} className="text-dl-fg-muted" />
         )}
-        <span className="flex-1 text-sm font-semibold text-[color:var(--admin-text)]">
+        <span className="flex-1 text-dl-sm font-semibold text-[color:var(--admin-text)]">
           {isRoot ? '루트 노드' : '노드'} 상세
         </span>
-        <Badge tone={isRoot ? 'primary' : 'neutral'} className="text-xs">
-          {selectedNode.code}
-        </Badge>
+        <Badge tone={isRoot ? 'primary' : 'neutral'}>{selectedNode.code}</Badge>
       </div>
       <div aria-hidden className="h-px w-full shrink-0 bg-dl-border" />
 
@@ -145,16 +143,23 @@ export default function NodeDetailPanel({
       {/* 액션 버튼 */}
       <div aria-hidden className="h-px w-full shrink-0 bg-dl-border" />
       <div className="flex flex-wrap gap-1.5 p-3">
-        <Button size="sm" variant="outline-gray" onClick={() => onEdit(selectedNode)}>
-          <Pencil className="h-3.5 w-3.5 mr-1" />
+        <Button size="sm" variant="outline-gray" onClick={() => onEdit(selectedNode)} icon={Pencil}>
           편집
         </Button>
-        <Button size="sm" variant="outline-red" onClick={() => onDelete(selectedNode)}>
-          <Trash2 className="h-3.5 w-3.5 mr-1" />
+        <Button
+          size="sm"
+          variant="outline-red"
+          onClick={() => onDelete(selectedNode)}
+          icon={Trash2}
+        >
           삭제
         </Button>
-        <Button size="sm" variant="outline-gray" onClick={() => onAddChild(selectedNode)}>
-          <Plus className="h-3.5 w-3.5 mr-1" />
+        <Button
+          size="sm"
+          variant="outline-gray"
+          onClick={() => onAddChild(selectedNode)}
+          icon={Plus}
+        >
           하위 노드 추가
         </Button>
       </div>

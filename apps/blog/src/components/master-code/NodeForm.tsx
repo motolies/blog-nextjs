@@ -55,14 +55,14 @@ export default function NodeForm({
     <div className="space-y-4 pt-2">
       {/* 부모 노드 정보 (자식 추가 시) */}
       {dialogMode === 'addChild' && parentNode && (
-        <div className="rounded-lg border border-dl-tonal-border bg-dl-tonal p-3">
-          <p className="text-sm text-[color:var(--admin-text-secondary)]">
+        <div className="rounded-dl-container border border-dl-tonal-border bg-dl-tonal p-3">
+          <p className="text-dl-sm text-[color:var(--admin-text-secondary)]">
             부모 노드:{' '}
             <strong>
               {parentNode.code} ({parentNode.name})
             </strong>
           </p>
-          <p className="mt-0.5 text-xs text-[color:var(--admin-text-faint)]">
+          <p className="mt-0.5 text-dl-xs text-[color:var(--admin-text-faint)]">
             이 노드의 하위에 새 노드가 생성됩니다.
           </p>
         </div>
@@ -81,7 +81,7 @@ export default function NodeForm({
         />
         <p
           className={cn(
-            'text-xs',
+            'text-dl-xs',
             codeChanged ? 'text-dl-warning-ink' : 'text-[color:var(--admin-text-faint)]',
           )}
         >

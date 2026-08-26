@@ -1,4 +1,4 @@
-import { Button, Input, Label, Select, Switch } from '@hvy/ui';
+import { Button, IconButton, Input, Label, Select, Switch } from '@hvy/ui';
 import { Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 
@@ -44,15 +44,16 @@ export function AttributeSchemaEditor({ schema, onChange }: AttributeSchemaEdito
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        <h4 className="text-sm font-semibold text-[color:var(--admin-text)]">속성 스키마 정의</h4>
-        <Button type="button" variant="outline-gray" size="sm" onClick={handleAdd}>
-          <Plus className="h-3.5 w-3.5 mr-1" />
+        <h4 className="text-dl-sm font-semibold text-[color:var(--admin-text)]">
+          속성 스키마 정의
+        </h4>
+        <Button type="button" variant="outline-gray" size="sm" onClick={handleAdd} icon={Plus}>
           추가
         </Button>
       </div>
 
       {safeSchema.length === 0 && (
-        <p className="text-xs text-[color:var(--admin-text-faint)]">
+        <p className="text-dl-xs text-[color:var(--admin-text-faint)]">
           정의된 속성이 없습니다. 추가 버튼을 눌러 속성 스키마를 정의하세요.
         </p>
       )}
@@ -61,10 +62,10 @@ export function AttributeSchemaEditor({ schema, onChange }: AttributeSchemaEdito
         {safeSchema.map((item, index) => (
           <div
             key={index}
-            className="flex items-end gap-2 rounded-lg border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)] p-3"
+            className="flex items-end gap-2 rounded-dl-container border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)] p-3"
           >
             <div className="flex-1 space-y-1">
-              <Label htmlFor={`attr-key-${index}`} className="text-xs">
+              <Label htmlFor={`attr-key-${index}`} className="text-dl-xs">
                 키 (영문)
               </Label>
               <Input
@@ -77,7 +78,7 @@ export function AttributeSchemaEditor({ schema, onChange }: AttributeSchemaEdito
               />
             </div>
             <div className="flex-1 space-y-1">
-              <Label htmlFor={`attr-label-${index}`} className="text-xs">
+              <Label htmlFor={`attr-label-${index}`} className="text-dl-xs">
                 표시명
               </Label>
               <Input
@@ -90,7 +91,7 @@ export function AttributeSchemaEditor({ schema, onChange }: AttributeSchemaEdito
               />
             </div>
             <div className="w-28 space-y-1">
-              <Label htmlFor={`attr-type-${index}`} className="text-xs">
+              <Label htmlFor={`attr-type-${index}`} className="text-dl-xs">
                 타입
               </Label>
               <Select
@@ -102,10 +103,10 @@ export function AttributeSchemaEditor({ schema, onChange }: AttributeSchemaEdito
               />
             </div>
             <div className="shrink-0 space-y-1">
-              <Label htmlFor={`attr-sensitive-${index}`} className="text-xs">
+              <Label htmlFor={`attr-sensitive-${index}`} className="text-dl-xs">
                 민감
               </Label>
-              <div className="flex h-9 items-center justify-center">
+              <div className="flex h-dl-control items-center justify-center">
                 <Switch
                   id={`attr-sensitive-${index}`}
                   label="민감 속성"
@@ -117,15 +118,14 @@ export function AttributeSchemaEditor({ schema, onChange }: AttributeSchemaEdito
                 />
               </div>
             </div>
-            <Button
-              type="button"
-              variant="ghost"
+            <IconButton
+              icon={Trash2}
+              label="속성 삭제"
+              tone="danger"
               size="sm"
-              className="text-dl-danger hover:text-dl-danger-hover hover:bg-dl-danger-bg shrink-0"
+              iconSize="sm"
               onClick={() => handleRemove(index)}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            />
           </div>
         ))}
       </div>
@@ -154,8 +154,8 @@ export function AttributeValueEditor({ schema, attributes, onChange }: Attribute
   if (safeSchema.length === 0) {
     return (
       <div>
-        <h4 className="mb-2 text-sm font-semibold text-[color:var(--admin-text)]">속성값</h4>
-        <p className="text-xs text-[color:var(--admin-text-faint)]">
+        <h4 className="mb-2 text-dl-sm font-semibold text-[color:var(--admin-text)]">속성값</h4>
+        <p className="text-dl-xs text-[color:var(--admin-text-faint)]">
           루트 노드에 정의된 속성 스키마가 없습니다.
         </p>
       </div>
@@ -164,7 +164,7 @@ export function AttributeValueEditor({ schema, attributes, onChange }: Attribute
 
   return (
     <div>
-      <h4 className="mb-3 text-sm font-semibold text-[color:var(--admin-text)]">속성값</h4>
+      <h4 className="mb-3 text-dl-sm font-semibold text-[color:var(--admin-text)]">속성값</h4>
       <div className="space-y-3">
         {safeSchema.map((schemaDef) => {
           const currentValue = safeAttributes[schemaDef.key] ?? '';

@@ -1,3 +1,4 @@
+import { Icon } from '@hvy/ui';
 import { X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -53,9 +54,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [isMenuOpen]);
 
-  // 데스크톱(오프캔버스 경계 1024px 초과)은 collapse 토글, 이하는 오프캔버스 토글
+  // 데스크톱(Tailwind lg = 64rem 이상)은 collapse 토글, 미만은 오프캔버스 토글 —
+  // CSS 미디어쿼리·Header 의 lg:* 유틸리티와 같은 경계값을 쓴다
   const toggleMenu = () => {
-    if (window.matchMedia('(min-width: 1025px)').matches) {
+    if (window.matchMedia('(min-width: 64rem)').matches) {
       setIsCollapsed((prev) => {
         const next = !prev;
         try {
@@ -99,38 +101,43 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               onClick={() => setIsMenuOpen(false)}
               aria-label="관리자 메뉴 닫기"
             >
-              <X className="h-4 w-4" />
+              <Icon icon={X} size="lg" />
             </button>
           </div>
 
-          <div className={styles.menuInner}>
-            {adminNavigationSections.map((section) => (
-              <div className={styles.menuSection} key={section.title}>
-                <p className={styles.menuSectionTitle}>{section.title}</p>
-                <ul className={styles.menuList}>
-                  {section.items.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = isActiveAdminItem(item, router.pathname);
+          <nav aria-label="관리자 메뉴" className={styles.menuInner}>
+            {adminNavigationSections.map((section) => {
+              // 섹션 라벨을 목록의 접근 가능한 이름으로 연결한다 — title 은 이미 고유 키다
+              const titleId = `admin-nav-${section.title.replace(/\s+/g, '-').toLowerCase()}`;
 
-                    return (
-                      <li className={styles.menuItem} key={item.href}>
-                        <Link
-                          href={item.href}
-                          title={isCollapsed ? item.label : undefined}
-                          className={`${styles.menuLink} ${isActive ? styles.active : ''}`}
-                        >
-                          <span className={styles.menuIconWrap}>
-                            <Icon className="h-4 w-4" />
-                          </span>
-                          <span className={styles.menuLabel}>{item.label}</span>
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
-          </div>
+              return (
+                <div className={styles.menuSection} key={section.title}>
+                  <p className={styles.menuSectionTitle} id={titleId}>
+                    {section.title}
+                  </p>
+                  <ul className={styles.menuList} aria-labelledby={titleId}>
+                    {section.items.map((item) => {
+                      const isActive = isActiveAdminItem(item, router.pathname);
+
+                      return (
+                        <li className={styles.menuItem} key={item.href}>
+                          <Link
+                            href={item.href}
+                            aria-current={isActive ? 'page' : undefined}
+                            title={isCollapsed ? item.label : undefined}
+                            className={`${styles.menuLink} ${isActive ? styles.active : ''}`}
+                          >
+                            <Icon icon={item.icon} />
+                            <span className={styles.menuLabel}>{item.label}</span>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              );
+            })}
+          </nav>
         </aside>
 
         <div className={styles.layoutPage}>

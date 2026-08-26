@@ -1,6 +1,7 @@
 import {
   Button,
   defineColumns,
+  IconButton,
   showToast,
   Tab,
   TabList,
@@ -104,14 +105,14 @@ export default function MemoPage() {
           format: (_value, row) => (
             <div className="flex gap-1">
               {!row.deleted && (
-                <Button
-                  variant="ghost"
+                <IconButton
+                  icon={Trash2}
+                  label="삭제"
+                  tone="danger"
+                  size="xs"
+                  iconSize="sm"
                   onClick={() => handleDeleteClick(row)}
-                  title="삭제"
-                  className="aspect-square p-0 h-7 w-7 text-dl-danger hover:text-dl-danger-hover"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                />
               )}
             </div>
           ),
@@ -181,8 +182,7 @@ export default function MemoPage() {
     <AdminPageFrame
       className="admin-page-frame--fixed"
       actions={
-        <Button variant="primary" onClick={() => setMemoDialogOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
+        <Button variant="primary" icon={Plus} onClick={() => setMemoDialogOpen(true)}>
           메모 추가
         </Button>
       }

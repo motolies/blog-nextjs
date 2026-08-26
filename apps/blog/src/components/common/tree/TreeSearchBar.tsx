@@ -1,4 +1,4 @@
-import { Input } from '@hvy/ui';
+import { Icon, Input } from '@hvy/ui';
 import { Search } from 'lucide-react';
 
 interface TreeSearchBarProps {
@@ -38,7 +38,7 @@ export default function TreeSearchBar({
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             aria-label={label}
-            prefix={<Search className="h-4 w-4" />}
+            prefix={<Icon icon={Search} />}
             clearable
             onClear={onClear}
             clearLabel="검색어 지우기"
@@ -49,7 +49,7 @@ export default function TreeSearchBar({
           <span
             role="status"
             aria-live="polite"
-            className="shrink-0 text-xs text-[color:var(--admin-text-faint)]"
+            className="shrink-0 text-dl-xs text-[color:var(--admin-text-faint)]"
           >
             결과 {resultCount}건
           </span>

@@ -68,7 +68,12 @@ export function TreeGrid<T extends { children?: readonly T[] }>({
                   />
                 </button>
               ) : (
-                <span className="inline-block size-[22px]" />
+                /* 토글 버튼과 같은 구조를 그대로 미러링한다 — p-0.5 + 아이콘 토큰.
+                   임의값(size-[22px])으로 두면 버튼 실측(2+16+2=20)과 2px 어긋나
+                   같은 depth 에서 잎 노드 텍스트가 부모보다 오른쪽으로 밀린다. */
+                <span className="inline-block p-0.5">
+                  <span className="block size-dl-ic-sm" />
+                </span>
               )}
             </span>
             <div className="min-w-0 flex-1">{renderRow(node, depth)}</div>

@@ -1,4 +1,4 @@
-import { Badge, Button, EmptyState, FieldValue, FormGrid, Spinner, showToast } from '@hvy/ui';
+import { Badge, Button, EmptyState, FieldValue, FormGrid, Icon, Spinner, showToast } from '@hvy/ui';
 import { BookOpen, Pencil, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { showApiErrorToast } from '@/lib/apiErrorToast';
@@ -25,7 +25,7 @@ export default function SeriesDetailPanel({
 }: SeriesDetailPanelProps) {
   if (!series) {
     return (
-      <div className="flex h-full items-center justify-center rounded-[1.1rem] border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)]">
+      <div className="flex h-full items-center justify-center admin-panel-soft">
         <EmptyState message="시리즈를 선택하세요" />
       </div>
     );
@@ -33,8 +33,8 @@ export default function SeriesDetailPanel({
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center rounded-[1.1rem] border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)]">
-        <Spinner className="size-6" />
+      <div className="flex h-full items-center justify-center admin-panel-soft">
+        <Spinner className="size-dl-ic-lg" />
       </div>
     );
   }
@@ -55,7 +55,7 @@ export default function SeriesDetailPanel({
     series.description && ['설명', series.description],
     [
       '포스트',
-      <Badge key="count" tone={series.posts.length > 0 ? 'primary' : 'neutral'} className="text-xs">
+      <Badge key="count" tone={series.posts.length > 0 ? 'primary' : 'neutral'}>
         {series.posts.length}개
       </Badge>,
     ],
@@ -75,16 +75,14 @@ export default function SeriesDetailPanel({
   };
 
   return (
-    <div className="flex h-full flex-col rounded-[1.1rem] border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)]">
+    <div className="flex h-full flex-col admin-panel-soft">
       {/* 헤더 */}
       <div className="flex items-center gap-2 px-3 py-3">
-        <BookOpen className="h-4 w-4 text-dl-primary-ink" />
-        <span className="flex-1 text-sm font-semibold text-[color:var(--admin-text)]">
+        <Icon icon={BookOpen} className="text-dl-primary-ink" />
+        <span className="flex-1 text-dl-sm font-semibold text-[color:var(--admin-text)]">
           시리즈 상세
         </span>
-        <Badge tone="primary" className="text-xs">
-          {series.title}
-        </Badge>
+        <Badge tone="primary">{series.title}</Badge>
       </div>
       <div aria-hidden className="h-px w-full shrink-0 bg-dl-border" />
 
@@ -96,12 +94,10 @@ export default function SeriesDetailPanel({
 
         {/* 액션 버튼 */}
         <div className="flex flex-wrap gap-1.5 p-3">
-          <Button size="sm" variant="outline-gray" onClick={() => onEdit(series)}>
-            <Pencil className="h-3.5 w-3.5 mr-1" />
+          <Button size="sm" variant="outline-gray" onClick={() => onEdit(series)} icon={Pencil}>
             편집
           </Button>
-          <Button size="sm" variant="outline-red" onClick={() => onDelete(series)}>
-            <Trash2 className="h-3.5 w-3.5 mr-1" />
+          <Button size="sm" variant="outline-red" onClick={() => onDelete(series)} icon={Trash2}>
             삭제
           </Button>
         </div>
@@ -109,7 +105,7 @@ export default function SeriesDetailPanel({
 
         {/* 포스트 목록 */}
         <div className="p-3 space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--admin-text-faint)]">
+          <span className="text-dl-xs font-semibold uppercase tracking-wide text-[color:var(--admin-text-faint)]">
             포스트 ({series.posts.length})
           </span>
           <SortablePostList
@@ -123,7 +119,7 @@ export default function SeriesDetailPanel({
 
         {/* 포스트 추가 */}
         <div className="p-3">
-          <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-[color:var(--admin-text-faint)]">
+          <span className="mb-2 block text-dl-xs font-semibold uppercase tracking-wide text-[color:var(--admin-text-faint)]">
             포스트 추가
           </span>
           <PostSearchCombobox excludePostIds={excludePostIds} onSelect={handleAddPost} />

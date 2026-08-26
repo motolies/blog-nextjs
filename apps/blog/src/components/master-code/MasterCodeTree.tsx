@@ -71,12 +71,12 @@ export default function MasterCodeTree({
           >
             <RowIcon
               className={cn(
-                'h-4 w-4 shrink-0',
+                'size-dl-ic-sm shrink-0',
                 isRoot ? 'text-dl-primary-ink' : 'text-dl-fg-muted',
               )}
             />
             {/* 코드와 이름은 검색 대상이 서로 다른 필드라 각각 강조한다 — 괄호는 장식이라 제외한다. */}
-            <span className="flex-1 truncate text-sm">
+            <span className="flex-1 truncate text-dl-sm">
               <span
                 className={cn(
                   'font-medium',
@@ -90,7 +90,7 @@ export default function MasterCodeTree({
               </span>
             </span>
             {!node.isActive && (
-              <Badge tone="neutral" className="text-[10px] px-1.5 py-0 shrink-0">
+              <Badge tone="neutral" className="shrink-0">
                 비활성
               </Badge>
             )}

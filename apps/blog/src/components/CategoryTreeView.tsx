@@ -1,4 +1,4 @@
-import { Badge, cn, TreeGrid } from '@hvy/ui';
+import { Badge, cn, Icon, TreeGrid } from '@hvy/ui';
 import { Folder, FolderOpen, FolderTree, Search } from 'lucide-react';
 import HighlightedText from '@/components/common/tree/HighlightedText';
 
@@ -70,13 +70,11 @@ export default function CategoryTreeView({
               isSelected && 'bg-dl-tonal ring-1 ring-dl-primary',
             )}
           >
-            <RowIcon className="h-4 w-4 text-dl-primary shrink-0" />
-            <span className="flex-1 truncate text-sm font-medium text-[color:var(--admin-text)]">
+            <Icon icon={RowIcon} className="text-dl-primary" />
+            <span className="flex-1 truncate text-dl-sm font-medium text-[color:var(--admin-text)]">
               <HighlightedText text={node.name} query={query} />
             </span>
-            {(node.postCount ?? 0) > 0 && (
-              <Badge className="text-xs h-5 px-1.5 shrink-0">{node.postCount}</Badge>
-            )}
+            {(node.postCount ?? 0) > 0 && <Badge className="shrink-0">{node.postCount}</Badge>}
           </button>
         );
       }}

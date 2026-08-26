@@ -17,8 +17,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0 1.25rem;
+  gap: var(--spacing-dl-gutter);
+  /* 사이드바 .menuInner 가 만드는 좌측 20px 레일과 같은 값 */
+  padding: 0 var(--spacing-dl-gutter);
   width: 100%;
   min-width: 0;
 }
@@ -26,34 +27,40 @@
 .navbarStart {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
+  gap: 0.75rem;
   min-width: 0;
 }
 
 .navbarEnd {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .brandLink {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.625rem;
   min-width: 0;
 }
 
+/* 헤더 컨트롤 4종(.menuToggleBtn · .brandMark · .themeToggleBtn · .siteLink)은
+   전부 dl 컨트롤 sm(36) 높이다 — IconButton size="sm" 과 같은 박스라,
+   admin 팔레트를 dl 색축으로 흡수하는 날 컴포넌트 교체가 한 줄이 된다. */
 .brandMark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.4rem;
-  height: 2.4rem;
-  border-radius: 0.95rem;
+  width: var(--spacing-dl-control-sm);
+  height: var(--spacing-dl-control-sm);
+  border-radius: var(--radius-dl-container);
   background: linear-gradient(135deg, rgba(21, 112, 239, 0.18), rgba(21, 112, 239, 0.08));
-  color: #0f5dd6;
-  font-weight: 800;
+  color: var(--admin-accent-ink);
+  font-size: var(--text-dl-xl);
+  /* 이 앱의 폰트는 400/700 2단뿐 — 800 은 700 으로 접힌다(AdminLayout.module.css 머리말) */
+  font-weight: 700;
   letter-spacing: 0.08em;
+  flex: none;
   box-shadow: inset 0 0 0 1px rgba(21, 112, 239, 0.12);
 }
 
@@ -62,12 +69,11 @@
   flex-direction: column;
   min-width: 0;
   color: var(--admin-text);
-  line-height: 1.05;
 }
 
 .brandText strong {
-  font-size: 0.96rem;
-  letter-spacing: -0.02em;
+  font-size: var(--text-dl-xl);
+  font-weight: 700;
 }
 
 /* 브레드크럼 — 현재 페이지(h1)가 admin 페이지 타이틀의 정본이라 전 구간 노출한다.
@@ -78,8 +84,8 @@
   gap: 0.5rem;
   min-width: 0;
   color: var(--admin-text-muted);
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: var(--text-dl-sm);
+  font-weight: 700;
 }
 
 .breadcrumbTrail {
@@ -102,7 +108,8 @@
   text-overflow: ellipsis;
 }
 
-@media (min-width: 1025px) {
+/* 경계값은 Tailwind lg(64rem) — Header.tsx 의 lg:hidden/lg:block 과 같은 점에서 갈린다 */
+@media (width >= 64rem) {
   .breadcrumbTrail {
     display: inline-flex;
   }
@@ -113,9 +120,12 @@
   border: 1px solid rgba(148, 163, 184, 0.18);
   background: rgba(255, 255, 255, 0.86);
   color: var(--admin-text-secondary);
-  padding: 0.55rem;
+  width: var(--spacing-dl-control-sm);
+  height: var(--spacing-dl-control-sm);
+  padding: 0;
   cursor: pointer;
-  border-radius: 0.9rem;
+  border-radius: var(--radius-dl-container);
+  flex: none;
   /* 데스크톱은 사이드바 collapse, 모바일은 오프캔버스 토글 — 전 구간 노출 */
   display: inline-flex;
   align-items: center;
@@ -130,38 +140,18 @@
   transform: translateY(-1px);
 }
 
-.statusChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.58rem 0.9rem;
-  border-radius: 9999px;
-  color: var(--admin-text-secondary);
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(255, 255, 255, 0.78);
-}
-
-.statusDot {
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 9999px;
-  background: #0ea5e9;
-  box-shadow: 0 0 0.6rem rgba(14, 165, 233, 0.4);
-}
-
 .siteLink {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.72rem 0.95rem;
-  border-radius: 0.95rem;
-  color: #0f5dd6;
-  font-size: 0.84rem;
-  font-weight: 600;
+  gap: 0.375rem;
+  height: var(--spacing-dl-control-sm);
+  padding: 0 var(--spacing-dl-btn-pad-sm);
+  border-radius: var(--radius-dl-container);
+  color: var(--admin-accent-ink);
+  font-size: var(--text-dl-ctl-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  flex: none;
   background: rgba(21, 112, 239, 0.08);
   border: 1px solid rgba(21, 112, 239, 0.16);
   transition: background-color 0.2s ease, transform 0.2s ease;
@@ -172,15 +162,9 @@
   transform: translateY(-1px);
 }
 
-@media (max-width: 1024px) {
-  .statusChip {
-    display: none;
-  }
-}
-
-@media (max-width: 640px) {
+@media (width < 40rem) {
   .navbarContent {
-    padding: 0 0.9rem;
+    padding: 0 var(--spacing-dl-btn-pad-sm);
   }
 
   /* 좁은 화면에서 브레드크럼(페이지 타이틀) 공간 확보 — B 마크만 남긴다 */
@@ -188,9 +172,10 @@
     display: none;
   }
 
+  /* 한 단 아래(xs) 패딩·폰트 — 높이는 36 을 유지해 옆 컨트롤과 어긋나지 않는다 */
   .siteLink {
-    padding: 0.68rem 0.85rem;
-    font-size: 0.78rem;
+    padding: 0 var(--spacing-dl-btn-pad-xs);
+    font-size: var(--text-dl-ctl-xs);
   }
 }
 
@@ -201,12 +186,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 0.85rem;
+  width: var(--spacing-dl-control-sm);
+  height: var(--spacing-dl-control-sm);
+  border-radius: var(--radius-dl-container);
   border: 1px solid rgba(148, 163, 184, 0.22);
   background: rgba(255, 255, 255, 0.78);
   color: var(--admin-text-secondary);
+  flex: none;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
@@ -227,22 +213,10 @@
 
 :global([data-theme='blog-dark']) .brandMark {
   background: linear-gradient(135deg, rgba(97, 175, 239, 0.18), rgba(97, 175, 239, 0.08));
-  color: #61afef;
   box-shadow: inset 0 0 0 1px rgba(97, 175, 239, 0.12);
 }
 
-:global([data-theme='blog-dark']) .statusChip {
-  border-color: rgba(99, 109, 131, 0.22);
-  background: rgba(40, 44, 52, 0.78);
-}
-
-:global([data-theme='blog-dark']) .statusDot {
-  background: #61afef;
-  box-shadow: 0 0 0.6rem rgba(97, 175, 239, 0.4);
-}
-
 :global([data-theme='blog-dark']) .siteLink {
-  color: #61afef;
   background: rgba(97, 175, 239, 0.08);
   border-color: rgba(97, 175, 239, 0.16);
 }

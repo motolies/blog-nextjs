@@ -55,28 +55,28 @@ export default function CategoryManagementPanel() {
         {
           id: 'actions' as keyof MemoCategory & string,
           headerWord: ' ',
-          width: 80,
+          // 아이콘 버튼 2개(xs 32) + gap-1 1칸 + 셀 좌우 패딩 20 = 88
+          width: 88,
           resizable: false,
           sortable: false,
           hideable: false,
           format: (_value, row) => (
             <div className="flex gap-1">
-              <Button
-                variant="ghost"
+              <IconButton
+                icon={Pencil}
+                label="수정"
+                size="xs"
+                iconSize="sm"
                 onClick={() => handleEdit(row)}
-                title="수정"
-                className="aspect-square p-0 h-7 w-7"
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
+              />
+              <IconButton
+                icon={Trash2}
+                label="삭제"
+                tone="danger"
+                size="xs"
+                iconSize="sm"
                 onClick={() => handleDeleteClick(row)}
-                title="삭제"
-                className="aspect-square p-0 h-7 w-7 text-dl-danger hover:text-dl-danger-hover"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              />
             </div>
           ),
         },
@@ -153,8 +153,7 @@ export default function CategoryManagementPanel() {
           size="sm"
           onClick={settings.openSettings}
         />
-        <Button variant="primary" size="sm" onClick={handleAdd}>
-          <Plus className="h-4 w-4 mr-1" />
+        <Button variant="primary" size="sm" onClick={handleAdd} icon={Plus}>
           카테고리 추가
         </Button>
       </div>

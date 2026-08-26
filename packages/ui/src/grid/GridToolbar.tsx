@@ -1,6 +1,6 @@
 'use client';
 
-import { X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { FormMode } from '../components/form-mode';
 import { Input } from '../components/input';
@@ -69,7 +69,9 @@ export function GridToolbar({
     <FormMode value="edit">
       <div
         className={cn(
-          'flex items-center gap-1.5 rounded-b-dl-container border border-t-0 border-dl-border bg-dl-surface px-3 py-1.5',
+          /* flex-wrap 은 기본값이다 — 페이저가 shrink-0 이라 좁은 화면에서 눌리는 대신
+             줄을 바꿔야 한다. 호출부마다 붙이면 빠뜨리는 소비자가 생긴다. */
+          'flex flex-wrap items-center gap-1.5 rounded-b-dl-container border border-t-0 border-dl-border bg-dl-surface px-3 py-1.5',
           className,
         )}
       >
@@ -88,7 +90,7 @@ export function GridToolbar({
                 title={selection.clear.label}
                 onClick={selection.clear.onClick}
                 // PagerButton 과 같은 고스트 규격(24×24) — 액션 버튼과 무게를 가른다.
-                className="inline-flex size-6 items-center justify-center rounded-dl-control text-dl-fg-muted hover:bg-dl-option-hover"
+                className="inline-flex size-6 shrink-0 items-center justify-center rounded-dl-control text-dl-fg-muted hover:bg-dl-option-hover"
               >
                 <Icon icon={X} size="sm" />
               </button>
@@ -149,10 +151,25 @@ export type PagerLabels = {
 };
 
 /**
- * 페이저 — `≪ < [입력] / N > ≫`.
+ * 페이저 — `« ‹ [입력] / N › »`.
  *
- * 버튼이 `Button` 이 아니라 고스트 텍스트인 이유: QA 도 페이지 네비를 **버튼 규격 밖**
- * (24×24 `.page-nav`)으로 따로 둔다. 액션 버튼과 같은 무게로 보이면 툴바가 시끄러워진다.
+ * 버튼이 `Button` 이 아니라 고스트인 이유: QA 도 페이지 네비를 **버튼 규격 밖**
+ * (`.page-nav`)으로 따로 둔다. 액션 버튼과 같은 무게로 보이면 툴바가 시끄러워진다.
+ * 상자는 28/32 로 입력·셀렉트(sm 36)보다 여전히 한 단 작아 그 무게 차이는 유지된다.
+ *
+ * `ml-auto`(sm 미만): 툴바가 접히면 총건수와 같은 줄에 남아 오른쪽 끝으로 붙는다 —
+ * 좁은 화면에서 엄지가 닿는 쪽이다. `GridToolbar` 는 `paging` 을 불투명한 ReactNode 로
+ * 받아 루트에 그대로 흘리므로(래핑 금지), 정렬을 아는 지점은 여기뿐이다.
+ * sm↑ 는 한 줄이라 `sm:ml-0` 으로 되돌린다 — 안 그러면 페이저 뒤쪽이 통째로 밀린다.
+ *
+ * 행 전체가 `shrink-0` 이라 좁은 화면에서는 **폭 예산이 곧 상한**이다. 320px(툴바 안폭 237)
+ * 기준으로 상자 28 · gap 2 · 여백 2 조합이 `/ 9999` 까지 들어간다 — sm↑ 는 여유가 커서
+ * 상자 32 · gap 4 · 여백 4 로 벌린다. 이 두 축은 같은 경계(sm)에서 함께 바뀐다.
+ *
+ * ⚠️ 이 행의 자식은 **전부 `shrink-0`** 이어야 한다. `Input` 은 어도먼트 자리를 고정하려고
+ * 항상 `w-full` 바깥 래퍼를 두르는데(input.tsx 주석 참조), 그 100% 가 flex 폭 경쟁에
+ * 끼면 형제 버튼이 눌린다 — 실측으로 24px 상자가 12.5px 까지 찌그러졌다. 그래서 입력은
+ * `className` 이 아니라 **고정폭 상자로 감싸서** 폭을 고정한다.
  */
 export function Pager({
   pageIndex,
@@ -176,14 +193,14 @@ export function Pager({
   };
 
   return (
-    <div className="inline-flex items-center gap-px">
+    <div className="ml-auto inline-flex shrink-0 items-center gap-0.5 sm:ml-0 sm:gap-1">
       <PagerButton
         label={labels.first}
         disabled={atFirst}
         title={labels.atFirst}
         onClick={() => go(0)}
       >
-        ≪
+        <Icon icon={ChevronsLeft} size="sm" />
       </PagerButton>
       <PagerButton
         label={labels.prev}
@@ -191,28 +208,34 @@ export function Pager({
         title={labels.atFirst}
         onClick={() => go(pageIndex - 1)}
       >
-        &lt;
+        <Icon icon={ChevronLeft} size="sm" />
       </PagerButton>
 
-      <Input
-        size="sm"
-        className="mx-0.5 w-12"
-        align="center"
-        value={jump === '' ? String(current) : jump}
-        aria-label={labels.jump}
-        onChange={(event) => setJump(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key !== 'Enter') return;
-          const target = Number(jump);
-          if (Number.isFinite(target) && target >= 1 && target <= pageCount) go(target - 1);
-          else setJump('');
-        }}
-        // 포커스를 잃으면 편집 중이던 값을 버리고 현재 페이지로 되돌린다 —
-        // 안 그러면 화면에 보이는 숫자와 실제 페이지가 어긋난 채 남는다.
-        onBlur={() => setJump('')}
-      />
+      {/* 폭은 이 상자가 정한다 — Input 의 className 은 안쪽 <input> 에만 닿는다.
+          w-14(56): sm 필드는 좌우 패딩이 13px 씩이라 48 이면 본문 22px 뿐 — 네 자리에서 잘린다. */}
+      <span className="mx-0.5 block w-14 shrink-0 sm:mx-1">
+        <Input
+          size="sm"
+          className="w-full"
+          align="center"
+          value={jump === '' ? String(current) : jump}
+          aria-label={labels.jump}
+          onChange={(event) => setJump(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter') return;
+            const target = Number(jump);
+            if (Number.isFinite(target) && target >= 1 && target <= pageCount) go(target - 1);
+            else setJump('');
+          }}
+          // 포커스를 잃으면 편집 중이던 값을 버리고 현재 페이지로 되돌린다 —
+          // 안 그러면 화면에 보이는 숫자와 실제 페이지가 어긋난 채 남는다.
+          onBlur={() => setJump('')}
+        />
+      </span>
       {/* nowrap 이 없으면 좁은 화면에서 "/"와 숫자 사이 공백이 줄바꿈 지점이 된다 — TotalCount 와 같은 규약. */}
-      <span className="mr-0.5 whitespace-nowrap text-dl-sm text-dl-fg-muted">/ {pageCount}</span>
+      <span className="mr-1 shrink-0 whitespace-nowrap text-dl-sm text-dl-fg-muted">
+        / {pageCount}
+      </span>
 
       <PagerButton
         label={labels.next}
@@ -220,7 +243,7 @@ export function Pager({
         title={labels.atLast}
         onClick={() => go(pageIndex + 1)}
       >
-        &gt;
+        <Icon icon={ChevronRight} size="sm" />
       </PagerButton>
       <PagerButton
         label={labels.last}
@@ -228,7 +251,7 @@ export function Pager({
         title={labels.atLast}
         onClick={() => go(pageCount - 1)}
       >
-        ≫
+        <Icon icon={ChevronsRight} size="sm" />
       </PagerButton>
     </div>
   );
@@ -254,8 +277,11 @@ function PagerButton({
       title={disabled ? title : label}
       disabled={disabled}
       onClick={onClick}
-      // QA .page-nav: 24×24 · 비활성은 opacity .3
-      className="inline-flex size-6 items-center justify-center rounded-dl-control text-dl-fg-muted text-dl-xs hover:bg-dl-option-hover disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+      // .page-nav: 상자 28(sm↑ 32) · 아이콘 16 · 비활성은 opacity .3.
+      // QA 원안은 24 였으나 터치 표적이 작고 글리프가 붙어 보여 한 단 키웠다 —
+      // 입력·셀렉트(36)보다는 여전히 작아 "버튼 규격 밖"이라는 위계는 그대로다.
+      // shrink-0 은 필수다 — 없으면 형제 폭 경쟁에 눌린다(Pager 주석 참조).
+      className="inline-flex size-7 shrink-0 items-center justify-center rounded-dl-control text-dl-fg-muted hover:bg-dl-option-hover disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent sm:size-8"
     >
       {children}
     </button>

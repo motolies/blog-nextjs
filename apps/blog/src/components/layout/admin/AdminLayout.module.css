@@ -1,3 +1,7 @@
+/* 이 앱의 폰트(JetBrains Mono + D2Coding)는 400/700 **2단만** 싣는다 —
+   CSS 폰트 매칭이 500→400, 600→700, 800→700 으로 접으므로 중간 굵기는 존재하지 않는다.
+   위계는 굵기가 아니라 색(--admin-text 4단) · 크기 · 형태로 세운다. */
+
 .layoutWrapper {
   min-height: 100dvh;
   background: transparent;
@@ -5,7 +9,7 @@
 
 /* 데스크톱 collapse(아이콘 레일) — 변수 하나로 사이드바 폭과 본문 margin 이 동시에 따라온다 */
 .layoutWrapper[data-sidebar='collapsed'] {
-  --admin-sidebar-width: 4.75rem;
+  --admin-sidebar-width: var(--spacing-dl-sidebar-mini);
 }
 
 .layoutContainer {
@@ -35,45 +39,59 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0.5rem 1rem 1.25rem;
+  /* 전폭 밴드 — 좌우 여백은 각 행이 갖는다. 행이 사이드바 끝까지 칠해져야
+     '띠'로 읽히고, 들여쓴 섹션 라벨과 종류가 갈린다. */
+  padding-block: 0.5rem var(--spacing-dl-gutter);
+  padding-inline: 0;
 }
 
 .menuTop {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 1.1rem 1rem 0.9rem;
+  gap: 0.75rem;
+  padding: 0.5rem var(--spacing-dl-gutter);
   border-bottom: 1px solid rgba(148, 163, 184, 0.18);
 }
 
 .menuCaption {
-  margin: 0 0 0.25rem;
-  color: #0f5dd6;
-  font-size: 0.72rem;
+  margin: 0;
+  /* accent-ink 는 사이드바에서 '현재 페이지' 하나만 쓴다 — 헤더가 같은 색이면
+     고른 항목처럼 읽힌다(packages/ui/src/components/option-group-header.tsx 의 결론). */
+  color: var(--admin-text-faint);
+  font-size: var(--text-dl-xs);
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .menuTitle {
   margin: 0;
   color: var(--admin-text);
-  font-size: 1.05rem;
-  letter-spacing: -0.03em;
+  font-size: var(--text-dl-xl);
 }
 
 .menuSection {
-  padding-top: 1rem;
+  padding-block-start: 0.75rem;
+}
+
+/* 섹션 경계는 사이드바를 가로지르는 헤어라인 — 간격만으로는 그룹이 '구조'로 읽히지 않는다 */
+.menuSection + .menuSection {
+  margin-block-start: 0.75rem;
+  border-block-start: 1px solid var(--admin-border);
 }
 
 .menuSectionTitle {
-  margin: 0 0 0.55rem;
-  padding: 0 0.35rem;
-  color: var(--admin-text-faint);
-  font-size: 0.72rem;
+  margin: 0 0 0.375rem;
+  /* 아이콘 좌변(바 2 + 패딩 18)·.menuTop·헤더 .navbarContent 와 같은 20px 레일 */
+  padding-inline: var(--spacing-dl-gutter);
+  /* 사이드바에서 가장 진한 텍스트다. 상위 항목이 자기 자식(muted)보다 연하면
+     그룹이 아이템에 묻힌다 — 굵기로는 세울 수 없다(머리말 참조). */
+  color: var(--admin-text);
+  font-size: var(--text-dl-xs);
   font-weight: 700;
-  letter-spacing: 0.12em;
+  /* 모노스페이스 12px 에서 0.12em 은 과하게 벌어지고 'HOT DEAL' 만 길이가 튄다 */
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -84,61 +102,63 @@
 }
 
 .menuItem + .menuItem {
-  margin-top: 0.28rem;
+  margin-block-start: 0; /* 띠끼리 맞닿는다 — 목록의 리듬 */
 }
 
 .menuLink {
   display: flex;
   align-items: center;
-  gap: 0.82rem;
-  width: 100%;
-  padding: 0.82rem 0.92rem;
-  border-radius: 1rem;
-  color: var(--admin-text-secondary);
+  gap: 0.625rem;
+  /* 36 = dl 컨트롤 sm. padding-block 을 0 으로 두어 높이 불변식을 토큰 하나에 고정한다 —
+     아이콘·라벨 라인박스 어느 쪽이 바뀌어도 36 이 유지되고,
+     라벨이 2줄이 되면 height 와 달리 잘리지 않고 자란다. */
+  min-block-size: var(--spacing-dl-control-sm);
+  /* 좌측 바는 모든 항목에 항상 깔려 있고 색만 바뀐다 — 활성 전환에 레이아웃이 흔들리지 않는다.
+     고대비 모드에서 transparent 는 강제 색상 치환에서 보존되므로 비활성이 활성처럼 보이지도 않는다.
+     2 + 18 = 20px 레일. */
+  border-inline-start: 2px solid transparent;
+  padding-inline: 18px var(--spacing-dl-gutter);
+  color: var(--admin-text-muted);
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease,
-    border-color 0.2s ease;
-  border: 1px solid transparent;
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
+/* 틴트는 --admin-accent 에서 유도한다 — 그 토큰이 이미 테마별로 갈려 있어
+   다크 전용 재정의가 필요 없다(구 rgba 리터럴 2룰을 이 한 줄이 대체한다). */
 .menuLink:hover {
-  background: rgba(21, 112, 239, 0.08);
-  border-color: rgba(21, 112, 239, 0.12);
+  background-color: color-mix(in oklab, var(--admin-accent) 8%, transparent);
   color: var(--admin-text);
-  transform: translateX(2px);
+}
+
+/* 포커스 링은 밴드 안쪽으로 — 전폭이라 바깥으로 나가면 사이드바에 잘린다 */
+.menuLink:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: -2px;
 }
 
 .active {
-  background: linear-gradient(135deg, rgba(21, 112, 239, 0.14), rgba(91, 169, 255, 0.1));
-  color: #0f5dd6;
-  border-color: rgba(21, 112, 239, 0.18);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  border-inline-start-color: var(--admin-accent);
+  background-color: color-mix(in oklab, var(--admin-accent) 12%, transparent);
+  color: var(--admin-accent-ink);
 }
 
-.menuIconWrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.85rem;
-  background: rgba(248, 250, 252, 0.92);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  flex-shrink: 0;
-}
-
-.active .menuIconWrap {
-  background: rgba(21, 112, 239, 0.12);
-  border-color: rgba(21, 112, 239, 0.18);
+.active .menuLabel {
+  font-weight: 700; /* 400 과의 유일한 실제 대비 — 이 폰트의 두 단 중 위 단 */
 }
 
 .menuLabel {
   min-width: 0;
-  font-size: 0.93rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: var(--text-dl-sm);
+  font-weight: 400;
+}
+
+/* 강제 색상 모드에서는 배경 틴트가 제거된다 — 좌측 바가 유일한 활성 표시가 된다 */
+@media (forced-colors: active) {
+  .active {
+    border-inline-start-color: Highlight;
+  }
 }
 
 .layoutPage {
@@ -167,8 +187,10 @@
 .containerFluid {
   min-height: 100%;
   width: 100%;
+  /* 폭 상한은 유지하되(울트라와이드에서 폼·텍스트 과신장 방지) 남는 공간은 오른쪽에 몰아
+     사이드바·헤더와 좌측 기준선을 맞춘다 — margin-inline:auto 는 본문만 가운데로 띄웠다 */
   max-width: var(--admin-content-max);
-  margin-inline: auto;
+  margin-inline: 0;
 }
 
 .backdrop {
@@ -187,19 +209,24 @@
   border: 1px solid rgba(148, 163, 184, 0.2);
   background: rgba(255, 255, 255, 0.84);
   color: var(--admin-text-secondary);
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.75rem;
+  /* dl 컨트롤 sm 정사각 — IconButton size="sm" 과 같은 박스다 */
+  width: var(--spacing-dl-control-sm);
+  height: var(--spacing-dl-control-sm);
+  border-radius: var(--radius-dl-container);
+  flex: none;
   display: none;
   align-items: center;
   justify-content: center;
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
 }
 
-@media (max-width: 1024px) {
+/* 경계값은 Tailwind lg(64rem)와 같다 — lg:* 유틸리티·matchMedia 와 어긋나면
+   1024px 에서 헤더 아이콘과 실제 토글 동작이 갈린다 */
+@media (width < 64rem) {
   .layoutMenu {
     transform: translateX(-100%);
-    width: min(21rem, calc(100vw - 1.5rem));
+    /* 데스크톱 펼침 폭(240)이 상한 — 구 21rem(336)은 데스크톱보다 넓어 폭이 역전돼 있었다 */
+    width: min(var(--spacing-dl-sidebar), calc(100vw - var(--spacing-dl-gutter) * 2));
     /* 닫힌 사이드바에 Tab 포커스가 들어가지 않도록 — transition 지연으로
        슬라이드 아웃 애니메이션이 끝난 뒤 visibility 가 꺼진다 */
     visibility: hidden;
@@ -223,13 +250,15 @@
   /* 모바일 브라우저 하단 메뉴가 최하단 콘텐츠를 가리지 않도록 —
      fixed 프레임은 lg 이상 전용이라 이 여백과 충돌하지 않는다 */
   .contentWrapper {
-    padding-bottom: calc(var(--admin-content-pad) + 1.25rem + var(--safe-bottom));
+    padding-bottom: calc(
+      var(--admin-content-pad) + var(--spacing-dl-gutter) + var(--safe-bottom)
+    );
   }
 }
 
-/* ── 데스크톱 collapse(아이콘 레일) — 오프캔버스 경계(1024px)와 배타 구간 ── */
+/* ── 데스크톱 collapse(아이콘 레일) — 오프캔버스 경계(64rem)와 배타 구간 ── */
 
-@media (min-width: 1025px) {
+@media (width >= 64rem) {
   .layoutWrapper[data-sidebar='collapsed'] .menuTop {
     display: none;
   }
@@ -240,45 +269,26 @@
   }
 
   .layoutWrapper[data-sidebar='collapsed'] .menuInner {
-    padding: 0.75rem 0.6rem 1.25rem;
+    padding-inline: 0;
   }
 
   .layoutWrapper[data-sidebar='collapsed'] .menuSection {
-    padding-top: 0.75rem;
+    padding-top: 0.5rem;
   }
 
   /* 섹션 타이틀 대신 얇은 divider 로 구획 */
   .layoutWrapper[data-sidebar='collapsed'] .menuSection + .menuSection {
-    margin-top: 0.75rem;
+    margin-top: 0.5rem;
     border-top: 1px solid var(--admin-border);
   }
 
+  /* 활동 바(activity bar) 관례 — 띠가 레일을 꽉 채우고 좌측 2px 바가 활성을 가리킨다.
+     우측 패딩 2 가 좌측 바를 상쇄해 글리프가 레일(63) 정중앙 31.5px 에 온다. */
   .layoutWrapper[data-sidebar='collapsed'] .menuLink {
     justify-content: center;
     gap: 0;
-    padding: 0.6rem 0;
+    padding-inline: 0 2px;
   }
-
-  .layoutWrapper[data-sidebar='collapsed'] .menuLink:hover {
-    transform: none;
-  }
-}
-
-.menuInner::-webkit-scrollbar {
-  width: 6px;
-}
-
-.menuInner::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.menuInner::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.8);
-  border-radius: 3px;
-}
-
-.menuInner::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.86);
 }
 
 /* ── Dark mode ── */
@@ -293,33 +303,6 @@
   border-bottom-color: rgba(99, 109, 131, 0.15);
 }
 
-:global([data-theme='blog-dark']) .menuCaption {
-  color: #61afef;
-}
-
-:global([data-theme='blog-dark']) .menuLink:hover {
-  background: rgba(97, 175, 239, 0.08);
-  border-color: rgba(97, 175, 239, 0.12);
-  color: var(--admin-text);
-}
-
-:global([data-theme='blog-dark']) .active {
-  background: linear-gradient(135deg, rgba(97, 175, 239, 0.14), rgba(97, 175, 239, 0.08));
-  color: #61afef;
-  border-color: rgba(97, 175, 239, 0.18);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-:global([data-theme='blog-dark']) .menuIconWrap {
-  background: rgba(44, 49, 58, 0.92);
-  border-color: rgba(99, 109, 131, 0.18);
-}
-
-:global([data-theme='blog-dark']) .active .menuIconWrap {
-  background: rgba(97, 175, 239, 0.12);
-  border-color: rgba(97, 175, 239, 0.18);
-}
-
 :global([data-theme='blog-dark']) .backdrop {
   background: rgba(0, 0, 0, 0.4);
 }
@@ -329,16 +312,4 @@
   background: rgba(40, 44, 52, 0.84);
   color: var(--admin-text-secondary);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
-}
-
-:global([data-theme='blog-dark']) .menuInner::-webkit-scrollbar-track {
-  background: rgba(33, 37, 43, 0.92);
-}
-
-:global([data-theme='blog-dark']) .menuInner::-webkit-scrollbar-thumb {
-  background: rgba(99, 109, 131, 0.5);
-}
-
-:global([data-theme='blog-dark']) .menuInner::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 109, 131, 0.7);
 }

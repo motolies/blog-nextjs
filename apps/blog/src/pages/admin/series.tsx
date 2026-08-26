@@ -3,6 +3,7 @@ import {
   Button,
   ContentDialog,
   cn,
+  Icon,
   Input,
   Label,
   showToast,
@@ -167,15 +168,18 @@ export default function SeriesPage() {
     <AdminPageFrame
       className="admin-page-frame--fixed"
       actions={
-        <Button variant="primary" onClick={handleCreate}>
-          <Plus className="h-4 w-4 mr-1" />새 시리즈
+        <Button variant="primary" onClick={handleCreate} icon={Plus}>
+          새 시리즈
         </Button>
       }
     >
       {/* 검색 바 */}
-      <div className="admin-panel admin-panel-pad mb-2">
+      <div className="admin-panel admin-panel-pad">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-dl-fg-muted" />
+          <Icon
+            icon={Search}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-dl-fg-muted"
+          />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -188,7 +192,7 @@ export default function SeriesPage() {
               className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 hover:bg-dl-option-hover"
               onClick={() => setSearchQuery('')}
             >
-              <X className="h-3.5 w-3.5 text-dl-fg-muted" />
+              <Icon icon={X} className="text-dl-fg-muted" />
             </button>
           )}
         </div>
@@ -200,19 +204,19 @@ export default function SeriesPage() {
         <div className="admin-panel admin-fill min-w-0 overflow-hidden">
           <div className="h-full overflow-auto p-2">
             {loading ? (
-              <p className="py-8 text-center text-sm text-[color:var(--admin-text-faint)]">
+              <p className="py-8 text-center text-dl-sm text-[color:var(--admin-text-faint)]">
                 불러오는 중...
               </p>
             ) : filteredList.length === 0 ? (
               <div className="flex h-full items-center justify-center p-6">
                 <div className="space-y-2 text-center">
                   <BookOpen className="mx-auto h-8 w-8 text-[color:var(--admin-text-faint)] opacity-50" />
-                  <p className="text-sm text-[color:var(--admin-text-faint)]">
+                  <p className="text-dl-sm text-[color:var(--admin-text-faint)]">
                     {searchQuery ? '검색 결과가 없습니다.' : '시리즈가 없습니다.'}
                   </p>
                   {!searchQuery && (
-                    <Button variant="primary" size="sm" onClick={handleCreate}>
-                      <Plus className="h-4 w-4 mr-1" />첫 시리즈 만들기
+                    <Button variant="primary" size="sm" onClick={handleCreate} icon={Plus}>
+                      첫 시리즈 만들기
                     </Button>
                   )}
                 </div>
@@ -225,7 +229,7 @@ export default function SeriesPage() {
                     type="button"
                     onClick={() => handleSelectSeries(s)}
                     className={cn(
-                      'w-full text-left rounded-lg px-3 py-2.5 transition-colors duration-150',
+                      'w-full text-left rounded-dl-container px-3 py-2.5 transition-colors duration-150',
                       'hover:bg-[color:var(--admin-canvas-strong)]',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dl-primary focus-visible:ring-offset-1',
                       selectedSeriesId === s.id &&
@@ -234,15 +238,15 @@ export default function SeriesPage() {
                     aria-current={selectedSeriesId === s.id ? 'true' : undefined}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="truncate text-sm font-semibold text-[color:var(--admin-text)]">
+                      <span className="truncate text-dl-sm font-semibold text-[color:var(--admin-text)]">
                         {s.title}
                       </span>
-                      <Badge tone="neutral" className="shrink-0 text-xs">
+                      <Badge tone="neutral" className="shrink-0">
                         {s.postCount}
                       </Badge>
                     </div>
                     {s.description && (
-                      <p className="mt-0.5 line-clamp-1 text-xs text-[color:var(--admin-text-muted)]">
+                      <p className="mt-0.5 line-clamp-1 text-dl-xs text-[color:var(--admin-text-muted)]">
                         {s.description}
                       </p>
                     )}
@@ -276,8 +280,7 @@ export default function SeriesPage() {
             <Button variant="outline-gray" onClick={() => setOpenDialog(false)}>
               취소
             </Button>
-            <Button variant="primary" onClick={handleSave}>
-              <Save className="h-4 w-4 mr-1" />
+            <Button variant="primary" onClick={handleSave} icon={Save}>
               저장
             </Button>
           </>

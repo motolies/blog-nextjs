@@ -167,8 +167,7 @@ export default function CategoriesPage() {
     <AdminPageFrame
       className="admin-page-frame--fixed"
       actions={
-        <Button variant="primary" onClick={handleAddRoot}>
-          <Plus className="h-4 w-4 mr-1" />
+        <Button variant="primary" onClick={handleAddRoot} icon={Plus}>
           카테고리 추가
         </Button>
       }
@@ -223,8 +222,7 @@ export default function CategoriesPage() {
             <Button variant="outline-gray" onClick={() => setOpenDialog(false)}>
               취소
             </Button>
-            <Button variant="primary" onClick={handleSave}>
-              <Save className="h-4 w-4 mr-1" />
+            <Button variant="primary" onClick={handleSave} icon={Save}>
               저장
             </Button>
           </>
@@ -232,7 +230,7 @@ export default function CategoriesPage() {
       >
         <div className="space-y-4 pt-2">
           {dialogMode === 'addChild' && dialogParentNode && (
-            <div className="rounded-lg border border-dl-tonal-border bg-dl-tonal p-3 text-sm">
+            <div className="rounded-dl-container border border-dl-tonal-border bg-dl-tonal p-3 text-dl-sm">
               <span className="text-[color:var(--admin-text-faint)]">부모 카테고리: </span>
               <strong className="text-[color:var(--admin-text)]">{dialogParentNode.name}</strong>
             </div>

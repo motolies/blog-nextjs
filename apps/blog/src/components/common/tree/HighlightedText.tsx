@@ -30,7 +30,7 @@ export default function HighlightedText({ text, query }: HighlightedTextProps) {
         offset += segment.text.length;
 
         return segment.matched ? (
-          <mark key={key} className="rounded-[2px] bg-dl-warning-bg px-0.5 text-dl-warning-ink">
+          <mark key={key} className="rounded-dl-badge bg-dl-warning-bg px-0.5 text-dl-warning-ink">
             {segment.text}
           </mark>
         ) : (

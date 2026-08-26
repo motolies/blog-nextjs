@@ -1,4 +1,4 @@
-import { Badge, Button, EmptyState, FieldValue, FormGrid } from '@hvy/ui';
+import { Badge, Button, EmptyState, FieldValue, FormGrid, Icon } from '@hvy/ui';
 import { Folder, FolderTree, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 
@@ -26,7 +26,7 @@ export default function CategoryDetailPanel({
 }: CategoryDetailPanelProps) {
   if (!selectedNode) {
     return (
-      <div className="flex h-full items-center justify-center rounded-[1.1rem] border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)]">
+      <div className="flex h-full items-center justify-center admin-panel-soft">
         <EmptyState message="항목을 선택하세요" />
       </div>
     );
@@ -50,11 +50,7 @@ export default function CategoryDetailPanel({
     ['부모', parentName || '최상위'],
     [
       '게시물',
-      <Badge
-        key="post"
-        tone={selectedNode.postCount! > 0 ? 'primary' : 'neutral'}
-        className="text-xs"
-      >
+      <Badge key="post" tone={selectedNode.postCount! > 0 ? 'primary' : 'neutral'}>
         {selectedNode.postCount ?? 0}개
       </Badge>,
     ],
@@ -62,20 +58,18 @@ export default function CategoryDetailPanel({
   ];
 
   return (
-    <div className="flex h-full flex-col rounded-[1.1rem] border border-[color:var(--admin-border)] bg-[color:var(--admin-panel-muted)]">
+    <div className="flex h-full flex-col admin-panel-soft">
       {/* 헤더 */}
       <div className="flex items-center gap-2 px-3 py-3">
         {hasChildren ? (
-          <Folder className="h-4 w-4 text-dl-primary-ink" />
+          <Icon icon={Folder} className="text-dl-primary-ink" />
         ) : (
-          <FolderTree className="h-4 w-4 text-dl-primary-ink" />
+          <Icon icon={FolderTree} className="text-dl-primary-ink" />
         )}
-        <span className="flex-1 text-sm font-semibold text-[color:var(--admin-text)]">
+        <span className="flex-1 text-dl-sm font-semibold text-[color:var(--admin-text)]">
           카테고리 상세
         </span>
-        <Badge tone="primary" className="text-xs">
-          {selectedNode.name}
-        </Badge>
+        <Badge tone="primary">{selectedNode.name}</Badge>
       </div>
       <div aria-hidden className="h-px w-full shrink-0 bg-dl-border" />
 
@@ -85,16 +79,23 @@ export default function CategoryDetailPanel({
       {/* 액션 버튼 */}
       <div aria-hidden className="h-px w-full shrink-0 bg-dl-border" />
       <div className="flex flex-wrap gap-1.5 p-3">
-        <Button size="sm" variant="outline-gray" onClick={() => onEdit(selectedNode)}>
-          <Pencil className="h-3.5 w-3.5 mr-1" />
+        <Button size="sm" variant="outline-gray" onClick={() => onEdit(selectedNode)} icon={Pencil}>
           편집
         </Button>
-        <Button size="sm" variant="outline-red" onClick={() => onDelete(selectedNode)}>
-          <Trash2 className="h-3.5 w-3.5 mr-1" />
+        <Button
+          size="sm"
+          variant="outline-red"
+          onClick={() => onDelete(selectedNode)}
+          icon={Trash2}
+        >
           삭제
         </Button>
-        <Button size="sm" variant="outline-gray" onClick={() => onAddChild(selectedNode)}>
-          <Plus className="h-3.5 w-3.5 mr-1" />
+        <Button
+          size="sm"
+          variant="outline-gray"
+          onClick={() => onAddChild(selectedNode)}
+          icon={Plus}
+        >
           하위 카테고리 추가
         </Button>
       </div>

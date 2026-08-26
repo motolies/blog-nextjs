@@ -3,6 +3,7 @@ import {
   Button,
   ContentDialog,
   defineColumns,
+  IconButton,
   Input,
   Label,
   Switch,
@@ -116,14 +117,14 @@ export default function HotDealSitesPage() {
           hideable: false,
           format: (_value, row) => (
             <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                className="aspect-square p-0 h-7 w-7 cursor-pointer"
+              <IconButton
+                icon={Pencil}
+                label={`${row.siteName} 수정`}
+                size="xs"
+                iconSize="sm"
+                className="cursor-pointer"
                 onClick={() => handleEdit(row)}
-                aria-label={`${row.siteName} 수정`}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
+              />
             </div>
           ),
         },
@@ -138,7 +139,7 @@ export default function HotDealSitesPage() {
   return (
     <AdminPageFrame className="admin-page-frame--fixed">
       {/* 상단 액션 바 */}
-      <div className="admin-panel admin-panel-pad mb-2">
+      <div className="admin-panel admin-panel-pad">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 ml-auto">
             <Button
@@ -146,8 +147,8 @@ export default function HotDealSitesPage() {
               className="cursor-pointer"
               onClick={handleScrape}
               busy={scraping}
+              icon={Play}
             >
-              <Play className="h-4 w-4 mr-1" />
               {scraping ? '스크래핑 중...' : '스크래핑 실행'}
             </Button>
           </div>
@@ -188,8 +189,7 @@ export default function HotDealSitesPage() {
             <Button variant="outline-gray" onClick={() => setOpenDialog(false)}>
               취소
             </Button>
-            <Button variant="primary" onClick={handleSave}>
-              <Save className="h-4 w-4 mr-1" />
+            <Button variant="primary" onClick={handleSave} icon={Save}>
               저장
             </Button>
           </>
@@ -197,7 +197,7 @@ export default function HotDealSitesPage() {
       >
         {editTarget && (
           <div className="space-y-4 pt-2">
-            <div className="rounded-lg border border-dl-tonal-border bg-dl-tonal p-3 text-sm">
+            <div className="rounded-dl-container border border-dl-tonal-border bg-dl-tonal p-3 text-dl-sm">
               <span className="text-[color:var(--admin-text-faint)]">사이트: </span>
               <strong className="text-[color:var(--admin-text)]">{editTarget.siteName}</strong>
               <span className="text-[color:var(--admin-text-muted)]"> ({editTarget.siteCode})</span>

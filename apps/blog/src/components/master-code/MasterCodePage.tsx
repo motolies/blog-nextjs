@@ -1,4 +1,4 @@
-import { Button, ContentDialog, Spinner, showToast, useConfirm } from '@hvy/ui';
+import { Button, ContentDialog, Icon, Spinner, showToast, useConfirm } from '@hvy/ui';
 import { Plus, RefreshCw, Save } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import TreeSearchBar from '@/components/common/tree/TreeSearchBar';
@@ -324,8 +324,7 @@ export default function MasterCodePage() {
       className="admin-page-frame--fixed"
       actions={
         <>
-          <Button variant="primary" onClick={handleAddRoot} busy={loading}>
-            <Plus className="h-4 w-4 mr-1" />
+          <Button variant="primary" onClick={handleAddRoot} busy={loading} icon={Plus}>
             루트 추가
           </Button>
           <Button
@@ -333,8 +332,8 @@ export default function MasterCodePage() {
             className="border-dl-warning text-dl-warning-ink hover:bg-dl-warning-bg"
             onClick={handleClearAllCache}
             busy={loading}
+            icon={RefreshCw}
           >
-            <RefreshCw className="h-4 w-4 mr-1" />
             캐시 삭제
           </Button>
         </>
@@ -353,7 +352,7 @@ export default function MasterCodePage() {
       {/* 메인 콘텐츠 */}
       {loading && treeData.length === 0 ? (
         <div className="flex items-center justify-center py-10">
-          <Spinner className="size-6" />
+          <Spinner className="size-dl-ic-lg" />
         </div>
       ) : (
         <div className="admin-split-layout admin-fill" data-size="wide">
@@ -397,11 +396,7 @@ export default function MasterCodePage() {
               취소
             </Button>
             <Button variant="primary" onClick={handleSave} busy={loading}>
-              {loading ? (
-                <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-1" />
-              )}
+              {loading ? <Icon icon={RefreshCw} className="animate-spin" /> : <Icon icon={Save} />}
               {loading ? '저장 중...' : '저장'}
             </Button>
           </>

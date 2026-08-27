@@ -10,10 +10,10 @@ const dsn = process.env.SENTRY_DSN;
  *
  * - tracesSampleRate 미설정 = Tracing without Performance — 스팬은 만들지 않고 propagation context 만 유지.
  * - 내비게이션 단위 traceId 갱신은 기본 integration 인 browserTracingIntegration 이 담당한다 —
- *   Pages Router 는 __NEXT_DATA__ 감지 → pagesRouterInstrumentNavigation(Router.events.routeChangeStart).
- *   captureRouterTransitionStart(onRouterTransitionStart) 는 App Router 전용 훅이라 여기선 쓰지 않는다.
+ *   Next 가 파일 끝의 onRouterTransitionStart 훅을 클라이언트 내비게이션마다 호출하고
+ *   (captureRouterTransitionStart) 그때 새 traceId 를 만든다.
  * - pageload 의 traceId 는 SSR 이 심은 <meta name="sentry-trace"> 를 이어받는다 (withSentryConfig 의
- *   clientTraceMetadata 주입) — getServerSideProps 의 백엔드 호출과 같은 traceId.
+ *   clientTraceMetadata 주입, Next ≥15 자동) — 서버 렌더의 백엔드 호출과 같은 traceId.
  * - tracePropagationTargets: [] — TwP 에서도 same-origin XHR 에 sentry-trace 가 자동 부착되는
  *   것을 차단한다. 전파는 axiosClient 가 주입하는 W3C traceparent 단일 헤더로 통일한다.
  * - 운영 빌드에서만 전송 — next dev 의 로컬 오류·세션이 운영 이슈에 섞이지 않게 한다.
@@ -46,3 +46,6 @@ Sentry.init({
     /^safari(-web)?-extension:\/\//i,
   ],
 });
+
+// 클라이언트 내비게이션마다 traceId 를 갱신한다 — Next 가 이 export 를 자동으로 연결한다
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

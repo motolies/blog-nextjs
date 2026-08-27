@@ -1,7 +1,9 @@
+'use client';
+
 import { cn } from '@hvy/ui';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { useQuickSearch } from '@/hooks/useQuickSearch';
 import { isActiveNavLink, publicNavLinks } from './publicNavigation';
@@ -19,7 +21,7 @@ interface MobileNavProps {
  * (스크림 z-10 < 패널 z-20 < 헤더 바 z-30). disclosure 패턴이라 포커스 트랩은 두지 않는다.
  */
 export default function MobileNav({ open, onClose, actions }: MobileNavProps) {
-  const router = useRouter();
+  const pathname = usePathname();
   const search = useQuickSearch();
 
   // Escape 키로 닫기
@@ -36,11 +38,12 @@ export default function MobileNav({ open, onClose, actions }: MobileNavProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  // 라우트가 바뀌면 패널을 닫는다
+  // 경로가 바뀌면 닫는다. 같은 /search 안에서 쿼리만 바뀌는 빠른검색은 Enter 핸들러가 직접 닫는다 —
+  // 헤더에 useSearchParams 를 두면 정적 페이지 전체가 Suspense/CSR 로 밀리므로 쓰지 않는다
   useEffect(() => {
     onClose();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.asPath]);
+  }, [pathname]);
 
   if (!open) {
     return null;
@@ -66,14 +69,18 @@ export default function MobileNav({ open, onClose, actions }: MobileNavProps) {
             placeholder="Search posts"
             value={search.searchText}
             onChange={search.onChange}
-            onKeyDown={search.onKeyDown}
+            onKeyDown={(e) => {
+              search.onKeyDown(e);
+              // 같은 /search 안에서 쿼리만 바뀌면 pathname effect 가 안 돌므로 여기서 닫는다
+              if (e.key === 'Enter') onClose();
+            }}
             className="public-control-surface h-11 w-full rounded-full border pl-9 pr-4 text-sm placeholder:text-[color:var(--public-text-subtle)] transition focus:border-dl-primary focus:outline-none focus:ring-4 focus:ring-dl-primary"
           />
         </div>
 
         <ul className="mt-3 grid gap-1">
           {publicNavLinks.map((link) => {
-            const active = isActiveNavLink(router.pathname, link.href);
+            const active = isActiveNavLink(pathname, link.href);
             return (
               <li key={link.href}>
                 <Link

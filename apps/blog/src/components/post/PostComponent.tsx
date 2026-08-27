@@ -1,3 +1,5 @@
+'use client';
+
 import { Button, showToast, useConfirm } from '@hvy/ui';
 import {
   ArrowLeft,
@@ -14,17 +16,17 @@ import {
   Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useCodeHighlight } from '@/hooks/useCodeHighlight';
 import { showApiErrorToast } from '@/lib/apiErrorToast';
+import { buildSearchHref } from '@/lib/searchHref';
 import { searchObjectInit } from '@/model/searchObject';
 import service from '@/service';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { Series } from '@/types/series';
 import type { Tag } from '@/types/tag';
-import { base64Encode } from '@/util/base64Util';
 import { sanitizeThemeHostileStyles } from '@/util/contentStyleSanitizer';
 import { formatLocalDate, formatUtcToLocal } from '@/util/dateTimeUtil';
 import { fileLink } from '@/util/fileLink';
@@ -360,7 +362,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
         categories: [{ id: post.category.id, name: post.category.name }],
       },
     };
-    return `/search?q=${base64Encode(JSON.stringify(condition))}`;
+    return buildSearchHref(condition);
   };
 
   const formatDate = (value: string | undefined): string => {

@@ -1,10 +1,10 @@
 import { Button, useConfirm } from '@hvy/ui';
 import { Trash2 } from 'lucide-react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useShallow } from 'zustand/react/shallow';
+import { buildSearchHref } from '@/lib/searchHref';
 import { searchObjectInit } from '@/model/searchObject';
 import { useAuthStore } from '@/store/useAuthStore';
-import { base64Encode } from '@/util/base64Util';
 
 interface TagProps {
   id: string;
@@ -41,7 +41,7 @@ export const Tag = (props: TagProps) => {
           tags: [{ id: props.id, name: props.name }],
         },
       };
-      router.push({ pathname: '/search', query: { q: base64Encode(JSON.stringify(condition)) } });
+      router.push(buildSearchHref(condition));
     }
   };
 

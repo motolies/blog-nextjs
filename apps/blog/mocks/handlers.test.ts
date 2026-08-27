@@ -130,10 +130,12 @@ describe('포스트·시리즈', () => {
     expect(main.data.main).toBe(true);
   });
 
-  it('prev-next 경계: 첫 포스트의 prev 는 null', async () => {
+  it('prev-next 경계: 첫 포스트의 prev 는 0(COALESCE), next 는 id 2 — 실물 PostPrevNextResponse 형태', async () => {
     const json = await (await fetch(`${BASE}/api/post/prev-next/1`)).json();
-    expect(json.data.prev).toBeNull();
-    expect(json.data.next?.id).toBe(2);
+    expect(json.data.prev).toBe(0);
+    expect(json.data.prevSubject).toBeNull();
+    expect(json.data.next).toBe(2);
+    expect(json.data.nextSubject).toBe('테스트 포스트 2');
   });
 
   it('시리즈 by-post: 소속이면 포스트 목록 포함, 아니면 data null', async () => {

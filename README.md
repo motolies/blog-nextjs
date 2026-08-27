@@ -5,7 +5,7 @@
 ## 구조
 
 ```
-├─ apps/blog        # 블로그 앱 (Next.js 16, Pages Router) — Docker 배포 대상
+├─ apps/blog        # 블로그 앱 (Next.js 16, App Router) — Docker 배포 대상
 ├─ apps/ui-docs     # 디자인 시스템 문서 앱 (로컬 전용, 포트 3020) — Docker 미포함
 ├─ packages/ui      # @hvy/ui 디자인 시스템 — 빌드 산출물 없이 TS 소스를 앱이 직접 소비
 ├─ pnpm-workspace.yaml  # catalog = 버전 고정의 단일 진실 소스

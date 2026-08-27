@@ -1,8 +1,8 @@
-import { useRouter } from 'next/router';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getTsid } from 'tsid-ts';
+import { buildSearchHref } from '@/lib/searchHref';
 import { searchObjectInit } from '@/model/searchObject';
-import { base64Encode } from '@/util/base64Util';
 
 /**
  * 헤더·모바일 드로어가 공유하는 빠른 검색 입력 훅.
@@ -11,13 +11,14 @@ import { base64Encode } from '@/util/base64Util';
  */
 export function useQuickSearch() {
   const router = useRouter();
+  const pathname = usePathname();
   const [searchText, setSearchText] = useState<string>('');
 
   useEffect(() => {
-    if (!router.pathname.startsWith('/search')) {
+    if (!pathname.startsWith('/search')) {
       setSearchText('');
     }
-  }, [router.pathname]);
+  }, [pathname]);
 
   // 현재 입력값으로 검색 조건을 구성해 /search 로 이동
   const submitSearch = () => {
@@ -31,7 +32,7 @@ export function useQuickSearch() {
         },
       },
     };
-    router.push({ pathname: '/search', query: { q: base64Encode(JSON.stringify(condition)) } });
+    router.push(buildSearchHref(condition));
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

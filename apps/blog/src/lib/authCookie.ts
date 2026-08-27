@@ -1,11 +1,12 @@
-import type { IncomingMessage } from 'node:http';
 import { parse, serialize } from 'cookie';
+import { type HeaderSource, readHeader } from './requestHeaders';
 
 export const FRONT_AUTH_COOKIE_NAME = 'hvy_access_token';
 const BACKEND_AUTH_COOKIE_NAME = 'Authorization';
 
-export function getAuthTokenFromRequest(req: IncomingMessage | undefined | null): string | null {
-  const rawCookie = req?.headers?.cookie;
+// 요청 헤더에서 프론트 인증 쿠키(hvy_access_token)를 꺼낸다 — headers()/Request.headers 공용
+export function getAuthTokenFromRequest(source: HeaderSource): string | null {
+  const rawCookie = readHeader(source, 'cookie');
   if (!rawCookie) {
     return null;
   }

@@ -1,6 +1,6 @@
 import { Button, Input, Select, showToast, useConfirm } from '@hvy/ui';
 import { Undo2 } from 'lucide-react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getTsid } from 'tsid-ts';
 import CategoryAutoComplete from '@/components/CategoryAutoComplete';

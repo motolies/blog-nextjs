@@ -1,7 +1,7 @@
 import { Icon } from '@hvy/ui';
 import { ArrowUpRight, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { getAdminBreadcrumb } from './adminNavigation';
@@ -19,10 +19,10 @@ interface HeaderProps {
  * 본문(AdminPageFrame)은 타이틀을 렌더하지 않는다. lg 미만에서는 섹션을 숨기고 현재 페이지만 보여준다.
  */
 export default function Header({ toggleMenu, isCollapsed }: HeaderProps) {
-  const router = useRouter();
+  const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const crumb = getAdminBreadcrumb(router.pathname);
+  const crumb = getAdminBreadcrumb(pathname);
 
   useEffect(() => {
     setMounted(true);

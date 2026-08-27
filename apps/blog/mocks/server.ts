@@ -1,8 +1,8 @@
 import { setupServer } from 'msw/node';
 import { handlers } from './handlers';
 
-// server-only 미사용: Pages Router API 라우트(mock-stats)가 import 하면 RSC 전용 가드가 throw 한다.
-// 이 디렉터리는 instrumentation·API 라우트에서만 import 되므로 구조상 서버 전용이다.
+// server-only 미사용: 이 디렉터리는 instrumentation·Route Handler 에서만 import 되므로 구조상 서버 전용이다.
+// (Route Handler 전환으로 옛 Pages API 라우트의 RSC 가드 throw 제약은 해소됐으나 server-only 재도입은 별도 과제)
 /**
  * Node 사이드 MSW. 브라우저 서비스워커는 쓰지 않는다 —
  * 백엔드(hvy-blog) 호출은 전부 Next 서버에서 일어나므로(SSR axios · BFF 프록시 fetch)

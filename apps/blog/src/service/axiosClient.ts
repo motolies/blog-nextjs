@@ -42,7 +42,7 @@ axiosClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    // 브라우저에서만 캡처한다 — SSR 측 실패는 onRequestError/_error.tsx 가 담당해 중복을 막는다.
+    // 브라우저에서만 캡처한다 — 서버 측 실패는 onRequestError/error.tsx 가 담당해 중복을 막는다.
     // react-query 가 에러를 상태로 삼키므로 이 인터셉터가 클라이언트 API 실패의 유일한 캡처 지점이다.
     if (typeof window !== 'undefined' && isReportableAxiosError(error)) {
       Sentry.captureException(error, {

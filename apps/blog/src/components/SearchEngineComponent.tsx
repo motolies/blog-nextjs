@@ -1,3 +1,5 @@
+'use client';
+
 import { Button, Input, Select } from '@hvy/ui';
 import { ArrowUpRight, Search } from 'lucide-react';
 import { useState } from 'react';

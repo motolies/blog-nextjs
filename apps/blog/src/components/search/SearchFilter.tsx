@@ -1,12 +1,12 @@
 import { Button, Input, Select, showToast } from '@hvy/ui';
 import { Search } from 'lucide-react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getTsid } from 'tsid-ts';
 import { ConditionComponent } from '@/components/ConditionComponent';
+import { buildSearchHref } from '@/lib/searchHref';
 import { searchObjectInit } from '@/model/searchObject';
 import type { Tag } from '@/types/tag';
-import { base64Encode } from '@/util/base64Util';
 import SearchCategory from './SearchCategory';
 import SearchTag from './SearchTag';
 
@@ -114,7 +114,7 @@ export default function SearchFilter({
         tags: [...tags],
       },
     };
-    router.push({ pathname: '/search', query: { q: base64Encode(JSON.stringify(condition)) } });
+    router.push(buildSearchHref(condition));
   };
 
   return (

@@ -24,6 +24,6 @@ export async function register(): Promise<void> {
   console.warn('[mock] MSW 목 다운스트림 활성 — 실제 백엔드를 호출하지 않는다');
 }
 
-// nodejs 런타임의 요청 처리 중 오류(getServerSideProps, API 라우트 등)를 Sentry 로 후킹한다.
+// nodejs 런타임의 요청 처리 중 오류(서버 컴포넌트, Route Handler 등)를 Sentry 로 후킹한다.
 // edge 런타임(미들웨어)은 현재 미사용 — 도입 시 sentry.edge.config.ts 를 추가해야 한다.
 export const onRequestError = Sentry.captureRequestError;

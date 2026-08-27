@@ -172,9 +172,14 @@ export const adminRouteMeta: Record<string, AdminRouteMeta> = {
   },
 };
 
+// usePathname() 은 '/admin/write/123' 같은 실제 경로를 준다 — adminRouteMeta 의 라우트 패턴 키로 정규화
+function toRouteKey(pathname: string): string {
+  return pathname.startsWith('/admin/write/') ? '/admin/write/[id]' : pathname;
+}
+
 export function getAdminRouteMeta(pathname: string): AdminRouteMeta {
   return (
-    adminRouteMeta[pathname] || {
+    adminRouteMeta[toRouteKey(pathname)] || {
       title: '관리자',
       icon: LayoutDashboard,
     }

@@ -413,15 +413,17 @@ a.file-link {
   background: rgba(125, 137, 161, 0.7);
 }
 
-html[data-admin-ui="admin"] {
+/* admin 셸 판정은 SSR HTML 의 .admin-shell(AdminLayout 루트)로 한다 — JS 토글 없이 첫 페인트부터 적용.
+   --admin-* 변수는 Portal(다이얼로그)이 body 직속에 렌더되므로 body 레벨에 둬야 한다 */
+html:has(.admin-shell) {
   color-scheme: light;
 }
 
-html[data-theme='blog-dark'][data-admin-ui="admin"] {
+html[data-theme='blog-dark']:has(.admin-shell) {
   color-scheme: dark;
 }
 
-body[data-admin-ui="admin"] {
+body:has(.admin-shell) {
   /* 헤더 높이 = 안에 들어가는 컨트롤(dl sm 36) + 상하 여백 합(거터 20 = 10+10).
      매직넘버 대신 dl 축을 소비해 컨트롤 스케일이 바뀌면 바가 따라온다.
      .admin-page-frame--fixed 높이 계산도 이 변수를 소비한다. */
@@ -475,7 +477,7 @@ body[data-admin-ui="admin"] {
     linear-gradient(180deg, #fafcff 0%, #f5f8fc 48%, #eff4f9 100%);
 }
 
-body[data-admin-ui="admin"]::before {
+body:has(.admin-shell)::before {
   background-image:
     linear-gradient(to right, var(--admin-grid) 1px, transparent 1px),
     linear-gradient(to bottom, var(--admin-grid) 1px, transparent 1px);
@@ -697,7 +699,7 @@ body[data-admin-ui="admin"]::before {
 
 /* ── Admin Dark Mode (OneDark) ── */
 
-[data-theme='blog-dark'] body[data-admin-ui="admin"] {
+[data-theme='blog-dark'] body:has(.admin-shell) {
   --admin-canvas: #1a1e24;
   --admin-canvas-strong: #21252b;
   --admin-grid: rgba(99, 109, 131, 0.08);

@@ -27,7 +27,7 @@
  * ckeditor5/ckeditor5.css의 .ck-content 규칙을 덮어써서
  * content-typography.css의 공유 스타일과 일치시킨다.
  *
- * 이 파일은 _app.jsx에서 ckeditor5.css 이후에 로드되므로,
+ * 이 파일은 app/layout.tsx에서 ckeditor5.css 이후에 로드되므로,
  * 동일 specificity에서 cascade 순서로 우선한다.
  *
  * CKEditor 버전: 47.x
@@ -119,7 +119,7 @@
 }
 
 /* ── Dark mode ──
- * 이 파일이 _app.tsx에서 content-typography.css(=global.css 내 @import)보다
+ * 이 파일이 app/layout.tsx에서 content-typography.css(=global.css 내 @import)보다
  * 늦게 로드되어 .ck-content 라이트 톤이 [data-theme='blog-dark'] 분기를 cascade로 덮어쓰는
  * 문제를 해소하기 위한 다크 분기. content-typography.css의 다크 규칙과
  * 동일한 톤을 .ck-content에 적용한다.

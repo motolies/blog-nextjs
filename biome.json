@@ -106,7 +106,11 @@
                   "@hvy/ui": {
                     "importNames": ["DataGrid"],
                     "message": "apps/blog 에서 DataGrid 직접 사용 금지 — PersistedDataGrid(components/common/grid)를 쓰세요. 직접 쓰면 컬럼 폭·숨김·순서 영속이 빠집니다."
-                  }
+                  },
+                  "next/router": "App Router 전환 완료 — next/navigation(useRouter/usePathname/useParams/useSearchParams)을 사용합니다",
+                  "next/head": "App Router 전환 완료 — metadata/generateMetadata 를 사용합니다",
+                  "next/document": "App Router 전환 완료 — app/layout.tsx 가 html/body 를 소유합니다",
+                  "next/app": "App Router 전환 완료 — app/layout.tsx + providers.tsx 를 사용합니다"
                 }
               }
             }

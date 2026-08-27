@@ -3,7 +3,7 @@
   "extends": "../../tsconfig.next.json",
   "compilerOptions": {
     "plugins": [{ "name": "next" }],
-    "paths": { "@/*": ["./src/*"] },
+    "paths": { "@/*": ["./src/*"], "@mocks/*": ["./mocks/*"] },
     // 기존 코드가 strict 이전 세대 — 완화 오버라이드. strict 전환은 별도 로드맵.
     "strict": false,
     "noUncheckedIndexedAccess": false,

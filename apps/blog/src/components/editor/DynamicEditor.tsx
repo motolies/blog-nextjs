@@ -1,3 +1,5 @@
+'use client';
+
 import { showToast } from '@hvy/ui';
 import dynamic from 'next/dynamic';
 import { useCallback, useRef } from 'react';

@@ -46,7 +46,7 @@ Turbopack은 번들링만 Rust로 수행할 뿐 앱 코드는 여전히 Node.js�
 | Package manager | 기본값 |
 | Environment | 비움 |
 
-**Debug(벌레 아이콘)** 로 실행하면 IntelliJ가 서버 프로세스에 자동으로 attach한다. `getServerSideProps`, API 라우트 등 서버 코드에 브레이크포인트를 걸면 바로 동작한다.
+**Debug(벌레 아이콘)** 로 실행하면 IntelliJ가 서버 프로세스에 자동으로 attach한다. 서버 컴포넌트, Route Handler 등 서버 코드에 브레이크포인트를 걸면 바로 동작한다.
 
 ## 2. 터미널에서 띄운 서버에 붙기 — Attach to Node.js/Chrome
 

@@ -5,7 +5,7 @@ import {
   type ColumnWidths,
   useGridPreference,
 } from '@hvy/ui';
-import { useRouter } from 'next/router';
+import { usePathname } from 'next/navigation';
 import { type ReactNode, useMemo, useState } from 'react';
 import { type GridPagingControl, resolvePageSize } from '@/lib/gridPaging';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -59,9 +59,10 @@ export function useGridSettings<T extends Record<string, unknown>>(
   columns: readonly ColumnDef<T>[],
   gridId: string,
 ): GridSettings<T> {
-  // admin 은 전부 정적 경로라 pathname 이 곧 메뉴 축이다. 사용자 축은 프로필 로드 전
+  // admin 은 전부 정적 경로라 pathname 이 곧 메뉴 축이다(usePathname 은 실제 경로를 주지만 그리드
+  // 페이지는 동적 세그먼트가 없어 저장 키가 불변). 사용자 축은 프로필 로드 전
   // 공백 프레임이 있어 resolveGridUserKey 가 fallback 으로 격리한다.
-  const { pathname } = useRouter();
+  const pathname = usePathname();
   const username = useAuthStore((s) => s.user.username);
   const preference = useGridPreference({
     userKey: resolveGridUserKey(username),

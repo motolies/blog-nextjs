@@ -1,7 +1,9 @@
+'use client';
+
 import { cn, IconButton } from '@hvy/ui';
 import { FilePlus, LogIn, Menu, Moon, Search, Shield, Sparkles, Sun, X } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -18,7 +20,7 @@ import { isActiveNavLink, publicNavLinks } from './publicNavigation';
  * 모바일(<md): 로고 + 테마 토글 + 햄버거 — 검색·내비·액션은 MobileNav 드로어로 이동.
  */
 export default function Header() {
-  const router = useRouter();
+  const pathname = usePathname();
   const userState = useAuthStore(
     useShallow((s) => ({ isAuthenticated: s.isAuthenticated, user: s.user })),
   );
@@ -50,7 +52,7 @@ export default function Header() {
           />
         )}
 
-        {router.pathname === '/login' || userState.user.username ? null : (
+        {pathname === '/login' || userState.user.username ? null : (
           <Link
             href="/login"
             aria-label="로그인"
@@ -98,7 +100,7 @@ export default function Header() {
 
           <ul className="hidden items-center gap-1 md:flex">
             {publicNavLinks.map((link) => {
-              const active = isActiveNavLink(router.pathname, link.href);
+              const active = isActiveNavLink(pathname, link.href);
               return (
                 <li key={link.href}>
                   <Link

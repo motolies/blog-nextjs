@@ -86,7 +86,7 @@ export const handlers = [
     if (body?.username !== MOCK_USER.username) {
       return fail('아이디 또는 비밀번호가 올바르지 않습니다', 401);
     }
-    // 로그인 전용 라우트(pages/api/auth/login.ts)가 이 헤더에서 토큰을 뽑아 재포장한다 — 필수.
+    // 로그인 전용 라우트(app/api/auth/login/route.ts)가 이 헤더에서 토큰을 뽑아 재포장한다 — 필수.
     return ok(request, MOCK_USER, {
       headers: { 'Set-Cookie': `Authorization=${MOCK_JWT}; Path=/; Max-Age=86400; HttpOnly` },
     });
@@ -154,14 +154,18 @@ export const handlers = [
     return ok(request, SEARCH_ENGINES);
   }),
 
+  // 실물 계약(PostPrevNextResponse / PostMapper.findPrevNextById): prev·next 는 id(없으면 COALESCE 0), *Subject 는 제목(없으면 null).
+  // 객체를 돌려주면 PostComponent 의 <Link href={`/post/${prev}`}> 가 `/post/[object Object]` 가 되어 App Router 가 throw 한다.
   http.get('*/api/post/prev-next/:postId', ({ request, params }) => {
     count('post');
     const id = Number(params.postId);
     const prev = POSTS.find((p) => p.id === id - 1);
     const next = POSTS.find((p) => p.id === id + 1);
     return ok(request, {
-      prev: prev ? postSearchItem(prev) : null,
-      next: next ? postSearchItem(next) : null,
+      prev: prev?.id ?? 0,
+      next: next?.id ?? 0,
+      prevSubject: prev?.subject ?? null,
+      nextSubject: next?.subject ?? null,
     });
   }),
 

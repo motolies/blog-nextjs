@@ -181,14 +181,7 @@ export default function MemoPage() {
   };
 
   return (
-    <AdminPageFrame
-      className="admin-page-frame--fixed"
-      actions={
-        <Button variant="primary" icon={Plus} onClick={() => setMemoDialogOpen(true)}>
-          메모 추가
-        </Button>
-      }
-    >
+    <AdminPageFrame className="admin-page-frame--fixed">
       {/* 고정 프레임 안에서 탭 본문이 남은 높이를 받도록 flex 사슬을 잇는다 — Tabs root 와 TabPanel 둘 다 min-h-0 이 필요하다 */}
       <Tabs defaultValue="memos" className="flex min-h-0 flex-col">
         {/* 시각은 @hvy/ui Tabs 기본(밑줄형)을 그대로 쓴다 — 알약형은 WorkTabs 의 언어다. */}
@@ -217,6 +210,9 @@ export default function MemoPage() {
               attachedToolbar
               maxHeight="fill"
             />
+            {/* 액션은 GridToolbar 의 지정 슬롯에 둔다 — 폭에 따른 분기 없이 어디서나 같은 자리.
+                xs(32) 는 툴바 기준 규격 sm(36) 보다 한 단 낮다 — 툴바 높이는 페이지크기 셀렉트(sm)가
+                잡으므로 49px 그대로고, 액션만 페이저 버튼(28/32) 쪽 무게로 내려온다. */}
             <GridPagingBar
               pageIndex={grid.pageIndex}
               pageCount={grid.pageCount}
@@ -224,13 +220,23 @@ export default function MemoPage() {
               total={grid.totalCount}
               pageSize={grid.pageSize}
               onPageSizeChange={grid.setPageSize}
+              actions={
+                <Button
+                  variant="primary"
+                  size="xs"
+                  icon={Plus}
+                  onClick={() => setMemoDialogOpen(true)}
+                >
+                  메모 추가
+                </Button>
+              }
               onColumnSettings={settings.openSettings}
             />
           </div>
         </TabPanel>
         {/* 집계표는 'auto'(전 행)라 길어질 수 있다 — 탭 패널 자체가 스크롤한다(admin-fill). 프레임이 overflow:hidden 이라 이게 없으면 잘린다 */}
         <TabPanel value="categories" className="admin-fill pt-2">
-          <div className="admin-panel admin-panel-pad">
+          <div className="admin-panel admin-table-shell admin-table-shell--bleed">
             <CategoryManagementPanel />
           </div>
         </TabPanel>

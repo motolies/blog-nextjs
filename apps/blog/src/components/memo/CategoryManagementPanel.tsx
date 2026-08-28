@@ -2,10 +2,12 @@ import {
   Button,
   ContentDialog,
   defineColumns,
+  GridToolbar,
   IconButton,
   Input,
   Label,
   showToast,
+  TotalCount,
   useConfirm,
 } from '@hvy/ui';
 import { Columns3, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -49,9 +51,9 @@ export default function CategoryManagementPanel() {
   const columns = useMemo(
     () =>
       defineColumns<MemoCategory>([
-        { id: 'id', headerWord: 'ID', width: 80, align: 'left' },
+        { id: 'id', headerWord: 'ID', width: 80, align: 'right' },
         { id: 'name', headerWord: '이름', grow: 1, align: 'left' },
-        { id: 'seq', headerWord: '순서', width: 80, align: 'left' },
+        { id: 'seq', headerWord: '순서', width: 80, align: 'right' },
         {
           id: 'actions' as keyof MemoCategory & string,
           headerWord: ' ',
@@ -145,19 +147,6 @@ export default function CategoryManagementPanel() {
 
   return (
     <div>
-      <div className="mb-2 flex justify-end gap-1">
-        {/* 페이징 바가 없는 그리드라 컬럼 설정 진입점을 상단 버튼 줄에 둔다 (GridPagingBar 와 동일 패턴) */}
-        <IconButton
-          icon={Columns3}
-          label={COLUMN_SETTINGS_LABELS.title}
-          size="sm"
-          onClick={settings.openSettings}
-        />
-        <Button variant="primary" size="sm" onClick={handleAdd} icon={Plus}>
-          카테고리 추가
-        </Button>
-      </div>
-
       {/* 페이징 없이 전 행을 한눈에 — 스크롤은 탭 패널(admin-fill)이 맡는다. 기본 560 이면 10행에서 잘린다 */}
       <PersistedDataGrid<MemoCategory>
         settings={settings}
@@ -167,6 +156,37 @@ export default function CategoryManagementPanel() {
         sortOf={grid.sortOf}
         onToggleSort={grid.toggleSort}
         maxHeight="auto"
+        attachedToolbar
+      />
+
+      {/*
+        메모 탭의 GridPagingBar 와 같은 자리·같은 규격의 하단 툴바.
+        페이저·페이지크기는 없다 — useClientGrid(paginate:false) 라 페이지 개념이 없다.
+        총 건수는 남긴다(GridToolbar 계약: 페이징 슬롯은 어느 화면에서도 빠뜨리지 않는다).
+      */}
+      <GridToolbar
+        className="shrink-0 flex-wrap"
+        paging={
+          <TotalCount
+            total={grid.rows.length}
+            prefix="총"
+            suffix="건"
+            format={(value) => value.toLocaleString('ko-KR')}
+          />
+        }
+        actions={
+          <Button variant="primary" size="xs" onClick={handleAdd} icon={Plus}>
+            카테고리 추가
+          </Button>
+        }
+        viewControls={
+          <IconButton
+            icon={Columns3}
+            label={COLUMN_SETTINGS_LABELS.title}
+            size="sm"
+            onClick={settings.openSettings}
+          />
+        }
       />
 
       <ContentDialog

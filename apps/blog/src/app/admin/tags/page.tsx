@@ -284,7 +284,7 @@ export default function TagsPage() {
 
   return (
     <AdminPageFrame className="admin-page-frame--fixed">
-      {/* 상단 액션 바 */}
+      {/* 검색 바 */}
       <div className="admin-panel admin-panel-pad">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px]">
@@ -321,22 +321,6 @@ export default function TagsPage() {
             />
             미사용 태그만
           </span>
-
-          <div className="flex items-center gap-2 ml-auto">
-            <Button
-              variant="outline-gray"
-              className="cursor-pointer"
-              onClick={handleBulkDelete}
-              disabled={unusedCount === 0}
-              title="미사용 태그가 있을 때 눌러진다"
-              icon={Trash2}
-            >
-              미사용 일괄삭제{unusedCount > 0 && ` (${unusedCount})`}
-            </Button>
-            <Button variant="primary" className="cursor-pointer" onClick={handleCreate} icon={Plus}>
-              새 태그
-            </Button>
-          </div>
         </div>
       </div>
 
@@ -359,6 +343,30 @@ export default function TagsPage() {
           total={grid.totalCount}
           pageSize={grid.pageSize}
           onPageSizeChange={grid.setPageSize}
+          actions={
+            <>
+              <Button
+                variant="outline-gray"
+                size="xs"
+                className="cursor-pointer"
+                onClick={handleBulkDelete}
+                disabled={unusedCount === 0}
+                title="미사용 태그가 있을 때 눌러진다"
+                icon={Trash2}
+              >
+                미사용 일괄삭제{unusedCount > 0 && ` (${unusedCount})`}
+              </Button>
+              <Button
+                variant="primary"
+                size="xs"
+                className="cursor-pointer"
+                onClick={handleCreate}
+                icon={Plus}
+              >
+                새 태그
+              </Button>
+            </>
+          }
           onColumnSettings={settings.openSettings}
         />
       </div>

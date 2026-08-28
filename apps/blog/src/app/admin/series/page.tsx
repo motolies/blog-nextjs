@@ -5,15 +5,15 @@ import {
   Button,
   ContentDialog,
   cn,
-  Icon,
   Input,
   Label,
   showToast,
   Textarea,
   useConfirm,
 } from '@hvy/ui';
-import { BookOpen, Plus, Save, Search, X } from 'lucide-react';
+import { BookOpen, Plus, Save } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import TreeSearchBar from '@/components/common/tree/TreeSearchBar';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import SeriesDetailPanel from '@/components/series/SeriesDetailPanel';
 import { showApiErrorToast } from '@/lib/apiErrorToast';
@@ -167,38 +167,21 @@ export default function SeriesPage() {
   };
 
   return (
-    <AdminPageFrame
-      className="admin-page-frame--fixed"
-      actions={
-        <Button variant="primary" onClick={handleCreate} icon={Plus}>
-          새 시리즈
-        </Button>
-      }
-    >
-      {/* 검색 바 */}
-      <div className="admin-panel admin-panel-pad">
-        <div className="relative">
-          <Icon
-            icon={Search}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-dl-fg-muted"
-          />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="시리즈 이름으로 검색..."
-            className="pl-9 pr-8"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 hover:bg-dl-option-hover"
-              onClick={() => setSearchQuery('')}
-            >
-              <Icon icon={X} className="text-dl-fg-muted" />
-            </button>
-          )}
-        </div>
-      </div>
+    <AdminPageFrame className="admin-page-frame--fixed">
+      {/* 검색 바 — 액션은 이 줄의 지정 슬롯에 둔다(그리드 화면의 툴바 액션과 같은 층). */}
+      <TreeSearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        onClear={() => setSearchQuery('')}
+        placeholder="시리즈 이름으로 검색..."
+        label="시리즈 검색"
+        resultCount={searchQuery ? filteredList.length : null}
+        actions={
+          <Button variant="primary" onClick={handleCreate} icon={Plus}>
+            새 시리즈
+          </Button>
+        }
+      />
 
       {/* 메인 콘텐츠: 마스터-디테일 */}
       <div className="admin-split-layout admin-fill" data-size="wide">

@@ -140,23 +140,6 @@ export default function HotDealSitesPage() {
 
   return (
     <AdminPageFrame className="admin-page-frame--fixed">
-      {/* 상단 액션 바 */}
-      <div className="admin-panel admin-panel-pad">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 ml-auto">
-            <Button
-              variant="outline-gray"
-              className="cursor-pointer"
-              onClick={handleScrape}
-              busy={scraping}
-              icon={Play}
-            >
-              {scraping ? '스크래핑 중...' : '스크래핑 실행'}
-            </Button>
-          </div>
-        </div>
-      </div>
-
       {/* 사이트 테이블 */}
       <div className="admin-panel admin-table-shell admin-table-shell--bleed">
         <PersistedDataGrid<Record<string, unknown>>
@@ -176,6 +159,18 @@ export default function HotDealSitesPage() {
           total={grid.totalCount}
           pageSize={grid.pageSize}
           onPageSizeChange={grid.setPageSize}
+          actions={
+            <Button
+              variant="outline-gray"
+              size="xs"
+              className="cursor-pointer"
+              onClick={handleScrape}
+              busy={scraping}
+              icon={Play}
+            >
+              {scraping ? '스크래핑 중...' : '스크래핑 실행'}
+            </Button>
+          }
           onColumnSettings={settings.openSettings}
         />
       </div>

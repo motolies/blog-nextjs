@@ -320,26 +320,9 @@ export default function MasterCodePage() {
     }[dialogMode as string] || '';
 
   return (
-    <AdminPageFrame
-      className="admin-page-frame--fixed"
-      actions={
-        <>
-          <Button variant="primary" onClick={handleAddRoot} busy={loading} icon={Plus}>
-            루트 추가
-          </Button>
-          <Button
-            variant="outline-gray"
-            className="border-dl-warning text-dl-warning-ink hover:bg-dl-warning-bg"
-            onClick={handleClearAllCache}
-            busy={loading}
-            icon={RefreshCw}
-          >
-            캐시 삭제
-          </Button>
-        </>
-      }
-    >
-      {/* 검색 바 — 로딩 삼항 밖에 둔다. 안에 넣으면 로딩이 끝나는 순간 검색바가 튀어 들어온다. */}
+    <AdminPageFrame className="admin-page-frame--fixed">
+      {/* 검색 바 — 로딩 삼항 밖에 둔다. 안에 넣으면 로딩이 끝나는 순간 검색바가 튀어 들어온다.
+          액션은 이 줄의 지정 슬롯에 둔다(그리드 화면의 툴바 액션과 같은 층). */}
       <TreeSearchBar
         value={search.query}
         onChange={search.setQuery}
@@ -347,6 +330,22 @@ export default function MasterCodePage() {
         placeholder="코드 또는 이름으로 검색..."
         label="마스터코드 검색"
         resultCount={search.isSearching ? search.matchCount : null}
+        actions={
+          <>
+            <Button variant="primary" onClick={handleAddRoot} busy={loading} icon={Plus}>
+              루트 추가
+            </Button>
+            <Button
+              variant="outline-gray"
+              className="border-dl-warning text-dl-warning-ink hover:bg-dl-warning-bg"
+              onClick={handleClearAllCache}
+              busy={loading}
+              icon={RefreshCw}
+            >
+              캐시 삭제
+            </Button>
+          </>
+        }
       />
 
       {/* 메인 콘텐츠 */}

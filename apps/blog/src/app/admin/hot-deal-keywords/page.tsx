@@ -251,7 +251,7 @@ export default function HotDealKeywordsPage() {
 
   return (
     <AdminPageFrame className="admin-page-frame--fixed">
-      {/* 상단 액션 바 */}
+      {/* 검색 바 */}
       <div className="admin-panel admin-panel-pad">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px]">
@@ -288,12 +288,6 @@ export default function HotDealKeywordsPage() {
             />
             활성만 ({enabledCount})
           </span>
-
-          <div className="flex items-center gap-2 ml-auto">
-            <Button variant="primary" className="cursor-pointer" onClick={handleCreate} icon={Plus}>
-              새 키워드
-            </Button>
-          </div>
         </div>
       </div>
 
@@ -325,6 +319,17 @@ export default function HotDealKeywordsPage() {
           total={grid.totalCount}
           pageSize={grid.pageSize}
           onPageSizeChange={grid.setPageSize}
+          actions={
+            <Button
+              variant="primary"
+              size="xs"
+              className="cursor-pointer"
+              onClick={handleCreate}
+              icon={Plus}
+            >
+              새 키워드
+            </Button>
+          }
           onColumnSettings={settings.openSettings}
         />
       </div>

@@ -166,15 +166,8 @@ export default function CategoriesPage() {
     }[dialogMode as string] || '';
 
   return (
-    <AdminPageFrame
-      className="admin-page-frame--fixed"
-      actions={
-        <Button variant="primary" onClick={handleAddRoot} icon={Plus}>
-          카테고리 추가
-        </Button>
-      }
-    >
-      {/* 검색 바 */}
+    <AdminPageFrame className="admin-page-frame--fixed">
+      {/* 검색 바 — 액션은 이 줄의 지정 슬롯에 둔다(그리드 화면의 툴바 액션과 같은 층). */}
       <TreeSearchBar
         value={search.query}
         onChange={search.setQuery}
@@ -182,6 +175,11 @@ export default function CategoriesPage() {
         placeholder="카테고리 이름으로 검색..."
         label="카테고리 검색"
         resultCount={search.isSearching ? search.matchCount : null}
+        actions={
+          <Button variant="primary" onClick={handleAddRoot} icon={Plus}>
+            카테고리 추가
+          </Button>
+        }
       />
 
       {/* 메인 콘텐츠 */}

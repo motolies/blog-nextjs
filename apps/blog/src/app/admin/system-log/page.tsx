@@ -2,7 +2,8 @@
 
 import { Badge, Button, ContentDialog, defineColumns } from '@hvy/ui';
 import { format } from 'date-fns';
-import { useCallback, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 import DynamicSearchFields from '@/components/common/DynamicSearchFields';
 import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
 import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
@@ -11,6 +12,7 @@ import { useGridSettings } from '@/components/common/grid/useGridSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useServerGrid } from '@/hooks/useServerGrid';
 import type { SearchField, SearchRequest } from '@/lib/gridSearch';
+import { pickLogFilters } from '@/lib/urlFilters';
 import service from '@/service';
 import { formatUtcToLocal } from '@/util/dateTimeUtil';
 
@@ -40,7 +42,16 @@ const searchFields: SearchField[] = [
   { name: 'remoteAddr', label: 'Remote IP' },
 ];
 
-export default function SystemLog() {
+export default function SystemLogPage() {
+  // useSearchParams 는 Suspense 경계를 요구한다 — 빌드 타임 CSR bailout 오류를 미리 막는다
+  return (
+    <Suspense fallback={null}>
+      <SystemLog />
+    </Suspense>
+  );
+}
+
+function SystemLog() {
   // 모듈 로드 시점이 아닌 마운트 시점에 기본 검색일을 계산한다(자정 넘김 stale 방지)
   const [today] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -70,9 +81,17 @@ export default function SystemLog() {
     [],
   );
 
+  // URLSearchParams 객체는 매 렌더 새 참조라 의존성으로 못 쓴다 — 문자열로 고정한다
+  const searchString = useSearchParams().toString();
+
+  /**
+   * 대시보드의 오류 행이 `?traceId=...` 로 보낸다.
+   * traceId 로 들어온 경우에는 날짜 기본값(오늘)을 걸지 않는다 —
+   * 트레이스 검색은 시점을 모르고 하는 조회라 오늘로 가두면 아무것도 안 나온다.
+   */
   const defaultSearchParams = useMemo(
-    () => ({ createdAtFrom: today, createdAtTo: today }),
-    [today],
+    () => pickLogFilters(searchString, { createdAtFrom: today, createdAtTo: today }),
+    [searchString, today],
   );
 
   // 컬럼 정의 — 상세 클릭 컬럼이 handleDetailClick 클로저를 쓰므로 컴포넌트 안 useMemo 로 유지

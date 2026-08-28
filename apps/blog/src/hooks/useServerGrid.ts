@@ -132,6 +132,18 @@ export function useServerGrid<T>({
     // deps 가 빈 배열인 건 의도다 — 초기화 대상은 **마운트 시점의** 기본값이다.
   }, []);
 
+  /**
+   * 같은 조건으로 현재 페이지를 다시 읽는다 — 행을 수정·삭제한 뒤에 쓴다.
+   *
+   * onSearch 로 대신하면 setSearchParams + setPageIndex(0) 까지 딸려와
+   * 3페이지에서 한 건 지웠을 뿐인데 1페이지로 튕긴다.
+   * searchTrigger 를 올려 기존 effect 를 그대로 재실행하는 것이 유일하게 안전한 경로다
+   * (requestRef 만 따로 올리면 setLoading(true) 가 남아 스피너가 멈추지 않는다).
+   */
+  const refresh = useCallback(() => {
+    setSearchTrigger((t) => t + 1);
+  }, []);
+
   const onInputChange = useCallback((fieldName: string, value: unknown) => {
     setSearchInputs((previous) => ({ ...previous, [fieldName]: value }));
   }, []);
@@ -147,6 +159,7 @@ export function useServerGrid<T>({
     setPageSize,
     sortOf,
     toggleSort,
+    refresh,
     /** DynamicSearchFields 에 그대로 스프레드하는 검색 배선 */
     search: { searchInputs, onInputChange, onSearch, onReset },
     /** useGridSelection/useGridEditing 의 resetKey 로 사용 */

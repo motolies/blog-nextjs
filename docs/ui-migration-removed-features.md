@@ -132,6 +132,23 @@
 - **백엔드는 남아 있다**: `/api/stats/admin/**` · 스프린트 API 는 그대로다.
   재구현하려면 서비스 계층부터 다시 만들면 된다.
 
+> ### ✅ 2026-08-28 재구현 완료 — `/admin` 대시보드로 흡수
+>
+> `/admin/stats` 를 되살리는 대신 **대시보드 자체를 개편**해 그 자리를 대신하게 했다.
+> 위에 적힌 실패 원인을 각각 이렇게 막았다:
+>
+> | 지난번 실패 | 이번 대응 |
+> |---|---|
+> | `StatCard` 자체 구현 | `@hvy/ui` `StatTile` 사용 |
+> | raw `<table>` | `@hvy/ui` `Table` 사용 |
+> | Tailwind 기본 팔레트(`bg-sky-500`·`text-white`) | 색은 `global.css` 의 `--admin-chart-*` 에만 두고 tsx 는 `var()` 문자열로만 소비 |
+> | 다크 대비 1.1:1 | 라이트/다크 팔레트를 따로 선언하고 실측 대비율을 토큰 주석에 기록 |
+> | echarts 재설치 | **설치하지 않음.** 인라인 SVG 미니킷(`components/common/chart/`)으로 대체 — 테마 전환이 CSS 캐스케이드로 처리돼 배선이 필요 없다 |
+>
+> 백엔드도 `/overview` 단일 엔드포인트를 `/summary` `/traffic` `/health` `/pipeline` 넷으로 나눴고
+> (갱신 주기·비용·실패 격리가 다르다), 죽어 있던 `tb_post.view_count` 계측을 beacon 으로 되살렸다.
+> `Skeleton`(§6)도 이때 함께 재구현했다.
+
 - **재구현 시 참고**: 삭제 커밋의 부모에서 `apps/blog/src/pages/admin/stats.tsx`(283줄),
   `apps/blog/src/pages/admin/sprint.tsx`(462줄)를 복원할 수 있다. 다만 그대로 되살리면
   같은 대비 문제가 재발한다 — 요약 카드는 `StatTile`, 표는 `Table`/`DataGrid`,

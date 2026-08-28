@@ -3,7 +3,7 @@ import {
   Activity,
   BellRing,
   BookOpen,
-  BookOpenText,
+  FileText,
   Flame,
   FolderTree,
   LayoutDashboard,
@@ -46,6 +46,11 @@ export const adminNavigationSections: AdminNavigationSection[] = [
   {
     title: 'Content',
     items: [
+      {
+        href: '/admin/posts',
+        label: '포스트',
+        icon: FileText,
+      },
       {
         href: '/admin/write',
         label: '글 작성',
@@ -121,6 +126,10 @@ export const adminRouteMeta: Record<string, AdminRouteMeta> = {
   '/admin': {
     title: '관리자 대시보드',
     icon: LayoutDashboard,
+  },
+  '/admin/posts': {
+    title: '포스트 관리',
+    icon: FileText,
   },
   '/admin/write': {
     title: '글 작성',
@@ -215,43 +224,3 @@ export function getAdminBreadcrumb(pathname: string): AdminBreadcrumb {
   }
   return { title };
 }
-
-export interface AdminQuickLink {
-  href: string;
-  label: string;
-  description: string;
-  icon: LucideIcon;
-}
-
-export const adminQuickLinks: AdminQuickLink[] = [
-  {
-    href: '/admin/write',
-    label: '새 글 작성',
-    description: '본문과 메타데이터를 함께 편집',
-    icon: PencilLine,
-  },
-  {
-    href: '/admin/categories',
-    label: '카테고리 정리',
-    description: '콘텐츠 구조와 분류 체계 조정',
-    icon: FolderTree,
-  },
-  {
-    href: '/admin/memo',
-    label: '메모 확인',
-    description: '운영 메모와 카테고리 점검',
-    icon: NotebookPen,
-  },
-  {
-    href: '/admin/system-log',
-    label: '시스템 모니터링',
-    description: '오류와 이벤트 로그 추적',
-    icon: Activity,
-  },
-  {
-    href: '/admin/master-code',
-    label: '마스터코드 운영',
-    description: '계층 코드와 캐시 상태 점검',
-    icon: BookOpenText,
-  },
-];

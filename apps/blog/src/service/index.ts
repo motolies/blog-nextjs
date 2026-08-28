@@ -8,6 +8,7 @@ import memoService from './memoService';
 import postService from './postService';
 import searchEngineService from './searchEngineService';
 import seriesService from './seriesService';
+import statsService from './statsService';
 import tagService from './tagService';
 import userService from './userService';
 
@@ -24,6 +25,7 @@ const service = {
   masterCode: masterCodeService,
   hotDeal: hotDealService,
   series: seriesService,
+  stats: statsService,
 };
 
 export default service;

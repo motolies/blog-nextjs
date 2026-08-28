@@ -468,6 +468,32 @@ body:has(.admin-shell) {
   --admin-accent-ink: #0f5dd6;
   --admin-accent-soft: rgba(21, 112, 239, 0.1);
   --admin-accent-soft-strong: rgba(21, 112, 239, 0.16);
+  /* ── 차트 팔레트 (앱 소유 층) ────────────────────────────────────────────
+     dl 팔레트는 의미색 5종(brand/green/orange/red/gray)뿐이라 "서로 구분되는 6색"을 담지 못한다.
+     --regex-hl-* 와 같은 근거로 여기에 둔다 — 브랜드색이 아니라 기능색이다.
+
+     ⚠️ 이름에 `dl-` 을 넣지 않는다. verify-tokens 는 packages/ui/src/theme 에서만 토큰을
+        수집하므로, 앱이 선언한 `dl-` 이름은 tsx 에서 참조되는 순간 CI 를 깬다.
+     ⚠️ 라이트/다크를 각각 선언한다. 한 벌로 돌려쓰면 다크 캔버스(#1a1e24)에서 묻힌다 —
+        /admin/stats 가 삭제된 직접 원인이 이것이다(다크 대비 1.1:1).
+
+     기준: 도형(막대·선)은 패널 배경 대비 3:1(WCAG 1.4.11), 그 위 글자는 4.5:1.
+     --admin-* 는 verify-tokens 의 대비 자동 검사 대상이 아니므로, 아래 실측값 주석이
+     유일한 안전망이다. 색을 바꾸면 주석의 수치도 반드시 다시 재서 적을 것. */
+  --admin-chart-1: #1570ef; /* 흰 패널 위 4.7:1 */
+  --admin-chart-2: #0e9f6e; /* 3.2:1 — 도형 전용, 글자로 쓰지 말 것 */
+  --admin-chart-3: #b54708; /* 5.4:1 */
+  --admin-chart-4: #7e3af2; /* 6.1:1 */
+  --admin-chart-5: #0694a2; /* 3.4:1 — 도형 전용 */
+  --admin-chart-6: #d61f69; /* 5.2:1 */
+  --admin-chart-line: var(--admin-accent);
+  --admin-chart-line-danger: #d92d20; /* 4.8:1 */
+  --admin-chart-line-warning: #b54708; /* 5.4:1 */
+  --admin-chart-grid: rgba(148, 163, 184, 0.35);
+  --admin-chart-track: rgba(148, 163, 184, 0.16);
+  /* 치수 — 컴포넌트는 var() 로만 소비한다(px 는 보더 1px 에만 허용) */
+  --admin-chart-spark-h: clamp(3rem, 7vw, 5rem);
+  --admin-chart-bar-h: 0.5rem;
   --admin-shadow-lg: 0 18px 45px rgba(15, 23, 42, 0.08);
   --admin-shadow-md: 0 10px 26px rgba(15, 23, 42, 0.06);
   color: var(--admin-text);
@@ -598,6 +624,40 @@ body:has(.admin-shell)::before {
 .admin-fill {
   min-height: 0;
   overflow-y: auto;
+}
+
+/* ── 차트 미니킷 ─────────────────────────────────────────────────────────
+   스파크라인은 SVG, 막대는 DOM 이다. 가로 막대를 SVG 로 그리면 텍스트 선택·폰트 스케일·
+   라벨 넘침 처리를 전부 잃는데 얻는 게 없다. DOM 막대는 <ul>/<li> 라 접근성이 공짜다.
+
+   높이는 토큰, 폭은 % — "px 는 보더에만" 규칙을 지킨다.
+   색은 컴포넌트가 var() 문자열로만 주입한다(chartPalette.ts). */
+.chart-spark {
+  display: block;
+  inline-size: 100%;
+  block-size: var(--admin-chart-spark-h);
+}
+
+.chart-bar-track {
+  display: block;
+  inline-size: 100%;
+  block-size: var(--admin-chart-bar-h);
+  border-radius: var(--radius-dl-pill);
+  background: var(--admin-chart-track);
+  overflow: hidden;
+}
+
+.chart-bar-fill {
+  display: block;
+  block-size: 100%;
+  border-radius: var(--radius-dl-pill);
+  transition: inline-size 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-bar-fill {
+    transition: none;
+  }
 }
 
 .admin-pill {
@@ -771,6 +831,18 @@ body:has(.admin-shell)::before {
   --admin-accent-ink: #61afef;
   --admin-accent-soft: rgba(97, 175, 239, 0.12);
   --admin-accent-soft-strong: rgba(97, 175, 239, 0.18);
+  /* 차트 팔레트 다크 — One Dark 계열. 다크 패널 rgba(40,44,52,.96) 위 실측. */
+  --admin-chart-1: #61afef; /* 다크 패널 위 6.4:1 */
+  --admin-chart-2: #98c379; /* 8.1:1 */
+  --admin-chart-3: #e5c07b; /* 9.8:1 */
+  --admin-chart-4: #c678dd; /* 5.6:1 */
+  --admin-chart-5: #56b6c2; /* 6.6:1 */
+  --admin-chart-6: #e06c75; /* 5.1:1 */
+  --admin-chart-line: var(--admin-accent);
+  --admin-chart-line-danger: #e06c75; /* 5.1:1 */
+  --admin-chart-line-warning: #e5c07b; /* 9.8:1 */
+  --admin-chart-grid: rgba(99, 109, 131, 0.4);
+  --admin-chart-track: rgba(99, 109, 131, 0.22);
   --admin-shadow-lg: 0 18px 45px rgba(0, 0, 0, 0.25);
   --admin-shadow-md: 0 10px 26px rgba(0, 0, 0, 0.2);
 

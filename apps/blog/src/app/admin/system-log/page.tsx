@@ -152,7 +152,7 @@ export default function SystemLog() {
 
   return (
     <AdminPageFrame className="admin-page-frame--fixed">
-      <div className="admin-panel admin-table-shell">
+      <div className="admin-panel admin-table-shell admin-table-shell--bleed">
         <DynamicSearchFields
           searchFields={searchFields as Parameters<typeof DynamicSearchFields>[0]['searchFields']}
           defaultSearchParams={defaultSearchParams}

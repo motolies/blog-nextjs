@@ -697,6 +697,31 @@ body:has(.admin-shell)::before {
   }
 }
 
+/* 모바일 전면 폭 — 껍데기 카드를 걷어내고 안쪽 카드만 남긴다.
+   .admin-table-shell 은 그 자체가 .admin-panel(테두리+반경+그림자+패딩)인데 안에
+   이미 카드인 검색 패널과 그리드가 들어 있어 카드가 이중이 된다. 그 껍데기가 먹던
+   좌우 폭(contentWrapper 패딩 27.2 + 테두리 2 + 패딩 20 = 49.2px, 375px 화면의 13%)을 회수한다.
+   Tailwind 유틸리티(border·rounded-dl-container)는 @layer utilities 안에 있고 이 파일은
+   언레이어드라, 특이도와 무관하게 캐스케이드에서 이긴다 — !important 가 필요 없다. */
+@media (width < 40rem) {
+  .admin-table-shell--bleed {
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    padding: 0;
+    /* contentWrapper 의 좌우 패딩을 상쇄해 화면 끝까지 */
+    margin-inline: calc(-1 * var(--admin-content-pad));
+  }
+
+  /* 안쪽 카드(검색 패널·그리드·페이저)는 좌우 테두리와 모서리를 펴 화면 폭 밴드가 된다.
+     가로 테두리는 남겨 카드 사이 구분선 역할을 유지한다. */
+  .admin-table-shell--bleed > * {
+    border-inline-width: 0;
+    border-radius: 0;
+  }
+}
+
 /* ── Admin Dark Mode (OneDark) ── */
 
 [data-theme='blog-dark'] body:has(.admin-shell) {

@@ -197,7 +197,7 @@ export default function MemoPage() {
           <Tab value="categories">카테고리 관리</Tab>
         </TabList>
         <TabPanel value="memos" className="flex min-h-0 flex-col pt-2">
-          <div className="admin-panel admin-table-shell">
+          <div className="admin-panel admin-table-shell admin-table-shell--bleed">
             <DynamicSearchFields
               searchFields={
                 searchFields as Parameters<typeof DynamicSearchFields>[0]['searchFields']

@@ -341,7 +341,7 @@ export default function TagsPage() {
       </div>
 
       {/* 태그 테이블 */}
-      <div className="admin-panel admin-table-shell">
+      <div className="admin-panel admin-table-shell admin-table-shell--bleed">
         <PersistedDataGrid<TagItem>
           settings={settings}
           rows={grid.rows}

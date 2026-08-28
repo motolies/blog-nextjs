@@ -158,7 +158,7 @@ export default function HotDealSitesPage() {
       </div>
 
       {/* 사이트 테이블 */}
-      <div className="admin-panel admin-table-shell">
+      <div className="admin-panel admin-table-shell admin-table-shell--bleed">
         <PersistedDataGrid<Record<string, unknown>>
           settings={settings}
           rows={grid.rows}

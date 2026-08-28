@@ -307,7 +307,7 @@ export default function HotDealKeywordsPage() {
       </div>
 
       {/* 키워드 테이블 */}
-      <div className="admin-panel admin-table-shell">
+      <div className="admin-panel admin-table-shell admin-table-shell--bleed">
         <PersistedDataGrid<Record<string, unknown>>
           settings={settings}
           rows={grid.rows}

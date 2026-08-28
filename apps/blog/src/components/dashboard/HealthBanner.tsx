@@ -51,7 +51,10 @@ export function HealthBanner({ health, pipeline }: HealthBannerProps) {
 
   return (
     <InlineNotice live tone={hasServerError ? 'error' : 'warning'}>
-      <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      {/* wrap-anywhere — 메시지에 섞여 들어오는 displayName·siteName 은 백엔드 문자열이라
+          길이 계약이 없다. 카멜케이스 락 이름은 줄바꿈 기회가 0 이라 배너를 넘겨 잘린다.
+          overflow-wrap 은 상속 프로퍼티라 익명 flex 아이템(텍스트)에도 적용된다. */}
+      <span className="flex flex-wrap items-center gap-x-2 gap-y-1 wrap-anywhere">
         {messages.join(' · ')}
         <Link href="/admin/system-log" className="underline underline-offset-2">
           로그 보기

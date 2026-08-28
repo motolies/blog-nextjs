@@ -1,10 +1,11 @@
 'use client';
 
-import { Badge, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@hvy/ui';
+import { Badge, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '@hvy/ui';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { formatCompact, formatRelativeTime } from '@/lib/statFormat';
 import type { HotDealSiteStat, PipelineStats } from '@/types/stats';
 import { formatUtcToLocal } from '@/util/dateTimeUtil';
+import { DashboardTable } from './DashboardTable';
 import { DashboardWidget } from './DashboardWidget';
 
 interface PipelineSectionProps {
@@ -30,11 +31,12 @@ export function PipelineSection({ query }: PipelineSectionProps) {
             HotDealService 는 사이트별 예외를 삼키고 다음 사이트로 넘어가므로,
             총 수집 건수만 보면 한 사이트의 스크래퍼가 깨져도 나머지가 숫자를 채워 가려진다.
           */}
-          <Table size="sm">
+          <DashboardTable>
             <TableHead>
               <TableRow>
                 <TableHeaderCell>사이트</TableHeaderCell>
-                <TableHeaderCell>마지막 수집</TableHeaderCell>
+                {/* TableHeaderCell 기본값이 whitespace-nowrap 이라 헤더가 컬럼 하한을 박는다 */}
+                <TableHeaderCell className="whitespace-normal">마지막 수집</TableHeaderCell>
                 <TableHeaderCell className="text-right">수집</TableHeaderCell>
                 <TableHeaderCell className="text-right">알림</TableHeaderCell>
               </TableRow>
@@ -43,8 +45,10 @@ export function PipelineSection({ query }: PipelineSectionProps) {
               {data.hotDealSites.map((site) => (
                 <TableRow key={site.siteCode}>
                   <TableCell>
-                    <span className="flex items-center gap-2">
-                      {site.siteName}
+                    {/* flex-wrap 이 없으면 이 셀의 min-content 가 "이름 + gap + 배지" 합산이 되어
+                        컬럼 하한이 배지 폭만큼 커진다 — 배지를 아래 줄로 떨어뜨릴 수 있게 둔다 */}
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="wrap-anywhere">{site.siteName}</span>
                       {site.enabled ? null : (
                         <Badge tone="neutral" size="xs">
                           꺼짐
@@ -52,11 +56,11 @@ export function PipelineSection({ query }: PipelineSectionProps) {
                       )}
                     </span>
                   </TableCell>
+                  {/* whitespace-nowrap 제거 + flex-wrap — 위와 같은 이유로 "지연" 배지가 접힐 수 있어야 한다 */}
                   <TableCell
-                    className="whitespace-nowrap"
                     title={site.lastScrapedAt ? formatUtcToLocal(site.lastScrapedAt) : undefined}
                   >
-                    <span className="flex items-center gap-2">
+                    <span className="flex flex-wrap items-center gap-2">
                       {formatRelativeTime(site.lastScrapedAt)}
                       {isSiteStale(site) ? (
                         <Badge tone="danger" size="xs">
@@ -74,9 +78,11 @@ export function PipelineSection({ query }: PipelineSectionProps) {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+          </DashboardTable>
 
-          <dl className="flex flex-wrap gap-x-6 gap-y-2 text-dl-sm">
+          {/* 좁은 화면에서는 2열 격자 — flex-wrap + gap-x-6(24px)이면 항목 폭이 제각각이라
+              들쭉날쭉 접히고 375px 에서 gap 이 과하다. sm 이상은 기존 흐름 배치를 유지한다. */}
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-dl-sm sm:flex sm:flex-wrap sm:gap-x-6">
             <Figure label="활성 키워드" value={formatCompact(data.enabledKeywordCount)} />
             <Figure
               label="알림 비율"
@@ -111,7 +117,8 @@ function isSiteStale(site: HotDealSiteStat): boolean {
 
 function Figure({ label, value }: { label: string; value: string }) {
   return (
-    <span className="flex items-baseline gap-1">
+    // min-w-0 — 격자 트랙 안에서 이 항목이 내용 폭 아래로 줄어들 수 있어야 한다
+    <span className="flex min-w-0 items-baseline gap-1">
       <dt className="text-dl-xs text-[color:var(--admin-text-faint)]">{label}</dt>
       <dd className="font-semibold text-[color:var(--admin-text)]">{value}</dd>
     </span>

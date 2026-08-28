@@ -613,6 +613,22 @@ body:has(.admin-shell)::before {
   padding: var(--admin-pad);
 }
 
+/* 대시보드 위젯 안 정적 <Table> 의 가로 넘침 안전망 — content-typography.css 의
+   `.table-scroll`(공개 본문 표)과 같은 목적의 admin 판이다.
+   html{overflow-x:clip} 과 .contentWrapper{overflow-x:hidden} 이 이중으로 잘라내므로
+   스크롤러가 없으면 넘친 폭은 스크롤로도 도달하지 못하고 영구 소실된다.
+
+   .admin-table-shell(DataGrid 용)과 달리 flex 높이 배분을 하지 않는다 —
+   대시보드는 admin-page-frame--fixed 를 쓰지 않는 세로 흐름 화면이다(app/admin/page.tsx 주석).
+
+   ⚠️ 평소에는 셀 줄바꿈(wrap-anywhere)과 table-fixed 가 폭을 맞추므로 이 스크롤바는 뜨지 않는다.
+      뜨면 그건 표가 다시 넘치기 시작했다는 회귀 신호다. */
+.admin-table-scroll {
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
 .admin-split-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -782,6 +798,20 @@ body:has(.admin-shell)::before {
 @media (width < 40rem) {
   .admin-table-shell {
     padding: var(--spacing-dl-cell-x);
+  }
+
+  /* 대시보드 위젯은 본문이 표라 카드 좌우 40px(--admin-pad × 2)이 375px 화면의 10.7% 를 먹는다.
+     바로 위 .admin-table-shell 과 같은 근거·같은 값으로 줄여 20px 를 회수한다(본문 305.8 → 325.8px).
+
+     .admin-panel-pad 규칙 자체를 고치지 않고 --admin-pad 를 요소 스코프에서 재정의하는 이유:
+     .admin-panel-pad 는 AdminPageFrame 액션바·PostModifyComponent(에디터/게시설정)·
+     TreeSearchBar·tags·hot-deal-keywords 등 8곳이 함께 쓴다. 전역 축소도 조사상 안전했지만
+     (20px 에 의존하는 호출부 없음) 그건 admin 전역 확인이 필요한 별개 결정이다.
+
+     --admin-pad 는 .admin-page-frame--fixed 높이 예산의 손잡이이기도 하나,
+     그 프레임은 lg(64rem) 이상 전용이라 이 미디어쿼리와 겹치지 않는다. */
+  .admin-widget {
+    --admin-pad: var(--spacing-dl-cell-x);
   }
 }
 

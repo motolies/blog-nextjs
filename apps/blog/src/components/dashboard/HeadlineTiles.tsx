@@ -73,9 +73,16 @@ export function HeadlineTiles({ traffic, health, pipeline }: HeadlineTilesProps)
           label="지연 파이프라인"
           hint={cell(
             pipeline,
-            staleJobs.length > 0
-              ? staleJobs.map((job) => job.displayName).join(', ')
-              : '마지막 실행 기준',
+            staleJobs.length > 0 ? (
+              // displayName 은 백엔드 문자열이라 길이 계약이 없다. 카멜케이스 락 이름이 오면
+              // 줄바꿈 기회가 0 인데, StatTile 은 .admin-stat-grid 의 그리드 아이템(min-width:auto)이라
+              // min-content 가 트랙을 넘기면 격자째 넘쳐 overflow-x:hidden 에 잘린다.
+              <span className="wrap-anywhere">
+                {staleJobs.map((job) => job.displayName).join(', ')}
+              </span>
+            ) : (
+              '마지막 실행 기준'
+            ),
           )}
           tone={staleJobs.length > 0 ? 'warning' : 'success'}
           value={value(health, () => `${staleJobs.length}/${totalJobs}`)}
@@ -107,7 +114,7 @@ function value(
   return render();
 }
 
-function cell(state: { isPending: boolean; isError: boolean }, hint?: string) {
+function cell(state: { isPending: boolean; isError: boolean }, hint?: React.ReactNode) {
   if (state.isPending) {
     return undefined;
   }

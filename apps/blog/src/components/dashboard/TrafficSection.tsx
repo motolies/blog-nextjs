@@ -3,7 +3,6 @@
 import {
   Badge,
   InlineNotice,
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -17,6 +16,7 @@ import { Sparkline } from '@/components/common/chart/Sparkline';
 import { summarize } from '@/lib/chartScale';
 import { formatCompact, truncateMiddle } from '@/lib/statFormat';
 import type { TrafficStats } from '@/types/stats';
+import { DashboardTable } from './DashboardTable';
 import { DashboardWidget } from './DashboardWidget';
 
 interface TrafficSectionProps {
@@ -48,11 +48,16 @@ export function TrafficSection({ query, days }: TrafficSectionProps) {
         errorMessage="인기 글을 불러오지 못했습니다."
       >
         {(data) => (
-          <Table size="sm">
+          /* 자유텍스트가 "제목" 한 열뿐이고 숫자 3열은 max-content 가 유계라,
+             auto 레이아웃이 남는 폭을 전부 제목에 몰아준다 — fixed 보다 이쪽이 낫다. */
+          <DashboardTable>
             <TableHead>
               <TableRow>
                 <TableHeaderCell>제목</TableHeaderCell>
-                <TableHeaderCell>카테고리</TableHeaderCell>
+                {/* 40rem 미만에서 숨긴다 — 4열 중 폭 대비 정보가치가 가장 낮고, 이 열이
+                    비우는 자리가 제목 실폭을 7자/줄에서 13자/줄로 늘린다.
+                    th·td 를 같은 경계에서 숨겨야 접근성 트리의 표가 직사각형을 유지한다. */}
+                <TableHeaderCell className="hidden sm:table-cell">카테고리</TableHeaderCell>
                 <TableHeaderCell className="text-right">조회</TableHeaderCell>
                 <TableHeaderCell className="text-right">방문자</TableHeaderCell>
               </TableRow>
@@ -64,12 +69,18 @@ export function TrafficSection({ query, days }: TrafficSectionProps) {
                     {/* 목적이 "읽기"가 아니라 "고치기"이므로 편집 화면으로 보낸다 */}
                     <Link
                       href={`/admin/write/${post.id}`}
-                      className="text-dl-primary-ink hover:underline"
+                      className="wrap-anywhere text-dl-primary-ink hover:underline"
                     >
                       {post.subject}
                     </Link>
+                    {/* 숨긴 카테고리의 대체 표시. sm 이상에서는 display:none 이라 접근성 트리에서
+                        제거되어 카테고리 열과 상호배타가 된다 — sr-only 를 쓰면 트리에 남아 이중 낭독된다. */}
+                    <span className="mt-0.5 block text-dl-xs text-[color:var(--admin-text-faint)] sm:hidden">
+                      {post.categoryName ?? '-'}
+                    </span>
                   </TableCell>
-                  <TableCell>{post.categoryName ?? '-'}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{post.categoryName ?? '-'}</TableCell>
+                  {/* 숫자 셀에는 wrap-anywhere 를 걸지 않는다 — "1,234" 가 "1,2" / "34" 로 쪼개진다 */}
                   <TableCell className="text-right tabular-nums">
                     {formatCompact(post.viewCount)}
                   </TableCell>
@@ -79,7 +90,7 @@ export function TrafficSection({ query, days }: TrafficSectionProps) {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+          </DashboardTable>
         )}
       </DashboardWidget>
 

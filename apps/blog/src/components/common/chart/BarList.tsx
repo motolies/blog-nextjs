@@ -35,6 +35,19 @@ interface BarListProps {
   emptyMessage?: ReactNode;
 }
 
+/**
+ * 라벨 클래스 — `block` 이 전제다.
+ *
+ * overflow·text-overflow 는 block container 에만 적용되는데, 라벨은 인라인 <span>/<a> 라
+ * grid 아이템이 아니어서 blockify 되지 않는다. 그래서 truncate 중 살아남는 선언이
+ * white-space:nowrap 하나뿐이었고, 말줄임 대신 "한 줄 강제"만 걸려 라벨이 값 칸 위로
+ * 덮여 두 글자가 겹쳤다(375px 실측 58~99px 겹침).
+ *
+ * sm 미만에서는 아예 접는다 — URI 는 공백이 없어 wrap-anywhere 없이는 줄바꿈 지점이 없고,
+ * 터치 기기에는 title 을 띄울 hover 가 없어 잘린 정보를 되찾을 길이 없다.
+ */
+const LABEL_CLASS = 'block truncate max-sm:whitespace-normal max-sm:wrap-anywhere';
+
 export function BarList({
   items,
   ariaLabel,
@@ -61,13 +74,13 @@ export function BarList({
         const label = item.href ? (
           <Link
             href={item.href}
-            className="truncate text-dl-primary-ink hover:underline"
+            className={cn(LABEL_CLASS, 'text-dl-primary-ink hover:underline')}
             title={item.labelText}
           >
             {item.label}
           </Link>
         ) : (
-          <span className="truncate" title={item.labelText}>
+          <span className={LABEL_CLASS} title={item.labelText}>
             {item.label}
           </span>
         );

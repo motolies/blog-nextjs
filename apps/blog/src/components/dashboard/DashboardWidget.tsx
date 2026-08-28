@@ -54,7 +54,7 @@ export function DashboardWidget<T>({
   id,
 }: DashboardWidgetProps<T>) {
   return (
-    <section id={id} className={cn('admin-panel admin-panel-pad', className)}>
+    <section id={id} className={cn('admin-panel admin-panel-pad admin-widget', className)}>
       <CardHeader
         title={
           <span className="flex flex-wrap items-baseline gap-2">
@@ -68,8 +68,15 @@ export function DashboardWidget<T>({
         }
         aside={
           // 재조회 중에는 이전 데이터를 화면에 남기고 헤더에만 스피너를 띄운다 —
-          // 화면을 비우면 기간 전환이 깜빡임으로 느껴진다
-          query.isFetching && !query.isPending ? <Spinner /> : undefined
+          // 화면을 비우면 기간 전환이 깜빡임으로 느껴진다.
+          // shrink-0 로 감싸는 이유: CardHeader 의 aside 슬롯에는 shrink-0 이 없고 Spinner 는
+          // 빈 <span> 이라 min-content 가 0 이다. 좁은 폭에서 제목이 길면 음의 여유를
+          // 스피너가 전부 흡수해 사라진다 — 재조회 중이라는 유일한 신호가 없어진다.
+          query.isFetching && !query.isPending ? (
+            <span className="flex shrink-0">
+              <Spinner />
+            </span>
+          ) : undefined
         }
         actions={actions}
       />

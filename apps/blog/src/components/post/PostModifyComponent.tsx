@@ -286,110 +286,113 @@ export default function PostModifyComponent() {
         />
       </div>
 
-      {/* 사이드바 영역 */}
-      <div className="admin-panel admin-panel-pad space-y-3 xl:max-h-[calc(100dvh-15rem)] xl:overflow-y-auto">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">
-            Settings
-          </p>
-          <h2 className="mt-1 text-lg font-semibold text-[color:var(--admin-text)]">게시 설정</h2>
-        </div>
-        <CategoryAutoComplete
-          onChangeCategory={onChangeCategory}
-          setCategoryId={(post.category as { id: string }).id}
-          label={'Category'}
-        />
-
-        <Select
-          value={String(post.public)}
-          onValueChange={(v: string) => setPostPublic(v === 'true')}
-          placeholder="isPublic"
-          options={[
-            { value: 'true', label: '공개' },
-            { value: 'false', label: '비공개' },
-          ]}
-          className="w-full"
-        />
-
-        <Button
-          variant="outline-gray"
-          className="w-full"
-          onClick={() => {
-            showToast('모달창에서 검색해서 선택할 수 있도록 하자.', 'warning');
-            setInsertData(`${getTsid().toString()}`);
-          }}
-        >
-          이전 글 넣기
-        </Button>
-
-        <div>
-          <FileUploadComponent multiple onChange={onChangeFile} className="mb-1" />
-          <div className="overflow-y-auto max-h-[25vh]">
-            {(files ?? post.files)
-              ?.filter((f: any) => f.type?.startsWith('image'))
-              .map((file: any) => (
-                <FileComponent
-                  key={file.id}
-                  file={file}
-                  onDeleteFile={onDeleteFile}
-                  onInsertFile={onInsertFile}
-                />
-              ))}
-            {(files ?? post.files)
-              ?.filter((f: any) => !f.type?.startsWith('image'))
-              .map((file: any) => (
-                <FileComponent
-                  key={file.id}
-                  file={file}
-                  onDeleteFile={onDeleteFile}
-                  onInsertFile={onInsertFile}
-                />
-              ))}
-          </div>
-        </div>
-
-        <TagGroupComponent
-          postId={post.id}
-          tagList={tags}
-          writePage={true}
-          listHeight={{
-            overflowY: 'auto',
-            maxHeight: '15vh',
-            marginTop: '0.25rem',
-          }}
-        />
-
-        <Button
-          variant="outline-gray"
-          className="w-full"
-          onClick={() => setTriggerGetDataForPreview(getTsid().toString())}
-        >
-          미리보기
-        </Button>
-
-        <div className="flex items-center justify-between text-xs text-[color:var(--admin-text-faint)]">
+      {/* 사이드바 영역 — xl 이상에서 스크롤포트에 고정된다(admin-sticky-aside).
+          스크롤은 본문이, 임시저장·발행·취소는 패널 하단이 갖는다 */}
+      <div className="admin-panel admin-panel-pad admin-sticky-aside space-y-3">
+        <div className="admin-sticky-aside-body space-y-3">
           <div>
-            {post.hasDraft && post.status === 'PUBLISH' && (
-              <button
-                type="button"
-                className="inline-flex items-center gap-1 rounded-md bg-dl-warning-bg px-2 py-1 text-xs font-medium text-dl-warning-ink hover:bg-dl-warning-bg"
-                onClick={async () => {
-                  const ok = await askConfirm({
-                    message: '초안을 폐기하고 발행된 원본 내용으로 되돌리시겠습니까?',
-                    confirmLabel: '폐기',
-                    destructive: true,
-                  });
-                  if (ok) onDiscardDraft();
-                }}
-              >
-                <Undo2 size={12} />
-                초안 폐기
-              </button>
-            )}
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--admin-text-faint)]">
+              Settings
+            </p>
+            <h2 className="mt-1 text-lg font-semibold text-[color:var(--admin-text)]">게시 설정</h2>
           </div>
+          <CategoryAutoComplete
+            onChangeCategory={onChangeCategory}
+            setCategoryId={(post.category as { id: string }).id}
+            label={'Category'}
+          />
+
+          <Select
+            value={String(post.public)}
+            onValueChange={(v: string) => setPostPublic(v === 'true')}
+            placeholder="isPublic"
+            options={[
+              { value: 'true', label: '공개' },
+              { value: 'false', label: '비공개' },
+            ]}
+            className="w-full"
+          />
+
+          <Button
+            variant="outline-gray"
+            className="w-full"
+            onClick={() => {
+              showToast('모달창에서 검색해서 선택할 수 있도록 하자.', 'warning');
+              setInsertData(`${getTsid().toString()}`);
+            }}
+          >
+            이전 글 넣기
+          </Button>
+
           <div>
-            {saveStatus === 'saving' && '저장 중...'}
-            {saveStatus === 'saved' && lastSavedTime && `마지막 저장: ${lastSavedTime}`}
+            <FileUploadComponent multiple onChange={onChangeFile} className="mb-1" />
+            <div className="overflow-y-auto max-h-[25vh]">
+              {(files ?? post.files)
+                ?.filter((f: any) => f.type?.startsWith('image'))
+                .map((file: any) => (
+                  <FileComponent
+                    key={file.id}
+                    file={file}
+                    onDeleteFile={onDeleteFile}
+                    onInsertFile={onInsertFile}
+                  />
+                ))}
+              {(files ?? post.files)
+                ?.filter((f: any) => !f.type?.startsWith('image'))
+                .map((file: any) => (
+                  <FileComponent
+                    key={file.id}
+                    file={file}
+                    onDeleteFile={onDeleteFile}
+                    onInsertFile={onInsertFile}
+                  />
+                ))}
+            </div>
+          </div>
+
+          <TagGroupComponent
+            postId={post.id}
+            tagList={tags}
+            writePage={true}
+            listHeight={{
+              overflowY: 'auto',
+              maxHeight: '15vh',
+              marginTop: '0.25rem',
+            }}
+          />
+
+          <Button
+            variant="outline-gray"
+            className="w-full"
+            onClick={() => setTriggerGetDataForPreview(getTsid().toString())}
+          >
+            미리보기
+          </Button>
+
+          <div className="flex items-center justify-between text-xs text-[color:var(--admin-text-faint)]">
+            <div>
+              {post.hasDraft && post.status === 'PUBLISH' && (
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 rounded-md bg-dl-warning-bg px-2 py-1 text-xs font-medium text-dl-warning-ink hover:bg-dl-warning-bg"
+                  onClick={async () => {
+                    const ok = await askConfirm({
+                      message: '초안을 폐기하고 발행된 원본 내용으로 되돌리시겠습니까?',
+                      confirmLabel: '폐기',
+                      destructive: true,
+                    });
+                    if (ok) onDiscardDraft();
+                  }}
+                >
+                  <Undo2 size={12} />
+                  초안 폐기
+                </button>
+              )}
+            </div>
+            <div>
+              {saveStatus === 'saving' && '저장 중...'}
+              {saveStatus === 'saved' && lastSavedTime && `마지막 저장: ${lastSavedTime}`}
+            </div>
           </div>
         </div>
 

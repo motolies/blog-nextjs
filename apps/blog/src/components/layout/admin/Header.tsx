@@ -46,9 +46,8 @@ export default function Header({ toggleMenu, isCollapsed }: HeaderProps) {
             )}
           </button>
           <Link href="/admin" className={styles.brandLink}>
-            <span className={styles.brandMark}>B</span>
             <span className={styles.brandText}>
-              <strong>Blog Admin</strong>
+              <strong>Admin</strong>
             </span>
           </Link>
           <nav aria-label="현재 위치" className={styles.breadcrumb}>

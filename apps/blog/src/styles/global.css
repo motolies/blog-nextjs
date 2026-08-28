@@ -520,6 +520,34 @@ body:has(.admin-shell)::before {
   }
 }
 
+/* 관리자 본문 스크롤러(.contentWrapper) 안에서 따라다니는 사이드 패널 — xl 이상에서만.
+   본문이 길어져도 게시 설정과 액션이 화면에 남는다. 미만에서는 자연 흐름 + 하단 sticky 바가 맡는다.
+   경계값은 Tailwind xl(80rem) — 호출부의 xl:grid-cols-* 와 같은 점에서 갈려야 한다.
+   top 이 0 인 이유: sticky 기준 사각형은 스크롤러의 콘텐츠 박스라 이미 헤더와 contentWrapper
+   패딩만큼 내려와 있다. 여기에 오프셋을 더 주면 같은 행의 에디터 패널보다 그만큼 내려앉아
+   두 패널의 윗선이 어긋난다(실측: 에디터 80px vs 패널 104px).
+   높이 예산은 .admin-page-frame--fixed 와 같은 식 — 그 콘텐츠 박스 높이와 정확히 같다. */
+@media (width >= 80rem) {
+  .admin-sticky-aside {
+    position: sticky;
+    top: 0;
+    /* 그리드 아이템 기본값 stretch 면 박스가 행 높이를 다 채워 sticky 이동 여백이 0 이 된다 */
+    align-self: start;
+    max-height: calc(100dvh - var(--admin-header-height) - 2 * var(--admin-content-pad));
+    display: flex;
+    flex-direction: column;
+    /* 스크롤은 본문이 가진다 — 바깥이 스크롤하면 하단 액션이 같이 밀려난다 */
+    overflow: hidden;
+  }
+
+  /* min-height:0 이 없으면 flex 아이템의 자동 최소 높이(=내용 높이)가 수축을 막아 스크롤이 생기지 않는다 */
+  .admin-sticky-aside-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
 .admin-workspace {
   display: flex;
   flex: 1;

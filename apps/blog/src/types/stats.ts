@@ -174,6 +174,11 @@ export interface HealthStats {
 // ── 사이드 파이프라인 (/api/stats/admin/pipeline) ─────────────────────────
 
 export interface HotDealSiteStat {
+  /**
+   * 게시판 행의 PK. 목록 key 는 반드시 이 값을 쓴다 —
+   * siteCode 는 스크래퍼 종류라 고유하지 않다(뽐뿌 국내/해외가 같은 PPOMPPU 를 공유).
+   */
+  siteId: number;
   siteCode: string;
   siteName: string;
   enabled: boolean;

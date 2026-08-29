@@ -1,3 +1,4 @@
+import type { LogStatusFilter } from '@/lib/logStatus';
 import type { OrderBy } from './common';
 
 export interface SystemLogSearchRequest {
@@ -11,7 +12,8 @@ export interface SystemLogSearchRequest {
   methodName?: string;
   httpMethodType?: string;
   remoteAddr?: string;
-  status?: string;
+  /** 요청 값은 enum name 이다 — DB 원문 'SUCC' 가 아니다(lib/logStatus.ts 참조). */
+  status?: LogStatusFilter;
   createdAtFrom?: string;
   createdAtTo?: string;
 }
@@ -25,6 +27,8 @@ export interface ApiLogSearchRequest {
   requestUri?: string;
   httpMethodType?: string;
   responseStatus?: string;
+  /** 성공/실패 파생 필터. responseStatus(HTTP 코드 완전일치)와는 다른 축이다. */
+  status?: LogStatusFilter;
   createdAtFrom?: string;
   createdAtTo?: string;
 }

@@ -59,7 +59,17 @@ export function HeadlineTiles({ traffic, health, pipeline }: HeadlineTilesProps)
         />
       </div>
 
-      <Link href="/admin/system-log" className={`block rounded-dl-container ${TILE_SPAN}`}>
+      {/*
+        ?status=FAIL — pickLogFilters 가 URL 필터를 만나면 날짜 기본값을 비우므로
+        전체 기간 FAIL 이 최신순으로 뜬다. idx_system_log_status_created (status, created_at DESC) 가
+        정확히 이 쿼리를 위한 인덱스다.
+        타일 숫자는 시스템 + 외부 API 합계인데 목적지는 시스템 로그뿐이다 —
+        외부 API 실패분은 아래 "외부 API 실패" 위젯이 담당한다.
+      */}
+      <Link
+        href="/admin/system-log?status=FAIL"
+        className={`block rounded-dl-container ${TILE_SPAN}`}
+      >
         <StatTile
           label="24시간 오류"
           hint={cell(health, '시스템 + 외부 API')}

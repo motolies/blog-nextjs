@@ -12,6 +12,7 @@ import { useGridSettings } from '@/components/common/grid/useGridSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useServerGrid } from '@/hooks/useServerGrid';
 import type { SearchField, SearchRequest } from '@/lib/gridSearch';
+import { LOG_STATUS_OPTIONS, systemLogStatusBadge } from '@/lib/logStatus';
 import { pickLogFilters } from '@/lib/urlFilters';
 import service from '@/service';
 import { formatUtcToLocal } from '@/util/dateTimeUtil';
@@ -30,6 +31,10 @@ const searchFields: SearchField[] = [
     toLabel: '종료일',
     pinned: true,
   },
+  // 성공/실패 값은 요청과 응답이 다르다 — lib/logStatus.ts 헤더 주석 참조.
+  // pinned 인 이유: DynamicSearchFields 의 자동 활성화 effect 는 마운트 1회만 돌아서
+  // 딥링크(?status=FAIL)로 들어와도 필드가 안 열릴 수 있고, 오류만 보기가 이 화면의 상시 용도다.
+  { name: 'status', label: '성공 여부', type: 'select', pinned: true, options: LOG_STATUS_OPTIONS },
   { name: 'traceId', label: 'Trace ID' },
   { name: 'spanId', label: 'Span ID' },
   { name: 'requestUri', label: 'Request URI' },
@@ -142,9 +147,12 @@ function SystemLog() {
         id: 'status',
         headerWord: 'Status',
         width: 80,
-        format: (value) => (
-          <Badge tone={value === 'SUCC' ? 'success' : 'danger'}>{String(value)}</Badge>
-        ),
+        // 응답의 status 는 DB 원문(SUCC/FAIL)이라 검색 파라미터(SUCCESS/FAIL)와 값이 다르다 —
+        // 판정과 라벨은 lib/logStatus.ts 가 단독으로 소유한다.
+        format: (value) => {
+          const badge = systemLogStatusBadge(value);
+          return <Badge tone={badge.success ? 'success' : 'danger'}>{badge.label}</Badge>;
+        },
       },
       detailColumn('paramData', 'Param Data', 300, 1),
       detailColumn('responseBody', 'Response Body', 300),

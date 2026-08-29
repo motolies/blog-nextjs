@@ -43,7 +43,9 @@ export function PipelineSection({ query }: PipelineSectionProps) {
             </TableHead>
             <TableBody>
               {data.hotDealSites.map((site) => (
-                <TableRow key={site.siteCode}>
+                // key 는 siteCode 가 아니라 siteId 다 — siteCode 는 스크래퍼 종류라 고유하지 않고
+                // 뽐뿌 국내/해외가 같은 PPOMPPU 를 공유한다(/admin/hot-deal-sites 의 getRowId 와 같은 전략).
+                <TableRow key={site.siteId}>
                   <TableCell>
                     {/* flex-wrap 이 없으면 이 셀의 min-content 가 "이름 + gap + 배지" 합산이 되어
                         컬럼 하한이 배지 폭만큼 커진다 — 배지를 아래 줄로 떨어뜨릴 수 있게 둔다 */}

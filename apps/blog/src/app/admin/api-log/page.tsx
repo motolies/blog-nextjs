@@ -11,6 +11,7 @@ import { useGridSettings } from '@/components/common/grid/useGridSettings';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useServerGrid } from '@/hooks/useServerGrid';
 import type { SearchField, SearchRequest } from '@/lib/gridSearch';
+import { LOG_STATUS_OPTIONS } from '@/lib/logStatus';
 import service from '@/service';
 import { formatUtcToLocal } from '@/util/dateTimeUtil';
 
@@ -28,6 +29,10 @@ const searchFields: SearchField[] = [
     toLabel: '종료일',
     pinned: true,
   },
+  // 성공/실패 값은 요청과 응답이 다르다 — lib/logStatus.ts 헤더 주석 참조.
+  // pinned 인 이유: DynamicSearchFields 의 자동 활성화 effect 는 마운트 1회만 돌아서
+  // 딥링크(?status=FAIL)로 들어와도 필드가 안 열릴 수 있고, 오류만 보기가 이 화면의 상시 용도다.
+  { name: 'status', label: '성공 여부', type: 'select', pinned: true, options: LOG_STATUS_OPTIONS },
   { name: 'traceId', label: 'Trace ID' },
   { name: 'spanId', label: 'Span ID' },
   { name: 'requestUri', label: 'Request URI' },
@@ -117,6 +122,11 @@ export default function ApiLog() {
         headerWord: 'Response Status',
         width: 150,
         format: (value) => {
+          // NULL 은 응답을 못 받은 호출이다 — 검색의 "실패" 판정과 같은 취급을 해야 색이 어긋나지 않는다.
+          // 그냥 두면 parseInt(null) → NaN → 회색 배지에 "null" 이 찍힌다.
+          if (value === null || value === undefined || value === '') {
+            return <Badge tone="danger">응답없음</Badge>;
+          }
           const statusCode = parseInt(String(value), 10);
           let variant = 'neutral';
           if (statusCode >= 200 && statusCode < 300) variant = 'success';

@@ -8,14 +8,18 @@
  * 에디터 고유 스타일이나 페이지 고유 스타일로 쉽게 오버라이드 가능.
  *
  * 에디터 교체 시: .ck-content를 새 에디터의 콘텐츠 클래스로 변경하면 됨.
+ *
+ * 치수는 전부 global.css :root 의 "읽기 본문 축"(--content-*) 토큰에서 온다.
+ * 여기에 리터럴 clamp 를 다시 넣지 말 것 — 포스트 제목(--public-text-hero)과의
+ * 계층 불변식이 그 토큰 블록 한 곳에서만 검증되도록 묶어 둔 것이다.
  */
 
 /* ── Base ── */
 
 :where(.content, .ck-content) {
   color: rgba(15, 23, 42, 0.86);
-  font-size: 1.02rem;
-  line-height: 1.9;
+  font-size: var(--content-text-body);
+  line-height: var(--content-leading);
 }
 
 :where(.content, .ck-content) > *:first-child {
@@ -36,20 +40,20 @@
   font-family: var(--font-display);
   line-height: 1.2;
   letter-spacing: 0;
-  margin-top: 2.5rem;
+  margin-top: var(--content-space-heading);
   margin-bottom: 1rem;
 }
 
 :where(.content, .ck-content) h1 {
-  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-size: var(--content-text-h1);
 }
 
 :where(.content, .ck-content) h2 {
-  font-size: clamp(1.6rem, 3vw, 2.35rem);
+  font-size: var(--content-text-h2);
 }
 
 :where(.content, .ck-content) h3 {
-  font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+  font-size: var(--content-text-h3);
 }
 
 /* 목차 클릭 · URL 해시 진입 시 고정 헤더에 헤딩이 가리지 않도록 하는 여백.
@@ -69,7 +73,7 @@
 :where(.content, .ck-content) blockquote,
 :where(.content, .ck-content) table,
 :where(.content, .ck-content) figure {
-  margin: 1.1rem 0;
+  margin: var(--content-space-block) 0;
 }
 
 /* ── Links ── */
@@ -119,7 +123,8 @@
    .ck-content(에디터)는 래퍼가 생성되지 않으므로 적용 대상이 아니다. */
 :where(.content) .table-scroll {
   overflow-x: auto;
-  margin: 1.1rem 0;
+  /* 안쪽 표의 margin 을 0 으로 죽이고 래퍼가 대신 리듬을 가지므로 블록 여백 토큰을 그대로 쓴다 */
+  margin: var(--content-space-block) 0;
 }
 
 :where(.content) .table-scroll > table {

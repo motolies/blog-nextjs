@@ -80,6 +80,27 @@
     /* 모바일 브라우저 하단 UI 회피 여백 — additive 로만 사용 (viewport-fit=cover 미도입, 값 0 무해) */
     --safe-bottom: env(safe-area-inset-bottom, 0px);
 
+    /* ── 읽기 본문 축 ──
+       위의 크롬 축과 분리한 세 번째 축이다. 크롬은 카드·칩이고 여기는 산문이라 최적 크기가 다르다.
+       계수 유도는 크롬 축과 같은 공식(375 하한 → 1024 상한)을 쓴다.
+
+       ⚠️ 계층 불변식: 포스트 제목(--public-text-hero) > h1 > h2 > h3 > 본문.
+          hero 는 375→1904 로 천천히 오르고 본문 축은 375→1024 에서 상한에 닿아 기울기가 다르므로,
+          h1 상한(32px)을 hero 의 1024px 값(35px)보다 낮게 못박아 전 구간 역전을 막는다.
+          이 값을 올릴 때는 반드시 hero 의 1024px 값과 다시 비교할 것.
+       ⚠️ .ck-content(에디터)도 같은 토큰을 먹는다 — 편집 화면이 발행 결과와 어긋나지 않게 한 의도다. */
+    --public-text-hero: clamp(1.5rem, 1.1rem + 1.7vw, 3rem); /* 포스트 제목 24→48 */
+    --content-text-body: clamp(0.9375rem, 0.89rem + 0.2vw, 1.02rem); /* 본문 15→16.32 */
+    --content-text-h1: clamp(1.375rem, 1.01rem + 1.54vw, 2rem); /* 본문 h1 22→32 */
+    --content-text-h2: clamp(1.1875rem, 0.93rem + 1.08vw, 1.625rem); /* 본문 h2 19→26 */
+    --content-text-h3: clamp(1.0625rem, 0.92rem + 0.62vw, 1.3125rem); /* 본문 h3 17→21 */
+    --content-space-heading: clamp(1.75rem, 1.32rem + 1.85vw, 2.5rem); /* 헤딩 위 여백 28→40 */
+    --content-space-block: clamp(0.875rem, 0.75rem + 0.55vw, 1.1rem); /* 문단 상하 여백 14→17.6 */
+    /* 행간은 무단위라 clamp 에 넣을 수 없고(vw 는 길이라 타입이 섞인다), em 으로 바꾸면
+       계산된 px 가 자손에게 상속돼 중첩 요소 행간이 깨진다. --dl-scale-* 과 같은 제약이라
+       같은 해법(파일 하단 미디어쿼리)을 쓴다. */
+    --content-leading: 1.9;
+
     --surface-hero: #f3f8fb;
     --surface-panel: rgba(255, 255, 255, 0.86);
     --surface-panel-strong: rgba(255, 255, 255, 0.96);
@@ -188,6 +209,11 @@
       --dl-scale-md: 3.5;
       --dl-scale-lg: 5;
       --dl-scale-xl: 6;
+
+      /* 산문 행간 — 15px 본문에 1.9 는 과하게 성기다. 크기는 clamp 로 연속 축소되지만
+         행간만 무단위라 여기서 전환한다(근거는 :root 의 --content-leading 주석).
+         어드민 제외 판정을 그대로 얹어 에디터(.ck-content)는 1.9 를 유지한다. */
+      --content-leading: 1.75;
     }
   }
 
@@ -396,6 +422,15 @@ a.file-link {
    line-height 를 함께 주는 이유: Tailwind 의 text-2xl 은 font-size 와 line-height 를 한 쌍으로
    내보내는데, 여기서 font-size 만 바꾸면 preflight 의 line-height:1.5 가 남아
    24px 제목의 행간이 32 → 36px 로 벌어진다. 본문·메타는 차이가 미미해 두지 않는다. */
+/* 포스트 상세 제목 전용 — 값은 종전 인라인 clamp 그대로다. 토큰·클래스로 끌어낸 이유는
+   본문 헤딩 스케일(--content-text-h1)과의 계층 불변식이 한 파일에서 보이게 하기 위해서다.
+   line-height 를 함께 주는 근거는 아래 .public-text-title 과 같고, 값 1.25 는 종전 호출부의
+   leading-tight 와 동일해 시각 변화가 없다(언레이어드라 leading-* 유틸은 이제 안 먹는다). */
+.public-text-hero {
+  font-size: var(--public-text-hero);
+  line-height: 1.25;
+}
+
 .public-text-title {
   font-size: var(--public-text-title);
   line-height: 1.3;
@@ -436,6 +471,19 @@ a.file-link {
   background: var(--public-chip-bg-strong);
   color: var(--color-dl-fg);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* 경고 상태 칩(예: 비공개 포스트) — 위 규칙이 언레이어드로 color 를 못박기 때문에
+   호출부에서 text-dl-danger 유틸을 얹어도 조용히 죽는다(.public-container--post 와 같은 사유).
+   같은 언레이어드 레벨에서 특이도를 한 단 올려 색만 덮는다. 색 토큰은 테마별로 갈리므로
+   라이트·다크 분기가 따로 필요 없다.
+
+   글자에 -danger 가 아니라 -danger-ink 를 쓰는 이유: 칩 표면 위에서 -danger 는 4.45:1 로
+   AA(4.5:1)에 근소 미달이고 칩 글자는 11~12px 이라 large-text 예외도 못 받는다.
+   -ink 는 6.69:1 이다. 테두리는 비텍스트라 3:1 기준이므로 -border 그대로 쓴다. */
+.public-chip-surface-strong.public-chip--danger {
+  border-color: var(--color-dl-danger-border);
+  color: var(--color-dl-danger-ink);
 }
 
 [data-theme='blog-dark'] .public-chip-surface-strong {

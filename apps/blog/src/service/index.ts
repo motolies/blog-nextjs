@@ -2,6 +2,7 @@ import categoryService from './categoryService';
 import favoriteService from './favoriteService';
 import fileService from './fileService';
 import hotDealService from './hotDealService';
+import linkTreeService from './linkTreeService';
 import logService from './logService';
 import masterCodeService from './masterCodeService';
 import memoService from './memoService';
@@ -23,6 +24,7 @@ const service = {
   memo: memoService,
   log: logService,
   masterCode: masterCodeService,
+  linkTree: linkTreeService,
   hotDeal: hotDealService,
   series: seriesService,
   stats: statsService,

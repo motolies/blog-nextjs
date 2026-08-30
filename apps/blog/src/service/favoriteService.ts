@@ -38,6 +38,8 @@ class FavoriteService {
     return sites.map((site) => ({
       name: site.name,
       url: site.attributes?.url || '#',
+      // 빈 문자열을 undefined 로 접는다 — 호출부가 "값 없음"과 "알 수 없는 이름"을 구분해야 한다.
+      icon: site.attributes?.icon || undefined,
     }));
   }
 }

@@ -3,7 +3,7 @@ import { Code, Folder, FolderOpen, FolderTree, Search } from 'lucide-react';
 import HighlightedText from '@/components/common/tree/HighlightedText';
 
 interface MasterCodeTreeNode {
-  id: number;
+  id: string;
   code: string;
   name: string;
   isActive: boolean;
@@ -14,7 +14,7 @@ interface MasterCodeTreeNode {
 interface MasterCodeTreeProps {
   /** 이미 필터링된 노드들. 검색 중이 아니면 원본 그대로다. */
   treeData: readonly MasterCodeTreeNode[];
-  selectedNodeId: number | null;
+  selectedNodeId: string | null;
   onNodeSelect: (node: MasterCodeTreeNode) => void;
   expanded: ReadonlySet<string>;
   onToggle: (id: string) => void;

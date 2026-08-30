@@ -12,6 +12,7 @@ import {
   PencilLine,
   ScrollText,
   Search,
+  Star,
   Tags,
 } from 'lucide-react';
 
@@ -109,6 +110,11 @@ export const adminNavigationSections: AdminNavigationSection[] = [
     title: 'Operations',
     items: [
       {
+        href: '/admin/favorites',
+        label: '즐겨찾기',
+        icon: Star,
+      },
+      {
         href: '/admin/system-log',
         label: '시스템 로그',
         icon: ScrollText,
@@ -123,6 +129,10 @@ export const adminNavigationSections: AdminNavigationSection[] = [
 ];
 
 export const adminRouteMeta: Record<string, AdminRouteMeta> = {
+  '/admin/favorites': {
+    title: '즐겨찾기 관리',
+    icon: Star,
+  },
   '/admin': {
     title: '관리자 대시보드',
     icon: LayoutDashboard,

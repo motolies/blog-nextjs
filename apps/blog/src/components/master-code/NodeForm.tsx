@@ -17,13 +17,13 @@ interface NodeFormData {
   sort: number;
   isActive: boolean;
   isRoot: boolean;
-  parentId: number | null;
+  parentId: string | null;
   attributeSchema: AttributeSchemaItem[];
   attributes: Record<string, string>;
 }
 
 interface ParentNode {
-  id: number;
+  id: string;
   code: string;
   name: string;
 }

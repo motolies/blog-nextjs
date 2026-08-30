@@ -9,14 +9,14 @@ interface AttributeSchemaItem {
 }
 
 interface MasterCodeNode {
-  id: number;
+  id: string;
   code: string;
   name: string;
   description?: string;
   sort?: number;
   isActive: boolean;
   depth: number;
-  parentId?: number | null;
+  parentId?: string | null;
   children?: MasterCodeNode[];
   attributeSchema?: AttributeSchemaItem[];
   attributes?: Record<string, string>;

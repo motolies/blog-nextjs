@@ -19,14 +19,14 @@ interface AttributeSchemaItem {
 }
 
 interface MasterCodeNode {
-  id: number;
+  id: string;
   code: string;
   name: string;
   description?: string;
   sort?: number;
   isActive: boolean;
   depth: number;
-  parentId?: number | null;
+  parentId?: string | null;
   children?: MasterCodeNode[];
   attributeSchema?: AttributeSchemaItem[];
   attributes?: Record<string, string>;
@@ -40,7 +40,7 @@ interface FormData {
   sort: number;
   isActive: boolean;
   isRoot: boolean;
-  parentId: number | null;
+  parentId: string | null;
   attributeSchema: AttributeSchemaItem[];
   attributes: Record<string, string>;
 }
@@ -70,7 +70,7 @@ export default function MasterCodePage() {
   const [loading, setLoading] = useState<boolean>(false);
 
   // 선택/탐색 상태
-  const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   // 다이얼로그 상태
   const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -419,7 +419,7 @@ export default function MasterCodePage() {
 /**
  * 트리에서 ID로 노드 찾기 (재귀)
  */
-function findNodeById(nodes: MasterCodeNode[], id: number): MasterCodeNode | null {
+function findNodeById(nodes: MasterCodeNode[], id: string): MasterCodeNode | null {
   if (!nodes) return null;
   for (const node of nodes) {
     if (node.id === id) return node;
@@ -435,7 +435,7 @@ function findNodeById(nodes: MasterCodeNode[], id: number): MasterCodeNode | nul
  * 노드의 루트 조상(depth=0) 찾기
  * 트리를 순회하며 해당 노드를 포함하는 루트 노드를 반환
  */
-function findRootAncestor(treeData: MasterCodeNode[], targetId: number): MasterCodeNode | null {
+function findRootAncestor(treeData: MasterCodeNode[], targetId: string): MasterCodeNode | null {
   if (!treeData) return null;
   for (const root of treeData) {
     if (containsNode(root, targetId)) return root;
@@ -446,7 +446,7 @@ function findRootAncestor(treeData: MasterCodeNode[], targetId: number): MasterC
 /**
  * 노드 서브트리에 대상 ID가 포함되어 있는지 확인
  */
-function containsNode(node: MasterCodeNode, targetId: number): boolean {
+function containsNode(node: MasterCodeNode, targetId: string): boolean {
   if (node.id === targetId) return true;
   if (node.children) {
     return node.children.some((child) => containsNode(child, targetId));

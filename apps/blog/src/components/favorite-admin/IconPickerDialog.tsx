@@ -69,7 +69,7 @@ export default function IconPickerDialog({
 
           {groups.map((group) => (
             <section key={group.title}>
-              <p className="text-dl-sm font-semibold text-dl-label">{group.title}</p>
+              <p className="text-dl-sm font-semibold text-dl-fg-label">{group.title}</p>
               <div className="mt-2 grid grid-cols-6 gap-2 sm:grid-cols-8">
                 {group.icons.map((entry) => (
                   <button
@@ -93,7 +93,7 @@ export default function IconPickerDialog({
           ))}
 
           {groups.length === 0 && (
-            <p className="py-8 text-center text-dl-sm text-dl-muted">
+            <p className="py-8 text-center text-dl-sm text-dl-fg-muted">
               검색 결과가 없습니다. 검색어를 지우면 전체 목록이 나옵니다.
             </p>
           )}

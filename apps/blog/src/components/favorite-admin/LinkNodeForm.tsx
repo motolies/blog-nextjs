@@ -119,7 +119,7 @@ export default function LinkNodeForm({
 
       {existingCode && (
         // 코드는 편집 대상이 아니다. 범용 /admin/master-code 화면과 대조할 때만 필요해 보여만 준다.
-        <p className="text-dl-xs text-dl-muted">코드: {existingCode}</p>
+        <p className="text-dl-xs text-dl-fg-muted">코드: {existingCode}</p>
       )}
 
       <IconPickerDialog

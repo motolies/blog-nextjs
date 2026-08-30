@@ -21,6 +21,15 @@ interface MasterCodeTreeProps {
   /** 검색어 — 행 안의 일치 글자를 강조하는 데 쓴다. */
   query: string;
   isSearching: boolean;
+  /**
+   * 형제 순서 변경. 새 순서대로 나열한 **자식 id 배열**을 올려보낸다(노드 객체가 아니라 id 인 이유:
+   * 백엔드 API 가 받는 모양 그대로여서 페이지가 변환할 일이 없다).
+   *
+   * ⚠️ **검색 중에는 자동으로 꺼진다.** 이 컴포넌트가 받는 `treeData` 는 필터 결과라, 검색 중에
+   * 순서를 바꾸면 화면에 남은 형제만 전송된다. 백엔드는 요청에 없는 형제를 뒤에 이어붙이므로
+   * **걸러져 보이지 않던 형제가 전부 맨 뒤로 밀린다** — 사용자는 그 사실을 볼 수조차 없다.
+   */
+  onReorder?: (parentId: string, orderedIds: readonly string[]) => void;
 }
 
 /** 마스터코드 트리 — @hvy/ui TreeGrid 배선. 행 내용(아이콘·코드·이름·비활성 배지)만 앱이 그린다. */
@@ -32,6 +41,7 @@ export default function MasterCodeTree({
   onToggle,
   query,
   isSearching,
+  onReorder,
 }: MasterCodeTreeProps) {
   return (
     <TreeGrid<MasterCodeTreeNode>
@@ -39,6 +49,15 @@ export default function MasterCodeTree({
       getRowId={(node) => String(node.id)}
       expanded={expanded}
       onToggle={onToggle}
+      onReorder={
+        isSearching || !onReorder
+          ? undefined
+          : (parentId, next) => onReorder(parentId, next.map((node) => String(node.id)))
+      }
+      reorderLabel={(node) => `${node.code} 순서 변경`}
+      reorderAnnouncement={(node, position, total) =>
+        `${node.code}, ${position}번째로 이동(전체 ${total}개)`
+      }
       empty={
         // 0건은 "데이터가 없다" 와 다른 사실이다 — 검색 중에는 탈출구를 함께 준다.
         isSearching

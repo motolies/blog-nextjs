@@ -52,16 +52,14 @@ const linkTreeService = {
   },
 
   /**
-   * 형제들의 sort 를 일괄 갱신한다. renumberSiblings 가 돌려준 "실제로 바뀐 것"만 넘긴다.
+   * 한 그룹의 링크 순서를 통째로 바꾼다. 새 순서대로 나열한 링크 id 배열을 넘기면 된다.
    *
-   * ⚠️ reorder 전용 엔드포인트는 백엔드에 없다(PUT /nodes/{id}/reorder 는 404).
-   *    sort 필드를 updateNode 로 갱신하는 것이 정석 경로다.
-   * 순차 실행하는 이유: 같은 부모의 형제를 동시에 PUT 하면 캐시 evict 가 겹쳐 낭비다.
+   * 호출이 한 번이고 백엔드가 한 트랜잭션에서 처리하므로 **부분 반영이 없다.** 그래서 호출부가
+   * 낙관적 업데이트를 쓸 수 있다 — 형제마다 PUT 을 날리던 시절에는 중간까지만 반영된 상태가
+   * 존재해서 매 변경 후 전체 재조회가 강제됐다.
    */
-  async applySortUpdates(updates: readonly { id: string; sort: number }[]) {
-    for (const { id, sort } of updates) {
-      await masterCodeService.updateNode(id, { sort });
-    }
+  reorderLinks(groupId: string, orderedIds: readonly string[]) {
+    return masterCodeService.reorderChildren(groupId, orderedIds);
   },
 };
 

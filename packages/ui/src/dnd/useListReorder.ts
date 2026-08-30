@@ -64,6 +64,7 @@ export function useListReorder<T>({
   onReorder,
   groupOf,
   listRef,
+  scrollRef,
   onAnnounce,
   axis = 'y',
 }: {
@@ -75,8 +76,16 @@ export function useListReorder<T>({
    * 그룹 구분이 필요 없으면 `() => true` 를 넘긴다.
    */
   readonly groupOf: (item: T) => boolean;
-  /** 스크롤되는 목록 컨테이너. **자식 순서가 `items` 와 1:1이어야 한다.** */
+  /** 항목이 담긴 컨테이너. **직접 자식 순서가 `items` 와 1:1이어야 한다.** */
   readonly listRef: RefObject<HTMLElement | null>;
+  /**
+   * 실제로 스크롤되는 요소. **생략하면 `listRef` 자신이 스크롤러라고 본다**(기존 동작).
+   *
+   * 목록이 스스로 스크롤하지 않고 **조상이 스크롤하는** 배치에서 필요하다(트리가 그렇다 —
+   * 스크롤러는 트리를 감싼 패널이다). 이걸 넘기지 않으면 `scrollTop` 이 항상 0 이라
+   * 스크롤 보정항이 죽고, **휠로 스크롤한 뒤 놓으면 그만큼 엉뚱한 자리에 떨어진다.**
+   */
+  readonly scrollRef?: RefObject<HTMLElement | null>;
   /** 이동이 확정될 때 호출된다(드래그·키보드 공통). 스크린리더 안내를 붙이는 자리다. */
   readonly onAnnounce?: (from: number, to: number) => void;
   /** 주축 — 세로 목록 `'y'`(기본) / 가로 목록(작업 탭 바 등) `'x'`. */
@@ -128,9 +137,9 @@ export function useListReorder<T>({
    */
   const resolve = useCallback(
     (state: DragState): { offsetY: number; to: number } => {
-      const list = listRef.current;
-      const scrollDelta = list
-        ? (isX ? list.scrollLeft : list.scrollTop) - state.startScrollTop
+      const scroller = scrollRef?.current ?? listRef.current;
+      const scrollDelta = scroller
+        ? (isX ? scroller.scrollLeft : scroller.scrollTop) - state.startScrollTop
         : 0;
 
       /**
@@ -151,7 +160,7 @@ export function useListReorder<T>({
       const to = clampToGroup(state.groups, state.from, findDropIndex(state.centers, center));
       return { offsetY, to };
     },
-    [listRef, isX],
+    [listRef, scrollRef, isX],
   );
 
   const redraw = useCallback(() => {
@@ -172,10 +181,11 @@ export function useListReorder<T>({
    */
   const stepScroll = useCallback(() => {
     const state = drag.current;
-    const list = listRef.current;
-    if (!state || !list) return;
+    // 가장자리 판정도 스크롤도 **실제로 스크롤되는 요소** 기준이어야 한다.
+    const scroller = scrollRef?.current ?? listRef.current;
+    if (!state || !scroller) return;
 
-    const rect = list.getBoundingClientRect();
+    const rect = scroller.getBoundingClientRect();
     const overStart = state.pointerY - ((isX ? rect.left : rect.top) + EDGE_ZONE_PX);
     const overEnd = state.pointerY - ((isX ? rect.right : rect.bottom) - EDGE_ZONE_PX);
 
@@ -184,15 +194,15 @@ export function useListReorder<T>({
     else if (overEnd > 0) delta = EDGE_SPEED_PX;
 
     if (delta !== 0) {
-      const before = isX ? list.scrollLeft : list.scrollTop;
-      if (isX) list.scrollLeft += delta;
-      else list.scrollTop += delta;
+      const before = isX ? scroller.scrollLeft : scroller.scrollTop;
+      if (isX) scroller.scrollLeft += delta;
+      else scroller.scrollTop += delta;
       // 손이 멈춰 있어도 스크롤이 움직이면 잡은 항목은 계속 손을 따라가야 한다.
-      if ((isX ? list.scrollLeft : list.scrollTop) !== before) redraw();
+      if ((isX ? scroller.scrollLeft : scroller.scrollTop) !== before) redraw();
     }
 
     state.scrollFrame = requestAnimationFrame(stepScroll);
-  }, [redraw, listRef, isX]);
+  }, [redraw, listRef, scrollRef, isX]);
 
   const handlePointerDown = useCallback(
     (event: ReactPointerEvent<HTMLElement>, index: number) => {
@@ -231,7 +241,10 @@ export function useListReorder<T>({
       drag.current = {
         from: index,
         startY: pointer,
-        startScrollTop: isX ? list.scrollLeft : list.scrollTop,
+        startScrollTop: (() => {
+          const scroller = scrollRef?.current ?? list;
+          return isX ? scroller.scrollLeft : scroller.scrollTop;
+        })(),
         centers,
         groups: itemsRef.current.map(groupOf),
         rowHeight,
@@ -242,7 +255,7 @@ export function useListReorder<T>({
       setView({ from: index, to: index, offsetY: 0, rowHeight });
       drag.current.scrollFrame = requestAnimationFrame(stepScroll);
     },
-    [groupOf, listRef, stepScroll, isX],
+    [groupOf, listRef, scrollRef, stepScroll, isX],
   );
 
   const handlePointerMove = useCallback(

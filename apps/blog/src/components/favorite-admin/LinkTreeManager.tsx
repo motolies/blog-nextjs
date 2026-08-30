@@ -4,7 +4,7 @@ import { Button, ContentDialog, Spinner, showToast, useConfirm } from '@hvy/ui';
 import { Plus, RefreshCw, TriangleAlert } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { showApiErrorToast } from '@/lib/apiErrorToast';
-import { buildNodeCode, renumberSiblings } from '@/lib/linkTree';
+import { buildNodeCode } from '@/lib/linkTree';
 import service from '@/service';
 import type { AdminLinkGroup, AdminLinkItem, AdminLinkTree, LinkRootKey } from '@/types/linkTree';
 import LinkGroupCard from './LinkGroupCard';
@@ -20,8 +20,9 @@ type DialogState =
  * 한 루트(FAVORITE 또는 PLATFORM)의 그룹/링크를 관리한다. 탭 두 개가 이 컴포넌트를
  * 루트 코드만 바꿔 각각 렌더한다 — 두 트리는 구조도 스키마 키도 같아서 UI 가 완전히 같다.
  *
- * 저장 후에는 전체를 재조회한다(낙관적 업데이트 없음). MasterCodePage 와 같은 규약이고,
- * 정렬 변경처럼 여러 건을 연달아 PUT 하는 경우 중간 실패 시 화면이 실제 상태와 어긋나는 것을 막는다.
+ * CRUD(저장·삭제)는 전체를 재조회한다. **순서 변경만 낙관적으로 반영**한다 — 백엔드가 형제 전체를
+ * 한 트랜잭션에서 재부여하므로 "중간까지만 반영된 상태"가 존재하지 않기 때문이다.
+ * (형제마다 PUT 하던 시절에는 그 상태 때문에 매 변경 후 전체 재조회가 강제됐다.)
  */
 export default function LinkTreeManager({ rootCode }: { readonly rootCode: LinkRootKey }) {
   const [tree, setTree] = useState<AdminLinkTree | null>(null);
@@ -111,7 +112,8 @@ export default function LinkTreeManager({ rootCode }: { readonly rootCode: LinkR
           name,
           description: form.description.trim() || null,
           isActive: form.isActive,
-          sort: tree.groups.length + 1,
+          // sort 를 보내지 않는다 — 관리 화면은 비활성 형제를 보지 못해 length 가 실제 형제 수와
+          // 다를 수 있다. 백엔드가 findMaxSortByParentId + 1 로 맨 뒤에 붙이는 편이 정확하다.
           attributes: { icon: form.icon },
         });
       } else if (dialog.mode === 'editGroup') {
@@ -130,7 +132,7 @@ export default function LinkTreeManager({ rootCode }: { readonly rootCode: LinkR
           ),
           name,
           isActive: form.isActive,
-          sort: dialog.group.links.length + 1,
+          // sort 는 백엔드가 맨 뒤로 자동 부여한다(위 그룹 생성과 같은 이유).
           // attributes 는 통째로 교체된다 — url 과 icon 을 항상 함께 보낸다.
           attributes: { url, icon: form.icon },
         });
@@ -198,30 +200,32 @@ export default function LinkTreeManager({ rootCode }: { readonly rootCode: LinkR
   // --- 순서 -----------------------------------------------------------------
 
   /**
-   * sort 를 1..n 으로 정규화해 바뀐 것만 PUT 한다.
-   * ⚠️ reorder 엔드포인트는 백엔드에 없다(404) — updateNode 로 sort 를 갱신하는 것이 정석이다.
-   * 실패해도 재조회하는 이유: 중간까지 반영된 실제 순서를 화면이 그대로 보여줘야 한다.
+   * 링크 순서를 낙관적으로 반영하고 서버에 한 번만 보낸다.
+   *
+   * `setLoading(true)` 를 부르지 않는 것이 요점이다 — 드래그는 놓는 즉시 결과가 보여야 하는데
+   * 화면 전체를 잠그면 놓을 때마다 깜빡인다.
+   *
+   * 실패 시 스냅샷 롤백에서 멈추지 않고 재조회까지 하는 이유: 실패 원인 자체가 "다른 곳에서
+   * 트리가 바뀜"일 수 있어(그룹이 삭제됐다든지) 되돌린 화면이 서버와 또 어긋난다.
    */
-  const applyMove = async (updates: readonly { id: string; sort: number }[]) => {
-    if (updates.length === 0) return;
+  const handleReorderLinks = async (group: AdminLinkGroup, next: readonly AdminLinkItem[]) => {
+    if (!tree) return;
+    const previous = tree;
+    setTree({
+      ...tree,
+      groups: tree.groups.map((g) => (g.id === group.id ? { ...g, links: next } : g)),
+    });
+
     try {
-      setLoading(true);
-      await service.linkTree.applySortUpdates(updates);
+      await service.linkTree.reorderLinks(
+        group.id,
+        next.map((link) => link.id),
+      );
     } catch (error) {
       showApiErrorToast('순서 변경에 실패했습니다.', error);
-    } finally {
+      setTree(previous);
       await loadData();
     }
-  };
-
-  const handleMoveGroup = (group: AdminLinkGroup, direction: -1 | 1) => {
-    if (!tree) return;
-    const index = tree.groups.findIndex((g) => g.id === group.id);
-    void applyMove(renumberSiblings(tree.groups, index, index + direction));
-  };
-
-  const handleMoveLink = (group: AdminLinkGroup, index: number, direction: -1 | 1) => {
-    void applyMove(renumberSiblings(group.links, index, index + direction));
   };
 
   // --- 렌더 -----------------------------------------------------------------
@@ -273,34 +277,35 @@ export default function LinkTreeManager({ rootCode }: { readonly rootCode: LinkR
         </Button>
       </div>
 
+      <p className="text-dl-xs text-dl-fg-muted">
+        링크는 손잡이를 끌어 순서를 바꿉니다. 손잡이에 포커스를 두고 ↑↓ 키로도 이동할 수 있습니다.
+      </p>
+
       {loading && !tree ? (
         <div className="flex items-center justify-center py-10">
           <Spinner className="size-dl-ic-lg" />
         </div>
       ) : !tree ? (
-        <p className="py-10 text-center text-dl-sm text-dl-muted">
+        <p className="py-10 text-center text-dl-sm text-dl-fg-muted">
           루트 코드 {rootCode} 를 찾지 못했습니다. 시드가 적용되었는지 확인하세요.
         </p>
       ) : tree.groups.length === 0 ? (
-        <p className="py-10 text-center text-dl-sm text-dl-muted">
+        <p className="py-10 text-center text-dl-sm text-dl-fg-muted">
           등록된 그룹이 없습니다. &quot;그룹 추가&quot;로 시작하세요.
         </p>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {tree.groups.map((group, index) => (
+          {tree.groups.map((group) => (
             <LinkGroupCard
               key={group.id}
               group={group}
-              isFirst={index === 0}
-              isLast={index === tree.groups.length - 1}
               busy={loading}
               onEditGroup={openEditGroup}
               onDeleteGroup={(g) => void handleDeleteGroup(g)}
-              onMoveGroup={handleMoveGroup}
               onAddLink={openAddLink}
               onEditLink={openEditLink}
               onDeleteLink={(g, l) => void handleDeleteLink(g, l)}
-              onMoveLink={handleMoveLink}
+              onReorderLinks={(g, next) => void handleReorderLinks(g, next)}
             />
           ))}
         </div>

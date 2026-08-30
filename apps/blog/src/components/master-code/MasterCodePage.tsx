@@ -5,6 +5,7 @@ import TreeSearchBar from '@/components/common/tree/TreeSearchBar';
 import AdminPageFrame from '@/components/layout/admin/AdminPageFrame';
 import { useTreeSearch } from '@/hooks/useTreeSearch';
 import { showApiErrorToast } from '@/lib/apiErrorToast';
+import { replaceChildren } from '@/lib/masterCodeTree';
 import service from '@/service';
 import MasterCodeTree from './MasterCodeTree';
 import NodeDetailPanel from './NodeDetailPanel';
@@ -119,6 +120,43 @@ export default function MasterCodePage() {
   }, [loadData]);
 
   // 노드 선택
+  /**
+   * 형제 순서를 낙관적으로 반영하고 서버에 한 번만 보낸다.
+   *
+   * `setLoading(true)` 를 부르지 않는 것이 요점이다 — 드래그는 놓는 즉시 결과가 보여야 하는데
+   * 화면 전체를 잠그면 놓을 때마다 트리가 사라졌다 나타난다.
+   *
+   * 실패 시 스냅샷 롤백에서 멈추지 않고 재조회까지 하는 이유: 실패 원인 자체가 "다른 곳에서
+   * 트리가 바뀜" 일 수 있어 되돌린 화면이 서버와 또 어긋난다.
+   */
+  const handleReorderChildren = useCallback(
+    async (parentId: string, orderedIds: readonly string[]) => {
+      const parent = findNodeById(treeData, parentId);
+      if (!parent?.children) return;
+
+      // 트리에 넣을 것은 **원본 노드 객체**다 — id 만으로는 자손을 잃는다.
+      const byId = new Map(parent.children.map((child) => [child.id, child]));
+      const next = orderedIds
+        .map((id) => byId.get(id))
+        .filter((node): node is MasterCodeNode => node != null);
+
+      const previous = treeData;
+      setTreeData(replaceChildren(treeData, parentId, next));
+
+      try {
+        await service.masterCode.reorderChildren(parentId, orderedIds);
+      } catch (error: any) {
+        showApiErrorToast(
+          `순서 변경 실패: ${error.response?.data?.message || error.message}`,
+          error,
+        );
+        setTreeData(previous);
+        await loadData();
+      }
+    },
+    [treeData, loadData],
+  );
+
   const handleNodeSelect = useCallback((node: MasterCodeNode) => {
     setSelectedNodeId(node.id);
   }, []);
@@ -366,6 +404,9 @@ export default function MasterCodePage() {
                 onToggle={search.toggle}
                 query={search.query}
                 isSearching={search.isSearching}
+                onReorder={(parentId, orderedIds) =>
+                  void handleReorderChildren(parentId, orderedIds)
+                }
               />
             </div>
           </div>

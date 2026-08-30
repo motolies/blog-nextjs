@@ -42,6 +42,12 @@ export interface MasterCodeMoveRequest {
   newParentId: string;
 }
 
-export interface MasterCodeReorderRequest {
-  sort: number;
+/**
+ * 자식 노드 순서 일괄 변경.
+ *
+ * **배열 위치가 곧 sort(1..n)** 라 클라이언트는 sort 숫자를 계산하지 않는다. 예전에는 형제마다
+ * sort 를 계산해 PUT 을 하나씩 날렸는데, 중간에 실패하면 순서가 반쯤 어긋난 채 남았다.
+ */
+export interface MasterCodeChildrenOrderRequest {
+  orderedIds: string[];
 }

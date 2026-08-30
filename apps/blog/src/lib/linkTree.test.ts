@@ -4,7 +4,6 @@ import {
   buildNodeCode,
   DEFAULT_COLLAPSE_STATE,
   parseCollapseState,
-  renumberSiblings,
   serializeCollapseState,
   toAdminLinkTree,
   toggleGroupCollapse,
@@ -241,55 +240,5 @@ describe('buildNodeCode', () => {
     const collided = buildNodeCode(long, ['A'.repeat(64)]);
     expect(collided).toHaveLength(64);
     expect(collided.endsWith('_2')).toBe(true);
-  });
-});
-
-describe('renumberSiblings', () => {
-  const rows = [
-    { id: '0000000000010', sort: 1 },
-    { id: '0000000000011', sort: 2 },
-    { id: '0000000000012', sort: 3 },
-  ];
-
-  it('한 칸 위로 옮기면 두 노드만 바뀐다', () => {
-    expect(renumberSiblings(rows, 2, 1)).toEqual([
-      { id: '0000000000012', sort: 2 },
-      { id: '0000000000011', sort: 3 },
-    ]);
-  });
-
-  it('sort 에 구멍이 있으면 이동하면서 1..n 으로 함께 고친다', () => {
-    const holed = [
-      { id: '0000000000010', sort: 5 },
-      { id: '0000000000011', sort: 9 },
-    ];
-    expect(renumberSiblings(holed, 0, 1)).toEqual([
-      { id: '0000000000011', sort: 1 },
-      { id: '0000000000010', sort: 2 },
-    ]);
-  });
-
-  it('sort 가 전부 동률이어도 정규화된다 — swap 방식이라면 무동작이 될 경우다', () => {
-    const tied = [
-      { id: '0000000000010', sort: 0 },
-      { id: '0000000000011', sort: 0 },
-    ];
-    expect(renumberSiblings(tied, 1, 0)).toEqual([
-      { id: '0000000000011', sort: 1 },
-      { id: '0000000000010', sort: 2 },
-    ]);
-  });
-
-  it('제자리 이동이나 범위 밖 인덱스는 빈 배열', () => {
-    expect(renumberSiblings(rows, 1, 1)).toEqual([]);
-    expect(renumberSiblings(rows, -1, 0)).toEqual([]);
-    expect(renumberSiblings(rows, 0, 3)).toEqual([]);
-    expect(renumberSiblings([], 0, 0)).toEqual([]);
-  });
-
-  it('원본 배열을 변형하지 않는다', () => {
-    const original = [...rows];
-    renumberSiblings(rows, 0, 2);
-    expect(rows).toEqual(original);
   });
 });

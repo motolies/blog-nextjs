@@ -1,8 +1,8 @@
 import type { AxiosRequestConfig } from 'axios';
 import type {
+  MasterCodeChildrenOrderRequest,
   MasterCodeCreateRequest,
   MasterCodeMoveRequest,
-  MasterCodeReorderRequest,
   MasterCodeUpdateRequest,
 } from '@/types/masterCode';
 import axiosClient from './axiosClient';
@@ -107,12 +107,22 @@ const masterCodeService = {
     }
   },
 
-  async reorderNode(id: string, data: MasterCodeReorderRequest) {
+  /**
+   * 한 부모의 자식 순서를 통째로 바꾼다. **배열 위치가 곧 sort** 다.
+   *
+   * 백엔드가 형제 전체를 한 트랜잭션에서 재부여하므로 부분 반영이 없고, 캐시 무효화도 1회다
+   * (예전 방식은 형제마다 PUT 을 날려 같은 무효화를 그 수만큼 반복했다).
+   * depth 를 보지 않으므로 parentId 만 바꾸면 그룹 순서에도 링크 순서에도 그대로 쓴다.
+   */
+  async reorderChildren(parentId: string, orderedIds: readonly string[]) {
     try {
-      const response = await axiosClient.put(`${MASTER_CODE_ADMIN_BASE}/nodes/${id}/reorder`, data);
+      const response = await axiosClient.put(
+        `${MASTER_CODE_ADMIN_BASE}/nodes/${parentId}/children/order`,
+        { orderedIds: [...orderedIds] } satisfies MasterCodeChildrenOrderRequest,
+      );
       return response.data;
     } catch (error) {
-      console.error(`정렬순서 변경 실패 [${id}]:`, error);
+      console.error(`정렬순서 변경 실패 [${parentId}]:`, error);
       throw error;
     }
   },

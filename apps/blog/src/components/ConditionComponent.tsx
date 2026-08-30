@@ -14,7 +14,7 @@ export const ConditionComponent = ({ id, name, onDelete }: ConditionComponentPro
   };
 
   return (
-    <div className="inline-flex items-center gap-1 rounded-full border border-dl-tonal-border bg-dl-tonal px-3 py-1 text-sm font-medium text-dl-tonal-fg transition hover:bg-dl-tonal-hover">
+    <div className="public-text-body inline-flex items-center gap-1 rounded-full border border-dl-tonal-border bg-dl-tonal px-(--public-chip-pad-x) py-(--public-chip-pad-y) font-medium text-dl-tonal-fg transition hover:bg-dl-tonal-hover">
       {name}
       <Button
         variant="ghost"

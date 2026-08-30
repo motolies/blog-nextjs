@@ -21,7 +21,7 @@ export default function SearchPagination({
   return (
     <nav
       aria-label="검색 결과 페이지"
-      className="public-card-surface flex flex-wrap items-center justify-center gap-2 rounded-(--radius-card) border px-4 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)]"
+      className="public-card-surface flex flex-wrap items-center justify-center gap-1.5 rounded-(--radius-card) border px-3 py-3 shadow-[0_16px_40px_rgba(15,23,42,0.06)] lg:gap-2 lg:px-4 lg:py-4"
     >
       <Button
         variant="outline-gray"
@@ -31,7 +31,7 @@ export default function SearchPagination({
         aria-label="첫 페이지"
         className="public-control-surface aspect-square rounded-full border p-0"
       >
-        <ChevronsLeft className="h-4 w-4" />
+        <ChevronsLeft className="size-(--public-icon)" />
       </Button>
       <Button
         variant="outline-gray"
@@ -41,7 +41,7 @@ export default function SearchPagination({
         aria-label="이전 페이지"
         className="public-control-surface aspect-square rounded-full border p-0"
       >
-        <ChevronLeft className="h-4 w-4" />
+        <ChevronLeft className="size-(--public-icon)" />
       </Button>
 
       {Array.from({ length: totalPage }, (_, i) => i + 1)
@@ -71,7 +71,7 @@ export default function SearchPagination({
         aria-label="다음 페이지"
         className="public-control-surface aspect-square rounded-full border p-0"
       >
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="size-(--public-icon)" />
       </Button>
       <Button
         variant="outline-gray"
@@ -81,7 +81,7 @@ export default function SearchPagination({
         aria-label="마지막 페이지"
         className="public-control-surface aspect-square rounded-full border p-0"
       >
-        <ChevronsRight className="h-4 w-4" />
+        <ChevronsRight className="size-(--public-icon)" />
       </Button>
     </nav>
   );

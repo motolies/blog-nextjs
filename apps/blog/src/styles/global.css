@@ -37,14 +37,20 @@
        [data-theme='blog-dark'] 등 테마 스코프에서 재정의하면 테마별 사이즈 변경이 가능하다.
        단위 정책: px 는 보더(1px)에만 허용 — 폭은 %·fr, 치수는 clamp(rem, vw, rem), 높이는 dvh. */
 
-    /* 헤더 높이 — 모바일 3.5rem → 데스크톱 4.5rem 뷰포트 유동값 (600px~1400px 구간에서 전이) */
-    --header-h: clamp(3.5rem, 2vw + 2.75rem, 4.5rem);
+    /* 헤더 높이 — 모바일 3rem → 데스크톱 4.5rem 뷰포트 유동값.
+       계수는 **하한만 56→48px 로 내리고 ≥1024px 는 종전 곡선을 유지**하도록 잡았다
+       (@375=48 · @768=58 · @1024=64.5 — 종전 64.48 과 동일 · 상한 도달 1320px).
+       모바일 앵커(375px)를 상한(1024px)에 직결하면 데스크톱이 64.5→72px 로 커지는 회귀가 난다. */
+    --header-h: clamp(3rem, 2.405rem + 2.54vw, 4.5rem);
     /* sticky 사이드바(TOC·검색 필터)의 상단 오프셋 */
     --sticky-top: calc(var(--header-h) + 1.5rem);
     /* sticky 헤더 아래로 헤딩이 안착하도록 하는 스크롤 여백.
-       TableOfContents의 IntersectionObserver rootMargin 상단값(-80px)보다 커야
-       목차 클릭으로 이동한 헤딩이 활성 항목으로 잡힌다 — --header-h 최솟값 3.5rem 기준 88px(>80px). */
-    --reading-scroll-offset: calc(var(--header-h) + 2rem);
+       TableOfContents의 IntersectionObserver rootMargin 상단값(-80px)보다 **커야**
+       목차 클릭으로 이동한 헤딩이 활성 항목으로 잡힌다.
+       max() 로 하한 88px 를 헤더 값과 무관하게 못 박는다 — 종전엔 `헤더하한 56 + 2rem = 88`
+       이라는 산술 우연에 기대고 있어서, 헤더를 낮추는 것만으로 80px 동률이 되어
+       목차 활성 추적이 조용히 죽었다. 이제 헤더를 더 줄여도 이 불변식은 깨지지 않는다. */
+    --reading-scroll-offset: max(5.5rem, calc(var(--header-h) + 2rem));
     /* 컨테이너 좌우 거터 — .public-container 가 내장 소비 */
     --public-gutter: clamp(1rem, 3vw, 2rem);
     /* 포스트 상세 aside(목차·메타) 폭 */
@@ -52,8 +58,25 @@
     /* 검색 페이지 필터 컬럼 폭 */
     --search-filter-w: clamp(18rem, 26vw, 25rem);
     /* 표면 radius 2단 — 패널(큰 카드) / 카드(내부 항목) */
-    --radius-panel: 1.75rem;
-    --radius-card: 1.25rem;
+    --radius-panel: clamp(1.25rem, 0.96rem + 1.23vw, 1.75rem);
+    --radius-card: clamp(0.875rem, 0.66rem + 0.92vw, 1.25rem);
+
+    /* ── 공개 페이지 밀도 축 ──
+       모바일에서 크롬(버튼·배지·레이블·카드)이 화면을 과하게 먹는 것을 줄이는 축이다.
+       전 토큰이 375px 에서 하한, 1024px(lg) 에서 상한에 닿는 clamp 로,
+       계수는 `기울기 = (상한 - 하한) / 649 × 100 vw`, `절편 = 하한 - 기울기 × 375` 로 유도했다.
+       미디어쿼리 대신 clamp 인 이유는 단위 정책(치수 = clamp)과 경계에서의 점프 회피 두 가지다.
+       ⚠️ @hvy/ui 컨트롤(버튼·입력·콤보박스)은 이 축이 아니라 --dl-scale-* 이 지배한다.
+          그쪽은 무단위 수라 clamp 가 불가능해 파일 하단에서 미디어쿼리로 전환한다. */
+    --public-pad-panel: clamp(1rem, 0.71rem + 1.23vw, 1.5rem); /* 큰 카드 안쪽 여백 16→24 */
+    --public-pad-card: clamp(0.75rem, 0.61rem + 0.62vw, 1rem); /* 작은 카드 안쪽 여백 12→16 */
+    --public-chip-pad-x: clamp(0.75rem, 0.61rem + 0.62vw, 1rem); /* 칩 좌우 12→16 */
+    --public-chip-pad-y: clamp(0.3125rem, 0.2rem + 0.46vw, 0.5rem); /* 칩 상하 5→8 */
+    --public-logo-size: clamp(2rem, 1.71rem + 1.23vw, 2.5rem); /* 헤더 로고 32→40 */
+    --public-icon: clamp(0.875rem, 0.8rem + 0.31vw, 1rem); /* 본문 아이콘 14→16 */
+    --public-text-title: clamp(1.125rem, 0.91rem + 0.92vw, 1.5rem); /* 카드 제목 18→24 */
+    --public-text-body: clamp(0.8125rem, 0.78rem + 0.15vw, 0.875rem); /* 본문 크롬 13→14 */
+    --public-text-meta: clamp(0.6875rem, 0.65rem + 0.15vw, 0.75rem); /* 메타·레이블 11→12 */
     /* 모바일 브라우저 하단 UI 회피 여백 — additive 로만 사용 (viewport-fit=cover 미도입, 값 0 무해) */
     --safe-bottom: env(safe-area-inset-bottom, 0px);
 
@@ -146,6 +169,26 @@
     overflow-x: clip;
     /* 클래식 스크롤바 환경에서 스크롤 유무에 따라 컨테이너 중앙이 라우트 간 점프하지 않도록 */
     scrollbar-gutter: stable;
+  }
+
+  /* 공개 페이지 컨트롤 밀도 — @hvy/ui 5단 스케일을 lg 미만에서 한 단계 낮춘다.
+     값은 packages/ui/src/theme/compact.css 가 이미 검증한 조합 그대로다
+     (md 기준: 높이 42→36 · 폰트 14→13 · 버튼 패딩 20→14 · 아이콘 16→14).
+
+     ⚠️ 반드시 html(:root)에 건다. Tier 2 치수는 :root 에서 calc 로 확정되고 자손은
+        **치환이 끝난 값**을 상속받으므로, body 나 .public-page 스코프에 걸면 아무 일도
+        일어나지 않는다(packages/ui/src/theme/default.css 의 density 주석이 같은 함정을 설명).
+        useTokenPx() 도 루트에서 읽으므로 JS 측정이 따라오려면 이 자리여야 한다.
+     admin 제외는 html:has(.admin-shell) 판정의 부정형이다 — SSR HTML 의 .admin-shell 을
+     보므로 첫 페인트부터 정확하고, body 직속 Portal(다이얼로그)도 html 하위라 함께 적용된다. */
+  @media (width < 64rem) {
+    html:not(:has(.admin-shell)) {
+      --dl-scale-xs: 1.5;
+      --dl-scale-sm: 2.5;
+      --dl-scale-md: 3.5;
+      --dl-scale-lg: 5;
+      --dl-scale-xl: 6;
+    }
   }
 
   body {
@@ -321,6 +364,31 @@ a.file-link {
 
 .public-muted-text {
   color: var(--public-text-muted);
+}
+
+/* 공개 페이지 글자 크기 3단 — 밀도 축(--public-text-*)을 소비하는 유틸.
+   변수 축약(text-(length:--x))을 쓰지 않는 이유: 이 레포에 그 문법 선례가 한 건도 없고,
+   `length:` 힌트를 빠뜨리면 twMerge 가 색으로 오인해 글자색을 지운다(cn.ts 가 겪은 사고).
+
+   ⚠️ 이 규칙들은 @layer 밖이라 @layer utilities 안의 Tailwind 유틸을 **전부 이긴다.**
+      그래서 `public-text-title lg:text-3xl` 처럼 반응형 text-* 와 섞으면 뒤엣것이 조용히 죽는다
+      (TableOfContents 헤더 주석이 색에서 같은 함정을 기록해 두었다).
+      크기를 뷰포트별로 달리하려면 유틸을 얹지 말고 토큰 자체의 clamp 를 고칠 것.
+
+   line-height 를 함께 주는 이유: Tailwind 의 text-2xl 은 font-size 와 line-height 를 한 쌍으로
+   내보내는데, 여기서 font-size 만 바꾸면 preflight 의 line-height:1.5 가 남아
+   24px 제목의 행간이 32 → 36px 로 벌어진다. 본문·메타는 차이가 미미해 두지 않는다. */
+.public-text-title {
+  font-size: var(--public-text-title);
+  line-height: 1.3;
+}
+
+.public-text-body {
+  font-size: var(--public-text-body);
+}
+
+.public-text-meta {
+  font-size: var(--public-text-meta);
 }
 
 .public-control-surface {

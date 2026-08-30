@@ -383,35 +383,35 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
 
   if (post?.id !== 0 && post?.id > 0) {
     return (
-      <div className="public-container public-container--post pb-8 pt-6 sm:pt-10">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_var(--post-aside-w)]">
+      <div className="public-container public-container--post pb-8 pt-4 lg:pt-10">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_var(--post-aside-w)] lg:gap-8">
           <article className="surface-panel-strong overflow-hidden rounded-(--radius-panel)">
-            <div className="px-(--public-gutter) py-8">
-              <div className="flex flex-wrap items-start justify-between gap-6">
+            <div className="px-(--public-gutter) py-(--public-pad-panel)">
+              <div className="flex flex-wrap items-start justify-between gap-4 lg:gap-6">
                 <div>
-                  <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
+                  <p className="public-label-text public-text-meta font-semibold uppercase tracking-[0.18em]">
                     Article
                   </p>
-                  <h1 className="section-title mt-3 text-[clamp(1.75rem,1.2rem+2.2vw,3rem)] font-semibold leading-tight tracking-[-0.045em] text-dl-fg">
+                  <h1 className="section-title mt-3 text-[clamp(1.5rem,1.1rem+1.7vw,3rem)] font-semibold leading-tight tracking-[-0.045em] text-dl-fg">
                     {post.subject}
                   </h1>
-                  <div className="public-muted-text mt-5 flex flex-wrap items-center gap-3 text-sm">
+                  <div className="public-muted-text public-text-body mt-4 flex flex-wrap items-center gap-2 lg:mt-5 lg:gap-3">
                     <Link
                       href={searchCategory()}
-                      className="rounded-full border border-dl-tonal-border bg-dl-tonal px-4 py-2 font-semibold text-dl-tonal-fg transition hover:bg-dl-tonal-hover"
+                      className="rounded-full border border-dl-tonal-border bg-dl-tonal px-(--public-chip-pad-x) py-(--public-chip-pad-y) font-semibold text-dl-tonal-fg transition hover:bg-dl-tonal-hover"
                     >
                       {post.category?.name}
                     </Link>
-                    <span className="public-chip-surface-strong inline-flex items-center gap-2 rounded-full border px-4 py-2">
-                      <CalendarDays className="h-4 w-4" />
+                    <span className="public-chip-surface-strong inline-flex items-center gap-1.5 rounded-full border px-(--public-chip-pad-x) py-(--public-chip-pad-y) lg:gap-2">
+                      <CalendarDays className="size-(--public-icon)" />
                       created {formatDate(post.created.at)}
                     </span>
-                    <span className="public-chip-surface-strong inline-flex items-center gap-2 rounded-full border px-4 py-2">
-                      <Clock3 className="h-4 w-4" />
+                    <span className="public-chip-surface-strong inline-flex items-center gap-1.5 rounded-full border px-(--public-chip-pad-x) py-(--public-chip-pad-y) lg:gap-2">
+                      <Clock3 className="size-(--public-icon)" />
                       updated {formatDate(post.updated.at)}
                     </span>
-                    <span className="public-chip-surface-strong inline-flex items-center gap-2 rounded-full border px-4 py-2">
-                      <BookOpen className="h-4 w-4" />
+                    <span className="public-chip-surface-strong inline-flex items-center gap-1.5 rounded-full border px-(--public-chip-pad-x) py-(--public-chip-pad-y) lg:gap-2">
+                      <BookOpen className="size-(--public-icon)" />
                       {readingTime()}
                     </span>
                   </div>
@@ -427,9 +427,9 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
                       onClick={showPublicConfirmDialog}
                     >
                       {postPublic ? (
-                        <Globe className="h-4 w-4" />
+                        <Globe className="size-(--public-icon)" />
                       ) : (
-                        <GlobeLock className="h-4 w-4" />
+                        <GlobeLock className="size-(--public-icon)" />
                       )}
                       {postPublic ? 'Public' : 'Private'}
                     </Button>
@@ -440,7 +440,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
                       aria-label="edit"
                       onClick={onEditor}
                     >
-                      <Pencil className="h-4 w-4" />
+                      <Pencil className="size-(--public-icon)" />
                       Edit
                     </Button>
                     <Button
@@ -450,7 +450,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
                       aria-label="delete"
                       onClick={showDeleteConfirmDialog}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="size-(--public-icon)" />
                       Delete
                     </Button>
                   </div>
@@ -464,24 +464,26 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
             </div>
 
             {series && (
-              <div className="px-(--public-gutter) py-5">
-                <div className="rounded-2xl border border-dl-tonal-border bg-dl-tonal p-4">
+              <div className="px-(--public-gutter) py-(--public-pad-card)">
+                <div className="rounded-(--radius-card) border border-dl-tonal-border bg-dl-tonal p-(--public-pad-card)">
                   <button
                     type="button"
                     className="flex w-full items-center justify-between text-left"
                     onClick={() => setSeriesExpanded(!seriesExpanded)}
                   >
                     <div className="flex items-center gap-2">
-                      <List className="h-4 w-4 text-dl-tonal-fg" />
-                      <span className="text-sm font-semibold text-dl-tonal-fg">{series.title}</span>
-                      <span className="rounded-full bg-dl-tonal-hover px-2 py-0.5 text-xs font-medium text-dl-tonal-fg">
+                      <List className="size-(--public-icon) text-dl-tonal-fg" />
+                      <span className="public-text-body font-semibold text-dl-tonal-fg">
+                        {series.title}
+                      </span>
+                      <span className="public-text-meta rounded-full bg-dl-tonal-hover px-2 py-0.5 font-medium text-dl-tonal-fg">
                         {series.posts?.length ?? 0}편
                       </span>
                     </div>
                     {seriesExpanded ? (
-                      <ChevronUp className="h-4 w-4 text-dl-tonal-fg" />
+                      <ChevronUp className="size-(--public-icon) text-dl-tonal-fg" />
                     ) : (
-                      <ChevronDown className="h-4 w-4 text-dl-tonal-fg" />
+                      <ChevronDown className="size-(--public-icon) text-dl-tonal-fg" />
                     )}
                   </button>
                   {seriesExpanded && (
@@ -489,16 +491,16 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
                       {series.posts?.map((sp) => (
                         <li key={sp.postId}>
                           {sp.postId === post.id ? (
-                            <span className="flex items-center gap-2 rounded-lg bg-dl-tonal-hover px-3 py-2 text-sm font-semibold text-dl-tonal-fg">
-                              <span className="text-xs text-dl-primary">{sp.seq}.</span>
+                            <span className="public-text-body flex items-center gap-2 rounded-lg bg-dl-tonal-hover px-3 py-1.5 font-semibold text-dl-tonal-fg lg:py-2">
+                              <span className="public-text-meta text-dl-primary">{sp.seq}.</span>
                               {sp.subject}
                             </span>
                           ) : (
                             <Link
                               href={`/post/${sp.postId}`}
-                              className="public-muted-text flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition hover:bg-dl-tonal"
+                              className="public-muted-text public-text-body flex items-center gap-2 rounded-lg px-3 py-1.5 transition hover:bg-dl-tonal lg:py-2"
                             >
-                              <span className="public-label-text text-xs">{sp.seq}.</span>
+                              <span className="public-label-text public-text-meta">{sp.seq}.</span>
                               {sp.subject}
                             </Link>
                           )}
@@ -511,7 +513,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
             )}
 
             {(tags?.length > 0 || (userState.isAuthenticated && userState.user.username)) && (
-              <div className="px-(--public-gutter) py-6">
+              <div className="px-(--public-gutter) py-(--public-pad-panel)">
                 <TagGroupComponent
                   postId={post?.id?.toString() ?? null}
                   tagList={tags}
@@ -520,45 +522,48 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
               </div>
             )}
 
-            <div className="border-t border-[color:var(--line-soft)] px-(--public-gutter) py-8">
+            <div className="border-t border-[color:var(--line-soft)] px-(--public-gutter) py-(--public-pad-panel)">
               {postContent}
             </div>
 
-            <div className="border-t border-[color:var(--line-soft)] px-(--public-gutter) py-6">
-              <div className="grid gap-4 md:grid-cols-2">
+            <div className="border-t border-[color:var(--line-soft)] px-(--public-gutter) py-(--public-pad-panel)">
+              {/* 단일 컬럼 구간의 트랙 하한을 0 으로 — grid 아이템의 min-width:auto 는 자동 최소 크기가
+                  min-content 라, 안쪽 truncate 의 nowrap 텍스트 폭이 그대로 트랙을 밀어 카드가 넘친다.
+                  md 이상은 grid-cols-2 가 이미 minmax(0,1fr) 이라 이 선언을 덮어쓴다. */}
+              <div className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2 lg:gap-4">
                 {prevPostId === 0 ? (
-                  <div className="public-muted-panel public-muted-text rounded-[1.5rem] border border-dashed px-5 py-6 text-sm">
+                  <div className="public-muted-panel public-muted-text public-text-body rounded-(--radius-card) border border-dashed p-(--public-pad-panel)">
                     이전 글이 없습니다.
                   </div>
                 ) : (
                   <Link
                     href={`/post/${prevPostId}`}
-                    className="public-card-surface group rounded-[1.5rem] border px-5 py-6 transition"
+                    className="public-card-surface group rounded-(--radius-card) border p-(--public-pad-panel) transition"
                   >
-                    <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
+                    <p className="public-label-text public-text-meta font-semibold uppercase tracking-[0.18em]">
                       Previous
                     </p>
-                    <div className="public-muted-text mt-3 flex items-center gap-2 text-sm font-semibold transition group-hover:text-dl-primary-ink">
-                      <ArrowLeft className="h-4 w-4 shrink-0" />
+                    <div className="public-muted-text public-text-body mt-3 flex items-center gap-2 font-semibold transition group-hover:text-dl-primary-ink">
+                      <ArrowLeft className="size-(--public-icon) shrink-0" />
                       <span className="truncate">{prevNext?.prevSubject || '이전 글로 이동'}</span>
                     </div>
                   </Link>
                 )}
                 {nextPostId === 0 ? (
-                  <div className="public-muted-panel public-muted-text rounded-[1.5rem] border border-dashed px-5 py-6 text-right text-sm">
+                  <div className="public-muted-panel public-muted-text public-text-body rounded-(--radius-card) border border-dashed p-(--public-pad-panel) text-right">
                     다음 글이 없습니다.
                   </div>
                 ) : (
                   <Link
                     href={`/post/${nextPostId}`}
-                    className="public-card-surface group rounded-[1.5rem] border px-5 py-6 text-right transition"
+                    className="public-card-surface group rounded-(--radius-card) border p-(--public-pad-panel) text-right transition"
                   >
-                    <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
+                    <p className="public-label-text public-text-meta font-semibold uppercase tracking-[0.18em]">
                       Next
                     </p>
-                    <div className="public-muted-text mt-3 flex items-center justify-end gap-2 text-sm font-semibold transition group-hover:text-dl-primary-ink">
+                    <div className="public-muted-text public-text-body mt-3 flex items-center justify-end gap-2 font-semibold transition group-hover:text-dl-primary-ink">
                       <span className="truncate">{prevNext?.nextSubject || '다음 글로 이동'}</span>
-                      <ArrowRight className="h-4 w-4 shrink-0" />
+                      <ArrowRight className="size-(--public-icon) shrink-0" />
                     </div>
                   </Link>
                 )}
@@ -567,20 +572,20 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
 
             {relatedPosts.length > 0 && (
               <div className="px-(--public-gutter) pb-8 pt-2">
-                <p className="public-label-text mb-4 text-xs font-semibold uppercase tracking-[0.18em]">
+                <p className="public-label-text public-text-meta mb-3 font-semibold uppercase tracking-[0.18em] lg:mb-4">
                   Related Posts
                 </p>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {relatedPosts.map((related) => (
                     <Link
                       key={related.id}
                       href={`/post/${related.id}`}
-                      className="public-card-surface group rounded-2xl border p-4 transition hover:shadow-sm"
+                      className="public-card-surface group rounded-(--radius-card) border p-(--public-pad-card) transition hover:shadow-sm"
                     >
-                      <p className="truncate text-sm font-semibold text-dl-fg transition group-hover:text-dl-primary-ink">
+                      <p className="public-text-body truncate font-semibold text-dl-fg transition group-hover:text-dl-primary-ink">
                         {related.subject}
                       </p>
-                      <div className="public-label-text mt-2 flex items-center gap-2 text-xs">
+                      <div className="public-label-text public-text-meta mt-2 flex items-center gap-2">
                         <span className="public-chip-surface inline-flex rounded-full border px-2 py-0.5">
                           {related.categoryName}
                         </span>
@@ -599,13 +604,13 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
               스크롤 컨테이너로 만들면 카드가 뷰포트 경계에서 잘리고 backdrop blur 도 깨진다 */}
           <aside className="hidden lg:sticky lg:top-(--sticky-top) lg:flex lg:max-h-[calc(100dvh-var(--sticky-top)-2rem)] lg:flex-col lg:gap-5 lg:self-start">
             <div className="surface-panel-strong rounded-(--radius-panel) p-6 lg:flex lg:min-h-0 lg:flex-col">
-              <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
+              <p className="public-label-text public-text-meta font-semibold uppercase tracking-[0.18em]">
                 Reading Context
               </p>
               <TableOfContents postBody={postBody} variant="sidebar" />
             </div>
             <div className="surface-panel-strong rounded-(--radius-panel) p-6 lg:shrink-0">
-              <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
+              <p className="public-label-text public-text-meta font-semibold uppercase tracking-[0.18em]">
                 Metadata
               </p>
               <dl className="public-muted-text mt-4 space-y-4 text-sm">
@@ -632,7 +637,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
   return (
     <article className="public-container public-container--post pb-16 pt-6 sm:pt-10">
       <div className="surface-panel-strong rounded-(--radius-panel) px-(--public-gutter) py-12 text-center">
-        <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
+        <p className="public-label-text public-text-meta font-semibold uppercase tracking-[0.18em]">
           Missing Article
         </p>
         <h2 className="section-title mt-3 text-4xl font-semibold text-dl-fg">No post found</h2>

@@ -251,10 +251,10 @@ export default function TableOfContents({ postBody, variant = 'sidebar' }: Table
         type="button"
         aria-expanded={tocOpen}
         onClick={() => setTocOpen((open) => !open)}
-        className="-mx-2 flex w-[calc(100%+1rem)] items-center justify-between rounded-lg px-2 py-1.5 text-sm text-[color:var(--public-text-muted)] transition hover:bg-[color:var(--public-chip-bg)] hover:text-dl-fg"
+        className="public-text-body -mx-2 flex w-[calc(100%+1rem)] items-center justify-between rounded-lg px-2 py-1.5 text-[color:var(--public-text-muted)] transition hover:bg-[color:var(--public-chip-bg)] hover:text-dl-fg"
       >
         <span className="flex items-center gap-2">
-          <List className="h-4 w-4" />
+          <List className="size-(--public-icon)" />
           목차 보기
         </span>
         <ChevronDown className={cn('h-4 w-4 transition-transform', tocOpen && 'rotate-180')} />

@@ -54,7 +54,7 @@ export const Tag = (props: TagProps) => {
 
   return (
     <div
-      className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition ${
+      className={`public-text-body inline-flex items-center gap-1 rounded-full px-(--public-chip-pad-x) py-(--public-chip-pad-y) font-medium transition ${
         isAdminVariant
           ? 'border border-dl-border bg-dl-surface text-[color:var(--admin-text)] hover:border-dl-tonal-border hover:bg-dl-tonal hover:text-dl-primary-ink '
           : 'public-chip-surface public-muted-text border hover:border-dl-tonal-border hover:bg-dl-tonal hover:text-dl-tonal-fg'

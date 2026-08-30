@@ -40,10 +40,13 @@ const searchLogic = [
   { name: 'OR', value: 'OR' },
 ];
 
-const controlClassName = 'public-control-surface h-11 w-full rounded-[1.15rem] border px-4';
+/* 높이는 lg 미만에서 한 단계 내린다 — 이 필터는 모바일에서 접이식 바 아래 세로로 쌓여
+   컨트롤 수만큼 높이가 곱해지는 자리다. 데스크톱 44px 는 그대로 둔다. */
+const controlClassName =
+  'public-control-surface public-text-body h-10 w-full rounded-(--radius-card) border px-(--public-chip-pad-x) lg:h-11';
 const fieldLabelClassName =
-  'public-label-text text-[11px] font-semibold uppercase tracking-[0.18em]';
-const sectionClassName = 'public-muted-panel rounded-[1.35rem] border p-3.5';
+  'public-label-text public-text-meta font-semibold uppercase tracking-[0.18em]';
+const sectionClassName = 'public-muted-panel rounded-(--radius-card) border p-(--public-pad-card)';
 
 export default function SearchFilter({
   onSearch,
@@ -118,16 +121,16 @@ export default function SearchFilter({
   };
 
   return (
-    <div className="surface-panel-strong rounded-[1.75rem] p-5">
-      <div className="mb-5">
+    <div className="surface-panel-strong rounded-(--radius-panel) p-(--public-pad-panel)">
+      <div className="mb-4 lg:mb-5">
         <div>
-          <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
+          <p className="public-label-text public-text-meta font-semibold uppercase tracking-[0.18em]">
             Filter Stack
           </p>
         </div>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-3 lg:gap-4">
         <div className={sectionClassName}>
           <p className={fieldLabelClassName}>Search Scope</p>
           <div className="mt-2">
@@ -178,11 +181,11 @@ export default function SearchFilter({
         </div>
 
         {keywords.length > 0 ? (
-          <div className="public-muted-panel rounded-[1.5rem] border border-dashed p-3.5">
-            <p className="public-label-text mb-2 text-xs font-semibold uppercase tracking-[0.18em]">
+          <div className="public-muted-panel rounded-(--radius-card) border border-dashed p-(--public-pad-card)">
+            <p className="public-label-text public-text-meta mb-2 font-semibold uppercase tracking-[0.18em]">
               Keywords
             </p>
-            <div className="flex min-h-11 flex-wrap gap-2">
+            <div className="flex min-h-10 flex-wrap gap-2 lg:min-h-11">
               {keywords.map((kw) => (
                 <ConditionComponent
                   key={kw.id}
@@ -209,10 +212,10 @@ export default function SearchFilter({
 
         <Button
           variant="primary"
-          className="h-11 w-full rounded-[1.15rem] bg-dl-primary text-dl-primary-fg hover:bg-dl-primary-hover"
+          className="h-10 w-full rounded-(--radius-card) bg-dl-primary text-dl-primary-fg hover:bg-dl-primary-hover lg:h-11"
           onClick={onSearching}
         >
-          <Search className="h-4 w-4" />
+          <Search className="size-(--public-icon)" />
           Search
         </Button>
       </div>

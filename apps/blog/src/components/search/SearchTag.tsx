@@ -50,14 +50,14 @@ export default function SearchTag({
         triggerLabel="태그 선택(태그끼리 AND 조건)"
         searchPlaceholder="태그 검색..."
         emptyLabel="태그를 찾을 수 없습니다."
-        className="public-control-surface public-muted-text h-11 w-full rounded-[1.15rem] px-4"
+        className="public-control-surface public-muted-text public-text-body h-10 w-full rounded-(--radius-card) px-(--public-chip-pad-x) lg:h-11"
       />
       {selectTags.length > 0 ? (
-        <div className="public-muted-panel rounded-[1.5rem] border border-dashed p-3.5">
-          <p className="public-label-text mb-2 text-xs font-semibold uppercase tracking-[0.18em]">
+        <div className="public-muted-panel rounded-(--radius-card) border border-dashed p-(--public-pad-card)">
+          <p className="public-label-text public-text-meta mb-2 font-semibold uppercase tracking-[0.18em]">
             Tags
           </p>
-          <div className="flex min-h-11 flex-wrap gap-2">
+          <div className="flex min-h-10 flex-wrap gap-2 lg:min-h-11">
             {selectTags.map((t) => (
               <ConditionComponent key={t.id} id={t.id} name={t.name} onDelete={onDeleteTag} />
             ))}

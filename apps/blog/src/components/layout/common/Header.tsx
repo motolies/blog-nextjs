@@ -57,7 +57,7 @@ export default function Header() {
             href="/login"
             aria-label="로그인"
             className={cn(
-              'public-control-surface h-9 w-9 items-center justify-center rounded-full border text-[color:var(--public-text-muted)] hover:text-dl-primary-ink',
+              'public-control-surface size-dl-control-sm items-center justify-center rounded-full border text-[color:var(--public-text-muted)] hover:text-dl-primary-ink',
               forMobile ? 'inline-flex' : 'hidden md:inline-flex',
             )}
           >
@@ -70,7 +70,7 @@ export default function Header() {
             href="/admin"
             aria-label="관리자 페이지"
             className={cn(
-              'public-control-surface h-9 w-9 items-center justify-center rounded-full border text-[color:var(--public-text-muted)] hover:text-dl-primary-ink',
+              'public-control-surface size-dl-control-sm items-center justify-center rounded-full border text-[color:var(--public-text-muted)] hover:text-dl-primary-ink',
               forMobile ? 'inline-flex' : 'hidden md:inline-flex',
             )}
           >
@@ -85,13 +85,14 @@ export default function Header() {
     <header className={styles.top}>
       <nav aria-label="주요 탐색" className={cn(styles.back, 'relative z-30')}>
         <div className="public-container flex h-(--header-h) items-center gap-3 md:gap-4">
-          <div className="flex min-w-0 shrink-0 items-center gap-3">
-            <Link href="/" className="group inline-flex min-w-0 items-center gap-3">
-              <span className="flex size-10 items-center justify-center rounded-2xl bg-dl-primary text-dl-primary-fg shadow-dl-action">
-                <Sparkles className="h-5 w-5" />
+          <div className="flex min-w-0 shrink-0 items-center gap-2 lg:gap-3">
+            <Link href="/" className="group inline-flex min-w-0 items-center gap-2 lg:gap-3">
+              {/* 로고 글리프는 로고 박스에서 유도한다 — 비율(50%)을 고정해야 축소해도 여백이 균일하다 */}
+              <span className="flex size-(--public-logo-size) items-center justify-center rounded-2xl bg-dl-primary text-dl-primary-fg shadow-dl-action">
+                <Sparkles className="size-[calc(var(--public-logo-size)*0.5)]" />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-lg font-semibold tracking-[-0.02em] text-dl-fg">
+                <span className="block truncate text-base font-semibold tracking-[-0.02em] text-dl-fg lg:text-lg">
                   motolies
                 </span>
               </span>
@@ -129,7 +130,7 @@ export default function Header() {
                 value={search.searchText}
                 onChange={search.onChange}
                 onKeyDown={search.onKeyDown}
-                className="public-control-surface h-10 w-full rounded-full border pl-9 pr-4 text-sm placeholder:text-[color:var(--public-text-subtle)] backdrop-blur transition focus:border-dl-primary focus:outline-none focus:ring-4 focus:ring-dl-primary sm:h-11"
+                className="public-control-surface public-text-body h-10 w-full rounded-full border pl-9 pr-4 placeholder:text-[color:var(--public-text-subtle)] backdrop-blur transition focus:border-dl-primary focus:outline-none focus:ring-4 focus:ring-dl-primary lg:h-11"
               />
             </div>
 

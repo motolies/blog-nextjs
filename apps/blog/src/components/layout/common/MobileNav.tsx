@@ -60,10 +60,10 @@ export default function MobileNav({ open, onClose, actions }: MobileNavProps) {
       <nav
         id="mobile-nav"
         aria-label="모바일 탐색"
-        className="surface-panel-strong fixed inset-x-0 top-(--header-h) z-20 max-h-[calc(100dvh-var(--header-h))] overflow-y-auto rounded-b-(--radius-card) px-(--public-gutter) py-4"
+        className="surface-panel-strong fixed inset-x-0 top-(--header-h) z-20 max-h-[calc(100dvh-var(--header-h))] overflow-y-auto rounded-b-(--radius-card) px-(--public-gutter) py-(--public-pad-card)"
       >
         <div className="relative">
-          <Search className="public-label-text pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+          <Search className="public-label-text pointer-events-none absolute left-3 top-1/2 size-(--public-icon) -translate-y-1/2" />
           <input
             type="search"
             placeholder="Search posts"
@@ -74,7 +74,7 @@ export default function MobileNav({ open, onClose, actions }: MobileNavProps) {
               // 같은 /search 안에서 쿼리만 바뀌면 pathname effect 가 안 돌므로 여기서 닫는다
               if (e.key === 'Enter') onClose();
             }}
-            className="public-control-surface h-11 w-full rounded-full border pl-9 pr-4 text-sm placeholder:text-[color:var(--public-text-subtle)] transition focus:border-dl-primary focus:outline-none focus:ring-4 focus:ring-dl-primary"
+            className="public-control-surface public-text-body h-10 w-full rounded-full border pl-9 pr-4 placeholder:text-[color:var(--public-text-subtle)] transition focus:border-dl-primary focus:outline-none focus:ring-4 focus:ring-dl-primary lg:h-11"
           />
         </div>
 
@@ -87,7 +87,7 @@ export default function MobileNav({ open, onClose, actions }: MobileNavProps) {
                   href={link.href}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'block rounded-(--radius-card) px-4 py-3 text-sm font-semibold transition',
+                    'public-text-body block rounded-(--radius-card) px-3 py-2.5 font-semibold transition',
                     active
                       ? 'bg-dl-primary/10 text-dl-primary-ink'
                       : 'public-muted-text hover:text-dl-primary-ink',

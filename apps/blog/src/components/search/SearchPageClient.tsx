@@ -75,21 +75,21 @@ export default function SearchPageClient() {
   const activeFilterCount = keywords.length + categories.length + tags.length;
 
   return (
-    <div className="public-container pb-8 pt-6 sm:pt-10">
+    <div className="public-container pb-8 pt-4 lg:pt-10">
       <h1 className="visually-hidden">검색 결과</h1>
-      <section className="public-card-surface mb-6 flex flex-wrap items-center gap-3 rounded-(--radius-card) border px-5 py-3 shadow-[0_14px_40px_rgba(15,23,42,0.05)]">
-        <span className="public-label-text text-[11px] font-semibold uppercase tracking-[0.2em]">
+      <section className="public-card-surface mb-4 flex flex-wrap items-center gap-2 rounded-(--radius-card) border px-(--public-pad-panel) py-(--public-chip-pad-y) shadow-[0_14px_40px_rgba(15,23,42,0.05)] lg:mb-6 lg:gap-3">
+        <span className="public-label-text public-text-meta font-semibold uppercase tracking-[0.2em]">
           Search Summary
         </span>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="public-chip-surface public-muted-text flex rounded-full border px-3 py-1.5 text-sm">
-            <span className="public-label-text mr-2 text-[11px] font-semibold uppercase tracking-[0.18em]">
+          <div className="public-chip-surface public-muted-text public-text-body flex rounded-full border px-(--public-chip-pad-x) py-(--public-chip-pad-y)">
+            <span className="public-label-text public-text-meta mr-2 font-semibold uppercase tracking-[0.18em]">
               Results
             </span>
             <span className="font-semibold text-dl-fg">{resultCount}</span>
           </div>
-          <div className="public-chip-surface public-muted-text flex rounded-full border px-3 py-1.5 text-sm">
-            <span className="public-label-text mr-2 text-[11px] font-semibold uppercase tracking-[0.18em]">
+          <div className="public-chip-surface public-muted-text public-text-body flex rounded-full border px-(--public-chip-pad-x) py-(--public-chip-pad-y)">
+            <span className="public-label-text public-text-meta mr-2 font-semibold uppercase tracking-[0.18em]">
               Pages
             </span>
             <span className="font-semibold text-dl-fg">{totalPage}</span>
@@ -97,26 +97,28 @@ export default function SearchPageClient() {
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[var(--search-filter-w)_minmax(0,1fr)] lg:gap-8">
+      <div className="grid gap-4 lg:grid-cols-[var(--search-filter-w)_minmax(0,1fr)] lg:gap-8">
         <div className="lg:sticky lg:top-(--sticky-top) lg:max-h-[calc(100dvh-var(--sticky-top)-2rem)] lg:self-start lg:overflow-y-auto">
           <button
             type="button"
             onClick={() => setFiltersOpen((v) => !v)}
             aria-expanded={filtersOpen}
             aria-controls="search-filter-panel"
-            className="public-control-surface flex w-full items-center justify-between rounded-full border px-4 py-2.5 text-sm font-semibold lg:hidden"
+            className="public-control-surface public-text-body flex w-full items-center justify-between rounded-full border px-4 py-2 font-semibold lg:hidden"
           >
             <span className="flex items-center gap-2">
-              <SlidersHorizontal className="h-4 w-4" />
+              <SlidersHorizontal className="size-(--public-icon)" />
               검색 필터
             </span>
             <span className="flex items-center gap-2">
               {activeFilterCount > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-dl-primary px-1.5 text-[11px] font-bold text-dl-primary-fg">
+                <span className="public-text-meta flex h-5 min-w-5 items-center justify-center rounded-full bg-dl-primary px-1.5 font-bold text-dl-primary-fg">
                   {activeFilterCount}
                 </span>
               )}
-              <ChevronDown className={cn('h-4 w-4 transition', filtersOpen && 'rotate-180')} />
+              <ChevronDown
+                className={cn('size-(--public-icon) transition', filtersOpen && 'rotate-180')}
+              />
             </span>
           </button>
           <div
@@ -133,7 +135,7 @@ export default function SearchPageClient() {
             />
           </div>
         </div>
-        <div className="space-y-6">
+        <div className="space-y-4 lg:space-y-6">
           <SearchResult posts={searchedPostState?.list} />
           {/* 결과 컬럼 내부에 두어야 lg 이상에서 버튼 묶음이 결과 중심에 정렬된다 */}
           <SearchPagination currentPage={currentPage} totalPage={totalPage} onPageChange={goPage} />

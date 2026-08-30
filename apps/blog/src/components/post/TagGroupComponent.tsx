@@ -109,7 +109,7 @@ export default function TagGroupComponent({
           className={
             writePage
               ? 'w-full border-dl-border bg-dl-surface text-[color:var(--admin-text)] hover:bg-dl-tonal'
-              : 'public-control-surface public-muted-text h-11 w-full rounded-full'
+              : 'public-control-surface public-muted-text public-text-body h-10 w-full rounded-full lg:h-11'
           }
         />
       )}

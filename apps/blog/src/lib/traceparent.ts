@@ -13,9 +13,13 @@ const ALL_ZERO_SPAN_ID = '0'.repeat(16);
 /**
  * sentry-trace → W3C traceparent.
  *
- * flags 는 항상 '01'(sampled) 고정 — 백엔드(Micrometer OTel 의 ParentBased 샘플러)는 인바운드 sampled
- * 플래그를 로컬 샘플링 확률(prod 1.0)보다 우선하므로 '00' 을 보내면 prod Zipkin 스팬이 유실된다. 또한 TwP 모드의
- * sentry-trace 는 sampled 자리가 비어 있을 수(deferred) 있어 변환 시 강제로 채운다.
+ * flags 는 항상 '01'(sampled) 고정.
+ *
+ * 원래 근거는 "백엔드 스팬 유실 방지" 였으나 백엔드에서 span exporter 를 걷어내(2026-08-30 Zipkin 제거)
+ * 지금은 이 플래그가 무엇을 유실시키지 않는다. 그래도 '01' 로 고정하는 이유가 둘 남는다.
+ *   · TwP 모드의 sentry-trace 는 sampled 자리가 비어 있을 수(deferred) 있어 변환 시 어차피 채워야 한다.
+ *   · 백엔드(Micrometer OTel 의 ParentBased 샘플러)는 인바운드 sampled 플래그를 로컬 샘플링 확률보다
+ *     우선하므로, 훗날 exporter 를 붙이는 날 이 파일을 다시 손대지 않아도 된다.
  */
 export function sentryTraceToTraceparent(sentryTrace: string | undefined): string | undefined {
   if (!sentryTrace) return undefined;

@@ -385,7 +385,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
     return (
       <div className="public-container public-container--post pb-8 pt-4 lg:pt-10">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_var(--post-aside-w)] lg:gap-8">
-          <article className="surface-panel-strong overflow-hidden rounded-(--radius-panel)">
+          <article className="surface-panel-strong public-panel--bleed overflow-hidden rounded-(--radius-panel)">
             <div className="px-(--public-gutter) py-(--public-pad-panel)">
               <div className="flex flex-wrap items-start justify-between gap-4 lg:gap-6">
                 <div>

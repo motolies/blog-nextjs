@@ -1,8 +1,9 @@
 'use client';
 
-import { Badge, Icon } from '@hvy/ui';
-import { ArrowUpRight, ChevronDown } from 'lucide-react';
+import { Badge } from '@hvy/ui';
+import { ChevronDown } from 'lucide-react';
 import { useCallback, useEffect, useId, useState } from 'react';
+import LinkRow from '@/components/common/LinkRow';
 import { resolveLinkIcon } from '@/lib/linkIcons';
 import {
   DEFAULT_COLLAPSE_STATE,
@@ -69,10 +70,10 @@ export default function PlatformFavoriteSection({ groups }: { groups: readonly L
   }
 
   return (
-    <section className="public-container pb-14 pt-6">
-      <div className="mb-6 flex items-end justify-between gap-4">
+    <section className="public-container pb-10 pt-6 lg:pb-14">
+      <div className="mb-4 flex items-end justify-between gap-4 lg:mb-6">
         <div className="flex items-center gap-3">
-          <p className="public-label-text text-sm font-semibold uppercase tracking-[0.18em]">
+          <p className="public-label-text public-text-meta font-semibold uppercase tracking-[0.18em]">
             Platform
           </p>
           <Badge tone="warning" size="xs">
@@ -84,11 +85,11 @@ export default function PlatformFavoriteSection({ groups }: { groups: readonly L
           onClick={toggleSection}
           aria-expanded={!collapse.section}
           aria-controls={sectionPanelId}
-          className="public-card-surface flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition"
+          className="public-card-surface public-text-body flex items-center gap-1.5 rounded-full border px-(--public-chip-pad-x) py-(--public-chip-pad-y) font-medium transition"
         >
           {collapse.section ? '펼치기' : '접기'}
           <ChevronDown
-            className={`h-4 w-4 transition-transform ${collapse.section ? '-rotate-90' : ''}`}
+            className={`size-(--public-icon) transition-transform ${collapse.section ? '-rotate-90' : ''}`}
             aria-hidden="true"
           />
         </button>
@@ -123,46 +124,41 @@ function PlatformGroupCard({
   const GroupIcon = resolveLinkIcon(group.icon);
 
   return (
-    <section className="surface-panel-strong overflow-hidden rounded-(--radius-panel) p-6">
+    <section className="surface-panel-strong overflow-hidden rounded-(--radius-panel) p-(--public-pad-panel)">
       <button
         type="button"
         onClick={() => onToggle(group.code)}
         aria-expanded={!collapsed}
         aria-controls={panelId}
-        className="flex w-full items-center gap-3 text-left"
+        className="flex w-full items-center gap-2 text-left lg:gap-3"
       >
-        {GroupIcon && <Icon icon={GroupIcon} size="md" />}
-        <h3 className="flex-1 text-2xl font-semibold tracking-[-0.03em] text-dl-fg">
+        {/* 제목 크기에 비례시킨다 — @hvy/ui Icon 의 20px 은 고정이라 모바일에서 제목(18px)보다
+            커지고, --public-icon(14→16)을 쓰면 데스크톱이 20→16 으로 줄어드는 회귀가 난다. */}
+        {GroupIcon && (
+          <GroupIcon
+            className="size-[calc(var(--public-text-title)*0.833)] shrink-0"
+            aria-hidden="true"
+          />
+        )}
+        {/* truncate 의 overflow:hidden 이 flex 아이템의 자동 최소 크기를 0 으로 만든다 —
+            그래서 min-w-0 을 따로 붙이지 않아도 긴 이름이 ChevronDown 을 밀어내지 않는다. */}
+        <h3
+          className="flex-1 truncate public-text-title font-semibold tracking-[-0.03em] text-dl-fg"
+          title={group.name}
+        >
           {group.name}
         </h3>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 transition-transform ${collapsed ? '-rotate-90' : ''}`}
+          className={`size-(--public-icon) shrink-0 transition-transform ${collapsed ? '-rotate-90' : ''}`}
           aria-hidden="true"
         />
       </button>
 
       {!collapsed && (
-        <ul id={panelId} className="mt-6 grid gap-3">
-          {group.links.map((link) => {
-            const LinkIcon = resolveLinkIcon(link.icon);
-            return (
-              <li key={link.name}>
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="public-card-surface group flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium text-dl-fg transition hover:text-dl-primary-ink"
-                >
-                  {LinkIcon && <Icon icon={LinkIcon} size="sm" />}
-                  <span className="flex-1 truncate">{link.name}</span>
-                  <ArrowUpRight
-                    className="h-4 w-4 shrink-0 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                    aria-hidden="true"
-                  />
-                </a>
-              </li>
-            );
-          })}
+        <ul id={panelId} className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-2 lg:mt-6 lg:gap-3">
+          {group.links.map((link) => (
+            <LinkRow key={link.name} link={link} />
+          ))}
         </ul>
       )}
     </section>

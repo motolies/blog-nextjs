@@ -70,9 +70,16 @@
           그쪽은 무단위 수라 clamp 가 불가능해 파일 하단에서 미디어쿼리로 전환한다. */
     --public-pad-panel: clamp(1rem, 0.71rem + 1.23vw, 1.5rem); /* 큰 카드 안쪽 여백 16→24 */
     --public-pad-card: clamp(0.75rem, 0.61rem + 0.62vw, 1rem); /* 작은 카드 안쪽 여백 12→16 */
+    /* 링크 행(즐겨찾기·플랫폼) 상하 여백 8→12. 좌우는 --public-pad-card 를 그대로 쓰고
+       세로만 따로 두는 이유는, 행의 세로가 글자 한 줄만 감싸므로 좌우와 같은 값이면
+       모바일에서 행 높이가 전혀 줄지 않기 때문이다(px 12→16 은 맞지만 py 12→16 은 과하다).
+       칩 축(--public-chip-pad-y 5→8)은 반대로 너무 얕아 탭 타깃이 무너진다.
+       기울기가 --public-pad-card 와 같은 0.62vw 인 것은 진폭(4px)이 같아서다 — 두 값이
+       같은 지점에서 상한에 닿으므로 행의 가로/세로 비율이 구간 내내 매끄럽다. */
+    --public-row-pad-y: clamp(0.5rem, 0.36rem + 0.62vw, 0.75rem); /* 링크 행 상하 8→12 */
     --public-chip-pad-x: clamp(0.75rem, 0.61rem + 0.62vw, 1rem); /* 칩 좌우 12→16 */
     --public-chip-pad-y: clamp(0.3125rem, 0.2rem + 0.46vw, 0.5rem); /* 칩 상하 5→8 */
-    --public-logo-size: clamp(2rem, 1.71rem + 1.23vw, 2.5rem); /* 헤더 로고 32→40 */
+    --public-logo-size: clamp(2rem, 1.71rem + 1.23vw, 2.5rem); /* 정사각 배지(헤더 로고·검색) 32→40 */
     --public-icon: clamp(0.875rem, 0.8rem + 0.31vw, 1rem); /* 본문 아이콘 14→16 */
     --public-text-title: clamp(1.125rem, 0.91rem + 0.92vw, 1.5rem); /* 카드 제목 18→24 */
     --public-text-body: clamp(0.8125rem, 0.78rem + 0.15vw, 0.875rem); /* 본문 크롬 13→14 */

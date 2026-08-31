@@ -1,10 +1,8 @@
-import { Icon } from '@hvy/ui';
-import { ArrowUpRight } from 'lucide-react';
 import { headers } from 'next/headers';
+import LinkRow from '@/components/common/LinkRow';
 import PlatformFavoriteSection from '@/components/platform/PlatformFavoriteSection';
 import { SearchEngineComponent } from '@/components/SearchEngineComponent';
 import { getAuthTokenFromRequest } from '@/lib/authCookie';
-import { resolveLinkIcon } from '@/lib/linkIcons';
 import { buildBackendAuthConfig } from '@/lib/ssrRequestAuth';
 import service from '@/service';
 import type { SearchEngine } from '@/types/searchEngine';
@@ -32,17 +30,17 @@ export default async function IndexPage() {
   return (
     <>
       <h1 className="visually-hidden">Skyscape - 홈</h1>
-      <section className="public-container pb-10 pt-6 sm:pt-10 lg:pb-12">
+      <section className="public-container pb-10 pt-6 lg:pb-12 lg:pt-10">
         <SearchEngineComponent engines={engines} />
       </section>
 
       {/* 관리자 전용. 존재 이유가 "홈에서 곧장 플랫폼으로" 라서 즐겨찾기보다 위에 둔다. */}
       {platformGroups.length > 0 && <PlatformFavoriteSection groups={platformGroups} />}
 
-      <section className="public-container pb-14 pt-6">
-        <div className="mb-6 flex items-end justify-between gap-4">
+      <section className="public-container pb-10 pt-6 lg:pb-14">
+        <div className="mb-4 flex items-end justify-between gap-4 lg:mb-6">
           <div>
-            <p className="public-label-text text-sm font-semibold uppercase tracking-[0.18em]">
+            <p className="public-label-text public-text-meta font-semibold uppercase tracking-[0.18em]">
               Favorite Groups
             </p>
           </div>
@@ -53,32 +51,21 @@ export default async function IndexPage() {
           {favorites.map((group) => (
             <section
               key={group.name}
-              className="surface-panel-strong overflow-hidden rounded-(--radius-panel) p-6"
+              className="surface-panel-strong overflow-hidden rounded-(--radius-panel) p-(--public-pad-panel)"
             >
-              <h3 className="text-2xl font-semibold tracking-[-0.03em] text-dl-fg">{group.name}</h3>
-              <ul className="mt-6 grid gap-3">
-                {group.links.map((favorite) => {
-                  // 아이콘은 선택 항목이다 — 기존 데이터에는 하나도 없어서 값이 있을 때만 그린다.
-                  // 없을 때 폴백을 그리면 모든 링크가 같은 아이콘으로 도배된다.
-                  const LinkIcon = resolveLinkIcon(favorite.icon);
-                  return (
-                    <li key={favorite.name}>
-                      <a
-                        href={favorite.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="public-card-surface group flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium text-dl-fg transition hover:text-dl-primary-ink"
-                      >
-                        {LinkIcon && <Icon icon={LinkIcon} size="sm" />}
-                        <span className="flex-1 truncate">{favorite.name}</span>
-                        <ArrowUpRight
-                          className="h-4 w-4 shrink-0 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                          aria-hidden="true"
-                        />
-                      </a>
-                    </li>
-                  );
-                })}
+              <h3
+                className="truncate public-text-title font-semibold tracking-[-0.03em] text-dl-fg"
+                title={group.name}
+              >
+                {group.name}
+              </h3>
+              {/* 트랙 하한을 0 으로 — grid 아이템(li)의 min-width:auto 는 자동 최소 크기가
+                  min-content 라, 안쪽 truncate 의 nowrap 텍스트 폭이 그대로 트랙을 밀어
+                  카드가 넘친다. PostComponent 의 이전/다음 글 카드가 같은 처방을 쓴다. */}
+              <ul className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-2 lg:mt-6 lg:gap-3">
+                {group.links.map((favorite) => (
+                  <LinkRow key={favorite.name} link={favorite} />
+                ))}
               </ul>
             </section>
           ))}

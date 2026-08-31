@@ -19,7 +19,10 @@ export const SearchEngineComponent = ({ engines = [] }: SearchEngineComponentPro
   const [text, setText] = useState<string>('');
   // 맥북에서 한글 입력 상태를 관리하기 위함
   const [isComposing, setIsComposing] = useState<boolean>(false);
-  const controlClassName = 'h-12 min-h-12 rounded-2xl text-sm';
+  // 높이·폰트·좌우 패딩은 전부 @hvy/ui 가 --dl-scale-* 로 낮춘다(lg 미만에서 42→36 · 14→13 · 16→13).
+  // 예전 shadcn 시절의 h-12/text-sm/px-4 를 남겨두면 그 축소가 통째로 죽으므로 형태만 남긴다.
+  // pill 은 디자인 의도라 유지 — --radius-2xl(28px)은 어느 높이에서도 절반을 넘어 형태가 불변이다.
+  const controlClassName = 'rounded-2xl';
 
   const selectedEngine = engines.find((engine) => engine.url === selectedUrl) ?? engines[0];
 
@@ -41,28 +44,29 @@ export const SearchEngineComponent = ({ engines = [] }: SearchEngineComponentPro
   };
 
   return (
-    <div className="surface-panel-strong w-full rounded-(--radius-panel) p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-6">
-      <div className="mb-5 flex items-start justify-between gap-3">
+    <div className="surface-panel-strong w-full rounded-(--radius-panel) p-(--public-pad-panel) shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+      <div className="mb-4 flex items-start justify-between gap-3 lg:mb-5">
         <div>
-          <p className="public-label-text text-xs font-semibold uppercase tracking-[0.18em]">
+          <p className="public-label-text public-text-meta font-semibold uppercase tracking-[0.18em]">
             Quick Search
           </p>
-          <p className="public-muted-text mt-2 text-sm">
+          <p className="public-muted-text public-text-body mt-2">
             현재 선택: <span className="font-medium text-dl-fg">{host}</span>
           </p>
         </div>
-        <span className="flex size-10 items-center justify-center rounded-2xl bg-dl-tonal text-dl-tonal-fg">
-          <Search className="h-4 w-4" />
+        {/* 글리프는 박스에서 유도한다 — 비율(40%)을 고정해야 축소해도 여백이 균일하다(Header 로고와 같은 기법) */}
+        <span className="flex size-(--public-logo-size) shrink-0 items-center justify-center rounded-2xl bg-dl-tonal text-dl-tonal-fg">
+          <Search className="size-[calc(var(--public-logo-size)*0.4)]" />
         </span>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-[minmax(10rem,13.75rem)_minmax(0,1fr)_8.75rem]">
+      <div className="grid gap-2 md:grid-cols-[minmax(10rem,13.75rem)_minmax(0,1fr)_8.75rem] lg:gap-3">
         <Select
           value={selectedEngine?.url ?? ''}
           onValueChange={setSelectedUrl}
           placeholder="검색 엔진 선택"
           options={engines.map((engine) => ({ value: engine.url, label: engine.name }))}
-          className={`${controlClassName} public-control-surface w-full border px-4 py-0 leading-none`}
+          className={`${controlClassName} public-control-surface w-full border py-0 leading-none`}
         />
 
         <Input
@@ -77,7 +81,7 @@ export const SearchEngineComponent = ({ engines = [] }: SearchEngineComponentPro
           }}
           onCompositionStart={() => setIsComposing(true)}
           onCompositionEnd={() => setIsComposing(false)}
-          className={`${controlClassName} public-control-surface border px-4 placeholder:text-[color:var(--public-text-subtle)] focus-visible:border-dl-primary focus-visible:ring-dl-primary`}
+          className={`${controlClassName} public-control-surface border placeholder:text-[color:var(--public-text-subtle)] focus-visible:border-dl-primary focus-visible:ring-dl-primary`}
         />
 
         <Button
@@ -86,9 +90,9 @@ export const SearchEngineComponent = ({ engines = [] }: SearchEngineComponentPro
           onClick={goSearch}
           disabled={!selectedEngine?.url || text.length === 0}
           title="검색 엔진을 고르고 검색어를 입력하면 눌러진다"
-          className={`${controlClassName} w-full bg-dl-primary px-5 text-dl-primary-fg hover:bg-dl-primary-hover disabled:bg-dl-locked-bg disabled:text-dl-locked-fg`}
+          className={`${controlClassName} w-full bg-dl-primary text-dl-primary-fg hover:bg-dl-primary-hover disabled:bg-dl-locked-bg disabled:text-dl-locked-fg`}
         >
-          <ArrowUpRight className="h-4 w-4" />
+          <ArrowUpRight className="size-dl-ctl-ic-md" />
           Search
         </Button>
       </div>

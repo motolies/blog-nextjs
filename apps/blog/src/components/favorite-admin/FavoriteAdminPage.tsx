@@ -24,7 +24,10 @@ export default function FavoriteAdminPage() {
   return (
     <AdminPageFrame>
       <Tabs value={tab} onValueChange={(value) => setTab(value as LinkRootKey)}>
-        <TabList label="즐겨찾기 관리 탭">
+        {/* 탭 2개 + 배지 2개가 375px 가용폭(≈348)을 120px 넘는다. 어드민은 밀도 축소 대상이
+            아니라 탭 패딩(px-8)이 모바일에서도 그대로고, .contentWrapper 가 overflow-x:hidden
+            이라 스크롤러가 없으면 넘친 부분에 영영 도달할 수 없다(공개 util 탭들과 같은 처방). */}
+        <TabList label="즐겨찾기 관리 탭" className="overflow-x-auto">
           <Tab value="PLATFORM">
             <span className="flex items-center gap-2">
               플랫폼

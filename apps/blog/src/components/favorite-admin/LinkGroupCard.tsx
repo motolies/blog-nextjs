@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge, Button, Icon } from '@hvy/ui';
+import { Badge, Button, Icon, IconButton } from '@hvy/ui';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import SortableRowList from '@/components/common/reorder/SortableRowList';
 import { resolveLinkIcon } from '@/lib/linkIcons';
@@ -60,18 +60,16 @@ export default function LinkGroupCard({
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
-          <Button
-            variant="ghost"
+          <IconButton
             icon={Pencil}
-            aria-label="그룹 수정"
+            label="그룹 수정"
             title="수정"
             disabled={busy}
             onClick={() => onEditGroup(group)}
           />
-          <Button
-            variant="ghost"
+          <IconButton
             icon={Trash2}
-            aria-label="그룹 삭제"
+            label="그룹 삭제"
             title={hasLinks ? '하위 링크를 먼저 삭제하세요' : '삭제'}
             disabled={hasLinks || busy}
             onClick={() => onDeleteGroup(group)}
@@ -110,18 +108,18 @@ export default function LinkGroupCard({
               </div>
 
               <div className="flex shrink-0 items-center gap-1">
-                <Button
-                  variant="ghost"
+                {/* 아이콘 전용이라 IconButton — children 없는 Button 은 좌우 패딩 20+20 을
+                    먹어 56×42 가 되고, 375px 에서 이름·URL 칸을 100px 로 짓눌렀다. */}
+                <IconButton
                   icon={Pencil}
-                  aria-label="링크 수정"
+                  label="링크 수정"
                   title="수정"
                   disabled={busy}
                   onClick={() => onEditLink(group, link)}
                 />
-                <Button
-                  variant="ghost"
+                <IconButton
                   icon={Trash2}
-                  aria-label="링크 삭제"
+                  label="링크 삭제"
                   title="삭제"
                   disabled={busy}
                   onClick={() => onDeleteLink(group, link)}

@@ -294,7 +294,7 @@ export default function LinkTreeManager({ rootCode }: { readonly rootCode: LinkR
           등록된 그룹이 없습니다. &quot;그룹 추가&quot;로 시작하세요.
         </p>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {tree.groups.map((group) => (
             <LinkGroupCard
               key={group.id}

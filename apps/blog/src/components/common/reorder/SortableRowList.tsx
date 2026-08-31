@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useScrollParent } from './useScrollParent';
 
 /**
  * 손잡이로 끌어 순서를 바꾸는 목록.
@@ -42,6 +43,13 @@ export default function SortableRowList<T extends { readonly id: string }>({
   readonly rowClassName?: string;
 }) {
   const listRef = useRef<HTMLUListElement>(null);
+  /**
+   * 실제 스크롤러는 <ul> 이 아니라 어드민 본문(.contentWrapper)이다. 이걸 넘기지 않으면
+   * 훅이 <ul> 을 스크롤러로 보아 자동 스크롤이 no-op 이 되고(터치에서는 손잡이가
+   * touch-none 이라 그 손가락으로 스크롤도 못 해 화면 밖으로 옮길 방법이 사라진다),
+   * scrollTop 이 늘 0 이라 스크롤 보정항도 죽는다. TreeGrid 가 같은 배선을 쓴다.
+   */
+  const scrollRef = useScrollParent(listRef);
   const handleRefs = useRef(new Map<string, HTMLButtonElement>());
   /** 키보드로 옮긴 직후 포커스를 되돌려 줄 항목. 재배열되면 DOM 이 새로 만들어진다. */
   const focusAfterMove = useRef<string | null>(null);
@@ -53,6 +61,7 @@ export default function SortableRowList<T extends { readonly id: string }>({
     // 이 목록 하나가 곧 한 형제 집합이다 — 안에 하위 구간이 없으므로 전부 같은 그룹.
     groupOf: () => true,
     listRef,
+    scrollRef,
     onAnnounce: (from, to) => {
       const moved = items[from];
       if (!moved) return;

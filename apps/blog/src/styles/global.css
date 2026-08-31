@@ -848,7 +848,11 @@ body:has(.admin-shell)::before {
   border: 1px solid var(--admin-border);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(246, 250, 255, 0.96));
   box-shadow: var(--admin-shadow-md);
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  /* transform 은 전이하지 않는다 — 드래그 중 useListReorder 가 translateY 로 행을 옮기는데,
+     이 파일은 언레이어드라 SortableRowList 가 의도적으로 뺀 transition 을 되살려 버린다
+     (그 파일 주석: "transition 을 주지 않는다 — 손보다 늦게 따라와 고무줄처럼 늘어진다").
+     :hover 의 -1px 은 이동량이 작아 전이 없이도 자연스럽다. */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .admin-link-card:hover {

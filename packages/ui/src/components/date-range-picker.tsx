@@ -2,39 +2,56 @@
 
 import { Lock } from 'lucide-react';
 import { Popover as RadixPopover } from 'radix-ui';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Icon } from '../icons';
 import { cn } from '../lib/cn';
 import { type ControlSize, FIELD_SIZE_CLASS } from '../lib/controlSize';
 import { useControllableState } from '../lib/useControllableState';
 import { Calendar } from './calendar';
-import { CalendarButton, normalizeDateText, PANEL_CLASS } from './date-picker';
+import {
+  CalendarButton,
+  normalizeDateText,
+  PANEL_CLASS,
+  POPOVER_COLLISION_PADDING,
+  POPOVER_FIT_CLASS,
+  RANGE_INPUT_CLASS,
+  RANGE_LOCK_SLOT_CLASS,
+  RANGE_SHELL_CLASS,
+  RANGE_TILDE_CLASS,
+  RANGE_TRIGGER_CLASS,
+} from './date-picker';
 import { FieldViewText, useFieldControl } from './field';
 import type { FieldMode } from './form-mode';
+import {
+  abbreviateDate,
+  commitRangeSide,
+  initialEditingSide,
+  type RangeSide,
+  selectRangeDate,
+} from './rangeFlow';
 import { type DateRange, orderRange } from './rangeOrder';
+import { Tab, TabList, Tabs } from './tabs';
 
 /**
- * 기간 선택 — 시작·종료 입력 한 쌍 + **공용 달력 하나**.
+ * 기간 선택 — **테두리 하나(`dl-field-box`) 안에 시작 입력 · `~` · 종료 입력 · 달력 버튼 하나**.
+ * DateTimeRangePicker 와 같은 셸(`RANGE_SHELL_CLASS` 계열)과 편집 규칙(`rangeFlow.ts`)을 쓴다.
  *
  * `DatePicker` 를 기반으로 조립한다: 타이핑 정규화(`normalizeDateText`)·달력 버튼
  * (`CalendarButton`)·팝업 배색(`PANEL_CLASS`) 을 그대로 재사용하고, 이 파일은
  * "두 값을 한 몸으로 다룬다"는 부분만 더한다.
  *
- * **양끝 모두 달력 버튼을 가진다.** 누른 버튼이 곧 지금 정할 칸이고, 반대편이
- * 비어 있을 때만 팝오버를 닫지 않고 그쪽으로 넘어간다 — 빈 상태에서 두 번 클릭하면
- * 기간이 완성되고, 이미 채워진 기간에서는 누른 칸 하나만 바뀐다.
+ * 팝오버는 하나고 상단 탭이 어느 칸을 고칠지 정한다. 열 때는 채워가는 중이면 다음 빈칸, 다 찼으면 시작부터
+ * (`initialEditingSide`). 달력 클릭은 한쪽을 확정하고, 반대편이 **비어 있을 때만** 닫지 않고 그쪽으로
+ * 넘어간다 — 빈 상태에서 두 번 클릭하면 기간이 완성되고, 이미 채워진 기간에서는 고른 칸 하나만 바뀐다
+ * (`selectRangeDate`). 인라인 입력에 포커스가 가면 탭도 그쪽을 따라간다.
  *
- * 역순(시작 > 종료)은 **경로를 가리지 않고** `orderRange` 가 맞바꾼다. 달력 클릭에만
- * 있던 "재시작"(종료값을 버리고 다시 시작) 예외는 제거했다 — 같은 상황을 마우스와
- * 키보드가 다르게 처리하던 원인이었다.
+ * 역순(시작 > 종료)은 **경로를 가리지 않고** `orderRange` 가 맞바꾸고, 그때 편집 중인 탭도 값을 따라 옮긴다
+ * (`commitRangeSide`). 달력 클릭에만 있던 "재시작"(종료값을 버리고 다시 시작) 예외는 없다 — 같은 상황을
+ * 마우스와 키보드가 다르게 처리하던 원인이었다.
  *
- * **`Popover.Trigger` 를 쓰지 않는다.** Radix 는 트리거를 `triggerRef` 하나로만
- * 추적해서(`@radix-ui/react-popover` 의 `Popover.Trigger` 가 ref 를 합성한다),
- * 버튼이 둘이면 나중 렌더된 쪽만 등록된다. 미등록 버튼은 바깥 클릭 방어
- * (`onInteractOutside` 의 `triggerRef.current?.contains(target)` 검사)를 못 받아
- * **pointerdown 으로 닫힌 뒤 click 이 다시 열어 영영 닫히지 않고**, 닫힐 때
- * 포커스도 항상 첫 버튼으로 돌아간다. 그래서 open 을 직접 들고 그 두 가지를
- * 아래에서 이행한다.
+ * 트리거가 하나라 `Popover.Trigger asChild` 를 그대로 쓴다 — 예전 양끝 버튼 구조에서 필요했던
+ * `onInteractOutside`/`onCloseAutoFocus` 수동 이행(Radix 는 트리거를 `triggerRef` 하나로만 추적한다)이
+ * 사라졌고 포커스 복귀는 Radix 가 맡는다.
  */
 
 export type { DateRange };
@@ -109,7 +126,7 @@ export type DateRangePickerProps = {
   /** 시스템 채움 영구 불변 — readOnly + 자물쇠(달력 버튼 대신). 모든 mode 를 이긴다. */
   readonly lock?: boolean;
   readonly invalid?: boolean;
-  /** 5단 사이즈 — 시작·종료 입력 둘 다에 적용된다. */
+  /** 5단 사이즈 — 셸과 시작·종료 입력에 함께 적용된다. */
   readonly size?: ControlSize;
   /**
    * **시작일 입력**의 id — 감싼 `Field` 의 `htmlFor` 가 가리킬 대상이다.
@@ -118,6 +135,41 @@ export type DateRangePickerProps = {
   readonly id?: string;
   readonly className?: string;
 };
+
+/**
+ * 팝오버 상단의 시작/종료 탭 — 날짜·일시 범위 피커가 공유한다. Radix Tabs 라 TabPanel 없이 동작하고
+ * 편집 영역은 탭 아래 패널 하나를 공유한다. 탭 안 현재값(`startLabel`/`endLabel`)은 읽기 전용 축약이다.
+ *
+ * 탭이 둘뿐이라 **폭을 반씩 나눈다**(`flex-1 justify-center`) — 기본 탭처럼 왼쪽에 몰아 두면 오른쪽에
+ * 빈 여백이 남아 어느 쪽이 활성인지 밑줄이 짧아 보인다. `Tab` 기본의 `shrink-0` 은 `shrink` 로 되돌린다.
+ */
+const SIDE_TAB_CLASS = 'flex-1 shrink justify-center';
+export function RangeSideTabs({
+  editing,
+  startLabel,
+  endLabel,
+  onEditingChange,
+}: {
+  readonly editing: RangeSide;
+  readonly startLabel: string;
+  readonly endLabel: string;
+  readonly onEditingChange: (side: RangeSide) => void;
+}) {
+  return (
+    <Tabs value={editing} onValueChange={(value) => onEditingChange(value as RangeSide)}>
+      <TabList size="sm" label="편집할 끝">
+        <Tab value="start" className={SIDE_TAB_CLASS}>
+          시작
+          <span className="text-dl-fg-muted text-dl-xs">{startLabel}</span>
+        </Tab>
+        <Tab value="end" className={SIDE_TAB_CLASS}>
+          종료
+          <span className="text-dl-fg-muted text-dl-xs">{endLabel}</span>
+        </Tab>
+      </TabList>
+    </Tabs>
+  );
+}
 
 export function DateRangePicker({
   start: startProp,
@@ -146,18 +198,13 @@ export function DateRangePicker({
     onRangeChange,
   );
   const [open, setOpen] = useState(false);
-  /** 달력이 지금 정하는 칸 — 버튼을 누른 쪽에서 시작한다. */
-  const [editing, setEditing] = useState<'start' | 'end'>('start');
-  const startButtonRef = useRef<HTMLButtonElement>(null);
-  const endButtonRef = useRef<HTMLButtonElement>(null);
-  /** 바깥을 눌러 닫혔는가 — 그때는 포커스를 버튼으로 끌어오지 않는다(Radix 비모달과 같은 규칙). */
-  const closedByOutsideRef = useRef(false);
+  /** 달력이 지금 정하는 칸 — 탭·이어받기·인라인 입력 포커스·맞바꿈이 바꾼다. */
+  const [editing, setEditing] = useState<RangeSide>('start');
   /**
    * `notifyDirty`(달력은 Portal 이라 버블링이 닿지 않는다 — `DatePicker.commitText` 주석 참조)와
-   * view 분기용 `mode`·`size` 만 쓴다. invalid 는 양끝 `SideInput` 이 각자 배선한다.
+   * id·invalid·size·mode 를 한 번만 해석해 양끝 입력에 내려보낸다(중복 호출하면 Field 컨텍스트의 id 가 갈린다).
    */
-  const field = useFieldControl({ invalid, size, mode, lock });
-  const notifyDirty = field.notifyDirty;
+  const field = useFieldControl({ id, invalid, size, mode, lock });
 
   if (field.state.view) {
     // 한쪽만 있으면 그쪽만 그린다 — `~` 는 양쪽 값이 있을 때만 뜻이 있다. 둘 다 빈값이면 빈칸.
@@ -166,40 +213,23 @@ export function DateRangePicker({
     return <FieldViewText size={field.size}>{display || null}</FieldViewText>;
   }
 
-  const commitSide = (side: 'start' | 'end', text: string) => {
+  /** 타이핑 커밋 — 무효 입력은 `RangeDateInput` 이 이전 값으로 되돌린다. 맞바뀌면 편집 탭도 따라간다. */
+  const commitSide = (side: RangeSide, text: string) => {
     const iso = text.trim() === '' ? '' : normalizeDateText(text);
-    if (iso === null) return; // 무효 입력은 SideInput 이 이전 값으로 되돌린다
-    notifyDirty();
-    setRange(orderRange({ ...range, [side]: iso }));
+    if (iso === null) return;
+    const result = commitRangeSide(range, side, iso);
+    setRange(result.range);
+    setEditing(result.editing);
+    field.notifyDirty();
   };
 
-  /** 달력 버튼 — 누른 쪽이 곧 편집 대상이다. 같은 쪽을 다시 누르면 닫는다. */
-  const toggleCalendar = (side: 'start' | 'end') => {
-    if (open && editing === side) {
-      setOpen(false);
-      return;
-    }
-    setEditing(side);
-    setOpen(true);
-  };
-
-  /**
-   * 달력 클릭 — 누른 쪽 칸을 채운다.
-   * 반대편이 **비어 있을 때만** 열어 둔 채 그쪽으로 넘어간다(두 번 클릭 = 기간 완성).
-   * 반대편이 이미 있으면 정렬해 확정하고 닫는다. 반쪽 상태에서는 정렬하지 않는다 —
-   * 아직 비교 대상이 없어서 뒤집을 근거가 없다.
-   */
+  /** 달력 클릭 — 규칙은 `selectRangeDate`(반대편이 비었으면 이어받고, 아니면 정렬해 닫는다). */
   const handleSelect = (iso: string) => {
-    notifyDirty();
-    const other = editing === 'start' ? 'end' : 'start';
-    const next = { ...range, [editing]: iso } as DateRange;
-    if (range[other] === '') {
-      setRange(next);
-      setEditing(other);
-      return;
-    }
-    setRange(orderRange(next));
-    setOpen(false);
+    const result = selectRangeDate(range, editing, iso);
+    setRange(result.range);
+    setEditing(result.editing);
+    field.notifyDirty();
+    if (result.close) setOpen(false);
   };
 
   /**
@@ -207,120 +237,95 @@ export function DateRangePicker({
    * (`orderRange`)를 지나므로 앱이 역순 range 를 줘도 뒤집힌 기간이 생기지 않는다.
    */
   const applyPreset = (preset: DateRangePreset) => {
-    notifyDirty();
     const next = typeof preset.range === 'function' ? preset.range(new Date()) : preset.range;
     setRange(orderRange(next));
+    field.notifyDirty();
     setOpen(false);
+  };
+
+  /** 열 때마다 어느 쪽부터 고칠지 다시 정한다 — 채워가는 중이면 다음 빈칸, 다 찼으면 시작. */
+  const handleOpenChange = (next: boolean) => {
+    if (next) setEditing(initialEditingSide(range));
+    setOpen(next);
   };
 
   // 한쪽만 채워졌으면 그 값을 단일 강조한다 — 범위 강조는 양끝이 있어야 성립한다.
   const soleValue = range.start && !range.end ? range.start : !range.start ? range.end : '';
+  const other: RangeSide = editing === 'start' ? 'end' : 'start';
+  const abbreviate = (value: string) => abbreviateDate(value) || '미입력';
 
   return (
-    <RadixPopover.Root open={open} onOpenChange={setOpen}>
+    <RadixPopover.Root open={open} onOpenChange={handleOpenChange}>
       <RadixPopover.Anchor asChild>
-        {/* gap 10px · 물결표 20px/500/black — QA .filter-calender-wrapper · .form-calender__tilde 실측 */}
-        <span className={cn('flex w-full items-center gap-2.5', className)}>
-          <span className="relative block w-full">
-            <SideInput
-              side="start"
-              value={range.start}
-              name={startName}
-              id={id}
-              lock={lock}
-              invalid={invalid}
-              size={size}
-              mode={field.mode}
-              onCommit={commitSide}
-              className="pr-10"
-            />
-            {lock ? (
-              // 잠긴 칸은 비활성 버튼 대신 자물쇠 표식 — 거짓 어포던스를 남기지 않는다.
-              <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-dl-locked-icon">
-                <Icon icon={Lock} size="lock" />
-              </span>
-            ) : (
-              <CalendarButton
-                ref={startButtonRef}
-                label="시작일 달력 열기"
-                locked={field.state.disabled}
-                aria-haspopup="dialog"
-                aria-expanded={open && editing === 'start'}
-                onClick={() => toggleCalendar('start')}
-              />
-            )}
-          </span>
-          <span aria-hidden className="shrink-0 text-dl-title font-medium text-dl-fg">
+        <span
+          className={cn(
+            RANGE_SHELL_CLASS,
+            FIELD_SIZE_CLASS[field.size],
+            field.invalid && 'dl-field-error',
+            field.state.lockClass,
+            className,
+          )}
+          {...field.state.dataProps}
+        >
+          <RangeDateInput
+            side="start"
+            value={range.start}
+            name={startName}
+            id={field.id}
+            control={field}
+            onCommit={commitSide}
+            onFocusSide={setEditing}
+          />
+          <span aria-hidden className={RANGE_TILDE_CLASS}>
             ~
           </span>
-          <span className="relative block w-full">
-            <SideInput
-              side="end"
-              value={range.end}
-              name={endName}
-              lock={lock}
-              invalid={invalid}
-              size={size}
-              mode={field.mode}
-              onCommit={commitSide}
-              className="pr-10"
-            />
-            {lock ? (
-              <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-dl-locked-icon">
-                <Icon icon={Lock} size="lock" />
-              </span>
-            ) : (
+          <RangeDateInput
+            side="end"
+            value={range.end}
+            name={endName}
+            control={field}
+            onCommit={commitSide}
+            onFocusSide={setEditing}
+          />
+          {lock ? (
+            // 잠긴 셸은 비활성 버튼 대신 자물쇠 표식 — 거짓 어포던스를 남기지 않는다.
+            <span className={RANGE_LOCK_SLOT_CLASS}>
+              <Icon icon={Lock} size="lock" />
+            </span>
+          ) : (
+            <RadixPopover.Trigger asChild>
               <CalendarButton
-                ref={endButtonRef}
-                label="종료일 달력 열기"
+                label="기간 달력 열기"
                 locked={field.state.disabled}
-                aria-haspopup="dialog"
-                aria-expanded={open && editing === 'end'}
-                onClick={() => toggleCalendar('end')}
+                className={RANGE_TRIGGER_CLASS}
               />
-            )}
-          </span>
+            </RadixPopover.Trigger>
+          )}
         </span>
       </RadixPopover.Anchor>
 
       <RadixPopover.Portal>
         <RadixPopover.Content
           sideOffset={4}
-          // 누른 쪽에 붙는다 — 앵커가 행 전체라 정렬이 곧 어느 칸을 고치는지의 표시가 된다.
-          align={editing === 'start' ? 'start' : 'end'}
-          className={PANEL_CLASS}
-          onInteractOutside={(event) => {
-            const target = event.target as Node | null;
-            const onButton =
-              !!target &&
-              (Boolean(startButtonRef.current?.contains(target)) ||
-                Boolean(endButtonRef.current?.contains(target)));
-            // 버튼 위 pointerdown 은 닫지 않는다 — 이어지는 onClick 이 토글하므로
-            // 여기서 닫으면 "닫혔다 다시 열림"이 되어 같은 버튼으로는 영영 못 닫는다.
-            if (onButton) {
-              event.preventDefault();
-              return;
-            }
-            closedByOutsideRef.current = true;
-          }}
-          onCloseAutoFocus={(event) => {
-            // Radix 기본은 triggerRef 로 포커스를 되돌리는데 여기엔 트리거가 없어 body 로 샌다.
-            event.preventDefault();
-            if (!closedByOutsideRef.current) {
-              (editing === 'start' ? startButtonRef : endButtonRef).current?.focus();
-            }
-            closedByOutsideRef.current = false;
-          }}
+          align="start"
+          collisionPadding={POPOVER_COLLISION_PADDING}
+          className={cn(PANEL_CLASS, POPOVER_FIT_CLASS)}
         >
           {presets ? <PresetRow presets={presets} onApply={applyPreset} /> : null}
+          <RangeSideTabs
+            editing={editing}
+            startLabel={abbreviate(range.start)}
+            endLabel={abbreviate(range.end)}
+            onEditingChange={setEditing}
+          />
+          {/* key={editing}: 탭을 바꾸면 그쪽 값의 달로 다시 연다(initialFocus 는 마운트 때만 읽힌다). */}
           <Calendar
+            key={editing}
             // 프리셋 행이 더 넓으면 그 폭을 채운다(기본 w-64 고정을 푼다) — PresetRow 주석
             className="w-auto min-w-64"
             range={{ start: range.start || undefined, end: range.end || undefined }}
             value={soleValue || undefined}
-            initialFocus={
-              range[editing] || range[editing === 'start' ? 'end' : 'start'] || undefined
-            }
+            initialFocus={range[editing] || range[other] || undefined}
             min={min}
             max={max}
             onSelect={handleSelect}
@@ -332,34 +337,27 @@ export function DateRangePicker({
 }
 
 /**
- * 기간의 한쪽 입력 — DatePicker 의 draft/commit 규칙과 동일하다.
- * `mode` 는 부모가 해석한 값을 prop 으로 받는다 — 자체 컨텍스트 조회에 맡기면
- * 부모와 다른 값을 읽을 수 있는 배선을 남기게 된다(view 분기는 부모가 통째로 한다).
+ * 셸 안의 한쪽 날짜 입력 — 테두리·배경·패딩이 없고 글꼴·색은 셸에서 상속한다.
+ * draft/commit 규칙은 DatePicker 와 동일하다(무효 입력은 blur 때 이전 값으로 되돌아간다).
+ * 포커스가 오면 팝오버의 편집 탭도 따라온다.
  */
-function SideInput({
+function RangeDateInput({
   side,
   value,
   name,
   id,
-  lock,
-  invalid,
-  size,
-  mode,
+  control,
   onCommit,
-  className,
+  onFocusSide,
 }: {
-  readonly side: 'start' | 'end';
+  readonly side: RangeSide;
   readonly value: string;
   readonly name?: string;
   readonly id?: string;
-  readonly lock?: boolean;
-  readonly invalid?: boolean;
-  readonly size?: ControlSize;
-  readonly mode: FieldMode;
-  readonly onCommit: (side: 'start' | 'end', text: string) => void;
-  readonly className?: string;
+  readonly control: ReturnType<typeof useFieldControl>;
+  readonly onCommit: (side: RangeSide, text: string) => void;
+  readonly onFocusSide: (side: RangeSide) => void;
 }) {
-  const field = useFieldControl({ id, invalid, size, mode, lock });
   const [draft, setDraft] = useState<string | null>(null);
 
   const commit = (text: string) => {
@@ -369,26 +367,21 @@ function SideInput({
 
   return (
     <input
-      className={cn(
-        'dl-field min-w-[130px]',
-        FIELD_SIZE_CLASS[field.size],
-        field.invalid && 'dl-field-error',
-        field.state.lockClass,
-        className,
-      )}
+      // `YYYY-MM-DD` 10자 — ch 라 글꼴을 따라간다
+      className={cn(RANGE_INPUT_CLASS, 'w-[10ch]')}
       // 종료 쪽은 id 를 받지 않는다 — Field 의 htmlFor 는 칸의 첫 입력을 가리킨다.
-      id={side === 'start' ? field.id : undefined}
+      id={id}
       name={name}
       value={draft ?? value}
       placeholder="YYYY-MM-DD"
       inputMode="numeric"
       aria-label={side === 'start' ? '시작일' : '종료일'}
-      aria-invalid={field['aria-invalid']}
-      aria-describedby={field['aria-describedby']}
-      aria-required={field.required || undefined}
-      readOnly={field.state.readOnly}
-      disabled={field.state.disabled}
-      {...field.state.dataProps}
+      aria-invalid={control['aria-invalid']}
+      aria-describedby={control['aria-describedby']}
+      aria-required={control.required || undefined}
+      readOnly={control.state.readOnly}
+      disabled={control.state.disabled}
+      onFocus={() => onFocusSide(side)}
       onChange={(event) => setDraft(event.target.value)}
       onBlur={(event) => commit(event.target.value)}
       onKeyDown={(event) => {

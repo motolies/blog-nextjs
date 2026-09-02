@@ -36,11 +36,25 @@ import { formatUtcToLocal } from '@/util/dateTimeUtil';
  */
 const STATIC_SEARCH_FIELDS: SearchField[] = [
   {
-    type: 'dateRange',
-    fromName: 'createdAtFrom',
-    toName: 'createdAtTo',
-    fromLabel: '작성 시작일',
-    toLabel: '작성 종료일',
+    // 기간이 어느 날짜에 걸리는지 — 글은 작성일만큼 수정일로 찾는 일이 잦다.
+    // "전체"가 뜻이 없는 선택지라 allowEmpty=false, 기본값은 서버 기본(작성일)과 같다.
+    name: 'dateField',
+    label: '기준일',
+    type: 'select',
+    pinned: true,
+    allowEmpty: false,
+    defaultValue: 'createdAt',
+    options: [
+      { value: 'createdAt', label: '작성일' },
+      { value: 'updatedAt', label: '수정일' },
+    ],
+  },
+  {
+    type: 'dateTimeRange',
+    fromName: 'dateFrom',
+    toName: 'dateTo',
+    fromLabel: '시작일시',
+    toLabel: '종료일시',
     pinned: true,
   },
   { name: 'subject', label: '제목', pinned: true },
@@ -132,7 +146,11 @@ function AdminPosts() {
    * 기본값을 비워 두는 것도 의도다 — system-log 는 로그가 방대해 오늘로 좁히지만,
    * 글 목록은 도착하자마자 전부 보여야 화면의 존재 이유를 만족한다.
    */
-  const defaultSearchParams = useMemo(() => pickPostFilters(searchString), [searchString]);
+  // 기준일은 항상 값이 있어야 초기화 뒤에도 select 가 작성일을 보여 준다. URL 이 지정하면 그쪽이 이긴다.
+  const defaultSearchParams = useMemo(
+    () => ({ dateField: 'createdAt', ...pickPostFilters(searchString) }),
+    [searchString],
+  );
 
   const fetchPosts = useCallback(
     (searchRequest: SearchRequest) => service.post.adminSearch({ searchRequest }),

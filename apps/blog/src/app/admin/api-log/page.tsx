@@ -22,11 +22,11 @@ import { formatUtcToLocal } from '@/util/dateTimeUtil';
  */
 const searchFields: SearchField[] = [
   {
-    type: 'dateRange',
+    type: 'dateTimeRange',
     fromName: 'createdAtFrom',
     toName: 'createdAtTo',
-    fromLabel: '시작일',
-    toLabel: '종료일',
+    fromLabel: '시작일시',
+    toLabel: '종료일시',
     pinned: true,
   },
   // 성공/실패 값은 요청과 응답이 다르다 — lib/logStatus.ts 헤더 주석 참조.
@@ -71,7 +71,7 @@ export default function ApiLog() {
   );
 
   const defaultSearchParams = useMemo(
-    () => ({ createdAtFrom: today, createdAtTo: today }),
+    () => ({ createdAtFrom: `${today} 00:00`, createdAtTo: `${today} 23:59` }),
     [today],
   );
 

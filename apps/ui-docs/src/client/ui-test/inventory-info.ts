@@ -77,6 +77,7 @@ export const EXPORT_INFO: Readonly<Record<string, ExportInfo>> = {
     note: 'Date → YYYY-MM-DD. toISOString 의 UTC 밀림이 없다',
   },
   presetRange: { href: `${C}/date-range-picker` },
+  presetDateTimeRange: { href: `${C}/date-time-range-picker` },
   toDateTimeRange: { href: `${C}/date-time-range-picker` },
   DATE_PRESET_KINDS: { note: '기간 프리셋 종류 6개 목록 — 앱이 라벨을 붙여 presets 로 조립한다' },
   Input: { href: `${C}/input` },

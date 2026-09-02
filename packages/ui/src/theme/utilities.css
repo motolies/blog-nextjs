@@ -51,6 +51,36 @@
 }
 
 /**
+ * 테두리를 공유하는 복합 필드의 셸 — 안에 테두리 없는 입력 여럿과 버튼 하나를 담는다
+ * (DateTimeRangePicker: `시작 ~ 종료 [달력]` 이 한 테두리 안에 있다).
+ *
+ * `dl-field` 사본에서 `width: 100%` 와 `padding-inline` 을 뺀 것이다 — 폭은 내용(inline-flex)이
+ * 정하고 안쪽 여백은 자식 배치가 담당한다. 포커스는 `:focus` 가 아니라 **`:focus-within`** —
+ * span 은 포커스를 받지 않고 안의 입력이 받는다.
+ *
+ * 이름이 `-box` 인 이유: 위 "선언 순서 계약"(dl-field < dl-field-error < dl-field-locked)이
+ * 알파벳순 출력에 기대므로 `error` **앞**에 오는 이름이어야 오류·잠금 보더가 이 셸을 이긴다
+ * (`-group`·`-shell` 로 지으면 뒤로 가서 덮는다).
+ */
+@utility dl-field-box {
+  height: var(--_dl-ctl-h, var(--spacing-dl-control));
+  border: 1px solid var(--color-dl-field-border);
+  border-radius: var(--radius-dl-control);
+  background-color: var(--color-dl-surface);
+  font-family: inherit;
+  font-size: var(--_dl-ctl-fs, var(--text-dl-ctl-md));
+  color: var(--color-dl-field-fg);
+
+  &:hover {
+    border-color: var(--color-dl-primary);
+  }
+
+  &:focus-within {
+    border-color: var(--color-dl-primary-hover);
+  }
+}
+
+/**
  * 컨트롤 사이즈 5단 — `dl-field` 의 치수 로컬 변수만 세팅한다.
  *
  * 실프로퍼티를 내지 않으므로 twMerge 가 커스텀 @utility 충돌을 못 잡는 한계와
@@ -102,9 +132,11 @@
 @utility dl-field-error {
   border-color: var(--color-dl-error);
 
+  /* :focus-within 은 dl-field-box(셸) 용 — 안의 입력에 포커스가 있어도 오류 보더가 남아야 한다 */
   &:hover,
   &:focus,
-  &:focus-visible {
+  &:focus-visible,
+  &:focus-within {
     border-color: var(--color-dl-error);
   }
 }

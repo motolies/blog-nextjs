@@ -83,11 +83,11 @@ export default function HotDealItemsPage() {
   const searchFields = useMemo<SearchField[]>(
     () => [
       {
-        type: 'dateRange',
+        type: 'dateTimeRange',
         fromName: 'scrapedAtFrom',
         toName: 'scrapedAtTo',
-        fromLabel: '시작일',
-        toLabel: '종료일',
+        fromLabel: '시작일시',
+        toLabel: '종료일시',
         pinned: true,
       },
       {
@@ -131,8 +131,10 @@ export default function HotDealItemsPage() {
     [siteOptions],
   );
 
+  // 기본값은 예전 날짜 필터와 같은 구간(오늘 하루 전체)이다 — 종료 23:59 는 전송 시 :59 가
+  // 붙고(sanitizeSearchParams) 서버에서 +1초 되어 다음 날 자정이 되므로 조회 결과가 같다.
   const defaultSearchParams = useMemo(
-    () => ({ scrapedAtFrom: today, scrapedAtTo: today }),
+    () => ({ scrapedAtFrom: `${today} 00:00`, scrapedAtTo: `${today} 23:59` }),
     [today],
   );
 

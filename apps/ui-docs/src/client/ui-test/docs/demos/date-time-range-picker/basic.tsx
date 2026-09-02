@@ -4,10 +4,9 @@ import { type DateRange, DateTimeRangePicker } from '@hvy/ui';
 import { useState } from 'react';
 
 /**
- * 일시 기간 — 날짜 기간(공유 달력 1개)과 달리 **끝마다 자기 팝오버**다.
- * datetime 은 끝마다 날짜+시간 2차원이라 공유 팝업이 과밀해서다.
+ * 일시 기간 — 테두리 하나 안에 양끝 입력과 달력 버튼 하나. 팝오버 하나에서 시작/종료 탭으로 오간다.
  * 타이핑이든 팝오버 선택이든 순서가 뒤집히면(시작 > 종료) 두 값을 맞바꾼다 —
- * 판정은 DateRangePicker 와 같은 `orderRange` 를 쓴다.
+ * 판정은 DateRangePicker 와 같은 `orderRange` 를 쓰고, 그때 편집 중인 탭도 값을 따라 옮긴다.
  */
 export function DateTimeRangePickerBasicDemo() {
   const [range, setRange] = useState<DateRange>({

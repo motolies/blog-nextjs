@@ -40,7 +40,7 @@ export const DATE_PRESET_KINDS: readonly DatePresetKind[] = [
 /**
  * 날짜 기간을 datetime 계약(`YYYY-MM-DD HH:mm:ss`)으로 정규화한다 —
  * 날짜만 있는 쪽은 **하루 전체**(시작 00:00 · 종료 23:59)로 넓히고,
- * 이미 datetime 인 쪽은 그대로 둔다. DateTimeRangePicker 의 프리셋이 쓴다.
+ * 이미 datetime 인 쪽은 그대로 둔다(minute 정밀도면 초만 절삭). DateTimeRangePicker 의 프리셋이 쓴다.
  */
 export function toDateTimeRange(
   range: DateRange,
@@ -48,9 +48,13 @@ export function toDateTimeRange(
 ): DateRange {
   const expand = (value: string, time: string) =>
     /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value} ${time}` : value;
+  // minute 정밀도에서는 이미 datetime 인 값도 초를 절삭한다 — `last24h` 처럼 초까지 계산된
+  // 프리셋과 예전 링크의 `HH:mm:ss` 값이 분 단위 입력에 초를 달고 들어오지 않도록.
+  const clip = (value: string) =>
+    precision === 'minute' ? value.replace(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}):\d{2}$/, '$1') : value;
   return {
-    start: expand(range.start, precision === 'minute' ? '00:00' : '00:00:00'),
-    end: expand(range.end, precision === 'minute' ? '23:59' : '23:59:59'),
+    start: clip(expand(range.start, precision === 'minute' ? '00:00' : '00:00:00')),
+    end: clip(expand(range.end, precision === 'minute' ? '23:59' : '23:59:59')),
   };
 }
 
@@ -84,4 +88,40 @@ export function presetRange(kind: DatePresetKind, today: Date): DateRange {
         end: toIsoDate(new Date(year, month, 0)),
       };
   }
+}
+
+/**
+ * 시각까지 포함하는 프리셋 종류 — 날짜 경계로는 표현할 수 없는 구간만 여기 둔다.
+ *
+ * `DatePresetKind` 와 **합치지 않는다**: 저쪽은 `YYYY-MM-DD` 를 돌려주는 날짜 전용 계약이라
+ * `DatePicker`·`DateRangePicker` 가 함께 쓴다. datetime 값이 섞여 들어가면 날짜 피커가 깨진다.
+ */
+export type DateTimePresetKind =
+  /** 지금부터 24시간 전까지 — 자정 경계와 무관한 슬라이딩 윈도우. */
+  'last24h';
+
+export const DATE_TIME_PRESET_KINDS: readonly DateTimePresetKind[] = ['last24h'];
+
+/**
+ * 프리셋 종류 → datetime 기간(`YYYY-MM-DD HH:mm:ss`).
+ * `now` 를 인자로 받는 이유는 `presetRange` 와 같다 — 내부에서 `new Date()` 를 부르면
+ * 경계 시각 테스트가 불가능하다.
+ *
+ * 반환값이 이미 시각을 담고 있으므로 `toDateTimeRange` 는 이 값을 그대로 통과시킨다
+ * (날짜만 있는 프리셋만 하루 전체로 넓힌다).
+ */
+export function presetDateTimeRange(kind: DateTimePresetKind, now: Date): DateRange {
+  switch (kind) {
+    case 'last24h': {
+      const from = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      return { start: toIsoDateTime(from), end: toIsoDateTime(now) };
+    }
+  }
+}
+
+/** 로컬 벽시계 → `YYYY-MM-DD HH:mm:ss`. `toIsoDate` 와 같은 이유로 `toISOString()` 을 쓰지 않는다. */
+function toIsoDateTime(date: Date): string {
+  const pad = (n: number) => `${n}`.padStart(2, '0');
+  const time = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  return `${toIsoDate(date)} ${time}`;
 }

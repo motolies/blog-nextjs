@@ -8,11 +8,29 @@ import { cn } from '../lib/cn';
 import { type ControlSize, FIELD_SIZE_CLASS } from '../lib/controlSize';
 import { useControllableState } from '../lib/useControllableState';
 import { Calendar } from './calendar';
-import { CalendarButton, normalizeDateText, PANEL_CLASS } from './date-picker';
-import { type DateRangePreset, PresetRow } from './date-range-picker';
+import {
+  CalendarButton,
+  normalizeDateText,
+  PANEL_CLASS,
+  POPOVER_COLLISION_PADDING,
+  POPOVER_FIT_CLASS,
+  RANGE_INPUT_CLASS,
+  RANGE_LOCK_SLOT_CLASS,
+  RANGE_SHELL_CLASS,
+  RANGE_TILDE_CLASS,
+  RANGE_TRIGGER_CLASS,
+} from './date-picker';
+import { type DateRangePreset, PresetRow, RangeSideTabs } from './date-range-picker';
 import { toDateTimeRange } from './datePresets';
 import { FieldViewText, useFieldControl } from './field';
 import type { FieldMode } from './form-mode';
+import {
+  abbreviateDateTime,
+  commitRangeSide,
+  footerAction,
+  initialEditingSide,
+  type RangeSide,
+} from './rangeFlow';
 import { type DateRange, orderRange } from './rangeOrder';
 
 /**
@@ -35,6 +53,15 @@ import { type DateRange, orderRange } from './rangeOrder';
 
 /** 값 정밀도 — 포맷 문자열은 여기서 파생된다. 기본은 백엔드 정본과 1:1 인 second. */
 export type DateTimePrecision = 'second' | 'minute';
+
+/**
+ * 단일 `DateTimePicker` 입력의 최소폭 — 정밀도별 글자 수(19자 · 16자) + 아이콘. 날짜(130px)보다 넓은 하한이다.
+ * 기간 피커는 이 값을 쓰지 않는다 — 셸 안의 입력이 `ch` 폭을 가진다(`RANGE_INPUT_WIDTH_CLASS`).
+ */
+const FIELD_MIN_WIDTH_CLASS: Record<DateTimePrecision, string> = {
+  second: 'min-w-[190px]',
+  minute: 'min-w-[170px]',
+};
 
 /**
  * 타이핑 입력 정규화 → 정밀도에 맞는 datetime 문자열 또는 null.
@@ -111,7 +138,7 @@ function TimeColumn({
         ref={listRef}
         role="listbox"
         aria-label={label}
-        className="min-h-0 w-14 flex-1 overflow-y-auto"
+        className="min-h-0 w-14 flex-1 overflow-y-auto max-sm:w-12"
       >
         {Array.from({ length: count }, (_, index) => (
           <button
@@ -136,19 +163,28 @@ function TimeColumn({
   );
 }
 
-/** 팝업 본체 — 달력 + 시·분 리스트 + [확인]. 단일·범위 양쪽이 공유한다. */
+/**
+ * 팝업 본체 — 달력 + 시·분 리스트 + 푸터 버튼. 단일·범위 양쪽이 공유한다.
+ * 범위는 `range` 로 양끝을 달력에 함께 강조하고(활성 측은 `value` 로 단일 강조),
+ * 푸터 라벨을 `확인`/`다음` 으로 바꿔 쓴다.
+ */
 function DateTimePanel({
   value,
+  range,
   min,
   max,
   precision,
+  confirmLabel = '확인',
   onChange,
   onConfirm,
 }: {
   readonly value: string;
+  /** ISO **날짜** 양끝 — 범위 피커가 달력의 range 강조용으로 준다. */
+  readonly range?: { readonly start?: string; readonly end?: string };
   readonly min?: string;
   readonly max?: string;
   readonly precision: DateTimePrecision;
+  readonly confirmLabel?: string;
   readonly onChange: (next: string) => void;
   readonly onConfirm: () => void;
 }) {
@@ -168,10 +204,12 @@ function DateTimePanel({
   return (
     <div className="flex flex-col">
       <div className="flex max-h-80 items-stretch">
-        {/* 프리셋 행이 더 넓을 때 남는 폭은 달력이 흡수한다(시간 열은 고정) — PresetRow 주석 */}
+        {/* 프리셋 행이 더 넓을 때 남는 폭은 달력이 흡수하고(시간 열은 고정 — PresetRow 주석),
+            팝오버가 가용 폭에 눌리면 달력이 먼저 줄어든다(POPOVER_FIT_CLASS). */}
         <Calendar
-          className="min-w-64 flex-1"
+          className="min-w-0 flex-1"
           value={parts?.date}
+          range={range}
           min={min}
           max={max}
           onSelect={(iso) => compose({ date: iso })}
@@ -197,7 +235,7 @@ function DateTimePanel({
           onClick={onConfirm}
           className="h-dl-control-sm rounded-dl-container bg-dl-primary px-4 text-dl-base font-semibold text-dl-primary-fg hover:bg-dl-primary-hover"
         >
-          확인
+          {confirmLabel}
         </button>
       </div>
     </div>
@@ -300,8 +338,8 @@ export function DateTimePicker({
         <span className={cn('relative block w-full', className)}>
           <input
             className={cn(
-              // 19자 + 아이콘 — 날짜(130px)보다 넓은 하한
-              'dl-field min-w-[190px] pr-10',
+              'dl-field pr-10',
+              FIELD_MIN_WIDTH_CLASS[precision],
               FIELD_SIZE_CLASS[field.size],
               field.invalid && 'dl-field-error',
               field.state.lockClass,
@@ -351,7 +389,12 @@ export function DateTimePicker({
       </RadixPopover.Anchor>
 
       <RadixPopover.Portal>
-        <RadixPopover.Content sideOffset={4} align="start" className={PANEL_CLASS}>
+        <RadixPopover.Content
+          sideOffset={4}
+          align="start"
+          collisionPadding={POPOVER_COLLISION_PADDING}
+          className={cn(PANEL_CLASS, POPOVER_FIT_CLASS)}
+        >
           <DateTimePanel
             value={value}
             min={min}
@@ -384,26 +427,52 @@ export type DateTimeRangePickerProps = {
   readonly min?: string;
   readonly max?: string;
   /**
-   * 기간 프리셋 — 양쪽 팝오버 상단에 같은 행이 뜨고, 클릭하면 양끝을 한 번에 채운다.
+   * 기간 프리셋 — 팝오버 상단에 버튼 행으로 뜨고, 클릭하면 양끝을 한 번에 채우고 닫는다.
    * 날짜만 있는 프리셋(`presetRange` 산출물)은 하루 전체(00:00~23:59)로 넓힌다.
    */
   readonly presets?: readonly DateRangePreset[];
   /** 폼 모드. 생략하면 감싼 `Field`/`FormMode` 를 따른다 — 명시하면 폼이 view 여도 이긴다. */
   readonly mode?: FieldMode;
-  /** 시스템 채움 영구 불변 — readOnly + 자물쇠(선택 버튼 대신). 모든 mode 를 이긴다. */
+  /** 시스템 채움 영구 불변 — readOnly + 자물쇠(달력 버튼 대신). 모든 mode 를 이긴다. */
   readonly lock?: boolean;
   readonly invalid?: boolean;
-  /** 5단 사이즈 — 시작·종료 입력 둘 다에 적용된다. */
+  /** 5단 사이즈 — 셸과 양끝 입력에 함께 적용된다. */
   readonly size?: ControlSize;
+  /**
+   * **시작 입력**의 id — 감싼 `Field`/라벨의 `htmlFor` 가 가리킬 대상이다(DateRangePicker 와 같은 규약).
+   * 없으면 라벨이 존재하지 않는 요소를 가리켜 클릭·스크린리더 연결이 조용히 끊긴다.
+   */
+  readonly id?: string;
   readonly className?: string;
 };
 
 /**
- * 날짜+시간 기간 — DateRangePicker(공유 달력 1개)와 달리 **끝마다 자기 팝오버**를 가진다.
- * datetime 은 끝마다 날짜+시간 2차원이라 공유 팝업 하나에 시간 리스트 2벌을 담으면
- * 과밀하다 — QA 의 기준일자 검색 변형도 입력별 달력 형태다.
- * 순서가 뒤집히면(시작 > 종료) 맞바꾸는 규칙은 `orderRange`(rangeOrder.ts) 를
- * DateRangePicker 와 공유한다 — 공백 구분 동일 포맷이라 문자열 비교가 그대로 성립한다.
+ * 범위 셸 안 입력의 폭 — 정밀도별 글자 수(`YYYY-MM-DD HH:mm` 16자 · `HH:mm:ss` 19자).
+ * `ch` 단위라 픽셀 리터럴 없이 컨트롤 글자 크기를 따라가고, `min-w-0` 과 함께라
+ * 컨테이너가 더 좁으면 **줄바꿈 대신 입력 안에서 글자가 밀린다** — 한 줄이 산술이 아니라 구조에서 보장된다.
+ */
+const RANGE_INPUT_WIDTH_CLASS: Record<DateTimePrecision, string> = {
+  second: 'w-[19ch]',
+  minute: 'w-[16ch]',
+};
+
+/**
+ * 날짜+시간 기간 — **테두리 하나(`dl-field-box`) 안에 시작 입력 · `~` · 종료 입력 · 달력 버튼 하나**.
+ *
+ * 예전엔 끝마다 자기 입력 테두리와 팝오버를 가졌는데, 관리자 검색 패널의 모바일 가용 폭(375px 기준 약 325px)에
+ * 최소폭 170px 짜리 입력 둘과 버튼 둘이 들어가지 못해 두 줄로 꺾였다. 셸 하나로 합치면 값 16자×2 + 패딩 +
+ * 버튼 하나 ≈ 316px 로 한 줄에 들어가고, 폭 분기(미디어쿼리·컨테이너쿼리·JS 측정)가 필요 없다.
+ *
+ * 팝오버도 하나다. 트리거가 하나라 `Popover.Trigger` 를 그대로 쓴다 — `DateRangePicker` 가 버튼 둘 때문에
+ * 손수 구현한 `onInteractOutside`/`onCloseAutoFocus` 우회가 필요 없고 포커스 복귀는 Radix 가 맡는다.
+ * 팝오버 안에서 시작/종료는 **탭**으로 오간다. 자동으로 넘어가지 않는다 — datetime 은 날짜·시·분
+ * 3클릭이라 첫 클릭에서 넘기면 시·분을 고를 기회가 사라진다(`footerAction`).
+ *
+ * 값 커밋은 타이핑·달력·시·분 모두 `commitRangeSide`(rangeFlow.ts) 하나를 지난다 —
+ * 순서가 뒤집히면(시작 > 종료) `orderRange` 로 맞바꾸고, 그때 편집 중인 탭도 값을 따라 옮긴다.
+ *
+ * 한계: `precision="second"`(19자×2)는 325px 에 들어가지 않는다 — 줄바꿈은 없고 글자가 입력 안에서 밀린다.
+ * 검색 필드는 전부 `minute` 이다.
  */
 export function DateTimeRangePicker({
   start: startProp,
@@ -421,6 +490,7 @@ export function DateTimeRangePicker({
   lock,
   invalid,
   size,
+  id,
   className,
 }: DateTimeRangePickerProps) {
   const [range, setRange] = useControllableState<DateRange>(
@@ -430,8 +500,10 @@ export function DateTimeRangePicker({
     { start: defaultStart, end: defaultEnd },
     onRangeChange,
   );
-  /** view 분기용 mode·size 만 쓴다 — id·invalid·dirty 는 양끝 `SideDateTime` 이 각자 배선한다. */
-  const field = useFieldControl({ invalid, size, mode, lock });
+  const [open, setOpen] = useState(false);
+  /** 팝오버가 지금 고치는 쪽 — 탭·[다음]·인라인 입력 포커스·맞바꿈이 바꾼다. */
+  const [editing, setEditing] = useState<RangeSide>('start');
+  const field = useFieldControl({ id, invalid, size, mode, lock });
 
   if (field.state.view) {
     // 한쪽만 있으면 그쪽만 그린다 — `~` 는 양쪽 값이 있을 때만 뜻이 있다. 둘 다 빈값이면 빈칸.
@@ -440,183 +512,183 @@ export function DateTimeRangePicker({
     return <FieldViewText size={field.size}>{display || null}</FieldViewText>;
   }
 
-  const commitSide = (side: 'start' | 'end', nextValue: string) => {
-    setRange(orderRange({ ...range, [side]: nextValue }));
+  /** 값 커밋의 단일 통로 — 타이핑·달력·시·분이 모두 여기로 모인다(dirty 통지를 빠뜨리지 않기 위해). */
+  const commitSide = (side: RangeSide, next: string) => {
+    const result = commitRangeSide(range, side, next);
+    setRange(result.range);
+    setEditing(result.editing);
+    field.notifyDirty();
   };
 
   /**
-   * 프리셋 클릭 — 양끝을 한 번에 채운다. 날짜만 온 프리셋(`presetRange` 산출물)은
-   * `toDateTimeRange` 가 하루 전체로 넓힌다. dirty 통지는 누른 쪽 `SideDateTime` 이 한다.
+   * 프리셋 클릭 — 양끝을 한 번에 채우고 닫는다. 날짜만 온 프리셋(`presetRange` 산출물)은
+   * `toDateTimeRange` 가 하루 전체로 넓힌다.
    */
   const applyPreset = (preset: DateRangePreset) => {
     const resolved = typeof preset.range === 'function' ? preset.range(new Date()) : preset.range;
     setRange(orderRange(toDateTimeRange(resolved, precision)));
-  };
-
-  return (
-    // gap 10px · 물결표 20px/500/black — QA .filter-calender-wrapper · .form-calender__tilde 승계
-    <span className={cn('flex w-full items-center gap-2.5', className)}>
-      <SideDateTime
-        side="start"
-        value={range.start}
-        name={startName}
-        precision={precision}
-        min={min}
-        max={max}
-        presets={presets}
-        onPreset={applyPreset}
-        lock={lock}
-        invalid={invalid}
-        size={size}
-        mode={field.mode}
-        onCommit={commitSide}
-      />
-      <span aria-hidden className="shrink-0 text-dl-title font-medium text-dl-fg">
-        ~
-      </span>
-      <SideDateTime
-        side="end"
-        value={range.end}
-        name={endName}
-        precision={precision}
-        min={min}
-        max={max}
-        presets={presets}
-        onPreset={applyPreset}
-        lock={lock}
-        invalid={invalid}
-        size={size}
-        mode={field.mode}
-        onCommit={commitSide}
-      />
-    </span>
-  );
-}
-
-/**
- * 기간의 한쪽 — 자기 팝오버를 가진 DateTimePicker 축약판.
- * `mode` 는 부모가 해석한 값을 prop 으로 받는다(view 분기는 부모가 통째로 한다).
- */
-function SideDateTime({
-  side,
-  value,
-  name,
-  precision,
-  min,
-  max,
-  presets,
-  onPreset,
-  lock,
-  invalid,
-  size,
-  mode,
-  onCommit,
-}: {
-  readonly side: 'start' | 'end';
-  readonly value: string;
-  readonly name?: string;
-  readonly precision: DateTimePrecision;
-  readonly min?: string;
-  readonly max?: string;
-  readonly presets?: readonly DateRangePreset[];
-  readonly onPreset?: (preset: DateRangePreset) => void;
-  readonly lock?: boolean;
-  readonly invalid?: boolean;
-  readonly size?: ControlSize;
-  readonly mode: FieldMode;
-  readonly onCommit: (side: 'start' | 'end', value: string) => void;
-}) {
-  const field = useFieldControl({ invalid, size, mode, lock });
-  const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<string | null>(null);
-
-  const label = side === 'start' ? '시작' : '종료';
-
-  /**
-   * 값 커밋의 단일 통로 — 타이핑과 팝업이 여기로 모인다.
-   * 한곳으로 모으는 이유는 dirty 통지를 빠뜨리지 않기 위해서다(근거는 `DatePicker.commitText`).
-   */
-  const commit = (next: string) => {
-    onCommit(side, next);
     field.notifyDirty();
+    setOpen(false);
   };
 
-  const commitText = (text: string) => {
-    setDraft(null);
-    if (text.trim() === '') {
-      commit('');
-      return;
-    }
-    const normalized = normalizeDateTimeText(text, precision);
-    if (normalized) commit(normalized);
+  /** 열 때마다 어느 쪽부터 고칠지 다시 정한다 — 채워가는 중이면 다음 빈칸, 다 찼으면 시작. */
+  const handleOpenChange = (next: boolean) => {
+    if (next) setEditing(initialEditingSide(range));
+    setOpen(next);
   };
+
+  const action = footerAction(editing, range);
+  const calendarRange = {
+    start: splitDateTime(range.start)?.date,
+    end: splitDateTime(range.end)?.date,
+  };
+  const abbreviate = (value: string) => abbreviateDateTime(value) || '미입력';
 
   return (
-    <RadixPopover.Root open={open} onOpenChange={setOpen}>
+    <RadixPopover.Root open={open} onOpenChange={handleOpenChange}>
       <RadixPopover.Anchor asChild>
-        <span className="relative block w-full">
-          <input
-            className={cn(
-              'dl-field min-w-[190px] pr-10',
-              FIELD_SIZE_CLASS[field.size],
-              field.invalid && 'dl-field-error',
-              field.state.lockClass,
-            )}
-            name={name}
-            value={draft ?? value}
-            placeholder={defaultPlaceholder(precision)}
-            aria-label={`${label}일시`}
-            aria-invalid={field['aria-invalid']}
-            aria-describedby={field['aria-describedby']}
-            aria-required={field.required || undefined}
-            readOnly={field.state.readOnly}
-            disabled={field.state.disabled}
-            {...field.state.dataProps}
-            onChange={(event) => setDraft(event.target.value)}
-            onBlur={(event) => commitText(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') commitText(event.currentTarget.value);
-            }}
+        {/* 셸 — 왼쪽 안쪽 여백만 셸이 갖고(오른쪽은 버튼이 모서리까지 닿는다), 폭은 내용이 정한다.
+            max-w-full 은 소비자 컨테이너를 넘지 않는 안전장치(넘치면 입력 안에서 글자가 밀린다). */}
+        <span
+          className={cn(
+            RANGE_SHELL_CLASS,
+            FIELD_SIZE_CLASS[field.size],
+            field.invalid && 'dl-field-error',
+            field.state.lockClass,
+            className,
+          )}
+          {...field.state.dataProps}
+        >
+          <RangeInput
+            side="start"
+            value={range.start}
+            name={startName}
+            id={field.id}
+            precision={precision}
+            control={field}
+            onCommit={commitSide}
+            onFocusSide={setEditing}
+          />
+          <span aria-hidden className={RANGE_TILDE_CLASS}>
+            ~
+          </span>
+          <RangeInput
+            side="end"
+            value={range.end}
+            name={endName}
+            precision={precision}
+            control={field}
+            onCommit={commitSide}
+            onFocusSide={setEditing}
           />
           {lock ? (
-            // 잠긴 칸은 비활성 버튼 대신 자물쇠 표식 — 거짓 어포던스를 남기지 않는다.
-            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-dl-locked-icon">
+            // 잠긴 셸은 비활성 버튼 대신 자물쇠 표식 — 버튼과 같은 폭이라 레이아웃이 흔들리지 않는다.
+            <span className={RANGE_LOCK_SLOT_CLASS}>
               <Icon icon={Lock} size="lock" />
             </span>
           ) : (
             <RadixPopover.Trigger asChild>
-              <CalendarButton label={`${label}일시 선택 열기`} locked={field.state.disabled} />
+              <CalendarButton
+                label="일시 범위 선택 열기"
+                locked={field.state.disabled}
+                className={RANGE_TRIGGER_CLASS}
+              />
             </RadixPopover.Trigger>
           )}
         </span>
       </RadixPopover.Anchor>
 
       <RadixPopover.Portal>
-        <RadixPopover.Content sideOffset={4} align="start" className={PANEL_CLASS}>
-          {presets && onPreset ? (
-            <PresetRow
-              presets={presets}
-              onApply={(preset) => {
-                onPreset(preset);
-                // 부모 applyPreset 은 값만 바꾼다 — dirty 통지·닫기는 누른 쪽이 한다.
-                field.notifyDirty();
-                setOpen(false);
-              }}
-            />
-          ) : null}
+        <RadixPopover.Content
+          sideOffset={4}
+          align="start"
+          collisionPadding={POPOVER_COLLISION_PADDING}
+          className={cn(PANEL_CLASS, POPOVER_FIT_CLASS)}
+        >
+          {presets ? <PresetRow presets={presets} onApply={applyPreset} /> : null}
+          <RangeSideTabs
+            editing={editing}
+            startLabel={abbreviate(range.start)}
+            endLabel={abbreviate(range.end)}
+            onEditingChange={setEditing}
+          />
+          {/* key={editing}: TimeColumn 의 scrollIntoView 가 마운트 1회라 탭 전환 시 활성 값으로 다시 맞추려면
+              리마운트가 필요하다. 달력도 활성 측 날짜의 달로 다시 열린다. */}
           <DateTimePanel
-            value={value}
+            key={editing}
+            value={range[editing]}
+            range={calendarRange}
             min={min}
             max={max}
             precision={precision}
-            onChange={(next) => {
-              setDraft(null);
-              commit(next);
+            confirmLabel={action === 'next' ? '다음' : '확인'}
+            onChange={(next) => commitSide(editing, next)}
+            onConfirm={() => {
+              if (action === 'next') setEditing('end');
+              else setOpen(false);
             }}
-            onConfirm={() => setOpen(false)}
           />
         </RadixPopover.Content>
       </RadixPopover.Portal>
     </RadixPopover.Root>
+  );
+}
+
+/**
+ * 셸 안의 한쪽 입력 — 테두리·배경·패딩이 없고 글꼴·색은 셸에서 상속한다(input 은 기본으로 상속하지 않는다).
+ * 타이핑 정규화·draft/commit 규칙은 `DatePicker.commitText` 와 같다. 포커스가 오면 팝오버의 편집 쪽도 따라온다.
+ */
+function RangeInput({
+  side,
+  value,
+  name,
+  id,
+  precision,
+  control,
+  onCommit,
+  onFocusSide,
+}: {
+  readonly side: RangeSide;
+  readonly value: string;
+  readonly name?: string;
+  readonly id?: string;
+  readonly precision: DateTimePrecision;
+  readonly control: ReturnType<typeof useFieldControl>;
+  readonly onCommit: (side: RangeSide, value: string) => void;
+  readonly onFocusSide: (side: RangeSide) => void;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const label = side === 'start' ? '시작' : '종료';
+
+  const commitText = (text: string) => {
+    setDraft(null);
+    if (text.trim() === '') {
+      onCommit(side, '');
+      return;
+    }
+    const normalized = normalizeDateTimeText(text, precision);
+    if (normalized) onCommit(side, normalized);
+  };
+
+  return (
+    <input
+      className={cn(RANGE_INPUT_CLASS, RANGE_INPUT_WIDTH_CLASS[precision])}
+      id={id}
+      name={name}
+      value={draft ?? value}
+      placeholder={defaultPlaceholder(precision)}
+      aria-label={`${label}일시`}
+      aria-invalid={control['aria-invalid']}
+      aria-describedby={control['aria-describedby']}
+      aria-required={control.required || undefined}
+      readOnly={control.state.readOnly}
+      disabled={control.state.disabled}
+      onFocus={() => onFocusSide(side)}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={(event) => commitText(event.target.value)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') commitText(event.currentTarget.value);
+      }}
+    />
   );
 }

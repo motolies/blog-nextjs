@@ -7,7 +7,7 @@ import { DateTimeRangePicker, Field, FormMode } from '@hvy/ui';
  * view 는 그대로가 표시값이다.
  *
  * · view 는 `start ~ end` 한 스팬 — 한쪽만 있으면 그쪽만, 양쪽 빈값이면 빈칸(DatePicker 계열과 같은 규칙).
- * · disabled 모드: FormData 제외가 자동이고 **끝마다 달린 팝오버 버튼**도 함께 잠긴다.
+ * · disabled 모드: FormData 제외가 자동이고 셸 배색과 **달력 버튼**도 함께 잠긴다.
  */
 const MODES = ['edit', 'view', 'disabled'] as const;
 

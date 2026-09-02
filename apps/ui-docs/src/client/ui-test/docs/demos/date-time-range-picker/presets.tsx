@@ -1,14 +1,24 @@
 'use client';
 
-import { type DateRange, type DateRangePreset, DateTimeRangePicker, presetRange } from '@hvy/ui';
+import {
+  type DateRange,
+  type DateRangePreset,
+  DateTimeRangePicker,
+  presetDateTimeRange,
+  presetRange,
+} from '@hvy/ui';
 import { useState } from 'react';
 
 /**
- * datetime 기간 프리셋 — 같은 `presetRange` 산식을 재사용한다.
- * 날짜만 있는 프리셋은 하루 전체(시작 00:00:00 · 종료 23:59:59)로 넓혀진다 —
- * 넓히는 규칙은 `toDateTimeRange`(ui) 가 갖고, 컴포넌트가 내부에서 적용한다.
+ * datetime 기간 프리셋 — 두 갈래를 섞어 쓴다.
+ *
+ * "24시간"만 `presetDateTimeRange` 산출물이라 **시각을 직접 담고**, 나머지는
+ * `presetRange`(날짜)를 그대로 써서 하루 전체(시작 00:00:00 · 종료 23:59:59)로 넓혀진다.
+ * 넓히는 규칙은 `toDateTimeRange`(ui) 가 갖고 컴포넌트가 내부에서 적용하는데,
+ * 이미 시각이 있는 값은 손대지 않으므로 두 갈래가 한 배열에 공존한다.
  */
 const PRESETS: readonly DateRangePreset[] = [
+  { label: '24시간', range: (now) => presetDateTimeRange('last24h', now) },
   { label: '오늘', range: (today) => presetRange('today', today) },
   { label: '최근 7일', range: (today) => presetRange('last7', today) },
   { label: '이번 달', range: (today) => presetRange('thisMonth', today) },

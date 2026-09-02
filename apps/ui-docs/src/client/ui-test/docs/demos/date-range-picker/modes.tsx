@@ -8,7 +8,7 @@ import { DateRangePicker, Field, FormMode } from '@hvy/ui';
  * · view 는 `start ~ end` 한 스팬 — **한쪽만 있으면 그쪽만** 그린다.
  *   `~` 는 양쪽 값이 있을 때만 뜻이 있고, 양쪽 빈값이면 빈칸이다.
  * · disabled 모드: 입력 자신이 name·value 를 드므로 FormData 제외가 자동이고,
- *   **달력 버튼 두 개가 모두** 함께 잠긴다. lock 은 별개 축이다 — 모든 mode 를 이긴다.
+ *   셸 배색과 **달력 버튼**도 함께 잠긴다. lock 은 별개 축이다 — 모든 mode 를 이긴다.
  * · `Field` 의 `htmlFor` 는 **시작일 입력**에 걸린다 — 라벨을 눌러 시작일로 포커스가 간다.
  */
 const MODES = ['edit', 'view', 'disabled'] as const;

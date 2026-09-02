@@ -46,6 +46,41 @@ export const PANEL_CLASS =
   'z-[var(--dl-z-menu)] rounded-dl-container border border-dl-field-border bg-dl-surface shadow-dl-menu';
 
 /**
+ * 팝오버가 뷰포트를 넘지 않게 — Radix 가 계산한 가용 폭을 상한으로 두고 안쪽(달력)이 줄어든다.
+ * 좁은 화면에서 일시 팝오버의 [확인]·분 열이 잘리던 원인은 달력 256px + 시·분 열 133px 이
+ * 375px 뷰포트를 넘는 것이었다. 세 피커가 같은 값을 쓴다.
+ */
+export const POPOVER_FIT_CLASS = 'max-w-[var(--radix-popover-content-available-width)]';
+export const POPOVER_COLLISION_PADDING = 8;
+
+/**
+ * 범위 피커(날짜·일시)의 **셸** — 테두리 하나(`dl-field-box`) 안에 시작 입력 · `~` · 종료 입력 ·
+ * 달력 버튼 하나를 담는다. 왼쪽 안쪽 여백만 셸이 갖고 오른쪽은 버튼이 모서리까지 닿는다.
+ * 폭은 내용이 정하고(`w-fit`) `max-w-full` 로 부모를 넘지 않는다 — 넘치면 입력 안에서 글자가 밀린다.
+ * gap 이 4px 인 이유: 고정폭 16자×2 + 버튼이 모바일 검색 패널(약 325px)에 들어가려면 6px 로는 여유가 2px 뿐이다.
+ */
+export const RANGE_SHELL_CLASS =
+  'dl-field-box inline-flex w-fit max-w-full items-center gap-1 pl-[var(--_dl-ctl-px)] pr-0';
+
+/**
+ * 셸 안의 테두리 없는 입력 — 글꼴·색은 셸에서 상속한다(input 은 기본으로 상속하지 않는다).
+ * 잠기면 플레이스홀더를 감춘다(`dl-field-locked` 규칙과 파리티). 폭은 호출부가 `w-[Nch]` 로 준다 —
+ * `ch` 라 글꼴을 따라가고 `min-w-0` 이라 컨테이너가 좁으면 줄바꿈 대신 글자가 밀린다.
+ */
+export const RANGE_INPUT_CLASS =
+  'h-full min-w-0 bg-transparent p-0 outline-none [color:inherit] [font:inherit] placeholder:text-dl-field-placeholder disabled:cursor-not-allowed read-only:placeholder:text-transparent disabled:placeholder:text-transparent';
+
+/** 셸의 달력 버튼 — `CalendarButton` 의 절대 배치 기본을 흐름 배치로 덮어쓴다. */
+export const RANGE_TRIGGER_CLASS = 'static inset-auto h-full w-8 shrink-0';
+
+/** 잠긴 셸의 자물쇠 자리 — 버튼과 같은 폭이라 레이아웃이 흔들리지 않는다. */
+export const RANGE_LOCK_SLOT_CLASS =
+  'flex h-full w-8 shrink-0 items-center justify-center text-dl-locked-icon';
+
+/** 구분자 `~` — 글자 크기는 셸의 `--_dl-ctl-fs` 를 상속하고 좌우 여백은 셸 gap 이 담당한다. */
+export const RANGE_TILDE_CLASS = 'shrink-0 select-none text-dl-fg-muted';
+
+/**
  * 달력 열기 버튼 — QA `_form.css` 실측: hover 에서 아이콘 뒤에 **24×24 · radius 4 ·
  * primary-hover 사각형**이 깔리고 아이콘이 흰색이 된다(장식이 아니라 명확한 버튼임을 알린다).
  * Popover.Trigger 의 asChild 를 받으므로 ref·이벤트 전달이 필요해 props 를 그대로 흘린다.
@@ -54,6 +89,7 @@ export const PANEL_CLASS =
 export function CalendarButton({
   label,
   locked,
+  className,
   ...props
 }: {
   readonly label: string;
@@ -65,9 +101,12 @@ export function CalendarButton({
       aria-label={label}
       disabled={locked}
       {...props}
+      // 기본은 입력 위에 겹치는 절대 배치. DateTimeRangePicker 처럼 셸의 flex 흐름에 세우려면
+      // className 으로 `static inset-auto h-full w-8` 를 덮어쓴다(twMerge 가 충돌을 걷어낸다).
       className={cn(
         'group absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-dl-control',
         locked ? 'cursor-not-allowed text-dl-locked-icon' : 'text-dl-field-caret',
+        className,
       )}
     >
       <span
@@ -223,7 +262,12 @@ export function DatePicker({
       </RadixPopover.Anchor>
 
       <RadixPopover.Portal>
-        <RadixPopover.Content sideOffset={4} align="start" className={PANEL_CLASS}>
+        <RadixPopover.Content
+          sideOffset={4}
+          align="start"
+          collisionPadding={POPOVER_COLLISION_PADDING}
+          className={cn(PANEL_CLASS, POPOVER_FIT_CLASS)}
+        >
           <Calendar
             value={value || undefined}
             min={min}

@@ -21,20 +21,20 @@ export const dateRangePickerDoc: DocEntry = {
   category: 'components',
   title: 'DateRangePicker',
   description:
-    'DatePicker 를 기반으로 조립한 기간 선택 — 타이핑 정규화·달력 버튼·팝업 배색을 그대로 재사용하고 "두 값을 한 몸으로 다룬다"는 부분만 더한다. 양끝 모두 달력 버튼을 가지고 달력은 하나를 공유한다: 누른 버튼이 곧 지금 정할 칸이고, 반대편이 비어 있을 때만 팝오버를 닫지 않고 그쪽으로 넘어간다. 순서가 뒤집히면 경로를 가리지 않고 맞바꾼다 — 뒤집힌 기간이라는 상태를 만들지 않는다. lock(boolean)이면 양끝이 readOnly 가 되고 달력 버튼 두 개가 자물쇠 표식으로 바뀐다. clearable 은 없다 — 우측 슬롯이 양끝 각각에 있어 과밀해진다(의도적 제외). Popover.Trigger 를 쓰지 않는 이유는 Radix 가 트리거를 하나로만 추적해서 두 번째 버튼이 닫히지 않기 때문이다(소스 근거는 컴포넌트 헤더 주석).',
+    'DatePicker 를 기반으로 조립한 기간 선택 — 타이핑 정규화·달력 버튼·팝업 배색을 그대로 재사용하고 "두 값을 한 몸으로 다룬다"는 부분만 더한다. **테두리 하나(dl-field-box) 안에 시작 입력 · ~ · 종료 입력 · 달력 버튼 하나**로, DateTimeRangePicker 와 같은 셸이라 어느 폭에서도 한 줄이다. 팝오버는 하나고 상단 탭이 어느 칸을 고칠지 정한다 — 열 때는 채워가는 중이면 다음 빈칸, 다 찼으면 시작부터. 달력 클릭은 한쪽을 확정하고 반대편이 비어 있을 때만 닫지 않고 그쪽으로 넘어간다. 순서가 뒤집히면 경로를 가리지 않고 맞바꾸고 그때 편집 탭도 값을 따라 옮긴다 — 뒤집힌 기간이라는 상태를 만들지 않는다. lock(boolean)이면 양끝이 readOnly 가 되고 달력 버튼이 자물쇠 표식으로 바뀐다. clearable 은 없다(의도적 제외).',
   usage: USAGE,
   examples: [
     {
       id: 'basic',
       title: '기간 선택',
-      note: '어느 쪽 아이콘이든 눌러 달력을 연다. 이미 채워진 기간에서는 누른 칸 하나만 바뀌고 팝오버가 닫힌다 — 종료일 자리에 시작일보다 앞선 날짜를 찍으면 값이 날아가지 않고 두 값이 맞바뀐다.',
+      note: '달력 버튼 하나가 팝오버를 연다. 이미 채워진 기간은 시작 탭부터 — 종료만 고치려면 종료 탭(또는 종료 입력에 포커스). 고른 칸 하나만 바뀌고 팝오버가 닫힌다 — 종료일 자리에 시작일보다 앞선 날짜를 찍으면 값이 날아가지 않고 두 값이 맞바뀐다.',
       file: 'src/client/ui-test/docs/demos/date-range-picker/basic.tsx',
       Component: DateRangePickerBasicDemo,
     },
     {
       id: 'empty',
       title: '빈 기간에서 두 번 클릭',
-      note: '반대편이 비어 있으면 팝오버가 열린 채 그쪽으로 넘어간다 — 시작 쪽으로 열면 첫 클릭이 시작일, 종료 쪽으로 열면 첫 클릭이 종료일이고, 둘째 클릭에서 정렬되어 닫힌다. 반쪽 상태에서는 정렬하지 않는다(비교 대상이 없어 뒤집을 근거가 없다).',
+      note: '빈 기간은 시작 탭부터 열린다. 첫 클릭이 시작일이고, 반대편이 비어 있으므로 팝오버가 열린 채 종료 탭으로 넘어가 둘째 클릭에서 정렬되어 닫힌다. 반쪽 상태에서는 정렬하지 않는다(비교 대상이 없어 뒤집을 근거가 없다). 종료부터 고르려면 종료 탭을 먼저 누른다.',
       file: 'src/client/ui-test/docs/demos/date-range-picker/basic.tsx',
       Component: DateRangePickerEmptyDemo,
     },
@@ -55,7 +55,7 @@ export const dateRangePickerDoc: DocEntry = {
     {
       id: 'lock',
       title: '잠금 (lock) vs mode="disabled"',
-      note: 'lock 은 boolean — 양끝 입력이 readOnly 로 잠기고 달력 버튼 두 개가 모두 자물쇠 표식으로 스왑된다(값은 두 이름 모두 FormData 에 실린다). 모든 mode 를 이긴다 — 폼이 edit 로 돌아와도 편집 불가. 전송까지 막아야 하면 mode="disabled" 다 — 두 번째 행이 그 대비다(달력 버튼은 남되 눌리지 않게 잠긴다).',
+      note: 'lock 은 boolean — 양끝 입력이 readOnly 로 잠기고 달력 버튼이 자물쇠 표식으로 스왑된다(값은 두 이름 모두 FormData 에 실린다). 모든 mode 를 이긴다 — 폼이 edit 로 돌아와도 편집 불가. 전송까지 막아야 하면 mode="disabled" 다 — 두 번째 행이 그 대비다(셸 배색이 잠기고 달력 버튼은 남되 눌리지 않는다).',
       file: 'src/client/ui-test/docs/demos/date-range-picker/basic.tsx',
       Component: DateRangePickerLockDemo,
     },
@@ -128,24 +128,25 @@ export const dateRangePickerDoc: DocEntry = {
           name: 'mode',
           type: "'edit' | 'view' | 'disabled'",
           description:
-            '폼 상태 — 비활성 표기는 이 축 하나다(mode="disabled", 양끝 입력·달력 버튼 두 개가 함께 잠기고 FormData 에서 빠진다). 생략하면 감싼 Field/FormMode 를 따른다.',
+            '폼 상태 — 비활성 표기는 이 축 하나다(mode="disabled", 셸 배색·양끝 입력·달력 버튼이 함께 잠기고 FormData 에서 빠진다). 생략하면 감싼 Field/FormMode 를 따른다.',
         },
         {
           name: 'lock',
           type: 'boolean',
           description:
-            '시스템 채움 영구 불변 — 양끝이 readOnly 가 되고 달력 버튼 두 개가 자물쇠 표식으로 스왑된다. 모든 mode 를 이기며 값은 두 이름 모두 전송된다.',
+            '시스템 채움 영구 불변 — 양끝이 readOnly 가 되고 달력 버튼이 자물쇠 표식으로 스왑된다. 모든 mode 를 이기며 값은 두 이름 모두 전송된다.',
         },
         {
           name: 'invalid',
           type: 'boolean',
-          description: '양끝 입력에 함께 오류 배색. Field 안이면 컨텍스트가 이긴다.',
+          description:
+            '셸 테두리에 오류 배색(안의 입력은 테두리가 없어 하나로 충분하다). 양끝 입력에 aria-invalid. Field 안이면 컨텍스트가 이긴다.',
         },
         {
           name: 'size',
           type: "'xs' | 'sm' | 'md' | 'lg' | 'xl'",
           defaultValue: "'md'",
-          description: '시작·종료 입력 둘 다에 적용되는 테마 스케일 유도 5단.',
+          description: '셸과 시작·종료 입력에 함께 적용되는 테마 스케일 유도 5단.',
         },
         {
           name: 'id',
@@ -156,7 +157,8 @@ export const dateRangePickerDoc: DocEntry = {
         {
           name: 'className',
           type: 'string',
-          description: '루트(행 span)에 병합되는 클래스.',
+          description:
+            '루트(셸 span)에 병합되는 클래스. 폭은 내용이 정하므로 w-* 를 덮어쓸 필요가 없다.',
         },
       ]),
     },

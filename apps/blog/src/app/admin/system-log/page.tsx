@@ -24,11 +24,11 @@ import { formatUtcToLocal } from '@/util/dateTimeUtil';
  */
 const searchFields: SearchField[] = [
   {
-    type: 'dateRange',
+    type: 'dateTimeRange',
     fromName: 'createdAtFrom',
     toName: 'createdAtTo',
-    fromLabel: '시작일',
-    toLabel: '종료일',
+    fromLabel: '시작일시',
+    toLabel: '종료일시',
     pinned: true,
   },
   // 성공/실패 값은 요청과 응답이 다르다 — lib/logStatus.ts 헤더 주석 참조.
@@ -95,7 +95,11 @@ function SystemLog() {
    * 트레이스 검색은 시점을 모르고 하는 조회라 오늘로 가두면 아무것도 안 나온다.
    */
   const defaultSearchParams = useMemo(
-    () => pickLogFilters(searchString, { createdAtFrom: today, createdAtTo: today }),
+    () =>
+      pickLogFilters(searchString, {
+        createdAtFrom: `${today} 00:00`,
+        createdAtTo: `${today} 23:59`,
+      }),
     [searchString, today],
   );
 

@@ -64,6 +64,8 @@ export {
 export {
   DATE_PRESET_KINDS,
   type DatePresetKind,
+  type DateTimePresetKind,
+  presetDateTimeRange,
   presetRange,
   toDateTimeRange,
 } from './components/datePresets';

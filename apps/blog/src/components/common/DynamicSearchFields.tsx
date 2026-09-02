@@ -1,6 +1,7 @@
 import {
   Button,
   DateRangePicker,
+  DateTimeRangePicker,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -20,7 +21,7 @@ import {
 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { DATE_RANGE_PRESETS } from './searchPresets';
+import { DATE_RANGE_PRESETS, DATE_TIME_RANGE_PRESETS } from './searchPresets';
 
 const SELECT_EMPTY_VALUE = '__SELECT_EMPTY__';
 
@@ -36,10 +37,29 @@ interface BaseSearchField {
   pinned?: boolean;
   defaultValue?: string;
   options?: SelectOption[];
+  /**
+   * select 전용 — false 면 "전체"(빈값) 선택지를 빼고 `defaultValue` 를 빈값의 표시값으로 쓴다.
+   * 기준일(작성일/수정일)처럼 "전체"가 뜻이 없는 필드용.
+   */
+  allowEmpty?: boolean;
 }
 
 interface DateRangeSearchField {
   type: 'dateRange';
+  fromName: string;
+  toName: string;
+  fromLabel: string;
+  toLabel: string;
+  pinned?: boolean;
+}
+
+/**
+ * 날짜 + 시각 기간. 양식은 분까지만 받아 값 계약이 `YYYY-MM-DD HH:mm` 이고, 전송 직전
+ * `sanitizeSearchParams` 가 ISO(`T` 구분)로 바꾸며 초를 채운다(시작 `:00` · 종료 `:59`) —
+ * 백엔드 Jackson 이 공백 구분을 못 읽고, 종료의 `:59` 가 서버 +1초 상한과 맞물려야 한다.
+ */
+interface DateTimeRangeSearchField {
+  type: 'dateTimeRange';
   fromName: string;
   toName: string;
   fromLabel: string;
@@ -60,14 +80,14 @@ interface NumberRangeSearchField {
   integerOnly?: boolean;
 }
 
-type RangeSearchField = DateRangeSearchField | NumberRangeSearchField;
-type SearchField = BaseSearchField | DateRangeSearchField | NumberRangeSearchField;
+type RangeSearchField = DateRangeSearchField | DateTimeRangeSearchField | NumberRangeSearchField;
+type SearchField = BaseSearchField | RangeSearchField;
 
 /**
  * 필드의 고유 키를 반환
  */
 const isRangeField = (field: SearchField): field is RangeSearchField =>
-  field.type === 'dateRange' || field.type === 'numberRange';
+  field.type === 'dateRange' || field.type === 'dateTimeRange' || field.type === 'numberRange';
 
 const getFieldKey = (field: SearchField): string => {
   if (isRangeField(field)) return field.fromName;
@@ -97,14 +117,44 @@ const renderField = (
     const df = field as DateRangeSearchField;
     return (
       // 다른 검색 필드와 같은 규격(라벨 위 · gap 1) — 기간만 라벨이 없으면 무슨 날짜인지 알 수 없다.
+      // 피커는 테두리 하나에 양끝 입력과 달력 버튼 하나(팝오버 1개, 시작/종료 탭) — 어느 폭에서도 한 줄.
       <div key={df.fromName} className="flex flex-col gap-1">
-        <span className="text-dl-xs text-dl-fg-muted">{getFieldLabel(df)}</span>
+        <Label htmlFor={`dsf-${df.fromName}`} className="text-dl-xs text-dl-fg-muted">
+          {getFieldLabel(df)}
+        </Label>
         <DateRangePicker
+          id={`dsf-${df.fromName}`}
           size="sm"
-          className="w-auto"
           // 달력 팝오버 상단 칩 행. 클릭해도 입력만 채우고 조회는 [검색]이 돈다 —
           // 달력에서 날짜를 고를 때와 같은 커밋 경로(onRangeChange)를 지난다.
           presets={DATE_RANGE_PRESETS}
+          start={String(searchInputs[df.fromName] || '')}
+          end={String(searchInputs[df.toName] || '')}
+          onRangeChange={({ start, end }) => {
+            onInputChange(df.fromName, start);
+            onInputChange(df.toName, end);
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (field.type === 'dateTimeRange') {
+    const df = field as DateTimeRangeSearchField;
+    return (
+      // dateRange 와 같은 규격이되 피커만 다르다 — 테두리 하나에 양끝 입력과 달력 버튼 하나(팝오버 1개,
+      // 시작/종료 탭). 어느 폭에서도 한 줄이라 모바일 검색 패널(약 325px)에서도 꺾이지 않는다.
+      <div key={df.fromName} className="flex flex-col gap-1">
+        <Label htmlFor={`dsf-${df.fromName}`} className="text-dl-xs text-dl-fg-muted">
+          {getFieldLabel(df)}
+        </Label>
+        <DateTimeRangePicker
+          id={`dsf-${df.fromName}`}
+          size="sm"
+          // 양식은 분까지만 — 초는 조회 조건으로 쓸 일이 없다. 종료 `23:59` 가 서버 +1초 상한과
+          // 맞물려 하루 전체가 되도록 `sanitizeSearchParams` 가 전송 직전 `:59` 를 채운다.
+          precision="minute"
+          presets={DATE_TIME_RANGE_PRESETS}
           start={String(searchInputs[df.fromName] || '')}
           end={String(searchInputs[df.toName] || '')}
           onRangeChange={({ start, end }) => {
@@ -165,10 +215,13 @@ const renderField = (
   const baseField = field as BaseSearchField;
 
   if (baseField.type === 'select') {
+    const allowEmpty = baseField.allowEmpty !== false;
+    // allowEmpty=false 면 빈값을 defaultValue 로 보여 준다 — 서버도 같은 값을 기본으로 삼는다.
+    const emptyValue = allowEmpty ? SELECT_EMPTY_VALUE : String(baseField.defaultValue ?? '');
     const rawValue = searchInputs[baseField.name];
     const selectValue =
       rawValue === undefined || rawValue === null || rawValue === ''
-        ? SELECT_EMPTY_VALUE
+        ? emptyValue
         : String(rawValue);
 
     return (
@@ -182,10 +235,10 @@ const renderField = (
           onValueChange={(val: string) =>
             onInputChange(baseField.name, val === SELECT_EMPTY_VALUE ? '' : val)
           }
-          placeholder="전체"
+          placeholder={allowEmpty ? '전체' : baseField.label}
           size="sm"
           options={[
-            { value: SELECT_EMPTY_VALUE, label: '전체' },
+            ...(allowEmpty ? [{ value: SELECT_EMPTY_VALUE, label: '전체' }] : []),
             ...(baseField.options ?? []).map((opt) => ({
               value: String(opt.value),
               label: opt.label,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { presetRange, toDateTimeRange } from './datePresets';
+import { presetDateTimeRange, presetRange, toDateTimeRange } from './datePresets';
 
 /** 산식 검증은 경계일 위주다 — 평일은 산수, 경계는 정책이다. */
 describe('presetRange', () => {
@@ -95,6 +95,12 @@ describe('toDateTimeRange', () => {
     });
   });
 
+  it('minute 정밀도는 datetime 의 초를 절삭한다 — 분 단위 입력에 초가 섞이지 않는다', () => {
+    expect(
+      toDateTimeRange({ start: '2026-08-01 09:00:30', end: '2026-08-20 13:45:59' }, 'minute'),
+    ).toEqual({ start: '2026-08-01 09:00', end: '2026-08-20 13:45' });
+  });
+
   it('이미 datetime 인 쪽은 그대로 둔다', () => {
     expect(toDateTimeRange({ start: '2026-08-01 09:00:00', end: '2026-08-20' })).toEqual({
       start: '2026-08-01 09:00:00',
@@ -104,5 +110,50 @@ describe('toDateTimeRange', () => {
 
   it('빈값은 빈값으로 둔다 — 반쪽 프리셋을 하루로 오독하지 않는다', () => {
     expect(toDateTimeRange({ start: '', end: '' })).toEqual({ start: '', end: '' });
+  });
+});
+
+/**
+ * 24시간 프리셋은 날짜 경계가 아니라 **경과 시간**이 기준이다 —
+ * 경계 케이스도 "자정을 넘는가"가 아니라 "정확히 24시간인가"를 본다.
+ */
+describe('presetDateTimeRange', () => {
+  it('last24h — 종료가 지금, 시작이 정확히 24시간 전', () => {
+    expect(presetDateTimeRange('last24h', new Date(2026, 7, 20, 13, 45, 30))).toEqual({
+      start: '2026-08-19 13:45:30',
+      end: '2026-08-20 13:45:30',
+    });
+  });
+
+  it('last24h — 자정 직후면 시작이 전날로 넘어간다', () => {
+    expect(presetDateTimeRange('last24h', new Date(2026, 7, 20, 0, 30, 0))).toEqual({
+      start: '2026-08-19 00:30:00',
+      end: '2026-08-20 00:30:00',
+    });
+  });
+
+  it('last24h — 월 경계를 넘는다', () => {
+    expect(presetDateTimeRange('last24h', new Date(2026, 8, 1, 9, 0, 0))).toEqual({
+      start: '2026-08-31 09:00:00',
+      end: '2026-09-01 09:00:00',
+    });
+  });
+
+  it('last24h — 연 경계를 넘는다', () => {
+    expect(presetDateTimeRange('last24h', new Date(2026, 0, 1, 8, 15, 0))).toEqual({
+      start: '2025-12-31 08:15:00',
+      end: '2026-01-01 08:15:00',
+    });
+  });
+
+  it('last24h — 초를 버리지 않는다(값 계약이 HH:mm:ss)', () => {
+    expect(presetDateTimeRange('last24h', new Date(2026, 7, 20, 0, 0, 7)).end).toBe(
+      '2026-08-20 00:00:07',
+    );
+  });
+
+  it('last24h 산출물은 toDateTimeRange 를 그대로 통과한다 — 하루로 넓혀지지 않는다', () => {
+    const range = presetDateTimeRange('last24h', new Date(2026, 7, 20, 13, 45, 30));
+    expect(toDateTimeRange(range)).toEqual(range);
   });
 });

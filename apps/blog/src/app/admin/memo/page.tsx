@@ -65,6 +65,8 @@ export default function MemoPage() {
         },
         {
           id: 'content',
+          // 매퍼 XML 이 ORDER BY 를 고정하고 있어 서버 정렬을 받을 수 없다 — 헤더 정렬을 켜면 ORDER BY 가 겹쳐 SQL 오류가 난다
+          sortable: false,
           headerWord: '내용',
           grow: 1,
           align: 'left',
@@ -88,6 +90,8 @@ export default function MemoPage() {
         },
         {
           id: 'created',
+          // 매퍼 XML 이 ORDER BY 를 고정하고 있어 서버 정렬을 받을 수 없다 — 헤더 정렬을 켜면 ORDER BY 가 겹쳐 SQL 오류가 난다
+          sortable: false,
           headerWord: '작성일',
           width: 160,
           align: 'left',

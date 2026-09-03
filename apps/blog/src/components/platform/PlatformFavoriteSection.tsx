@@ -3,6 +3,7 @@
 import { Badge } from '@hvy/ui';
 import { ChevronDown } from 'lucide-react';
 import { useCallback, useEffect, useId, useState } from 'react';
+import LinkGroupGrid from '@/components/common/LinkGroupGrid';
 import LinkRow from '@/components/common/LinkRow';
 import { resolveLinkIcon } from '@/lib/linkIcons';
 import {
@@ -96,7 +97,7 @@ export default function PlatformFavoriteSection({ groups }: { groups: readonly L
       </div>
 
       {!collapse.section && (
-        <div id={sectionPanelId} className="grid gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <LinkGroupGrid id={sectionPanelId}>
           {groups.map((group) => (
             <PlatformGroupCard
               key={group.code}
@@ -105,7 +106,7 @@ export default function PlatformFavoriteSection({ groups }: { groups: readonly L
               onToggle={toggleGroup}
             />
           ))}
-        </div>
+        </LinkGroupGrid>
       )}
     </section>
   );

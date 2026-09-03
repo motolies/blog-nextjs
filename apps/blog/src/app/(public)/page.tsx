@@ -1,4 +1,5 @@
 import { headers } from 'next/headers';
+import LinkGroupGrid from '@/components/common/LinkGroupGrid';
 import LinkRow from '@/components/common/LinkRow';
 import PlatformFavoriteSection from '@/components/platform/PlatformFavoriteSection';
 import { SearchEngineComponent } from '@/components/SearchEngineComponent';
@@ -47,7 +48,7 @@ export default async function IndexPage() {
         </div>
 
         {/* 행 우선 배치 + 행 높이 stretch — 짧은 카드도 옆 카드 높이만큼 늘어나 빈 공간이 카드 안에 담긴다 */}
-        <div className="grid gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <LinkGroupGrid>
           {favorites.map((group) => (
             <section
               key={group.name}
@@ -69,7 +70,7 @@ export default async function IndexPage() {
               </ul>
             </section>
           ))}
-        </div>
+        </LinkGroupGrid>
       </section>
     </>
   );

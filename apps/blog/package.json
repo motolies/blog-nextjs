@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome check .",
-    "test:util": "node --test test/util/*.test.js"
+    "test:util": "node --test test/util/*.test.js",
+    "gen:lucide-meta": "node scripts/gen-lucide-meta.mjs"
   },
   "dependencies": {
     "@ckeditor/ckeditor5-react": "^11.2.0",

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { filterIconGroups, LINK_ICON_GROUPS, LINK_ICON_NAMES, resolveLinkIcon } from './linkIcons';
+import { loadLinkIcon } from './lazyLinkIcon';
+import {
+  filterIconGroups,
+  LINK_ICON_FALLBACK,
+  LINK_ICON_GROUPS,
+  LINK_ICON_NAMES,
+  resolveLinkIcon,
+} from './linkIcons';
 
 describe('LINK_ICON_GROUPS', () => {
   it('아이콘 이름이 중복되지 않는다 — 조회표가 조용히 덮어써지면 안 된다', () => {
@@ -26,16 +33,38 @@ describe('resolveLinkIcon', () => {
     expect(resolveLinkIcon('')).toBeNull();
   });
 
-  it('등록된 이름은 해당 컴포넌트를 준다', () => {
+  it('큐레이션 이름은 정적 컴포넌트를 그대로 준다', () => {
     expect(resolveLinkIcon('Rocket')).toBe(
       LINK_ICON_GROUPS.flatMap((g) => g.icons).find((e) => e.name === 'Rocket')?.icon,
     );
+    expect(resolveLinkIcon('Link2')).toBe(LINK_ICON_FALLBACK);
   });
 
-  it('알 수 없는 이름은 폴백을 준다 — null 이 아니다(값 없음과 구분된다)', () => {
-    const fallback = resolveLinkIcon('NoSuchIcon');
-    expect(fallback).not.toBeNull();
-    expect(fallback).toBe(resolveLinkIcon('Link2'));
+  it('큐레이션 밖 이름은 null 이 아닌 lazy 래퍼이고, 같은 이름은 같은 참조다(렌더마다 새로 만들면 깜빡인다)', () => {
+    const Lazy = resolveLinkIcon('Camera');
+    expect(Lazy).not.toBeNull();
+    expect(Lazy).not.toBe(LINK_ICON_FALLBACK);
+    expect(resolveLinkIcon('Camera')).toBe(Lazy);
+    expect(resolveLinkIcon('Anchor')).not.toBe(Lazy);
+    expect(Lazy?.displayName).toBe('LazyLinkIcon(Camera)');
+  });
+});
+
+describe('loadLinkIcon', () => {
+  it('lucide 에 있는 이름은 그 아이콘 컴포넌트로 풀린다', async () => {
+    expect((await loadLinkIcon('Camera', LINK_ICON_FALLBACK)).displayName).toBe('Camera');
+    // 별칭이 합류하는 이름도 같은 아이콘으로 풀린다.
+    expect((await loadLinkIcon('ArrowDown01', LINK_ICON_FALLBACK)).displayName).toBe('ArrowDown01');
+  });
+
+  it('알 수 없는 이름은 폴백 — 값 없음(null)과 구분된다', async () => {
+    expect(await loadLinkIcon('NoSuchIcon', LINK_ICON_FALLBACK)).toBe(LINK_ICON_FALLBACK);
+  });
+
+  it('프로토타입 키와 겹치는 이름도 폴백이다 — `in` 으로 조회하면 Object() 가 튀어나온다', async () => {
+    for (const name of ['Constructor', 'ToString', 'HasOwnProperty', '__proto__']) {
+      expect(await loadLinkIcon(name, LINK_ICON_FALLBACK), name).toBe(LINK_ICON_FALLBACK);
+    }
   });
 });
 
@@ -54,6 +83,11 @@ describe('filterIconGroups', () => {
     const names = filterIconGroups('배포').flatMap((g) => g.icons.map((e) => e.name));
     expect(names).toContain('Rocket');
     expect(names).toContain('Ship');
+  });
+
+  it('keywords 의 대문자 약어도 소문자 검색어로 찾는다 — 안내문의 예시 "db" 가 실제로 되어야 한다', () => {
+    const names = filterIconGroups('db').flatMap((g) => g.icons.map((e) => e.name));
+    expect(names).toContain('Database');
   });
 
   it('결과가 없는 그룹은 빼고, 아무것도 없으면 빈 배열', () => {

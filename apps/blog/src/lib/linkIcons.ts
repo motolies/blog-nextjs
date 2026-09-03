@@ -1,17 +1,25 @@
 /**
- * 즐겨찾기/플랫폼 링크에 붙일 수 있는 아이콘 목록 — **앱 전체에서 lucide 를 대량 import 하는 유일한 지점**.
+ * 즐겨찾기/플랫폼 링크 아이콘 — 큐레이션 목록과 이름 → 컴포넌트 해석의 단일 진입점.
  *
- * 왜 큐레이션인가: lucide-react 는 아이콘이 1500개가 넘는다. `import * as icons from 'lucide-react'`
- * 로 전부 끌어오면 tree-shaking 이 깨져 번들이 폭증한다(레포 전체에 그런 import 는 한 건도 없다).
- * 인프라·플랫폼 용도에 맞는 수십 개만 named import 하면 번들은 gzip 몇 KB 수준으로 끝나고,
- * 사용자는 고를 것이 적어 오히려 빨리 고른다. **큐레이션이 곧 성능 최적화다.**
+ * 두 계층으로 나뉜다.
+ *  1. **큐레이션 85개**(아래 `LINK_ICON_GROUPS`): named import 로 정적 번들에 들어간다. 공개 홈이
+ *     실제로 쓰는 아이콘은 여기 있으므로 홈 번들은 gzip 몇 KB 로 끝난다. 한글 keywords 가 붙어 있어
+ *     "어떤 아이콘이 있는지 모르는 사람"도 배포·차트·로그 같은 말로 찾는다.
+ *  2. **그 외 lucide 전체(1,700여 개)**: 피커가 `lucideMeta.json` 으로 목록을 보여주고, 렌더는
+ *     `lazyLinkIcon.tsx` 가 이름 하나당 청크 하나를 지연 로드한다. 큐레이션에 없는 이름이 실제로
+ *     화면에 나올 때만 그 아이콘의 청크(~0.5KB)가 내려온다.
  *
- * ⚠️ 브랜드 아이콘(Github/Gitlab/Slack/Figma)은 넣지 않는다 — lucide 0.576.0 에서 전부
- *    `@deprecated Brand icons ... due to be removed` 다. 넣으면 메이저 업그레이드 때 컴파일이
- *    깨지고, 그동안 DB 에는 죽은 이름이 쌓인다. GitHub 링크에는 GitBranch/FolderGit2 를 쓴다.
+ * `import * as icons from 'lucide-react'` 는 여전히 금지다 — 그 한 줄이 1,702개 전부를 번들에
+ * 싣는다(레포 전체에 그런 import 는 한 건도 없다). 전체 목록은 이름만 담은 JSON 으로, 코드는
+ * per-icon 동적 import 로만 가져온다. **큐레이션이 곧 공개 홈의 성능 최적화다.**
  *
- * 아이콘을 추가할 때는 keywords 에 **한글 검색어**를 꼭 넣는다. 이 목록의 존재 이유가
- * "어떤 아이콘이 있는지 모르는 사람이 고를 수 있게" 하는 것이라, 영어 이름만으로는 검색이 안 된다.
+ * ⚠️ 브랜드 아이콘(Github/Gitlab/Slack/Figma 등 18종)은 넣지 않는다 — lucide 0.576.0 에서 전부
+ *    `@deprecated Brand icons ... due to be removed` 다. 여기(정적 import)에 넣으면 메이저 업그레이드
+ *    때 컴파일이 깨진다. 피커도 이들을 숨긴다. DB 에 이미 있는 값은 지연 경로로 렌더되다가 lucide 가
+ *    제거하면 조용히 Link2 폴백이 된다. GitHub 링크에는 GitBranch/FolderGit2 를 쓴다.
+ *
+ * 아이콘을 추가할 때는 keywords 에 **한글 검색어**를 꼭 넣는다. 영어 이름·태그 검색은 전체 목록이
+ * 이미 해 주므로, 이 목록의 존재 이유는 한글로 찾히는 것뿐이다.
  */
 
 import type { LucideIcon } from 'lucide-react';
@@ -102,6 +110,7 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react';
+import { getLazyLinkIcon } from './lazyLinkIcon';
 
 export interface LinkIconEntry {
   /** DB(`attributes.icon`)에 저장되는 값 = lucide 컴포넌트 이름 그대로. 별칭 레이어를 두지 않는다. */
@@ -268,20 +277,28 @@ export const LINK_ICON_NAMES: readonly string[] = LINK_ICON_GROUPS.flatMap((grou
 );
 
 /**
- * 저장된 아이콘 이름을 컴포넌트로 해석한다. **두 경우를 구분하는 것이 이 함수의 핵심이다.**
+ * 저장된 아이콘 이름을 컴포넌트로 해석한다. **세 경우를 구분하는 것이 이 함수의 핵심이다.**
  *
  *  - 값 없음 → `null`. 호출부가 아이콘 자리를 아예 렌더하지 않는다.
  *    기존 공개 즐겨찾기(FAVORITE) 데이터에는 아이콘이 하나도 없다. 여기서 Link2 로 폴백하면
  *    공개 홈의 링크 20여 개가 전부 똑같은 링크 아이콘으로 도배돼 지금보다 나빠진다.
- *  - 알 수 없는 이름 → `LINK_ICON_FALLBACK`. 렌더가 깨지지 않으면서, 관리 화면에서도 같은 함수를
+ *  - 큐레이션 이름 → 정적 컴포넌트(동기). 공개 홈이 쓰는 경로라 비용이 0 이다.
+ *  - 그 외 이름 → 이름별 lazy 래퍼. lucide 에 있는 이름이면 그 아이콘의 청크를 가져오고, 없는
+ *    이름(오타)은 로드 시점에 `LINK_ICON_FALLBACK` 으로 떨어진다. 관리 화면에서도 같은 함수를
  *    쓰므로 링크 모양이 보이면 곧 "이름이 잘못됐다"는 신호가 된다.
+ *
+ * 반환 타입은 그대로 `LucideIcon` 이라 호출부(LinkRow · PlatformFavoriteSection · LinkGroupCard ·
+ * LinkNodeForm)는 어느 계층인지 몰라도 된다.
  */
 export function resolveLinkIcon(name?: string | null): LucideIcon | null {
   if (!name) return null;
-  return ICON_BY_NAME.get(name) ?? LINK_ICON_FALLBACK;
+  return ICON_BY_NAME.get(name) ?? getLazyLinkIcon(name, LINK_ICON_FALLBACK);
 }
 
-/** 피커 검색 — 아이콘 이름과 한글 keywords 를 함께 본다. 빈 검색어는 전체를 그대로 돌려준다. */
+/**
+ * 큐레이션 검색 — 아이콘 이름과 한글 keywords 를 함께 본다. 빈 검색어는 전체를 그대로 돌려준다.
+ * keywords 도 소문자로 비교한다 — 'DB' 처럼 대문자로 적힌 약어를 'db' 로 못 찾던 버그가 있었다.
+ */
 export function filterIconGroups(query: string): readonly LinkIconGroup[] {
   const normalized = query.trim().toLowerCase();
   if (!normalized) return LINK_ICON_GROUPS;
@@ -290,7 +307,8 @@ export function filterIconGroups(query: string): readonly LinkIconGroup[] {
     title: group.title,
     icons: group.icons.filter(
       (entry) =>
-        entry.name.toLowerCase().includes(normalized) || entry.keywords.includes(normalized),
+        entry.name.toLowerCase().includes(normalized) ||
+        entry.keywords.toLowerCase().includes(normalized),
     ),
   })).filter((group) => group.icons.length > 0);
 }

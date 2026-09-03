@@ -140,6 +140,12 @@
           }
         }
       }
+    },
+    {
+      "includes": ["**/apps/blog/src/lib/lucideMeta.json"],
+      "formatter": {
+        "enabled": false
+      }
     }
   ]
 }

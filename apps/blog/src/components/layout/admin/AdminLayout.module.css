@@ -193,6 +193,11 @@
   margin-inline: 0;
 }
 
+/* 로그 목록은 컬럼이 많으므로 본문에서 사용 가능한 가로폭을 모두 쓴다. */
+.containerFluidFullWidth {
+  max-width: none;
+}
+
 .backdrop {
   position: fixed;
   inset: var(--admin-header-height) 0 0 0;

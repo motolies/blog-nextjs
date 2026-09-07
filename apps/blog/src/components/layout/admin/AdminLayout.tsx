@@ -25,6 +25,7 @@ const SIDEBAR_COLLAPSED_KEY = 'admin.sidebar.collapsed';
  */
 export default function AdminLayout({ user, children }: AdminLayoutProps) {
   const pathname = usePathname();
+  const isFullWidthLogPage = pathname === '/admin/system-log' || pathname === '/admin/api-log';
   const setProfileFromServer = useAuthStore((s) => s.setProfileFromServer);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
@@ -156,7 +157,11 @@ export default function AdminLayout({ user, children }: AdminLayoutProps) {
 
         <div className={styles.layoutPage}>
           <main className={`${styles.contentWrapper} ${isMenuOpen ? styles.scrollLocked : ''}`}>
-            <div className={styles.containerFluid}>{children}</div>
+            <div
+              className={`${styles.containerFluid} ${isFullWidthLogPage ? styles.containerFluidFullWidth : ''}`}
+            >
+              {children}
+            </div>
           </main>
         </div>
       </div>

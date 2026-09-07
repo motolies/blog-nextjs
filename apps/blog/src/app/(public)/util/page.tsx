@@ -1,6 +1,7 @@
 import {
   ArrowLeftRight,
   Braces,
+  CalendarClock,
   Clock,
   GitBranch,
   Lock,
@@ -63,6 +64,14 @@ const utilities = [
       'JavaScript, Java, C#, Python 정규식 패턴을 테스트하고 매칭 결과와 그룹 캡처를 확인합니다.',
     icon: Braces,
     path: '/util/regex-tester',
+  },
+  {
+    id: 'epoch',
+    title: 'Epoch Converter',
+    description:
+      'Unix timestamp(초/밀리초/마이크로초/나노초)를 날짜로 변환하고, 날짜로부터 epoch 값을 생성합니다.',
+    icon: CalendarClock,
+    path: '/util/epoch',
   },
   {
     id: 'cidr',

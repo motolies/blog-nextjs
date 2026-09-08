@@ -61,6 +61,20 @@ pre:hover .code-copy-btn {
     opacity: 1;
 }
 
+/* 터치 기기는 hover 가 없어 버튼이 영영 보이지 않는다 — 항상 노출한다 */
+@media (hover: none) {
+    .code-copy-btn {
+        opacity: 1;
+    }
+}
+
+/* 버튼은 tabbable 이므로 키보드 포커스에서도 보여야 한다 */
+.code-copy-btn:focus-visible {
+    opacity: 1;
+    outline: 2px solid rgba(97, 175, 239, 0.85);
+    outline-offset: 2px;
+}
+
 .code-copy-btn:hover {
     background: rgba(44, 49, 58, 0.9);
     color: rgba(171, 178, 191, 0.95);
@@ -69,6 +83,11 @@ pre:hover .code-copy-btn {
 
 .code-copy-btn.copied {
     color: rgb(152, 195, 121);
+    opacity: 1;
+}
+
+.code-copy-btn.copy-failed {
+    color: rgb(224, 108, 117);
     opacity: 1;
 }
 

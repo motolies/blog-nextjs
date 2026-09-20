@@ -6,10 +6,7 @@ type Node = { id: string; children?: Node[] };
 const tree: Node[] = [
   {
     id: 'root',
-    children: [
-      { id: 'a', children: [{ id: 'a1' }, { id: 'a2' }] },
-      { id: 'b' },
-    ],
+    children: [{ id: 'a', children: [{ id: 'a1' }, { id: 'a2' }] }, { id: 'b' }],
   },
 ];
 

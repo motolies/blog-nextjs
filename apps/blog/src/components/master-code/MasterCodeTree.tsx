@@ -52,7 +52,11 @@ export default function MasterCodeTree({
       onReorder={
         isSearching || !onReorder
           ? undefined
-          : (parentId, next) => onReorder(parentId, next.map((node) => String(node.id)))
+          : (parentId, next) =>
+              onReorder(
+                parentId,
+                next.map((node) => String(node.id)),
+              )
       }
       reorderLabel={(node) => `${node.code} 순서 변경`}
       reorderAnnouncement={(node, position, total) =>

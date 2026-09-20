@@ -3,6 +3,9 @@ import {
   Activity,
   BellRing,
   BookOpen,
+  BrainCircuit,
+  ChartCandlestick,
+  DatabaseZap,
   FileText,
   Flame,
   FolderTree,
@@ -106,6 +109,27 @@ export const adminNavigationSections: AdminNavigationSection[] = [
       },
     ],
   },
+  // 주식 수집(stock)·AI 어드바이저(advisor) 운영 — 화면 3개라 Operations 에 섞기엔 많고 도메인이 블로그와 무관하다
+  {
+    title: 'Quant',
+    items: [
+      {
+        href: '/admin/quant',
+        label: '운영 현황',
+        icon: ChartCandlestick,
+      },
+      {
+        href: '/admin/quant/collect',
+        label: '수집',
+        icon: DatabaseZap,
+      },
+      {
+        href: '/admin/quant/advisor',
+        label: 'AI 판단',
+        icon: BrainCircuit,
+      },
+    ],
+  },
   {
     title: 'Operations',
     items: [
@@ -180,6 +204,18 @@ export const adminRouteMeta: Record<string, AdminRouteMeta> = {
   '/admin/hot-deal-keywords': {
     title: '핫딜 알림 키워드',
     icon: BellRing,
+  },
+  '/admin/quant': {
+    title: '퀀트 운영 현황',
+    icon: ChartCandlestick,
+  },
+  '/admin/quant/collect': {
+    title: '주식 수집 관리',
+    icon: DatabaseZap,
+  },
+  '/admin/quant/advisor': {
+    title: 'AI 판단 관리',
+    icon: BrainCircuit,
   },
   '/admin/system-log': {
     title: '시스템 로그',

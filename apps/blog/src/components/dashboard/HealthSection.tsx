@@ -121,6 +121,12 @@ export function HealthSection({ query }: HealthSectionProps) {
         title="스케줄러 마지막 실행"
         // 라벨이 "정상"이 아니라 "마지막 실행"인 것은 정직성 문제다 — 아래 주석 참고
         caption="성공 여부는 알 수 없음"
+        // 성공·실패·run 연결은 Quant 운영 현황이 보여준다 — 여기는 링크만(대시보드는 읽기 전용·토스트 금지 원칙 유지)
+        actions={
+          <Link href="/admin/quant" className="text-dl-xs text-dl-primary-ink hover:underline">
+            운영 화면
+          </Link>
+        }
         query={query}
         isEmpty={(data) => data.schedulers.length === 0}
         empty={{ message: '등록된 스케줄러가 없습니다' }}

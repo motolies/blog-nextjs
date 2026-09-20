@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pickLogFilters, pickPostFilters } from './urlFilters';
+import { pickLogFilters, pickPostFilters, pickQuantRunFilters } from './urlFilters';
 
 describe('pickPostFilters', () => {
   it('허용 목록에 있는 키만 통과시킨다', () => {
@@ -75,5 +75,31 @@ describe('날짜만 있는 URL 하위호환', () => {
     expect(pickPostFilters('dateField=evil&dateTo=2026-08-20')).toEqual({
       dateTo: '2026-08-20 23:59',
     });
+  });
+});
+
+describe('pickQuantRunFilters', () => {
+  const allowed = { jobTypes: ['DAILY', 'WEEKLY'], statuses: ['RUNNING', 'FAILED'] };
+
+  it('허용 키만 통과시키고 화면 상태 키(tab·run)는 걸러진다', () => {
+    expect(
+      pickQuantRunFilters('tab=runs&run=1201&jobType=DAILY&status=FAILED&evil=1', allowed),
+    ).toEqual({ jobType: 'DAILY', status: 'FAILED' });
+  });
+
+  it('허용 값 밖의 jobType·status 는 버린다 — 400 은 Slack 을 울린다', () => {
+    expect(pickQuantRunFilters('jobType=NOPE&status=SKIPPED', allowed)).toEqual({});
+  });
+
+  it('from/to 는 YYYY-MM-DD 만 받는다', () => {
+    expect(pickQuantRunFilters('from=2026-09-01&to=2026-09-20', allowed)).toEqual({
+      from: '2026-09-01',
+      to: '2026-09-20',
+    });
+    expect(pickQuantRunFilters('from=2026-09-01 09:00&to=bad', allowed)).toEqual({});
+  });
+
+  it('쿼리가 없으면 빈 객체', () => {
+    expect(pickQuantRunFilters('', allowed)).toEqual({});
   });
 });

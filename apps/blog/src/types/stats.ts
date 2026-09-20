@@ -1,5 +1,7 @@
 /** 관리자 대시보드 집계 응답 타입 — 백엔드 kr.hvy.blog.modules.stats 의 DTO 와 1:1 대응. */
 
+import type { ManualTrigger } from './quant';
+
 // ── 콘텐츠 요약 (/api/stats/admin/summary) ────────────────────────────────
 
 export interface PostSummary {
@@ -143,6 +145,12 @@ export interface SchedulerStatus {
   expectedIntervalSeconds: number | null;
   secondsSinceLockedAt: number | null;
   state: SchedulerHealthState;
+  /**
+   * 이 스케줄러가 부르는 잡의 수동 실행 매핑 (2026-09-20 additive).
+   * 옵셔널인 이유: 백엔드 구버전은 이 필드를 내리지 않는다 — undefined 면 "수동 실행 버튼은 배포 후 표시",
+   * null 이면 수동 실행 대상이 아닌 잡(핫딜·Jira 등)이다.
+   */
+  manualTrigger?: ManualTrigger | null;
 }
 
 export interface ExternalApiStat {

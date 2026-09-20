@@ -1,4 +1,5 @@
 import { HttpResponse, http } from 'msw';
+import { callCounters, count } from './counters';
 import { fail, ok, pageOf } from './envelope';
 import {
   CATEGORIES,
@@ -14,51 +15,19 @@ import {
   SERIES_POST_IDS,
   TAGS,
 } from './fixtures';
+import { quantHandlers } from './quant/handlers';
 
 /**
- * hvy-blog 공개 API 목 — 화면 기동에 필요한 초기 세트(auth 3 + post 6 + category 2 + tag 2 + series 3).
+ * hvy-blog 공개 API 목 — 화면 기동에 필요한 초기 세트(auth 3 + post 6 + category 2 + tag 2 + series 3)
+ * + Quant 관리 API(`quant/handlers.ts`: stock·advisor admin 전부 + stats health).
  *
  * 패턴은 와일드카드 프리픽스(`*\/api/...`) — BLOG_URL_DEV/PROD 가 무엇을 가리켜도 매치된다.
  * 등록 순서 주의: MSW 는 배열 순 매칭이므로 구체 경로를 파라미터 경로보다 위에 둔다.
- * admin CRUD(`/api/post/admin/**` 등)는 2차 확장 — bypass 로 실 백엔드로 나간다.
+ * 그 밖의 admin CRUD(`/api/post/admin/**` 등)는 2차 확장 — bypass 로 실 백엔드로 나간다.
+ *
+ * 호출 카운터는 `counters.ts`(조회 /api/dev/mock-stats) — 도메인별 핸들러 파일과 공유하기 위해 분리했다.
  */
-
-/**
- * 호출 카운터 — globalThis 보관(HMR 로 모듈 그래프가 갈라지면 카운터가 분리되는 것을 방지).
- * 조회는 /api/dev/mock-stats.
- */
-type CounterKey = 'auth' | 'post' | 'search' | 'category' | 'tag' | 'series';
-
-type CounterGlobal = typeof globalThis & {
-  __hvyMockCounters?: Record<CounterKey, number>;
-};
-
-const counterStore = globalThis as CounterGlobal;
-
-function counters(): Record<CounterKey, number> {
-  if (!counterStore.__hvyMockCounters) {
-    counterStore.__hvyMockCounters = {
-      auth: 0,
-      post: 0,
-      search: 0,
-      category: 0,
-      tag: 0,
-      series: 0,
-    };
-  }
-  return counterStore.__hvyMockCounters;
-}
-
-function count(key: CounterKey): void {
-  counters()[key] += 1;
-}
-
-export const callCounters = {
-  snapshot: (): Record<CounterKey, number> => ({ ...counters() }),
-  reset: (): void => {
-    counterStore.__hvyMockCounters = undefined;
-  },
-};
+export { callCounters };
 
 /** URL-safe base64(JSON SearchObject) 디코드 — 실서버와 같은 계약. */
 function decodeSearchQuery(query: string): {
@@ -251,4 +220,7 @@ export const handlers = [
     count('series');
     return ok(request, SERIES);
   }),
+
+  // ── quant (stock·advisor admin + stats health) ──────────────────────────────
+  ...quantHandlers,
 ];

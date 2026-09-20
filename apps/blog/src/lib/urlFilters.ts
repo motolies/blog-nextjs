@@ -1,4 +1,5 @@
 import { toDateTimeRange } from '@hvy/ui';
+import { isIsoDate } from './quant/kstDate';
 
 /**
  * URL 쿼리스트링 → 그리드 검색 기본값.
@@ -118,4 +119,30 @@ export function pickLogFilters(
   // URL 필터가 하나라도 있으면 날짜 기본값을 걸지 않는다 — 날짜 키를 함께 넘겼는지는
   // 따지지 않는다(예전 코드의 hasDateFilter 분기는 양쪽 결과가 같은 죽은 가지였다).
   return normalizeDateTimeValues(picked, LOG_DATE_TIME_KEYS);
+}
+
+const QUANT_RUN_FILTER_KEYS = ['jobType', 'status', 'from', 'to'] as const;
+
+/**
+ * /admin/quant/collect·advisor 실행 이력 탭용. 예: `?jobType=DAILY&status=FAILED&from=2026-09-01&to=2026-09-20`
+ *
+ * 허용 목록만이 아니라 **값도 검증한다** — `jobType`·`status` 는 백엔드 enum 경로 변수라 모르는 값을 보내면
+ * 400 이 나고 400 은 Slack 을 울린다. 허용 값 목록은 모듈(stock/advisor)마다 달라 호출부가 넘긴다.
+ * `from`/`to` 는 `@DateTimeFormat(ISO.DATE)` 가 받는 `YYYY-MM-DD` 만 통과시킨다(dateRange 피커 값 계약과 같다).
+ * `tab`·`run` 같은 화면 상태 키는 여기 없으므로 자연히 걸러진다.
+ */
+export function pickQuantRunFilters(
+  search: string,
+  allowed: { jobTypes: readonly string[]; statuses: readonly string[] },
+): Record<string, string> {
+  const picked = pick(search, QUANT_RUN_FILTER_KEYS);
+  if (picked.jobType !== undefined && !allowed.jobTypes.includes(picked.jobType)) {
+    delete picked.jobType;
+  }
+  if (picked.status !== undefined && !allowed.statuses.includes(picked.status)) {
+    delete picked.status;
+  }
+  if (picked.from !== undefined && !isIsoDate(picked.from)) delete picked.from;
+  if (picked.to !== undefined && !isIsoDate(picked.to)) delete picked.to;
+  return picked;
 }

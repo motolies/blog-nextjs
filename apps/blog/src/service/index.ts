@@ -1,3 +1,4 @@
+import advisorService from './advisorService';
 import categoryService from './categoryService';
 import favoriteService from './favoriteService';
 import fileService from './fileService';
@@ -10,6 +11,7 @@ import postService from './postService';
 import searchEngineService from './searchEngineService';
 import seriesService from './seriesService';
 import statsService from './statsService';
+import stockCollectService from './stockCollectService';
 import tagService from './tagService';
 import userService from './userService';
 
@@ -28,6 +30,8 @@ const service = {
   hotDeal: hotDealService,
   series: seriesService,
   stats: statsService,
+  stockCollect: stockCollectService,
+  advisor: advisorService,
 };
 
 export default service;

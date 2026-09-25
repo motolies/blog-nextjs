@@ -113,7 +113,7 @@ export function ActiveRunsWidget({
     }
     const args = advisorRerunArgs(row.run, today);
     const ok = await askConfirm({
-      message: `${row.run.jobDescription} 을 다시 실행합니다 (${args.baseDate ? `기준일 ${args.baseDate}` : '오늘 기준'}).${row.run.jobType === 'ADVISE' ? ' 이미 LIVE 판단이 있으면 SKIPPED 로 닫힙니다.' : ''}`,
+      message: `${row.run.jobDescription} 을 다시 실행합니다 (${args.baseDate ? `기준일 ${args.baseDate}` : '오늘 기준'}${args.horizon !== undefined ? ` · h=${args.horizon}` : ''}).${row.run.jobType === 'ADVISE' ? ' 이미 LIVE 판단이 있으면 SKIPPED 로 닫힙니다.' : ''}`,
       confirmLabel: '재실행',
     });
     if (ok) await actions.rerunAdvisor(row.run, today);

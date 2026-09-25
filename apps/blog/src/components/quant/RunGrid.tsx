@@ -22,7 +22,7 @@ import {
   formatDurationMs,
   formatTokens,
 } from '@/lib/quant/format';
-import { isTerminal } from '@/lib/quant/runStatus';
+import { isTerminal, triggerLabel } from '@/lib/quant/runStatus';
 import { formatCompact } from '@/lib/statFormat';
 import type { AdvisorRunResponse, CollectRunResponse, RunModule } from '@/types/quant';
 import { formatUtcToLocal } from '@/util/dateTimeUtil';
@@ -46,8 +46,6 @@ export type ServerGrid = ReturnType<typeof useServerGrid<RunGridRow>>;
 
 export const asStock = (row: RunGridRow) => row as unknown as CollectRunResponse;
 export const asAdvisor = (row: RunGridRow) => row as unknown as AdvisorRunResponse;
-
-const TRIGGER_LABEL: Record<string, string> = { SCHEDULER: '스케줄러', API: '관리자 API' };
 
 type RowHandlers = {
   onOpen: (row: RunGridRow) => void;
@@ -74,7 +72,7 @@ export function useRunColumns(
         id: 'triggerType',
         headerWord: '트리거',
         width: 100,
-        format: (value) => TRIGGER_LABEL[String(value)] ?? String(value ?? ''),
+        format: (value) => (value ? triggerLabel(String(value)) : ''),
       },
     ];
 

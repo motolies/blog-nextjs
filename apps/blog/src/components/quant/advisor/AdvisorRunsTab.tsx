@@ -113,7 +113,7 @@ export function AdvisorRunsTab() {
       const run = asAdvisor(row);
       const args = advisorRerunArgs(run, today);
       const ok = await askConfirm({
-        message: `${run.jobDescription} 을 다시 실행합니다 (${args.baseDate ? `기준일 ${args.baseDate}` : '오늘 기준 — 스케줄 run 재현'}).${run.jobType === 'ADVISE' ? ' 이미 LIVE 판단이 있으면 SKIPPED 로 닫힙니다 — 판단 삭제 후 재판단하세요.' : ''}`,
+        message: `${run.jobDescription} 을 다시 실행합니다 (${args.baseDate ? `기준일 ${args.baseDate}` : '오늘 기준 — 스케줄 run 재현'}${args.horizon !== undefined ? ` · h=${args.horizon}` : ''}).${run.jobType === 'ADVISE' ? ' 이미 LIVE 판단이 있으면 SKIPPED 로 닫힙니다 — 판단 삭제 후 재판단하세요.' : ''}`,
         confirmLabel: '재실행',
       });
       if (ok) await rerunAdvisor(run, today);

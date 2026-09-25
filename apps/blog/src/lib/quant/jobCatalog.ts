@@ -1,5 +1,5 @@
 /**
- * 잡 카탈로그 — 백엔드 enum `CollectJobType`(23)·`AdvisorJobType`(6) 의 desc·longRunning 복제본.
+ * 잡 카탈로그 — 백엔드 enum `CollectJobType`(23)·`AdvisorJobType`(11) 의 desc·longRunning 복제본.
  *
  * run 응답에는 `jobDescription` 이 실려 오므로 목록·상세는 그 값을 쓴다. 이 복제본은 **run 이 없는 자리**
  * (검색 select·M3 수동 실행 폼·스케줄러 위젯의 잡 이름) 전용이다.
@@ -63,9 +63,40 @@ export const ADVISOR_JOB_META: Record<AdvisorJobType, JobMeta> = {
   SCORE: { desc: '채점·IC 계산 (보충 실행)', longRunning: true },
   INTRADAY: { desc: '장중 점검', longRunning: false },
   MORNING_CHECK: { desc: '아침 해외 반영 점검', longRunning: false },
+  MORNING_ADVISE: { desc: '아침 재판정', longRunning: true },
   WEEKLY_REVIEW: { desc: '주간 검토 (가중치·보정·교훈·보고)', longRunning: true },
   IC_BACKFILL: { desc: '시그널 IC 사전 추정', longRunning: true },
+  ADVISE_ADHOC: { desc: '수시 판단(채팅 요청)', longRunning: true },
+  ADVISE_H20: { desc: '20거래일 주간 판단', longRunning: true },
+  ADVISE_H60: { desc: '60거래일 규칙 추천(격주)', longRunning: true },
+  ADVISE_H180: { desc: '180거래일 규칙 추천(월간)', longRunning: true },
 };
+
+/**
+ * 관리자 화면에서 수동 실행할 수 있는 advisor 잡 — 백엔드 `SchedulerCatalog` 의 advisor `manualTrigger` 8개 + IC_BACKFILL(호라이즌 지정 백필).
+ * ADVISE_ADHOC(채팅 봇 전용)·SCORE(보충 실행)는 카탈로그에 없어 넣지 않는다.
+ */
+export const ADVISOR_MANUAL_JOB_TYPES = [
+  'ADVISE',
+  'MORNING_ADVISE',
+  'ADVISE_H20',
+  'ADVISE_H60',
+  'ADVISE_H180',
+  'INTRADAY',
+  'MORNING_CHECK',
+  'WEEKLY_REVIEW',
+  'IC_BACKFILL',
+] as const satisfies readonly AdvisorJobType[];
+export type AdvisorManualJobType = (typeof ADVISOR_MANUAL_JOB_TYPES)[number];
+
+/** URL `?job=` 값을 수동 실행 대상으로 해석한다. 모르는 값·없음은 null(경로 변수로 나가므로 허용 목록이 유일한 방어). */
+export function resolveAdvisorManualJob(
+  value: string | null | undefined,
+): AdvisorManualJobType | null {
+  return value && (ADVISOR_MANUAL_JOB_TYPES as readonly string[]).includes(value)
+    ? (value as AdvisorManualJobType)
+    : null;
+}
 
 /** 잡 이름 → 표기. 모르는 코드(백엔드가 앞선 경우)는 원문. */
 export function collectJobLabel(jobType: string): string {

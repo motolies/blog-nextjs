@@ -27,14 +27,14 @@ async function post(url: string, body?: unknown) {
 }
 
 describe('stats health', () => {
-  it('스케줄러 16행 중 stock 7행(eventfeed am/pm 포함)·advisor 4행에 manualTrigger 가 있다', async () => {
+  it('스케줄러 20행 중 stock 7행(eventfeed am/pm 포함)·advisor 8행에 manualTrigger 가 있다', async () => {
     const json = await (await fetch(`${BASE}/api/stats/admin/health`)).json();
     const schedulers = json.data.schedulers as { manualTrigger: { module: string } | null }[];
-    expect(schedulers).toHaveLength(16);
+    expect(schedulers).toHaveLength(20);
     const withTrigger = schedulers.filter((s) => s.manualTrigger !== null);
-    expect(withTrigger).toHaveLength(11);
+    expect(withTrigger).toHaveLength(15);
     expect(withTrigger.filter((s) => s.manualTrigger?.module === 'STOCK')).toHaveLength(7);
-    expect(withTrigger.filter((s) => s.manualTrigger?.module === 'ADVISOR')).toHaveLength(4);
+    expect(withTrigger.filter((s) => s.manualTrigger?.module === 'ADVISOR')).toHaveLength(8);
   });
 });
 
@@ -150,6 +150,39 @@ describe('advisor', () => {
     const today = (await (await fetch(`${ADVISOR}/gate`)).json()).data.baseDate as string;
     expect(todayLive.some((a: { baseDate: string }) => a.baseDate === today)).toBe(false);
     expect(todayLive.length).toBeGreaterThan(0);
+  });
+
+  it('horizon 은 IC_BACKFILL 에만, IC 대상 호라이즌만 받는다(백엔드 400 과 같다)', async () => {
+    const ok = await post(`${ADVISOR}/jobs/IC_BACKFILL?horizon=20`);
+    expect(ok.status).toBe(202);
+    expect((await ok.json()).data.metadata.horizon).toBe(20);
+    expect((await post(`${ADVISOR}/jobs/ADVISE_H20?horizon=20`)).status).toBe(400);
+    expect((await post(`${ADVISOR}/jobs/IC_BACKFILL?horizon=7`)).status).toBe(400);
+  });
+
+  it('판단 목록은 kind 로 나뉜다 — 생략하면 DAILY, 모르는 값은 400', async () => {
+    const daily = (await (await fetch(`${ADVISOR}/advices?limit=100`)).json()).data;
+    expect(daily.every((a: { adviceKind: string }) => a.adviceKind === 'DAILY')).toBe(true);
+    const morning = (await (await fetch(`${ADVISOR}/advices?kind=MORNING`)).json()).data;
+    expect(morning).toHaveLength(1);
+    expect(morning[0].diffJson.drop).toHaveLength(1);
+    expect((await fetch(`${ADVISOR}/advices?kind=WEEKLY`)).status).toBe(400);
+  });
+
+  it('H60 요약은 판정 불가 라벨을 싣고 호라이즌은 60 이다', async () => {
+    const summary = (await (await fetch(`${ADVISOR}/scores/summary?kind=H60`)).json()).data;
+    expect(summary.horizonDays).toBe(60);
+    expect(summary.variants[0].verdictLabel).toContain('판정 불가');
+    const daily = (await (await fetch(`${ADVISOR}/scores/summary`)).json()).data;
+    expect(daily.variants[0].verdictLabel).toBeNull();
+  });
+
+  it('가중치 세트는 호라이즌별로 활성 1개', async () => {
+    const h20 = (await (await fetch(`${ADVISOR}/weights/sets?horizon=20`)).json()).data;
+    expect(h20).toHaveLength(1);
+    expect(h20[0].active).toBe(true);
+    const h60 = (await (await fetch(`${ADVISOR}/weights/sets?horizon=60`)).json()).data;
+    expect(h60).toHaveLength(0);
   });
 
   it('MOCK_ADVISOR_DISABLED=true 면 advisor 전체가 404', async () => {

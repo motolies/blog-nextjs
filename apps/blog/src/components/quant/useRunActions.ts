@@ -12,6 +12,7 @@ import { jobLabel } from '@/lib/quant/jobCatalog';
 import { runHref } from '@/lib/quant/routes';
 import { runStatusLabel } from '@/lib/quant/runStatus';
 import {
+  type AdvisorTriggerArgs,
   advisorRerunArgs,
   restoreBackfillRequest,
   type StepRetryPlan,
@@ -157,11 +158,16 @@ export function useRunActions(options?: { onChanged?: () => void }) {
     [run, settleTrigger, settleFailure],
   );
 
+  /** advisor 트리거 — `args` 는 baseDate(과거 보충)·horizon(IC_BACKFILL 전용). busy 키는 잡 단위라 인자와 무관하다. */
   const triggerAdvisor = useCallback(
-    (jobType: AdvisorJobType, baseDate?: string, label = jobLabel('ADVISOR', jobType)) =>
+    (
+      jobType: AdvisorJobType,
+      args: AdvisorTriggerArgs = {},
+      label = jobLabel('ADVISOR', jobType),
+    ) =>
       run(`trigger:ADVISOR:${jobType}`, async (): Promise<TriggerOutcome> => {
         try {
-          return settleTrigger('ADVISOR', label, await service.advisor.trigger(jobType, baseDate));
+          return settleTrigger('ADVISOR', label, await service.advisor.trigger(jobType, args));
         } catch (error) {
           return settleFailure('ADVISOR', label, error);
         }
@@ -232,14 +238,10 @@ export function useRunActions(options?: { onChanged?: () => void }) {
     [triggerStock],
   );
 
-  /** advisor 재실행 — `requested` 재현 규칙(stepRetry.ts). */
+  /** advisor 재실행 — `requested` 재현·IC_BACKFILL 호라이즌 복원 규칙(stepRetry.ts). */
   const rerunAdvisor = useCallback(
     (target: AdvisorRunResponse, today: string) =>
-      triggerAdvisor(
-        target.jobType,
-        advisorRerunArgs(target, today).baseDate,
-        target.jobDescription,
-      ),
+      triggerAdvisor(target.jobType, advisorRerunArgs(target, today), target.jobDescription),
     [triggerAdvisor],
   );
 

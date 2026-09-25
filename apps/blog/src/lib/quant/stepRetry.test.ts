@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   advisorRerunArgs,
+  describeAdvisorTriggerArgs,
   describeBackfillRequest,
   isTickersTruncated,
   planStepRetry,
@@ -140,27 +141,81 @@ describe('describeBackfillRequest', () => {
 
 describe('advisorRerunArgs', () => {
   it('requested=false 이고 오늘이면 baseDate 를 생략한다(스케줄 run 재현)', () => {
-    expect(advisorRerunArgs({ baseDate: TODAY, metadata: { requested: false } }, TODAY)).toEqual(
-      {},
-    );
+    expect(
+      advisorRerunArgs(
+        { jobType: 'ADVISE', baseDate: TODAY, metadata: { requested: false } },
+        TODAY,
+      ),
+    ).toEqual({});
   });
 
   it('requested=false 라도 어제 run 이면 날짜를 고정한다', () => {
     expect(
-      advisorRerunArgs({ baseDate: '2026-09-19', metadata: { requested: false } }, TODAY),
+      advisorRerunArgs(
+        { jobType: 'ADVISE', baseDate: '2026-09-19', metadata: { requested: false } },
+        TODAY,
+      ),
     ).toEqual({ baseDate: '2026-09-19' });
   });
 
   it('requested=true 는 오늘이어도 baseDate 를 붙인다 — IC_BACKFILL 시작일 결정이 달라진다', () => {
-    expect(advisorRerunArgs({ baseDate: TODAY, metadata: { requested: true } }, TODAY)).toEqual({
+    expect(
+      advisorRerunArgs(
+        { jobType: 'ADVISE', baseDate: TODAY, metadata: { requested: true } },
+        TODAY,
+      ),
+    ).toEqual({
       baseDate: TODAY,
     });
   });
 
   it('metadata 가 없는 옛 run 은 날짜를 고정한다', () => {
-    expect(advisorRerunArgs({ baseDate: TODAY, metadata: null }, TODAY)).toEqual({
-      baseDate: TODAY,
-    });
-    expect(advisorRerunArgs({ baseDate: null, metadata: null }, TODAY)).toEqual({});
+    expect(advisorRerunArgs({ jobType: 'ADVISE', baseDate: TODAY, metadata: null }, TODAY)).toEqual(
+      {
+        baseDate: TODAY,
+      },
+    );
+    expect(advisorRerunArgs({ jobType: 'ADVISE', baseDate: null, metadata: null }, TODAY)).toEqual(
+      {},
+    );
+  });
+});
+
+describe('advisorRerunArgs — IC_BACKFILL 호라이즌', () => {
+  it('metadata.horizon 을 되살린다 — 스케줄 재현(오늘·requested=false)이어도 h 는 싣는다', () => {
+    expect(
+      advisorRerunArgs(
+        { jobType: 'IC_BACKFILL', baseDate: TODAY, metadata: { requested: false, horizon: 20 } },
+        TODAY,
+      ),
+    ).toEqual({ horizon: 20 });
+    expect(
+      advisorRerunArgs(
+        {
+          jobType: 'IC_BACKFILL',
+          baseDate: '2026-09-19',
+          metadata: { requested: true, horizon: 60 },
+        },
+        TODAY,
+      ),
+    ).toEqual({ baseDate: '2026-09-19', horizon: 60 });
+  });
+
+  it('IC_BACKFILL 이 아닌 잡은 metadata.horizon 이 있어도 싣지 않는다(백엔드 400)', () => {
+    expect(
+      advisorRerunArgs(
+        { jobType: 'ADVISE_H20', baseDate: TODAY, metadata: { requested: false, horizon: 20 } },
+        TODAY,
+      ),
+    ).toEqual({});
+  });
+});
+
+describe('describeAdvisorTriggerArgs', () => {
+  it('기준일·호라이즌 요약, 비면 오늘 기준', () => {
+    expect(describeAdvisorTriggerArgs({})).toBe('오늘 기준');
+    expect(describeAdvisorTriggerArgs({ baseDate: '2026-09-19', horizon: 20 })).toBe(
+      '기준일 2026-09-19 · h=20',
+    );
   });
 });

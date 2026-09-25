@@ -6,8 +6,10 @@ import { isNotFound } from '@/lib/quant/apiOutcome';
 import service from '@/service';
 import type {
   AdviceDetailResponse,
+  AdviceKind,
   AdvisorRunResponse,
   IcStat,
+  MorningVsDailyResponse,
   PromptInputRow,
   ScoreSummaryResponse,
   WeightSet,
@@ -21,11 +23,14 @@ import type {
  * 폴링은 없다(KPI 는 채점 배치 뒤에만 바뀐다). advisor 404 는 `{disabled:true}` 값으로 바꿔 ErrorState 재시도로 가지 않게 한다.
  */
 export const advisorKeys = {
-  scoreSummary: (from: string, to: string) =>
-    [...quantKeys.all, 'advisor', 'scores', 'summary', from, to] as const,
-  ic: (asOf: string, window: number) =>
-    [...quantKeys.all, 'advisor', 'scores', 'ic', asOf, window] as const,
-  weightSets: (limit: number) => [...quantKeys.all, 'advisor', 'weights', 'sets', limit] as const,
+  scoreSummary: (from: string, to: string, kind: AdviceKind, horizon: number | null) =>
+    [...quantKeys.all, 'advisor', 'scores', 'summary', from, to, kind, horizon] as const,
+  morningVsDaily: (from: string, to: string) =>
+    [...quantKeys.all, 'advisor', 'scores', 'morning-vs-daily', from, to] as const,
+  ic: (asOf: string, window: number | null, horizon: number) =>
+    [...quantKeys.all, 'advisor', 'scores', 'ic', asOf, window, horizon] as const,
+  weightSets: (limit: number, horizon: number) =>
+    [...quantKeys.all, 'advisor', 'weights', 'sets', limit, horizon] as const,
   advice: (adviceId: string) => [...quantKeys.all, 'advisor', 'advice', adviceId] as const,
   advicePrompt: (adviceId: string) =>
     [...quantKeys.all, 'advisor', 'advice', adviceId, 'prompt'] as const,
@@ -46,21 +51,50 @@ async function orDisabled<T>(fetcher: () => Promise<T>): Promise<T | AdvisorDisa
   }
 }
 
-export function useScoreSummary(from: string, to: string) {
+/**
+ * KPI 요약 — kind 기본 DAILY, horizon null 이면 파라미터를 생략해 그 종류의 결정 호라이즌을 쓴다.
+ * 유효한 (kind, horizon) 조합은 호출부가 `lib/quant/advisorHorizon.ts` 로 걸러 넘긴다(백엔드는 조합을 검증하지 않는다).
+ */
+export function useScoreSummary(
+  from: string,
+  to: string,
+  kind: AdviceKind = 'DAILY',
+  horizon: number | null = null,
+) {
   return useQuery<ScoreSummaryResponse | AdvisorDisabled>({
-    queryKey: advisorKeys.scoreSummary(from, to),
-    queryFn: () => orDisabled(() => service.advisor.scoreSummary({ from, to })),
+    queryKey: advisorKeys.scoreSummary(from, to, kind, horizon),
+    queryFn: () =>
+      orDisabled(() =>
+        service.advisor.scoreSummary(
+          horizon === null ? { from, to, kind } : { from, to, kind, horizon },
+        ),
+      ),
     staleTime: 60 * 1000,
     retry: false,
   });
 }
 
-/** 시그널 IC 창 통계 — 맵을 배열로 펴서 표에 바로 얹는다(signalCode 순 정렬). */
-export function useIcStats(asOf: string, window: number) {
+/** 아침 재판정 대응 비교(MORNING − DAILY). 404 는 advisor 비활성 또는 M4 이전 백엔드 — 둘 다 disabled 값으로 받는다. */
+export function useMorningVsDaily(from: string, to: string) {
+  return useQuery<MorningVsDailyResponse | AdvisorDisabled>({
+    queryKey: advisorKeys.morningVsDaily(from, to),
+    queryFn: () => orDisabled(() => service.advisor.morningVsDaily({ from, to })),
+    staleTime: 60 * 1000,
+    retry: false,
+  });
+}
+
+/**
+ * 시그널 IC 창 통계 — 맵을 배열로 펴서 표에 바로 얹는다(signalCode 순 정렬).
+ * window null 이면 생략(그 호라이즌의 ic-window, 20 은 480일) — 5 외 호라이즌은 짧은 창에서 n_eff 가 무의미해진다.
+ */
+export function useIcStats(asOf: string, window: number | null, horizon: number) {
   return useQuery<IcStat[] | AdvisorDisabled>({
-    queryKey: advisorKeys.ic(asOf, window),
+    queryKey: advisorKeys.ic(asOf, window, horizon),
     queryFn: async () => {
-      const result = await orDisabled(() => service.advisor.ic({ asOf, window }));
+      const result = await orDisabled(() =>
+        service.advisor.ic(window === null ? { asOf, horizon } : { asOf, window, horizon }),
+      );
       if (isAdvisorDisabled(result)) return result;
       return Object.values(result).sort((a, b) => a.signalCode.localeCompare(b.signalCode));
     },
@@ -79,10 +113,11 @@ export function useUsageRuns() {
   });
 }
 
-export function useWeightSets(limit = 20) {
+/** 호라이즌의 최근 가중치 세트 — 60·180 은 학습하지 않아 빈 목록이다. */
+export function useWeightSets(horizon: number, limit = 20) {
   return useQuery<WeightSet[] | AdvisorDisabled>({
-    queryKey: advisorKeys.weightSets(limit),
-    queryFn: () => orDisabled(() => service.advisor.weightSets(limit)),
+    queryKey: advisorKeys.weightSets(limit, horizon),
+    queryFn: () => orDisabled(() => service.advisor.weightSets(limit, horizon)),
     staleTime: 60 * 1000,
     retry: false,
   });

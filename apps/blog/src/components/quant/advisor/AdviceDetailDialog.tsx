@@ -18,17 +18,21 @@ import { useEffect, useState } from 'react';
 import type { RunActions } from '@/components/quant/useRunActions';
 import { quantKeys } from '@/hooks/useQuant';
 import { showApiErrorToast } from '@/lib/apiErrorToast';
+import { adviseJobOf } from '@/lib/quant/advisorHorizon';
+import { morningDiffRows } from '@/lib/quant/morningDiff';
 import service from '@/service';
 import { AdviceChecksPanel } from './AdviceChecksPanel';
+import { AdviceMorningDiffPanel } from './AdviceMorningDiffPanel';
 import { AdvicePicksPanel } from './AdvicePicksPanel';
 import { AdvicePromptPanel } from './AdvicePromptPanel';
+import { AdviceRegimeChips } from './AdviceRegimeChips';
 import { AdviceScoresPanel } from './AdviceScoresPanel';
 import { AdviceSummaryPanel } from './AdviceSummaryPanel';
-import { variantLabel, variantTone } from './advisorLabels';
+import { kindLabel, kindTone, variantLabel, variantTone } from './advisorLabels';
 import { useAdvice } from './advisorQueries';
 
-/** 서브탭 — controlled `Tabs`(URL 은 `?advice=` 만 갖고 서브탭은 다이얼로그 지역 상태). */
-const SUB_TABS = ['summary', 'picks', 'scores', 'checks', 'prompt'] as const;
+/** 서브탭 — controlled `Tabs`(URL 은 `?advice=` 만 갖고 서브탭은 다이얼로그 지역 상태). `diff` 는 MORNING 판단에만 보인다. */
+const SUB_TABS = ['summary', 'diff', 'picks', 'scores', 'checks', 'prompt'] as const;
 type SubTab = (typeof SUB_TABS)[number];
 
 /** 액션이 있는 토스트는 누를 시간이 필요하다(useRunActions 와 같은 8초). */
@@ -44,7 +48,10 @@ const DELETE_MESSAGE =
  * 본문: **액션 바**([판단 삭제]) → 서브탭(요약·픽·채점·점검·프롬프트 원문). **푸터는 닫기 1개**(DialogFooter 폭 220 고정).
  * 삭제는 되돌릴 수 없는 유일한 파괴 조작이라 **다이얼로그 안 `useConfirm` 대신 인라인 확인**(`InlineNotice tone="error"` +
  * [삭제 Danger][취소]) 으로 묻는다 — 모달 위 모달 금지(`useTrackOpen` 경고).
- * 성공 시 닫고 "판단 #N 삭제" 토스트 + '지금 재판단'(`triggerAdvisor('ADVISE', baseDate)`) → 그리드 `onDeleted` + `quantKeys.all` 무효화.
+ * 성공 시 닫고 "판단 #N 삭제" 토스트 + '지금 재판단'(그 종류를 만드는 잡 — DAILY→ADVISE, MORNING→MORNING_ADVISE, H20→ADVISE_H20 …,
+ * ADHOC 은 채팅 전용이라 버튼 없음) → 그리드 `onDeleted` + `quantKeys.all` 무효화.
+ *
+ * 국면 칩은 서브탭 위에 둔다 — 어느 탭을 보든 그날의 합성 국면(추세·변동성·정책 한도)을 함께 읽게 한다.
  */
 export function AdviceDetailDialog({
   adviceId,
@@ -74,8 +81,10 @@ export function AdviceDetailDialog({
 
   const detail = query.data;
   const header = detail?.header;
+  const isMorning = header?.adviceKind === 'MORNING';
+  const rerunJob = header ? adviseJobOf(header.adviceKind) : null;
 
-  /** 삭제 실행 — 성공하면 닫고 토스트('지금 재판단'은 그 판단의 baseDate 로 ADVISE 재실행). */
+  /** 삭제 실행 — 성공하면 닫고 토스트('지금 재판단'은 그 판단의 종류 잡을 같은 baseDate 로 재실행). */
   const executeDelete = async () => {
     if (!header) return;
     const { adviceId: id, baseDate } = header;
@@ -84,7 +93,14 @@ export function AdviceDetailDialog({
       await service.advisor.deleteAdvice(id);
       onClose();
       showToast(`판단 #${id} 삭제`, 'success', {
-        action: { label: '지금 재판단', onClick: () => actions.triggerAdvisor('ADVISE', baseDate) },
+        ...(rerunJob
+          ? {
+              action: {
+                label: '지금 재판단',
+                onClick: () => actions.triggerAdvisor(rerunJob, { baseDate }),
+              },
+            }
+          : {}),
         durationMs: ACTION_TOAST_MS,
       });
       queryClient.invalidateQueries({ queryKey: quantKeys.all });
@@ -107,6 +123,9 @@ export function AdviceDetailDialog({
         header ? (
           <span className="flex items-center gap-2">
             판단 #{header.adviceId} · {header.baseDate}
+            <Badge tone={kindTone(header.adviceKind)} size="sm">
+              {kindLabel(header.adviceKind)}
+            </Badge>
             <Badge tone={variantTone(header.variant)} size="sm">
               {variantLabel(header.variant)}
             </Badge>
@@ -174,10 +193,14 @@ export function AdviceDetailDialog({
                 판단 삭제
               </Button>
               <span className="text-dl-xs text-dl-fg-muted">
-                재판단 전용 — 삭제 뒤 같은 기준일로 ADVISE 를 다시 돌립니다
+                {rerunJob
+                  ? `재판단 전용 — 삭제 뒤 같은 기준일로 ${rerunJob} 를 다시 돌립니다`
+                  : '수시 판단은 채팅 봇만 다시 만들 수 있습니다'}
               </span>
             </div>
           )}
+
+          <AdviceRegimeChips header={header} />
 
           {/* ── 서브탭 ── */}
           <Tabs
@@ -187,6 +210,11 @@ export function AdviceDetailDialog({
           >
             <TabList label="판단 상세 탭" size="sm" className="shrink-0 overflow-x-auto">
               <Tab value="summary">요약</Tab>
+              {isMorning ? (
+                <Tab value="diff" badge={morningDiffRows(header.diffJson).length}>
+                  저녁 대비
+                </Tab>
+              ) : null}
               <Tab value="picks" badge={detail.picks.length}>
                 픽
               </Tab>
@@ -204,6 +232,11 @@ export function AdviceDetailDialog({
             <TabPanel value="summary" className="pt-3">
               <AdviceSummaryPanel header={header} />
             </TabPanel>
+            {isMorning ? (
+              <TabPanel value="diff" className="pt-3">
+                <AdviceMorningDiffPanel diff={header.diffJson} candidates={detail.candidates} />
+              </TabPanel>
+            ) : null}
             <TabPanel value="picks" className="pt-3">
               <AdvicePicksPanel picks={detail.picks} candidates={detail.candidates} />
             </TabPanel>

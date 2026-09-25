@@ -28,7 +28,7 @@ import {
   formatTokens,
 } from '@/lib/quant/format';
 import { ADVISOR_JOB_META, COLLECT_JOB_META } from '@/lib/quant/jobCatalog';
-import { isTerminal } from '@/lib/quant/runStatus';
+import { isTerminal, triggerLabel } from '@/lib/quant/runStatus';
 import {
   advisorRerunArgs,
   describeBackfillRequest,
@@ -49,8 +49,6 @@ type AvailablePlan = Extract<StepRetryPlan, { available: true }>;
 
 /** 인라인 확인 대상 — 다이얼로그 안에서는 `useConfirm` 을 부르지 않는다(모달 위 모달 금지, `useTrackOpen` 경고). */
 type Pending = { kind: 'cancel' } | { kind: 'rerun' } | { kind: 'step'; plan: AvailablePlan };
-
-const TRIGGER_LABEL: Record<string, string> = { SCHEDULER: '스케줄러', API: '관리자 API' };
 
 /**
  * run 상세(공용) — `ContentDialog size="lg"`. 열림 상태는 URL(`?run=`)이 진실이고 이 컴포넌트는 `runId` 로 스스로 조회한다
@@ -141,7 +139,7 @@ export function RunDetailDialog({
     if (advisorRun) {
       const args = advisorRerunArgs(advisorRun, today);
       const parts = [
-        `${advisorRun.jobDescription} 을 다시 실행합니다 (${args.baseDate ? `기준일 ${args.baseDate}` : '오늘 기준 — 스케줄 run 재현'}).`,
+        `${advisorRun.jobDescription} 을 다시 실행합니다 (${args.baseDate ? `기준일 ${args.baseDate}` : '오늘 기준 — 스케줄 run 재현'}${args.horizon !== undefined ? ` · h=${args.horizon}` : ''}).`,
       ];
       if (advisorRun.jobType === 'ADVISE') {
         parts.push('이미 LIVE 판단이 있으면 SKIPPED 로 닫힙니다 — 판단 삭제 후 재판단하세요.');
@@ -174,7 +172,7 @@ export function RunDetailDialog({
       title={run ? `run #${run.runId} · ${run.jobDescription}` : `run #${runId ?? ''}`}
       description={
         run
-          ? `${TRIGGER_LABEL[run.triggerType] ?? run.triggerType} · ${module === 'STOCK' ? '주식 수집' : 'AI 판단'}`
+          ? `${triggerLabel(run.triggerType)} · ${module === 'STOCK' ? '주식 수집' : 'AI 판단'}`
           : undefined
       }
       size="lg"
@@ -316,7 +314,7 @@ export function RunDetailDialog({
               <RunStatusBadge status={run.status} size="sm" />
             </FieldValue>
             <FieldValue size="sm" label="트리거">
-              {TRIGGER_LABEL[run.triggerType] ?? run.triggerType}
+              {triggerLabel(run.triggerType)}
             </FieldValue>
             {stockRun ? (
               <FieldValue size="sm" label="대상일">

@@ -10,6 +10,7 @@
 import type { SearchField } from '@/lib/gridSearch';
 import type { BadgeTone } from '@/lib/quant/runStatus';
 import type {
+  AdviceKind,
   AdviceVariant,
   CallSubject,
   DataQuality,
@@ -20,9 +21,11 @@ import type {
   MarketRegimeCode,
   MarketTrendCode,
   MorningVerdict,
+  PickAction,
   PickDirection,
   ScoreStage,
   ScoreStatus,
+  VolRegimeCode,
   WeightSetSource,
 } from '@/types/quant';
 
@@ -39,6 +42,7 @@ export const VARIANT_LABEL: Record<AdviceVariant, string> = {
   QUANT_TOPN: '퀀트 Top-N',
   LLM_NOMEM: 'LLM 무기억',
   LLM_NONEWS: 'LLM 무뉴스',
+  QUANT_TOPN_BROAD: '규칙 Top-N(전체 유니버스)',
 };
 
 export const variantLabel = (variant: AdviceVariant | string | null | undefined) =>
@@ -53,6 +57,33 @@ export function variantTone(variant: AdviceVariant | string): BadgeTone {
 export const VARIANT_OPTIONS: NonNullable<SearchField['options']> = (
   Object.keys(VARIANT_LABEL) as AdviceVariant[]
 ).map((variant) => ({ value: variant, label: `${VARIANT_LABEL[variant]} (${variant})` }));
+
+// ── 판단 종류 ───────────────────────────────────────────────────────────────
+
+export const KIND_LABEL: Record<AdviceKind, string> = {
+  DAILY: '일일',
+  MORNING: '아침 재판정',
+  H20: '20일',
+  H60: '60일',
+  H180: '180일',
+  ADHOC: '수시',
+};
+
+export const kindLabel = (kind: AdviceKind | string | null | undefined) =>
+  labelOf(KIND_LABEL, kind);
+
+/** DAILY 는 기본값이라 neutral, 나머지는 primary 로 "기본이 아닌 종류를 보고 있다" 를 드러낸다. */
+export function kindTone(kind: AdviceKind | string | null | undefined): BadgeTone {
+  return kind === 'DAILY' ? 'neutral' : 'primary';
+}
+
+/**
+ * 종류 select 옵션 — "전체" 가 없다(백엔드는 kind 를 생략하면 DAILY 로 본다 — "전체" 를 두면 DAILY 만 보이는 거짓 전체가 된다).
+ * 라벨에 코드를 함께 둔다(Slack·채팅 도구는 코드로 말한다).
+ */
+export function kindOptions(kinds: readonly AdviceKind[]): NonNullable<SearchField['options']> {
+  return kinds.map((kind) => ({ value: kind, label: `${KIND_LABEL[kind]} (${kind})` }));
+}
 
 // ── 시장 판단 ───────────────────────────────────────────────────────────────
 
@@ -80,6 +111,26 @@ export const TREND_LABEL: Record<MarketTrendCode, string> = {
 export const trendLabel = (code: MarketTrendCode | string | null | undefined) =>
   labelOf(TREND_LABEL, code);
 
+export const VOL_REGIME_LABEL: Record<VolRegimeCode, string> = {
+  LOW: '저변동',
+  NORMAL: '보통 변동',
+  HIGH: '고변동',
+  UNKNOWN: '변동성 판정 불가',
+};
+export const volRegimeLabel = (code: VolRegimeCode | string | null | undefined) =>
+  labelOf(VOL_REGIME_LABEL, code);
+/** HIGH warning(정책 표가 한도를 조인다) · UNKNOWN neutral(정책 가산 없음) · 나머지 neutral. */
+export function volRegimeTone(code: VolRegimeCode | string | null | undefined): BadgeTone {
+  return code === 'HIGH' ? 'warning' : 'neutral';
+}
+
+/** 추세 톤 — BULL success · BEAR danger · SIDEWAYS/없음 neutral. */
+export function trendTone(code: MarketTrendCode | string | null | undefined): BadgeTone {
+  if (code === 'BULL') return 'success';
+  if (code === 'BEAR') return 'danger';
+  return 'neutral';
+}
+
 export const DATA_QUALITY_LABEL: Record<DataQuality, string> = { OK: '정상', DEGRADED: '저하' };
 export const dataQualityLabel = (code: DataQuality | string | null | undefined) =>
   labelOf(DATA_QUALITY_LABEL, code);
@@ -90,6 +141,20 @@ export function dataQualityTone(code: DataQuality | string | null | undefined): 
 }
 
 // ── 픽·채점 ─────────────────────────────────────────────────────────────────
+
+export const PICK_ACTION_LABEL: Record<PickAction, string> = {
+  KEEP: '유지',
+  ADD: '추가',
+  DROP: '제외',
+};
+export const pickActionLabel = (code: PickAction | string | null | undefined) =>
+  labelOf(PICK_ACTION_LABEL, code);
+/** DROP warning(저녁 판단을 뒤집음) · ADD primary(새로 들어옴) · KEEP neutral(의도된 무변경). */
+export function pickActionTone(code: PickAction | string | null | undefined): BadgeTone {
+  if (code === 'DROP') return 'warning';
+  if (code === 'ADD') return 'primary';
+  return 'neutral';
+}
 
 export const PICK_DIRECTION_LABEL: Record<PickDirection, string> = { LONG: '매수', AVOID: '회피' };
 export const pickDirectionLabel = (code: PickDirection | string | null | undefined) =>

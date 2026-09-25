@@ -8,7 +8,7 @@
  * primary=진행 · neutral=의도된 무동작.
  */
 
-import type { AdvisorStatus, CollectStatus, RunStepStatus } from '../../types/quant';
+import type { AdvisorStatus, CollectStatus, RunStepStatus, TriggerType } from '../../types/quant';
 import type { SearchField } from '../gridSearch';
 
 /** 두 모듈의 상태 합집합 — SKIPPED 는 advisor 전용이다. */
@@ -65,6 +65,19 @@ export const ADVISOR_RUN_STATUS_OPTIONS: NonNullable<SearchField['options']> = [
   ...RUN_STATUS_OPTIONS,
   { value: 'SKIPPED', label: RUN_STATUS_LABEL.SKIPPED },
 ];
+
+/** run 트리거 출처 라벨 — 그리드·상세가 같은 표를 쓴다. CHAT 은 advisor 채팅 봇 요청(수시 판단). */
+export const TRIGGER_LABEL: Record<TriggerType, string> = {
+  SCHEDULER: '스케줄러',
+  API: '관리자 API',
+  CHAT: '채팅 봇',
+};
+
+/** 모르는 출처는 원문. */
+export function triggerLabel(trigger: TriggerType | string | null | undefined): string {
+  if (trigger === null || trigger === undefined) return '—';
+  return (TRIGGER_LABEL as Record<string, string>)[trigger] ?? String(trigger);
+}
 
 /** 종료 상태인지 — 재실행 버튼은 종료 run 에만, 취소는 RUNNING 에만 뜬다. */
 export function isTerminal(status: RunStatus | string): boolean {

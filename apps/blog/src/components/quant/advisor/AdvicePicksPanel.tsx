@@ -13,12 +13,18 @@ import {
 } from '@hvy/ui';
 import { DashboardTable } from '@/components/dashboard/DashboardTable';
 import type { CandidateRow, PickRow } from '@/types/quant';
-import { pickDirectionLabel, pickDirectionTone } from './advisorLabels';
+import {
+  pickActionLabel,
+  pickActionTone,
+  pickDirectionLabel,
+  pickDirectionTone,
+} from './advisorLabels';
 import { formatFixed, formatRate } from './kpiFormat';
 
 /**
  * 판단 상세 "픽" 서브탭 — picks 정적 표 + 후보군(candidates)은 접힌 Accordion(30행이라 기본 접음).
  * 종목명은 후보군 행에만 있어 ticker 로 조인해 픽 표에 얹는다.
+ * 아침 재판정 픽은 조치(유지·추가)와 사유가 있어 그때만 "조치" 열을 더한다 — 제외(DROP)는 픽이 아니라 "저녁 대비" 탭에 있다.
  */
 export function AdvicePicksPanel({
   picks,
@@ -28,6 +34,7 @@ export function AdvicePicksPanel({
   candidates: readonly CandidateRow[];
 }) {
   const nameOf = new Map(candidates.map((c) => [c.ticker, c.stockName ?? '']));
+  const hasAction = picks.some((pick) => pick.action);
 
   return (
     <div className="flex flex-col gap-3">
@@ -43,6 +50,9 @@ export function AdvicePicksPanel({
               <TableHeaderCell className="text-right">순위</TableHeaderCell>
               <TableHeaderCell>종목</TableHeaderCell>
               <TableHeaderCell>방향</TableHeaderCell>
+              {hasAction ? (
+                <TableHeaderCell className="whitespace-normal">조치</TableHeaderCell>
+              ) : null}
               <TableHeaderCell className="text-right">확신</TableHeaderCell>
               <TableHeaderCell className="whitespace-normal">논지</TableHeaderCell>
               <TableHeaderCell className="whitespace-normal">리스크</TableHeaderCell>
@@ -65,6 +75,27 @@ export function AdvicePicksPanel({
                     {pickDirectionLabel(pick.direction)}
                   </Badge>
                 </TableCell>
+                {hasAction ? (
+                  <TableCell>
+                    {pick.action ? (
+                      <span className="flex flex-col gap-1">
+                        <Badge tone={pickActionTone(pick.action)} size="xs">
+                          {pickActionLabel(pick.action)}
+                        </Badge>
+                        {pick.actionReason ? (
+                          <span
+                            className="line-clamp-3 text-dl-xs text-dl-fg-muted wrap-anywhere"
+                            title={pick.actionReason}
+                          >
+                            {pick.actionReason}
+                          </span>
+                        ) : null}
+                      </span>
+                    ) : (
+                      '—'
+                    )}
+                  </TableCell>
+                ) : null}
                 <TableCell className="text-right tabular-nums">
                   {formatRate(pick.conviction, 0)}
                 </TableCell>

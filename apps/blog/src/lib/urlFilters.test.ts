@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { pickLogFilters, pickPostFilters, pickQuantRunFilters } from './urlFilters';
+import {
+  pickAdviceFilters,
+  pickLogFilters,
+  pickPostFilters,
+  pickQuantRunFilters,
+} from './urlFilters';
 
 describe('pickPostFilters', () => {
   it('허용 목록에 있는 키만 통과시킨다', () => {
@@ -101,5 +106,19 @@ describe('pickQuantRunFilters', () => {
 
   it('쿼리가 없으면 빈 객체', () => {
     expect(pickQuantRunFilters('', allowed)).toEqual({});
+  });
+});
+
+describe('pickAdviceFilters', () => {
+  const allowed = { kinds: ['DAILY', 'MORNING'], variants: ['LIVE', 'QUANT_TOPN'] };
+
+  it('허용된 kind·variant·ISO 날짜만 남기고 화면 상태 키는 버린다', () => {
+    expect(
+      pickAdviceFilters('tab=advices&advice=7&kind=MORNING&variant=LIVE&from=2026-09-01', allowed),
+    ).toEqual({ kind: 'MORNING', variant: 'LIVE', from: '2026-09-01' });
+  });
+
+  it('enum 밖 값·날짜 형식 오류는 버린다(백엔드 400 → Slack 방지)', () => {
+    expect(pickAdviceFilters('kind=WEEKLY&variant=NOPE&to=bad', allowed)).toEqual({});
   });
 });

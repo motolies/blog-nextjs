@@ -18,8 +18,8 @@ export const QUANT_ROUTES = {
 export const COLLECT_TABS = ['runs', 'trigger', 'checkpoints'] as const;
 export type CollectTab = (typeof COLLECT_TABS)[number];
 
-/** `/admin/quant/advisor?tab=` */
-export const ADVISOR_TABS = ['runs', 'advices', 'kpi', 'weights'] as const;
+/** `/admin/quant/advisor?tab=` — `trigger` 는 인자가 필요한 수동 실행(기준일 보충·IC 호라이즌 백필). */
+export const ADVISOR_TABS = ['runs', 'advices', 'kpi', 'weights', 'trigger'] as const;
 export type AdvisorTab = (typeof ADVISOR_TABS)[number];
 
 /**

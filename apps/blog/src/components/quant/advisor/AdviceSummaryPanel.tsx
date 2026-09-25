@@ -14,13 +14,15 @@ import {
 } from '@hvy/ui';
 import Link from 'next/link';
 import { DashboardTable } from '@/components/dashboard/DashboardTable';
-import { runHref } from '@/lib/quant/routes';
+import { adviceHref, runHref } from '@/lib/quant/routes';
 import type { AdviceHeader } from '@/types/quant';
 import { formatUtcToLocal } from '@/util/dateTimeUtil';
 import {
   dataQualityLabel,
   dataQualityTone,
   directionLabel,
+  kindLabel,
+  kindTone,
   regimeLabel,
   trendLabel,
   variantLabel,
@@ -42,12 +44,26 @@ export function AdviceSummaryPanel({ header }: { header: AdviceHeader }) {
           {header.baseDate}
           <span className="ml-1 text-dl-fg-muted">h={header.horizonDays}</span>
         </FieldValue>
+        <FieldValue size="sm" label="종류">
+          <Badge tone={kindTone(header.adviceKind)} size="sm">
+            {kindLabel(header.adviceKind)}
+          </Badge>
+          {header.parentAdviceId !== null && header.parentAdviceId !== undefined ? (
+            <Link
+              href={adviceHref(header.parentAdviceId)}
+              className="ml-1 text-dl-primary-ink hover:underline"
+            >
+              원 판단 #{header.parentAdviceId}
+            </Link>
+          ) : null}
+        </FieldValue>
         <FieldValue size="sm" label="변형">
           <Badge tone={variantTone(header.variant)} size="sm">
             {variantLabel(header.variant)}
           </Badge>
         </FieldValue>
-        <FieldValue size="sm" label="국면">
+        {/* LLM 이 판단한 5일 위험 선호 — 규칙 기반 합성 국면(상단 칩)과는 다른 축이다 */}
+        <FieldValue size="sm" label="위험 선호(LLM)">
           {regimeLabel(header.regimeCode)}
         </FieldValue>
         <FieldValue size="sm" label="KOSPI / KOSDAQ 방향">

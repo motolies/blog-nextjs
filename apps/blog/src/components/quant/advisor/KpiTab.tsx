@@ -3,8 +3,6 @@
 import {
   Badge,
   InlineNotice,
-  Label,
-  Select,
   StatTile,
   TableBody,
   TableCell,
@@ -16,14 +14,31 @@ import { useState } from 'react';
 import { DashboardTable } from '@/components/dashboard/DashboardTable';
 import { DashboardWidget } from '@/components/dashboard/DashboardWidget';
 import { isAdvisorDisabled } from '@/hooks/useQuant';
-import { useSearchParamState } from '@/hooks/useSearchParamState';
+import { useSearchParamState, useSearchParamsPatch } from '@/hooks/useSearchParamState';
+import {
+  DAILY_HORIZON,
+  decisionHorizonOf,
+  isMonitoringHorizon,
+  KPI_KINDS,
+  type KpiKind,
+  kpiHorizonsOf,
+  resolveIcHorizon,
+  resolveKind,
+  resolveKpiHorizon,
+} from '@/lib/quant/advisorHorizon';
 import { todayKst } from '@/lib/quant/kstDate';
 import { addDays } from '@/lib/quant/usage';
 import { formatCompact } from '@/lib/statFormat';
-import type { ScoreSummaryResponse } from '@/types/quant';
+import {
+  IC_HORIZONS,
+  type MorningVsDailyResponse,
+  type PairedDiff,
+  type ScoreSummaryResponse,
+} from '@/types/quant';
 import { AdvisorDisabledPanel } from './AdvisorDisabledPanel';
-import { ADVISOR_DISABLED_EMPTY, variantLabel, variantTone } from './advisorLabels';
-import { useIcStats, useScoreSummary, useUsageRuns } from './advisorQueries';
+import { ADVISOR_DISABLED_EMPTY, KIND_LABEL, variantLabel, variantTone } from './advisorLabels';
+import { useIcStats, useMorningVsDaily, useScoreSummary, useUsageRuns } from './advisorQueries';
+import { FilterSelect } from './FilterSelect';
 import {
   formatFixed,
   formatPctWithSe,
@@ -42,6 +57,25 @@ const PERIOD_OPTIONS = [
   { value: '180', label: '최근 180일' },
 ] as const;
 const DEFAULT_DAYS = 90;
+
+/** 종류 select — 채점하는 종류만(ADHOC 제외). 라벨에 코드를 함께 둔다. */
+const KIND_OPTIONS = KPI_KINDS.map((kind) => ({
+  value: kind,
+  label: `${KIND_LABEL[kind]} (${kind})`,
+}));
+
+/** IC 호라이즌 select — 5·20 은 가중치 학습, 60·180 은 IC 만 저장하는 모니터링 전용. */
+const IC_HORIZON_OPTIONS = IC_HORIZONS.map((horizon) => ({
+  value: String(horizon),
+  label: `${horizon}일${isMonitoringHorizon(horizon) ? ' (모니터링)' : ''}`,
+}));
+
+/** 대응 비교 표의 세 행 — 사전 등록 판정은 트리거일 행이 기준이다. */
+const PAIRED_ROWS: readonly { key: 'all' | 'triggered' | 'untriggered'; label: string }[] = [
+  { key: 'triggered', label: '트리거일' },
+  { key: 'untriggered', label: '비트리거일' },
+  { key: 'all', label: '전체' },
+];
 
 /** 교훈 게이트 — `advisor.lesson.min-picks`(300). WEEKLY_REVIEW 의 LESSONS 단계가 누적 LIVE 픽 이 값 이상일 때만 돈다. */
 const LESSON_MIN_PICKS = 300;
@@ -63,9 +97,29 @@ function parseDays(raw: string | null): number {
   return PERIOD_OPTIONS.some((option) => Number(option.value) === value) ? value : DEFAULT_DAYS;
 }
 
+/** 채점 호라이즌 select 옵션 — 결정 호라이즌이 첫째, DAILY·MORNING 만 진단 호라이즌(1·20)이 더 있다. */
+function horizonOptionsOf(kind: KpiKind) {
+  const decision = decisionHorizonOf(kind);
+  return kpiHorizonsOf(kind).map((horizon) => ({
+    value: String(horizon),
+    label: `T+${horizon}${horizon === decision ? ' (결정)' : ' (진단)'}`,
+  }));
+}
+
+/** 대응 차이 행이 유의한지 — 사전 등록 규칙(트리거일 t > 2 면 유지)과 같은 임계. */
+function pairedTone(diff: PairedDiff): 'success' | 'danger' | 'neutral' {
+  if (diff.t === null || !isSignificant(diff.t)) return 'neutral';
+  return diff.t > 0 ? 'success' : 'danger';
+}
+
 /**
- * KPI 탭 — `GET /scores/summary`(variants·regime·calibration·recent·note) + `GET /scores/ic` + LLM 사용량.
+ * KPI 탭 — `GET /scores/summary`(variants·regime·calibration·recent·note) + `GET /scores/morning-vs-daily` + `GET /scores/ic` + LLM 사용량.
  * 전부 `DashboardWidget`(읽기 실패 토스트 금지·위젯 안 재시도). advisor 404 면 탭 전체가 빈 상태다.
+ *
+ * 선택은 URL 이 진실이다 — `?days=`(기간) · `?kind=`(종류, 기본 DAILY) · `?h=`(채점 호라이즌, 기본 = 종류의 결정 호라이즌) ·
+ * `?icH=`(IC 호라이즌, 기본 5). 기본값은 URL 에서 지운다. 종류를 바꾸면 `h` 를 함께 지운다 — 진단 호라이즌은 종류마다 달라
+ * 옛 값이 끌려오면 백엔드가 검증 없이 빈 표를 돌려준다(`lib/quant/advisorHorizon.ts`).
+ * H60·H180 은 가중치를 학습하지 않는 호라이즌이라 백엔드가 `verdictLabel`("판정 불가…")을 실어 보낸다 — 변형 표 위에 그대로 띄운다.
  *
  * "누적 LIVE 픽 N / 300" 타일은 선택 기간이 아니라 **전체 기간**(`LIFETIME_FROM`~오늘)의 `scoreSummary` 를 따로 읽는다 —
  * 게이트가 보는 값이 전체 누적이기 때문이다. 화면 필터와 기준이 다르므로 hint 에 "전체 기준" 을 명기한다(StatTile 문서 규칙).
@@ -73,14 +127,28 @@ function parseDays(raw: string | null): number {
 export function KpiTab() {
   const [today] = useState(() => todayKst());
   const [daysParam, setDaysParam] = useSearchParamState('days');
+  const [kindParam] = useSearchParamState('kind');
+  const [horizonParam, setHorizonParam] = useSearchParamState('h');
+  const [icHorizonParam, setIcHorizonParam] = useSearchParamState('icH');
+  const patchParams = useSearchParamsPatch();
   const days = parseDays(daysParam);
   const from = addDays(today, -(days - 1));
+  const kind = resolveKind(kindParam, KPI_KINDS, 'DAILY');
+  const horizon = resolveKpiHorizon(kind, horizonParam);
+  const effectiveHorizon = horizon ?? decisionHorizonOf(kind);
+  const horizonOptions = horizonOptionsOf(kind);
+  const icHorizon = resolveIcHorizon(icHorizonParam);
+  // IC 창: h=5 는 기존대로 선택 기간, 그 밖은 백엔드 호라이즌 기본 창(20 은 480일) — 90일 창에서 h=60 이면 n_eff 가 1.5 라 무의미하다
+  const icWindow = icHorizon === DAILY_HORIZON ? days : null;
 
-  const summary = useScoreSummary(from, today);
-  // 전체 기간 — 키가 (from,to) 로 갈려 선택 기간 쿼리와 캐시가 섞이지 않는다(`quantKeys.all` 하위라 invalidate 는 함께 된다)
+  const summary = useScoreSummary(from, today, kind, horizon);
+  // 전체 기간 — 키가 (from,to) 로 갈려 선택 기간 쿼리와 캐시가 섞이지 않는다(`quantKeys.all` 하위라 invalidate 는 함께 된다).
+  // 게이트는 DAILY 만 세므로 종류 선택과 무관하게 DAILY 기본값으로 읽는다.
   const lifetime = useScoreSummary(LIFETIME_FROM, today);
-  const ic = useIcStats(today, days);
+  const morningVsDaily = useMorningVsDaily(from, today);
+  const ic = useIcStats(today, icWindow, icHorizon);
   const usage = useUsageRuns();
+  const scoredHint = `T+${effectiveHorizon} 청산 뒤 SCORE 가 돌면 채워집니다`;
 
   const lifetimeLivePicks =
     lifetime.data === undefined || isAdvisorDisabled(lifetime.data)
@@ -94,23 +162,46 @@ export function KpiTab() {
   return (
     <div className="admin-fill flex flex-1 flex-col gap-4 pb-2">
       <div className="flex flex-wrap items-end gap-2">
-        {/* 폭은 옵션 문구("최근 180일")가 정한다 — 좁은 화면에서만 한 줄을 다 쓴다(치수 리터럴 없이) */}
-        <div className="flex w-full min-w-0 flex-col gap-1 sm:w-auto">
-          <Label htmlFor="kpi-days" className="text-dl-xs text-dl-fg-muted">
-            기간
-          </Label>
-          <Select
-            id="kpi-days"
-            size="sm"
-            value={String(days)}
-            onValueChange={(value) => setDaysParam(value === String(DEFAULT_DAYS) ? null : value)}
-            placeholder="기간"
-            options={PERIOD_OPTIONS}
-            className="w-full"
+        <FilterSelect
+          id="kpi-days"
+          label="기간"
+          value={String(days)}
+          options={PERIOD_OPTIONS}
+          onValueChange={(value) => setDaysParam(value === String(DEFAULT_DAYS) ? null : value)}
+        />
+        <FilterSelect
+          id="kpi-kind"
+          label="판단 종류"
+          value={kind}
+          options={KIND_OPTIONS}
+          // 종류를 바꾸면 채점 호라이즌을 결정 호라이즌으로 되돌린다(두 키를 한 번에 — 연달아 setter 를 부르면 하나가 사라진다)
+          onValueChange={(value) =>
+            patchParams({ kind: value === 'DAILY' ? null : value, h: null })
+          }
+        />
+        {horizonOptions.length > 1 ? (
+          <FilterSelect
+            id="kpi-horizon"
+            label="채점 호라이즌"
+            value={String(effectiveHorizon)}
+            options={horizonOptions}
+            onValueChange={(value) =>
+              setHorizonParam(value === String(decisionHorizonOf(kind)) ? null : value)
+            }
           />
-        </div>
+        ) : null}
+        <FilterSelect
+          id="kpi-ic-horizon"
+          label="IC 호라이즌"
+          value={String(icHorizon)}
+          options={IC_HORIZON_OPTIONS}
+          onValueChange={(value) =>
+            setIcHorizonParam(value === String(DAILY_HORIZON) ? null : value)
+          }
+        />
         <p className="pb-2 text-dl-xs text-[color:var(--admin-text-faint)]">
-          {from} ~ {today} · 청산 h=T+5 · 잠정·확정 채점 포함
+          {from} ~ {today} · {KIND_LABEL[kind]} · 청산 h=T+{effectiveHorizon}
+          {horizon !== null ? ' (진단)' : ''} · 잠정·확정 채점 포함
         </p>
       </div>
 
@@ -193,15 +284,27 @@ export function KpiTab() {
             ? ADVISOR_DISABLED_EMPTY
             : {
                 message: '기간 안 판단이 없습니다',
-                hint: '기간을 늘리거나 ADVISE 실행을 확인하세요',
+                hint: `기간을 늘리거나 ${KIND_LABEL[kind]} 판단 잡 실행을 확인하세요`,
               }
         }
         errorMessage="변형별 성과를 불러오지 못했습니다."
       >
         {(data) => {
           const response = data as ScoreSummaryResponse;
+          // 판정 불가 라벨은 종류 단위라 변형마다 같다 — 하나만 띄운다
+          const verdictLabel = response.variants.find(
+            (variant) => variant.verdictLabel,
+          )?.verdictLabel;
           return (
             <div className="flex flex-col gap-3">
+              {verdictLabel ? (
+                <InlineNotice tone="warning" title="판정 불가">
+                  <span className="wrap-anywhere">
+                    {verdictLabel} — {KIND_LABEL[kind]} 판단은 모니터링 전용이라 아래 수치로 성패를
+                    판정하지 않습니다.
+                  </span>
+                </InlineNotice>
+              ) : null}
               <DashboardTable>
                 <TableHead>
                   <TableRow>
@@ -268,6 +371,75 @@ export function KpiTab() {
         }}
       </DashboardWidget>
 
+      {/* ── 아침 재판정 대응 비교 (MORNING − DAILY) ── */}
+      <DashboardWidget
+        id="advisor-kpi-morning-vs-daily"
+        title="아침 재판정 대응 비교"
+        caption="MORNING − DAILY · 같은 기준일 LONG 픽 평균 초과의 날짜 단위 차이 · 사전 등록: 트리거일 t > 2 면 유지"
+        query={morningVsDaily}
+        isEmpty={(data) => isAdvisorDisabled(data) || data.all.n === 0}
+        empty={
+          isAdvisorDisabled(morningVsDaily.data)
+            ? {
+                message: '대응 비교를 조회할 수 없습니다',
+                hint: 'advisor 비활성 또는 아침 재판정(M4) 이전 백엔드입니다',
+              }
+            : {
+                message: '대응 쌍이 없습니다',
+                hint: 'MORNING_ADVISE 가 돌고 아침·저녁 픽이 모두 채점돼야 채워집니다',
+              }
+        }
+        errorMessage="대응 비교를 불러오지 못했습니다."
+      >
+        {(data) => {
+          const response = data as MorningVsDailyResponse;
+          return (
+            <DashboardTable>
+              <TableHead>
+                <TableRow>
+                  <TableHeaderCell>구분</TableHeaderCell>
+                  <TableHeaderCell className="text-right">기준일 수</TableHeaderCell>
+                  <TableHeaderCell className="text-right">평균 차이 ± se</TableHeaderCell>
+                  <TableHeaderCell className="text-right">t</TableHeaderCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {PAIRED_ROWS.map(({ key, label }) => {
+                  const diff = response[key];
+                  const tone = pairedTone(diff);
+                  return (
+                    <TableRow key={key}>
+                      <TableCell className="whitespace-nowrap">
+                        {key === 'triggered' ? (
+                          <Badge tone="warning" size="xs">
+                            {label}
+                          </Badge>
+                        ) : (
+                          label
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatCompact(diff.n)}
+                      </TableCell>
+                      <TableCell
+                        className={`text-right tabular-nums whitespace-nowrap ${SIGN_CLASS[signTone(diff.meanDiff)]}`}
+                      >
+                        {formatPctWithSe(diff.meanDiff, diff.seDiff)}
+                      </TableCell>
+                      <TableCell
+                        className={`text-right tabular-nums ${tone === 'neutral' ? 'text-dl-fg-muted' : `font-semibold ${SIGN_CLASS[tone]}`}`}
+                      >
+                        {formatSignedFixed(diff.t, 2)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </DashboardTable>
+          );
+        }}
+      </DashboardWidget>
+
       <div className="admin-split-layout" data-size="balanced">
         {/* ── 확신 보정 ── */}
         <DashboardWidget
@@ -279,7 +451,7 @@ export function KpiTab() {
           empty={
             isAdvisorDisabled(summary.data)
               ? ADVISOR_DISABLED_EMPTY
-              : { message: '채점된 픽이 없습니다', hint: 'T+5 청산 뒤 SCORE 가 돌면 채워집니다' }
+              : { message: '채점된 픽이 없습니다', hint: scoredHint }
           }
           errorMessage="보정 표를 불러오지 못했습니다."
         >
@@ -327,7 +499,7 @@ export function KpiTab() {
           empty={
             isAdvisorDisabled(summary.data)
               ? ADVISOR_DISABLED_EMPTY
-              : { message: '채점된 픽이 없습니다', hint: 'T+5 청산 뒤 SCORE 가 돌면 채워집니다' }
+              : { message: '채점된 픽이 없습니다', hint: scoredHint }
           }
           errorMessage="최근 픽을 불러오지 못했습니다."
         >
@@ -383,13 +555,16 @@ export function KpiTab() {
       <DashboardWidget
         id="advisor-kpi-ic"
         title="시그널 IC"
-        caption={`asOf ${today} · 창 ${days}일 · |t| ≥ 2 강조`}
+        caption={`asOf ${today} · h=${icHorizon}${isMonitoringHorizon(icHorizon) ? ' 모니터링(n_eff 작음)' : ''} · 창 ${icWindow === null ? '호라이즌 기본' : `${icWindow}일`} · |t| ≥ 2 강조`}
         query={ic}
         isEmpty={(data) => isAdvisorDisabled(data) || data.length === 0}
         empty={
           isAdvisorDisabled(ic.data)
             ? ADVISOR_DISABLED_EMPTY
-            : { message: 'IC 관측이 없습니다', hint: 'IC_BACKFILL 을 먼저 실행하세요' }
+            : {
+                message: 'IC 관측이 없습니다',
+                hint: `IC_BACKFILL(h=${icHorizon})을 먼저 실행하세요 — 수동 실행 탭에서 호라이즌을 지정할 수 있습니다`,
+              }
         }
         errorMessage="시그널 IC 를 불러오지 못했습니다."
       >

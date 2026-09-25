@@ -23,6 +23,7 @@ import { DashboardTable } from '@/components/dashboard/DashboardTable';
 import { DashboardWidget } from '@/components/dashboard/DashboardWidget';
 import { type AdvisorDisabled, isAdvisorDisabled, quantKeys } from '@/hooks/useQuant';
 import { showApiErrorToast } from '@/lib/apiErrorToast';
+import { isMonitoringHorizon, weightConsumerJobOf } from '@/lib/quant/advisorHorizon';
 import { runHref } from '@/lib/quant/routes';
 import service from '@/service';
 import type { WeightSet } from '@/types/quant';
@@ -30,7 +31,8 @@ import { ADVISOR_DISABLED_EMPTY, weightSourceLabel } from './advisorLabels';
 import { formatFixed, formatSignedFixed, isSignificant } from './kpiFormat';
 
 /**
- * 가중치 세트 — `GET /weights/sets`(limit 20). 세트 한 줄이 `AccordionItem` 이고 펼치면 `weights[]` 정적 표다.
+ * 가중치 세트 — `GET /weights/sets?horizon=`(limit 20). 세트 한 줄이 `AccordionItem` 이고 펼치면 `weights[]` 정적 표다.
+ * 활성 세트는 호라이즌마다 1개다 — 5 는 ADVISE, 20 은 ADVISE_H20 이 쓴다. 60·180 은 학습하지 않아 늘 비어 있다.
  *
  * "활성화" 버튼은 **트리거 바깥**(같은 줄 오른쪽)에 둔다 — `AccordionTrigger` 는 `<button>` 이라 안에 버튼을 못 넣는다.
  * Radix Header(`h3`) 는 flex 자식이지만 스스로 늘어나지 않아 `[&>h3]:flex-1` 로 트리거가 남는 폭을 먹게 한다.
@@ -40,24 +42,31 @@ import { formatFixed, formatSignedFixed, isSignificant } from './kpiFormat';
  */
 export function WeightSetsPanel({
   query,
+  horizon,
 }: {
   query: UseQueryResult<WeightSet[] | AdvisorDisabled>;
+  /** 조회 중인 호라이즌 — 캡션·빈 상태·활성화 문구가 이 값을 따른다. */
+  horizon: number;
 }) {
   const askConfirm = useConfirm();
   const queryClient = useQueryClient();
   const [activating, setActivating] = useState<number | null>(null);
+  // 세트를 쓰는 잡 — 활성화 문구의 "다음 {잡} 부터". 세트에 horizonDays 가 없는 구버전 응답이면 조회 호라이즌을 쓴다.
+  const consumerOf = (set: WeightSet) =>
+    weightConsumerJobOf(set.horizonDays ?? horizon) ?? 'ADVISE';
 
-  /** 활성화 — 다음 ADVISE 부터 적용. 성공 시 quantKeys.all 무효화(세트 목록·판단 헤더의 weightSetId 가 함께 갱신). */
+  /** 활성화 — 그 호라이즌의 다음 판단부터 적용. 성공 시 quantKeys.all 무효화(세트 목록·판단 헤더의 weightSetId 가 함께 갱신). */
   const activate = async (set: WeightSet) => {
+    const consumer = consumerOf(set);
     const ok = await askConfirm({
-      message: `가중치 세트 #${set.weightSetId}(${weightSourceLabel(set.source)} · ${set.asOf}) 을 활성화합니다. 다음 ADVISE 부터 적용되고, 이전 세트를 다시 활성화하면 되돌릴 수 있습니다.`,
+      message: `가중치 세트 #${set.weightSetId}(h=${set.horizonDays ?? horizon} · ${weightSourceLabel(set.source)} · ${set.asOf}) 을 활성화합니다. 다음 ${consumer} 부터 적용되고, 이전 세트를 다시 활성화하면 되돌릴 수 있습니다.`,
       confirmLabel: '활성화',
     });
     if (!ok) return;
     setActivating(set.weightSetId);
     try {
       await service.advisor.activateWeightSet(set.weightSetId);
-      showToast(`가중치 세트 #${set.weightSetId} 활성화 — 다음 ADVISE 부터 적용됩니다.`);
+      showToast(`가중치 세트 #${set.weightSetId} 활성화 — 다음 ${consumer} 부터 적용됩니다.`);
       queryClient.invalidateQueries({ queryKey: quantKeys.all });
     } catch (error) {
       showApiErrorToast(`가중치 세트 #${set.weightSetId} 활성화에 실패했습니다.`, error);
@@ -70,16 +79,24 @@ export function WeightSetsPanel({
     <DashboardWidget
       id="advisor-weight-sets"
       title="가중치 세트"
-      caption="최근 20개 · 활성 세트는 다음 ADVISE 의 시그널 가중치"
+      caption={`h=${horizon} · 최근 20개 · 활성 세트는 다음 ${weightConsumerJobOf(horizon) ?? '판단'} 의 시그널 가중치`}
       query={query}
       isEmpty={(data) => isAdvisorDisabled(data) || data.length === 0}
       empty={
         isAdvisorDisabled(query.data)
           ? ADVISOR_DISABLED_EMPTY
-          : {
-              message: '가중치 세트가 없습니다',
-              hint: 'advisor-seed.sql 시드 또는 IC_BACKFILL → WEEKLY_REVIEW 로 생성됩니다',
-            }
+          : isMonitoringHorizon(horizon)
+            ? {
+                message: `h=${horizon} 는 가중치를 학습하지 않습니다`,
+                hint: '모니터링 호라이즌 — IC 만 저장합니다(KPI 탭의 IC 호라이즌에서 확인)',
+              }
+            : {
+                message: '가중치 세트가 없습니다',
+                hint:
+                  horizon === 20
+                    ? 'IC_BACKFILL(h=20) 또는 WEEKLY_REVIEW 가 n_eff 게이트를 넘긴 뒤 생깁니다'
+                    : 'advisor-seed.sql 시드 또는 IC_BACKFILL → WEEKLY_REVIEW 로 생성됩니다',
+              }
       }
       errorMessage="가중치 세트를 불러오지 못했습니다."
     >

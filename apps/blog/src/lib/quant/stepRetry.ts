@@ -169,16 +169,32 @@ export function describeBackfillRequest(body: BackfillRequest): string {
   return parts.length > 0 ? parts.join(' · ') : '인자 없음(기본값)';
 }
 
+/** advisor 트리거 인자 — `POST /jobs/{jobType}?baseDate=&horizon=`. horizon 은 IC_BACKFILL 전용(다른 잡에 주면 400). */
+export type AdvisorTriggerArgs = { baseDate?: string; horizon?: number };
+
 /**
  * advisor 재실행 인자. `requested === false`(스케줄 run 또는 baseDate 없이 API) 이고 `baseDate === today` 면
  * baseDate 를 생략한다(오늘 기준 = 원 run 과 같은 의미). 그 외에는 `?baseDate={run.baseDate}` 로 그날을 고정한다.
  * `requested` 가 없는 옛 run(metadata 없음)은 날짜를 고정하는 쪽이 안전하다 — 어제 run 을 오늘로 돌리면 다른 판단이 된다.
+ *
+ * IC_BACKFILL 은 `metadata.horizon`(`IcBackfillJob.HORIZON_METADATA`)을 되살린다 — 빠뜨리면 한 호라이즌 백필이 전 호라이즌 백필로 바뀐다.
+ * 다른 잡은 같은 키가 있어도 싣지 않는다(백엔드가 400 으로 거부한다).
  */
 export function advisorRerunArgs(
-  run: Pick<AdvisorRunResponse, 'baseDate' | 'metadata'>,
+  run: Pick<AdvisorRunResponse, 'jobType' | 'baseDate' | 'metadata'>,
   today: string,
-): { baseDate?: string } {
+): AdvisorTriggerArgs {
+  const horizon = run.metadata?.horizon;
+  const horizonArg =
+    run.jobType === 'IC_BACKFILL' && typeof horizon === 'number' ? { horizon } : {};
   const requested = run.metadata?.requested;
-  if (requested === false && run.baseDate === today) return {};
-  return run.baseDate ? { baseDate: run.baseDate } : {};
+  if (requested === false && run.baseDate === today) return horizonArg;
+  return run.baseDate ? { baseDate: run.baseDate, ...horizonArg } : horizonArg;
+}
+
+/** confirm·토스트 문구용 인자 요약 — "기준일 2026-09-19 · h=20". 비면 "오늘 기준". */
+export function describeAdvisorTriggerArgs(args: AdvisorTriggerArgs): string {
+  const parts = [args.baseDate ? `기준일 ${args.baseDate}` : '오늘 기준'];
+  if (args.horizon !== undefined) parts.push(`h=${args.horizon}`);
+  return parts.join(' · ');
 }

@@ -146,3 +146,25 @@ export function pickQuantRunFilters(
   if (picked.to !== undefined && !isIsoDate(picked.to)) delete picked.to;
   return picked;
 }
+
+const ADVICE_FILTER_KEYS = ['kind', 'variant', 'from', 'to'] as const;
+
+/**
+ * /admin/quant/advisor 판단 이력 탭용. 예: `?tab=advices&kind=MORNING&variant=LIVE`
+ *
+ * `pickQuantRunFilters` 와 같은 이유로 값을 검증한다 — kind·variant 는 백엔드 enum 쿼리 파라미터라 밖의 값은 400 이다.
+ * 허용 값은 호출부가 넘긴다(types/quant 의 상수 배열).
+ */
+export function pickAdviceFilters(
+  search: string,
+  allowed: { kinds: readonly string[]; variants: readonly string[] },
+): Record<string, string> {
+  const picked = pick(search, ADVICE_FILTER_KEYS);
+  if (picked.kind !== undefined && !allowed.kinds.includes(picked.kind)) delete picked.kind;
+  if (picked.variant !== undefined && !allowed.variants.includes(picked.variant)) {
+    delete picked.variant;
+  }
+  if (picked.from !== undefined && !isIsoDate(picked.from)) delete picked.from;
+  if (picked.to !== undefined && !isIsoDate(picked.to)) delete picked.to;
+  return picked;
+}

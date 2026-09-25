@@ -2,14 +2,17 @@ import { HttpResponse, http } from 'msw';
 import { ADVISOR_JOB_META, COLLECT_JOB_META } from '../../src/lib/quant/jobCatalog';
 import { kstDateOf, todayKst } from '../../src/lib/quant/kstDate';
 import {
+  ADVICE_KINDS,
   ADVISOR_JOB_TYPES,
   type AdviceHeader,
+  type AdviceKind,
   type AdvisorJobType,
   type AdvisorRunResponse,
   type BackfillRequest,
   COLLECT_JOB_TYPES,
   type CollectJobType,
   type CollectRunResponse,
+  IC_HORIZONS,
   type KisTokenStatus,
   type LessonRow,
   type WeightSet,
@@ -19,6 +22,7 @@ import { fail, ok } from '../envelope';
 import {
   CHECKPOINT_SUMMARY,
   GATE_BLOCKED_REASON,
+  MORNING_PICKS,
   seedAdvices,
   seedAdvisorRuns,
   seedCheckpoints,
@@ -27,6 +31,7 @@ import {
   seedHealth,
   seedIc,
   seedLessons,
+  seedMorningVsDaily,
   seedScoreSummary,
   seedToken,
   seedWeightSets,
@@ -228,7 +233,24 @@ function triggerCollect(request: Request, jobType: CollectJobType, body: Backfil
   return ok(request, run, { status: meta.longRunning ? 202 : 200 });
 }
 
-function triggerAdvisor(request: Request, jobType: AdvisorJobType, baseDate: string | null) {
+/** IC 대상 호라이즌인지 — 백엔드 `properties.icHorizons()` 와 같은 400 규칙. */
+function isIcHorizon(horizon: number): boolean {
+  return (IC_HORIZONS as readonly number[]).includes(horizon);
+}
+
+/** 쿼리 kind → 판단 종류. 없으면 DAILY(백엔드 기본값), 모르는 값은 null(400). */
+function kindParam(url: URL): AdviceKind | null {
+  const raw = url.searchParams.get('kind');
+  if (raw === null) return 'DAILY';
+  return (ADVICE_KINDS as readonly string[]).includes(raw) ? (raw as AdviceKind) : null;
+}
+
+function triggerAdvisor(
+  request: Request,
+  jobType: AdvisorJobType,
+  baseDate: string | null,
+  horizon: number | null,
+) {
   const s = state();
   const running = s.advisorRuns.find((r) => r.jobType === jobType && r.status === 'RUNNING');
   if (running) return conflict(jobType, running.runId);
@@ -256,7 +278,10 @@ function triggerAdvisor(request: Request, jobType: AdvisorJobType, baseDate: str
     finishedAt: meta.longRunning ? null : startedAt,
     durationMs: meta.longRunning ? null : 4_200,
     errorMessage: null,
-    metadata: { requested: baseDate !== null },
+    metadata:
+      horizon === null
+        ? { requested: baseDate !== null }
+        : { requested: baseDate !== null, horizon },
   };
   s.advisorRuns.unshift(run);
 
@@ -264,7 +289,7 @@ function triggerAdvisor(request: Request, jobType: AdvisorJobType, baseDate: str
     if (jobType === 'ADVISE') {
       // 게이트 판정을 흉내낸다 — 오늘은 DAILY 결손, 과거 날짜는 LIVE 판단 존재 → 둘 다 SKIPPED
       const liveExists = s.advices.some(
-        (a) => a.baseDate === effectiveBase && a.variant === 'LIVE',
+        (a) => a.baseDate === effectiveBase && a.variant === 'LIVE' && a.adviceKind === 'DAILY',
       );
       const reason = liveExists ? '이미 판단이 있습니다' : GATE_BLOCKED_REASON;
       later(3_000, () => finishAdvisor(runId, 'SKIPPED', reason));
@@ -386,8 +411,18 @@ export const quantHandlers = [
       if (!(ADVISOR_JOB_TYPES as readonly string[]).includes(jobType)) {
         return fail(`알 수 없는 잡 유형: ${jobType}`, 400);
       }
-      const baseDate = new URL(request.url).searchParams.get('baseDate');
-      return triggerAdvisor(request, jobType as AdvisorJobType, baseDate);
+      const url = new URL(request.url);
+      const baseDate = url.searchParams.get('baseDate');
+      const rawHorizon = url.searchParams.get('horizon');
+      const horizon = rawHorizon === null ? null : Number(rawHorizon);
+      // 컨트롤러 trigger() 의 400 두 가지 — IC_BACKFILL 전용·IC 대상 호라이즌
+      if (horizon !== null && jobType !== 'IC_BACKFILL') {
+        return fail(`horizon 은 IC_BACKFILL 에만 줄 수 있습니다: ${jobType}`, 400);
+      }
+      if (horizon !== null && !isIcHorizon(horizon)) {
+        return fail(`IC 대상 호라이즌이 아닙니다: ${rawHorizon} (허용 [5, 20, 60, 180])`, 400);
+      }
+      return triggerAdvisor(request, jobType as AdvisorJobType, baseDate, horizon);
     }),
   ),
 
@@ -461,7 +496,7 @@ export const quantHandlers = [
       return ok(request, {
         header: advice,
         candidates: [],
-        picks: [],
+        picks: advice.adviceKind === 'MORNING' ? MORNING_PICKS : [],
         candidateScores: [],
         callScores: [],
         intradayChecks: [],
@@ -491,11 +526,15 @@ export const quantHandlers = [
           .toISOString()
           .slice(0, 10);
       const variant = url.searchParams.get('variant');
+      const kind = kindParam(url);
+      if (kind === null)
+        return fail(`파라미터 형식 오류: kind=${url.searchParams.get('kind')}`, 400);
       const limit = clampLimit(url.searchParams.get('limit'));
       return ok(
         request,
         s.advices
           .filter((a) => a.baseDate >= from && a.baseDate <= to)
+          .filter((a) => a.adviceKind === kind)
           .filter((a) => (variant ? a.variant === variant : true))
           .slice(0, limit),
       );
@@ -503,14 +542,37 @@ export const quantHandlers = [
   ),
 
   http.get(`${ADVISOR}/scores/summary`, ({ request }) =>
-    advisorGuard(() => ok(request, seedScoreSummary(state().today))),
+    advisorGuard(() => {
+      const url = new URL(request.url);
+      const kind = kindParam(url);
+      if (kind === null)
+        return fail(`파라미터 형식 오류: kind=${url.searchParams.get('kind')}`, 400);
+      const rawHorizon = url.searchParams.get('horizon');
+      return ok(
+        request,
+        seedScoreSummary(state().today, kind, rawHorizon === null ? null : Number(rawHorizon)),
+      );
+    }),
+  ),
+
+  http.get(`${ADVISOR}/scores/morning-vs-daily`, ({ request }) =>
+    advisorGuard(() => ok(request, seedMorningVsDaily(state().today))),
   ),
 
   http.get(`${ADVISOR}/scores/calibration`, ({ request }) =>
     advisorGuard(() => ok(request, seedScoreSummary(state().today).calibration)),
   ),
 
-  http.get(`${ADVISOR}/scores/ic`, ({ request }) => advisorGuard(() => ok(request, seedIc()))),
+  http.get(`${ADVISOR}/scores/ic`, ({ request }) =>
+    advisorGuard(() => {
+      const rawHorizon = new URL(request.url).searchParams.get('horizon');
+      if (rawHorizon !== null && !isIcHorizon(Number(rawHorizon))) {
+        return fail(`IC 대상 호라이즌이 아닙니다: ${rawHorizon} (허용 [5, 20, 60, 180])`, 400);
+      }
+      // 모니터링 호라이즌(60·180)은 IC 가 아직 쌓이지 않은 상태를 흉내낸다 — 빈 상태 확인용
+      return ok(request, rawHorizon === '60' || rawHorizon === '180' ? {} : seedIc());
+    }),
+  ),
 
   http.post(`${ADVISOR}/weights/sets/:weightSetId/activate`, ({ request, params }) =>
     advisorGuard(() => {
@@ -518,24 +580,32 @@ export const quantHandlers = [
       const target = s.weightSets.find((w) => String(w.weightSetId) === String(params.weightSetId));
       if (!target)
         return fail(`가중치 세트를 찾을 수 없습니다: ${String(params.weightSetId)}`, 404);
-      for (const set of s.weightSets) set.active = set === target;
+      // 활성 세트는 호라이즌마다 1개 — 같은 호라이즌 안에서만 바꾼다
+      for (const set of s.weightSets) {
+        if (set.horizonDays === target.horizonDays) set.active = set === target;
+      }
       target.source = 'MANUAL';
       return ok(request, target);
     }),
   ),
 
   http.get(`${ADVISOR}/weights/sets`, ({ request }) =>
-    advisorGuard(() =>
-      ok(
+    advisorGuard(() => {
+      const url = new URL(request.url);
+      const horizon = url.searchParams.get('horizon');
+      return ok(
         request,
-        state().weightSets.slice(0, clampLimit(new URL(request.url).searchParams.get('limit'))),
-      ),
-    ),
+        state()
+          .weightSets.filter((w) => (horizon === null ? true : w.horizonDays === Number(horizon)))
+          .slice(0, clampLimit(url.searchParams.get('limit'))),
+      );
+    }),
   ),
 
   http.get(`${ADVISOR}/weights`, ({ request }) =>
     advisorGuard(() => {
-      const active = state().weightSets.find((w) => w.active);
+      const horizon = Number(new URL(request.url).searchParams.get('horizon') ?? 5);
+      const active = state().weightSets.find((w) => w.active && w.horizonDays === horizon);
       return active
         ? ok(request, active)
         : fail('활성 가중치 세트가 없습니다 (advisor-seed.sql 적용 필요)', 404);

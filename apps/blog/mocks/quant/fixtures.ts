@@ -11,10 +11,12 @@
  *   · 게이트 ready:false 사유 = DAILY 단계 실패 · 오늘 ADVISE SKIPPED(run 501)
  *   · RELOAD run 1196 은 tickerCount 25 → 재실행 버튼 비활성(20개 절단)
  *   · advisor 404 토글: 핸들러가 `MOCK_ADVISOR_DISABLED=true` 를 읽는다(여기가 아니라 handlers.ts)
+ *   · 멀티 호라이즌: 어제 MORNING(#90, 저녁 #77 의 재판정 — 유지·추가·제외 + 갭 트리거) · 지난주 H20(#95) · H60(#96, 판정 불가)
  */
 
 import type {
   AdviceHeader,
+  AdviceKind,
   AdviceVariant,
   AdvisorGateResponse,
   AdvisorRunResponse,
@@ -23,6 +25,10 @@ import type {
   KisTokenStatus,
   LessonRow,
   ManualTrigger,
+  MarketRegime,
+  MorningDiff,
+  MorningVsDailyResponse,
+  PickRow,
   RunStep,
   ScoreSummaryResponse,
   WeightSet,
@@ -475,20 +481,44 @@ export function seedAdvisorRuns(today: string): AdvisorRunResponse[] {
 
 // ── advices ───────────────────────────────────────────────────────────────
 
+/** 합성 국면 — 상승 추세 × 보통 변동, 정책 표 v1. */
+const REGIME: MarketRegime = {
+  indexCode: '0001',
+  tradeDate: null,
+  trend: 'BULL',
+  trendScore: 3,
+  vol: 'NORMAL',
+  volPct: 0.46,
+  sigma20: 0.0094,
+  volHistoryDays: 1_180,
+  policy: { version: 'regime-policy-v1', longMax: 6, convictionCap: 0.8, avoidMax: 2 },
+  themes: [],
+};
+
+const KIND_HORIZON: Record<AdviceKind, number> = {
+  DAILY: 5,
+  MORNING: 5,
+  H20: 20,
+  H60: 60,
+  H180: 180,
+  ADHOC: 5,
+};
+
 function adviceHeader(
   adviceId: number,
   runId: number,
   baseDate: string,
   variant: AdviceVariant,
+  kind: AdviceKind = 'DAILY',
 ): AdviceHeader {
-  const createdAt = atKst(baseDate, '19:34');
+  const createdAt = atKst(baseDate, kind === 'MORNING' ? '07:42' : '19:34');
   return {
     adviceId,
     runId,
     baseDate,
-    adviceKind: 'DAILY',
+    adviceKind: kind,
     variant,
-    horizonDays: 5,
+    horizonDays: KIND_HORIZON[kind],
     regimeCode: 'NEUTRAL',
     kospiDir: 'UP',
     kosdaqDir: 'NEUTRAL',
@@ -516,8 +546,69 @@ function adviceHeader(
     guard: { removedPicks: 0, citedNewsDropped: 0 },
     publishedAt: variant === 'LIVE' ? plusMs(createdAt, 30_000) : null,
     createdAt,
+    memoryJson: null,
+    parentAdviceId: null,
+    diffJson: null,
+    // MORNING 은 저녁 국면을 읽기만 한다(백엔드와 같이 null)
+    regime: kind === 'MORNING' ? null : { ...REGIME, tradeDate: baseDate },
   };
 }
+
+/** 어제 저녁 #77 에 대한 아침 재판정 조치 — 제외 1·추가 1·유지 1, 예상 갭 트리거. */
+function morningDiff(parentAdviceId: number, usDate: string): MorningDiff {
+  return {
+    parentAdviceId,
+    keep: [{ ticker: '005930', reason: '예상 갭 −0.3σ — 논지 유지' }],
+    add: [{ ticker: '000660', reason: 'SOX +3.1% · 섹터 연동 z 2.4' }],
+    drop: [
+      {
+        ticker: '035420',
+        reason: '예상 갭 −1.2σ 로 진입가 불리',
+        direction: 'LONG',
+        conviction: 0.7,
+      },
+    ],
+    triggers: {
+      gap: true,
+      gapIndexes: ['0001'],
+      sector: true,
+      sectorSymbols: ['SOX'],
+      caution: false,
+      morningCheck: true,
+      any: true,
+    },
+    usDate,
+    usClosed: false,
+  };
+}
+
+/** MORNING 판단의 저장 픽 — DROP 은 픽에 없다(diffJson 에만). */
+export const MORNING_PICKS: PickRow[] = [
+  {
+    ticker: '005930',
+    pickRank: 1,
+    direction: 'LONG',
+    conviction: 0.7,
+    thesis: '메모리 가격 반등 지속',
+    riskNote: '환율 급변',
+    cited: null,
+    citedNews: null,
+    action: 'KEEP',
+    actionReason: '예상 갭 −0.3σ — 논지 유지',
+  },
+  {
+    ticker: '000660',
+    pickRank: 2,
+    direction: 'LONG',
+    conviction: 0.6,
+    thesis: '밤사이 SOX 강세 연동',
+    riskNote: '갭 상승 후 되돌림',
+    cited: null,
+    citedNews: null,
+    action: 'ADD',
+    actionReason: 'SOX +3.1% · 섹터 연동 z 2.4',
+  },
+];
 
 export function seedAdvices(today: string): AdviceHeader[] {
   const advices: AdviceHeader[] = [];
@@ -529,8 +620,24 @@ export function seedAdvices(today: string): AdviceHeader[] {
       advices.push(adviceHeader(177, runId, baseDate, 'QUANT_TOPN'));
       advices.push(adviceHeader(277, runId, baseDate, 'LLM_NOMEM'));
       advices.push(adviceHeader(377, runId, baseDate, 'LLM_NONEWS'));
+      advices.push(adviceHeader(477, runId, baseDate, 'QUANT_TOPN_BROAD'));
     }
   }
+  // 어제 저녁(#77) 의 아침 재판정 — 기준일은 저녁과 같다(같은 창)
+  const yesterday = shiftDate(today, -1);
+  advices.push({
+    ...adviceHeader(90, 495, yesterday, 'LIVE', 'MORNING'),
+    parentAdviceId: 77,
+    diffJson: morningDiff(77, shiftDate(today, -1)),
+  });
+  advices.push(adviceHeader(95, 480, shiftDate(today, -6), 'LIVE', 'H20'));
+  advices.push({
+    ...adviceHeader(96, 481, shiftDate(today, -6), 'LIVE', 'H60'),
+    regimeCode: null,
+    kospiDir: null,
+    kosdaqDir: null,
+    pUp: null,
+  });
   return advices.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
@@ -603,7 +710,7 @@ export const CHECKPOINT_SUMMARY = {
   PENDING: 296,
 };
 
-// ── stats health (스케줄러 16행 + manualTrigger 10행) ────────────────────
+// ── stats health (스케줄러 20행 + manualTrigger 15행) ────────────────────
 
 type SchedulerSeed = {
   lockName: string;
@@ -758,6 +865,42 @@ function schedulerSeeds(today: string): SchedulerSeed[] {
       manualTrigger: advisor('MORNING_CHECK'),
     },
     {
+      lockName: 'ADVISOR-MORNING-ADVISE-TEST',
+      displayName: 'AI 아침 재판정',
+      cron: '0 40 7 * * MON-FRI',
+      lockedAt: atKst(today, '07:40'),
+      intervalSeconds: DAY,
+      state: 'OK',
+      manualTrigger: advisor('MORNING_ADVISE'),
+    },
+    {
+      lockName: 'ADVISOR-H20-ADVISE-TEST',
+      displayName: 'AI 주간 20거래일 판단',
+      cron: '0 10 20 * * FRI',
+      lockedAt: atKst(d(6), '20:10'),
+      intervalSeconds: 7 * DAY,
+      state: 'OK',
+      manualTrigger: advisor('ADVISE_H20'),
+    },
+    {
+      lockName: 'ADVISOR-H60-ADVISE-TEST',
+      displayName: 'AI 60거래일 규칙 추천(격주)',
+      cron: '0 20 20 * * FRI',
+      lockedAt: atKst(d(6), '20:20'),
+      intervalSeconds: 7 * DAY,
+      state: 'OK',
+      manualTrigger: advisor('ADVISE_H60'),
+    },
+    {
+      lockName: 'ADVISOR-H180-ADVISE-TEST',
+      displayName: 'AI 180거래일 규칙 추천(월초)',
+      cron: '0 30 20 1 * *',
+      lockedAt: null,
+      intervalSeconds: 28 * DAY,
+      state: 'NEVER_RUN',
+      manualTrigger: advisor('ADVISE_H180'),
+    },
+    {
       lockName: 'ADVISOR-WEEKLY-REVIEW-TEST',
       displayName: 'AI 주간 검토(가중치·교훈·보고)',
       cron: '0 0 8 * * SUN',
@@ -808,7 +951,42 @@ export function seedHealth(today: string): HealthStats {
 
 // ── KPI · 가중치 · 교훈 · 채팅 (M4 가 소비, 모양만 실물과 맞춘다) ───────────
 
-export function seedScoreSummary(today: string): ScoreSummaryResponse {
+/** 판정 불가 라벨(`AdvisorKpiService.UNJUDGEABLE_LABEL`) — learn=false 호라이즌 종류(H60·H180)만. */
+const UNJUDGEABLE_LABEL = '판정 불가: 표본 부족, 2년 이상 필요';
+
+/**
+ * KPI 요약 — kind·horizon 은 응답 필드만 바꾼다(수치는 DAILY 모양 그대로). H60·H180 은 verdictLabel 을 싣는다.
+ * horizon 생략은 종류의 결정 호라이즌(백엔드 `horizonOf`).
+ */
+export function seedScoreSummary(
+  today: string,
+  kind: AdviceKind = 'DAILY',
+  horizon: number | null = null,
+): ScoreSummaryResponse {
+  const verdictLabel = kind === 'H60' || kind === 'H180' ? UNJUDGEABLE_LABEL : null;
+  const base = seedDailyScoreSummary(today);
+  return {
+    ...base,
+    kind,
+    horizonDays: horizon ?? KIND_HORIZON[kind],
+    variants: base.variants.map((variant) => ({ ...variant, verdictLabel })),
+  };
+}
+
+/** 아침 재판정 대응 비교 — 트리거일 8일·비트리거일 14일. */
+export function seedMorningVsDaily(today: string): MorningVsDailyResponse {
+  return {
+    from: shiftDate(today, -90),
+    to: today,
+    horizonDays: 5,
+    all: { n: 22, meanDiff: 0.0011, seDiff: 0.0009, t: 1.22 },
+    triggered: { n: 8, meanDiff: 0.0034, seDiff: 0.0014, t: 2.43 },
+    untriggered: { n: 14, meanDiff: -0.0002, seDiff: 0.0011, t: -0.18 },
+    pairs: [],
+  };
+}
+
+function seedDailyScoreSummary(today: string): ScoreSummaryResponse {
   return {
     from: shiftDate(today, -90),
     to: today,
@@ -919,6 +1097,7 @@ export function seedWeightSets(today: string): WeightSet[] {
     source: WeightSet['source'],
     active: boolean,
     runId: number | null,
+    horizonDays = 5,
   ): WeightSet => ({
     weightSetId,
     asOf,
@@ -928,6 +1107,7 @@ export function seedWeightSets(today: string): WeightSet[] {
     active,
     reason: source === 'SEED' ? '설계 사전값' : `주간 IC 갱신 (${asOf})`,
     runId,
+    horizonDays,
     weights: SIGNALS.map((signalCode, i) => {
       const baseWeight = [0.12, 0.1, 0.12, 0.1, 0.1, 0.12, 0.08, 0.1, 0.08, 0.05, 0.03][
         i
@@ -952,6 +1132,7 @@ export function seedWeightSets(today: string): WeightSet[] {
     set(12, shiftDate(today, -6), 'WEEKLY', true, 485),
     set(11, shiftDate(today, -13), 'WEEKLY', false, 470),
     set(1, shiftDate(today, -60), 'SEED', false, null),
+    set(20, shiftDate(today, -6), 'BACKFILL', true, 486, 20),
   ];
 }
 

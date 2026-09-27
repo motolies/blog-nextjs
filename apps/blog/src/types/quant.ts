@@ -267,12 +267,12 @@ export type TrendOutlook = {
   invalidation: string;
 };
 
-/** 정책 표 한도 (`MarketRegime.Policy`) — 수치를 바꾸면 version 이 오른다. */
+/** 정책 표 한도 (`MarketRegime.Policy`) — 수치를 바꾸면 version 이 오른다. avoidMax 는 regime-policy-v1 판단에만 있다(v2 매수 전용부터 없음). */
 export type RegimePolicy = {
   version: string;
   longMax: number;
   convictionCap: number | null;
-  avoidMax: number;
+  avoidMax?: number | null;
 };
 
 /** 테마(KOSPI200 섹터 대분류) 강약 (`MarketRegime.Theme`). rs·breadth 는 소수 비율. */

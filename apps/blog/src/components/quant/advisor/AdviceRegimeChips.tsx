@@ -3,11 +3,11 @@ import type { AdviceHeader, RegimePolicy } from '@/types/quant';
 import { trendLabel, trendTone, volRegimeLabel, volRegimeTone } from './advisorLabels';
 import { formatRate } from './kpiFormat';
 
-/** 정책 표 한도 한 줄 — "LONG ≤ 5 · 확신 ≤ 70% · AVOID ≤ 2". 확신 상한이 없으면 그 조각을 뺀다. */
+/** 정책 표 한도 한 줄 — "LONG ≤ 5 · 확신 ≤ 70%". 확신 상한이 없으면 그 조각을 빼고, AVOID 상한은 v1 판단에만 붙인다. */
 function policyText(policy: RegimePolicy): string {
   const parts = [`LONG ≤ ${policy.longMax}`];
   if (policy.convictionCap !== null) parts.push(`확신 ≤ ${formatRate(policy.convictionCap, 0)}`);
-  parts.push(`AVOID ≤ ${policy.avoidMax}`);
+  if (policy.avoidMax != null) parts.push(`AVOID ≤ ${policy.avoidMax}`);
   return parts.join(' · ');
 }
 

@@ -15,9 +15,13 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { copyTextToClipboard } from '@/util/browserUtils';
 import {
+  AES_GCM_MIN_KEY_LENGTH,
+  DEFAULT_AES_GCM_OPTIONS,
   DEFAULT_AES_PBKDF2_OPTIONS,
+  decryptAesGcm,
   decryptAesPbkdf2,
   decryptAesRawKey,
+  encryptAesGcm,
   encryptAesPbkdf2,
   encryptAesRawKey,
   utf8ByteLength,
@@ -46,6 +50,18 @@ const DEFAULT_OPTION_INPUTS = {
   ivLength: String(DEFAULT_AES_PBKDF2_OPTIONS.ivLength),
 };
 
+// GCM 모드 고급 설정 입력값. 고정 salt 는 필수값이라 고급 설정과 분리해 별도 상태로 관리한다
+const DEFAULT_GCM_OPTION_INPUTS = {
+  keyLength: String(DEFAULT_AES_GCM_OPTIONS.keyLength),
+  iterations: String(DEFAULT_AES_GCM_OPTIONS.iterations),
+};
+
+const KEY_LENGTH_OPTIONS = [
+  { value: '128', label: '128' },
+  { value: '192', label: '192' },
+  { value: '256', label: '256' },
+];
+
 const AES_MODES = [
   {
     id: 'pbkdf2',
@@ -53,6 +69,14 @@ const AES_MODES = [
     keyPlaceholder: '패스프레이즈 (PBKDF2로 키 유도)',
     inputPlaceholder: '평문 또는 enc:v1:... 형식의 암호문을 입력하세요',
     formatNote: '',
+  },
+  {
+    id: 'gcm',
+    label: 'PBKDF2(고정 salt) + AES-GCM (enc:v1 포맷)',
+    keyPlaceholder: `Secret Key (${AES_GCM_MIN_KEY_LENGTH}자 이상, PBKDF2로 키 유도)`,
+    inputPlaceholder: '평문 또는 enc:v1:... 형식의 암호문을 입력하세요',
+    formatNote:
+      'iv(12) + 암호문 + 인증 태그(16)를 URL-safe Base64(패딩 없음)로 인코딩하고 enc:v1: 접두어를 붙입니다. IV가 매번 랜덤이라 같은 입력도 결과가 매번 다릅니다. PBKDF2 + AES-CBC와 접두어가 같아 암호문만으로는 모드를 구분할 수 없으니, 복호화에 실패하면 다른 모드도 시도해 보세요.',
   },
   {
     id: 'rawkey',
@@ -76,6 +100,8 @@ export default function CryptoPage() {
   const [output, setOutput] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [optionInputs, setOptionInputs] = useState(DEFAULT_OPTION_INPUTS);
+  const [gcmOptionInputs, setGcmOptionInputs] = useState(DEFAULT_GCM_OPTION_INPUTS);
+  const [gcmSalt, setGcmSalt] = useState(DEFAULT_AES_GCM_OPTIONS.salt);
 
   useEffect(() => {
     setIsClient(true);
@@ -104,9 +130,50 @@ export default function CryptoPage() {
     ivLength: Number(optionInputs.ivLength),
   });
 
+  // GCM 고급 설정 입력 문자열과 고정 salt 를 옵션으로 변환한다 (유효성 검증은 cryptoUtils 에서 수행)
+  const parseGcmOptions = () => ({
+    keyLength: Number(gcmOptionInputs.keyLength),
+    iterations: Number(gcmOptionInputs.iterations),
+    salt: gcmSalt,
+  });
+
   const updateOption = (field, value) => {
     setOptionInputs((prev) => ({ ...prev, [field]: value }));
   };
+
+  const updateGcmOption = (field, value) => {
+    setGcmOptionInputs((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // 현재 모드의 고급 설정만 기본값으로 되돌린다 (고정 salt 는 유지)
+  const resetAdvancedOptions = () => {
+    if (aesMode === 'gcm') {
+      setGcmOptionInputs(DEFAULT_GCM_OPTION_INPUTS);
+    } else {
+      setOptionInputs(DEFAULT_OPTION_INPUTS);
+    }
+  };
+
+  // 모드별 키 길이 안내를 구성한다 (rawkey: UTF-8 바이트 수, gcm: 문자 수). 안내가 없는 모드는 null
+  const getKeyHint = () => {
+    if (!secretKey) return null;
+    if (aesMode === 'rawkey') {
+      const valid = [16, 24, 32].includes(keyByteLength);
+      return {
+        valid,
+        text: `현재 ${keyByteLength}바이트 ${valid ? '(사용 가능)' : '(16/24/32바이트 필요)'}`,
+      };
+    }
+    if (aesMode === 'gcm') {
+      const valid = secretKey.length >= AES_GCM_MIN_KEY_LENGTH;
+      return {
+        valid,
+        text: `현재 ${secretKey.length}자 ${valid ? '(사용 가능)' : `(${AES_GCM_MIN_KEY_LENGTH}자 이상 필요)`}`,
+      };
+    }
+    return null;
+  };
+  const keyHint = getKeyHint();
 
   const handleCopy = async (text) => {
     if (!text) {
@@ -134,6 +201,10 @@ export default function CryptoPage() {
       showToast('키를 입력하세요.', 'warning');
       return false;
     }
+    if (aesMode === 'gcm' && !gcmSalt) {
+      showToast('고정 Salt를 입력하세요.', 'warning');
+      return false;
+    }
     if (!input) {
       showToast('입력값을 입력하세요.', 'warning');
       return false;
@@ -141,13 +212,26 @@ export default function CryptoPage() {
     return true;
   };
 
+  // 모드별 암복호화 실행 함수. 모드를 추가하면 AES_MODES 와 함께 여기에 등록한다
+  const aesHandlers = {
+    pbkdf2: {
+      encrypt: () => encryptAesPbkdf2(input, secretKey, parsePbkdf2Options()),
+      decrypt: () => decryptAesPbkdf2(input, secretKey, parsePbkdf2Options()),
+    },
+    gcm: {
+      encrypt: () => encryptAesGcm(input, secretKey, parseGcmOptions()),
+      decrypt: () => decryptAesGcm(input, secretKey, parseGcmOptions()),
+    },
+    rawkey: {
+      encrypt: () => encryptAesRawKey(input, secretKey),
+      decrypt: () => decryptAesRawKey(input, secretKey),
+    },
+  };
+
   const handleEncrypt = async () => {
     if (!validateInputs()) return;
     try {
-      const result =
-        aesMode === 'pbkdf2'
-          ? await encryptAesPbkdf2(input, secretKey, parsePbkdf2Options())
-          : await encryptAesRawKey(input, secretKey);
+      const result = await aesHandlers[aesMode].encrypt();
       setOutput(result);
       showToast('암호화 완료');
     } catch (e) {
@@ -159,10 +243,7 @@ export default function CryptoPage() {
   const handleDecrypt = async () => {
     if (!validateInputs()) return;
     try {
-      const result =
-        aesMode === 'pbkdf2'
-          ? await decryptAesPbkdf2(input, secretKey, parsePbkdf2Options())
-          : await decryptAesRawKey(input, secretKey);
+      const result = await aesHandlers[aesMode].decrypt();
       setOutput(result);
       showToast('복호화 완료');
     } catch (e) {
@@ -226,19 +307,27 @@ export default function CryptoPage() {
                       )}
                     </button>
                   </div>
-                  {aesMode === 'rawkey' && secretKey && (
+                  {keyHint && (
                     <p
-                      className={`mt-1 text-xs ${[16, 24, 32].includes(keyByteLength) ? 'text-dl-fg-muted' : 'text-dl-error'}`}
+                      className={`mt-1 text-xs ${keyHint.valid ? 'text-dl-fg-muted' : 'text-dl-error'}`}
                     >
-                      현재 {keyByteLength}바이트{' '}
-                      {[16, 24, 32].includes(keyByteLength)
-                        ? '(사용 가능)'
-                        : '(16/24/32바이트 필요)'}
+                      {keyHint.text}
                     </p>
                   )}
                 </div>
 
-                {aesMode === 'pbkdf2' && (
+                {aesMode === 'gcm' && (
+                  <Input
+                    value={gcmSalt}
+                    onChange={(e) => setGcmSalt(e.target.value)}
+                    placeholder="고정 Salt (UTF-8 문자열, 모든 암호문에 공통)"
+                    aria-label="고정 Salt"
+                    className="font-mono"
+                    autoComplete="off"
+                  />
+                )}
+
+                {(aesMode === 'pbkdf2' || aesMode === 'gcm') && (
                   <div>
                     <button
                       onClick={() => setShowAdvanced(!showAdvanced)}
@@ -254,7 +343,51 @@ export default function CryptoPage() {
                       )}
                     </button>
 
-                    {showAdvanced && (
+                    {showAdvanced && aesMode === 'gcm' && (
+                      <div className="mt-2 p-3 border rounded-md space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label
+                              htmlFor="crypto-gcm-key-length"
+                              className="text-xs text-dl-fg-muted mb-1 block"
+                            >
+                              키 길이 (bit)
+                            </label>
+                            <Select
+                              id="crypto-gcm-key-length"
+                              value={gcmOptionInputs.keyLength}
+                              onValueChange={(value) => updateGcmOption('keyLength', value)}
+                              placeholder="키 길이"
+                              options={KEY_LENGTH_OPTIONS}
+                              className="w-full"
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="crypto-gcm-iterations"
+                              className="text-xs text-dl-fg-muted mb-1 block"
+                            >
+                              반복 횟수 (PBKDF2)
+                            </label>
+                            <Input
+                              id="crypto-gcm-iterations"
+                              type="number"
+                              min={1}
+                              value={gcmOptionInputs.iterations}
+                              onChange={(e) => updateGcmOption('iterations', e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        <p className="text-xs text-dl-fg-muted">
+                          IV 12바이트, 인증 태그 128bit는 고정입니다.
+                        </p>
+                        <Button variant="outline-gray" size="sm" onClick={resetAdvancedOptions}>
+                          기본값으로 재설정
+                        </Button>
+                      </div>
+                    )}
+
+                    {showAdvanced && aesMode === 'pbkdf2' && (
                       <div className="mt-2 p-3 border rounded-md space-y-3">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
@@ -265,11 +398,7 @@ export default function CryptoPage() {
                               value={optionInputs.keyLength}
                               onValueChange={(value) => updateOption('keyLength', value)}
                               placeholder="키 길이"
-                              options={[
-                                { value: '128', label: '128' },
-                                { value: '192', label: '192' },
-                                { value: '256', label: '256' },
-                              ]}
+                              options={KEY_LENGTH_OPTIONS}
                               className="w-full"
                             />
                           </div>
@@ -312,11 +441,7 @@ export default function CryptoPage() {
                             )}
                           </div>
                         </div>
-                        <Button
-                          variant="outline-gray"
-                          size="sm"
-                          onClick={() => setOptionInputs(DEFAULT_OPTION_INPUTS)}
-                        >
+                        <Button variant="outline-gray" size="sm" onClick={resetAdvancedOptions}>
                           기본값으로 재설정
                         </Button>
                       </div>
@@ -380,6 +505,12 @@ export default function CryptoPage() {
             <strong>PBKDF2 + AES-CBC</strong>: 패스프레이즈에서 PBKDF2(SHA-256)로 키를 유도. 키
             길이/반복 횟수/salt·IV 길이는 고급 설정에서 변경 가능 (기본 256bit/8192회/16/16, enc:v1:
             마커 암호문 호환)
+          </li>
+          <li>
+            <strong>PBKDF2(고정 salt) + AES-GCM</strong>: 모든 암호문에 공통인 고정 salt로
+            PBKDF2(SHA-256) 키를 유도하고, 랜덤 IV(12바이트)와 인증 태그(128bit)로 변조를 검출.
+            Secret Key {AES_GCM_MIN_KEY_LENGTH}자 이상, 기본 256bit/600000회 (enc:v1: 마커 암호문
+            호환)
           </li>
           <li>
             <strong>Raw Key AES-CBC</strong>: 키 문자열의 UTF-8 바이트를 그대로 AES 키로 사용

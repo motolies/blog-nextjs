@@ -22,22 +22,70 @@ export const DEFAULT_AES_PBKDF2_OPTIONS: AesPbkdf2Options = {
   ivLength: 16,
 };
 
+/** 고정 salt PBKDF2 + AES-GCM 모드의 파라미터. Java AESUtil(GCM)의 KDF 상수(KEY_BITS/KDF_ITERATIONS/KDF_SALT)와 1:1 대응 */
+export interface AesGcmOptions {
+  keyLength: number; // bit (128 | 192 | 256)
+  iterations: number; // PBKDF2 반복 횟수
+  salt: string; // 모든 암호문에 공통으로 쓰는 고정 salt (UTF-8)
+}
+
+/** GCM 모드 기본 파라미터. 고정 salt는 시스템마다 달라 기본값을 두지 않는다. */
+export const DEFAULT_AES_GCM_OPTIONS: AesGcmOptions = {
+  keyLength: 256,
+  iterations: 600_000,
+  salt: '',
+};
+
+/** GCM 모드 Secret Key 최소 길이. Java String.length()와 같은 UTF-16 code unit 기준 문자 수 */
+export const AES_GCM_MIN_KEY_LENGTH = 32;
+
+const GCM_IV_LENGTH = 12;
+const GCM_TAG_LENGTH = 16;
+
 // Raw Key 모드(레거시)에서 사용하는 고정 Zero IV
 const ZERO_IV = new Uint8Array(AES_BLOCK_SIZE);
 
-/** PBKDF2 옵션 값의 유효 범위를 검증한다. 위반 시 한글 에러를 던진다. */
-const validatePbkdf2Options = (options: AesPbkdf2Options): void => {
-  if (options.keyLength !== 128 && options.keyLength !== 192 && options.keyLength !== 256) {
+/** PBKDF2 공통 파라미터(키 길이/반복 횟수)의 유효 범위를 검증한다. */
+const validateKdfParams = (keyLength: number, iterations: number): void => {
+  if (keyLength !== 128 && keyLength !== 192 && keyLength !== 256) {
     throw new Error('키 길이는 128/192/256비트만 사용할 수 있습니다.');
   }
-  if (!Number.isInteger(options.iterations) || options.iterations < 1) {
+  if (!Number.isInteger(iterations) || iterations < 1) {
     throw new Error('반복 횟수는 1 이상의 정수여야 합니다.');
   }
+};
+
+/** PBKDF2 옵션 값의 유효 범위를 검증한다. 위반 시 한글 에러를 던진다. */
+const validatePbkdf2Options = (options: AesPbkdf2Options): void => {
+  validateKdfParams(options.keyLength, options.iterations);
   if (!Number.isInteger(options.saltLength) || options.saltLength < 1 || options.saltLength > 64) {
     throw new Error('Salt 길이는 1~64바이트 범위여야 합니다.');
   }
   if (options.ivLength !== AES_BLOCK_SIZE) {
     throw new Error('AES-CBC의 IV는 16바이트여야 합니다.');
+  }
+};
+
+/** GCM 옵션 값의 유효 범위를 검증한다. 고정 salt는 비어 있을 수 없다. */
+const validateGcmOptions = (options: AesGcmOptions): void => {
+  validateKdfParams(options.keyLength, options.iterations);
+  if (!options.salt) {
+    throw new Error('고정 Salt를 입력하세요.');
+  }
+};
+
+/**
+ * GCM 모드 Secret Key를 검증한다. Java AESUtil(GCM)과 같이 공백뿐인 키와 32자 미만 키를 거부한다.
+ * 길이는 UTF-16 code unit 수(Java String.length()와 동일)로 세며, 앞뒤 공백도 키의 일부로 본다.
+ */
+const validateGcmSecret = (secret: string): void => {
+  if (!secret.trim()) {
+    throw new Error('Secret Key를 입력하세요.');
+  }
+  if (secret.length < AES_GCM_MIN_KEY_LENGTH) {
+    throw new Error(
+      `Secret Key는 ${AES_GCM_MIN_KEY_LENGTH}자 이상이어야 합니다. (현재 ${secret.length}자)`,
+    );
   }
 };
 
@@ -95,12 +143,13 @@ export const utf8ByteLength = (value: string): number =>
 
 /**
  * 패스프레이즈와 salt로 AES 키를 유도한다.
- * Java의 PBKDF2WithHmacSHA256과 동일한 방식이며, 반복 횟수/키 길이는 옵션으로 조정한다.
+ * Java의 PBKDF2WithHmacSHA256과 동일한 방식이며, 반복 횟수/키 길이는 옵션으로, 키 용도(CBC/GCM)는 algorithm으로 지정한다.
  */
 const derivePbkdf2Key = async (
   passphrase: string,
   salt: Uint8Array,
-  options: AesPbkdf2Options,
+  options: Pick<AesPbkdf2Options, 'keyLength' | 'iterations'>,
+  algorithm: 'AES-CBC' | 'AES-GCM' = 'AES-CBC',
 ): Promise<CryptoKey> => {
   const subtle = ensureSubtleCrypto();
   const baseKey = await subtle.importKey('raw', encoder!.encode(passphrase), 'PBKDF2', false, [
@@ -109,10 +158,17 @@ const derivePbkdf2Key = async (
   return subtle.deriveKey(
     { name: 'PBKDF2', hash: 'SHA-256', salt: salt as BufferSource, iterations: options.iterations },
     baseKey,
-    { name: 'AES-CBC', length: options.keyLength },
+    { name: algorithm, length: options.keyLength },
     false,
     ['encrypt', 'decrypt'],
   );
+};
+
+/** enc:v1 암호문에서 마커를 제거(없으면 그대로 사용)하고 payload를 바이트 배열로 디코딩한다. */
+const decodeEncV1Payload = (encryptedText: string): Uint8Array => {
+  const trimmed = encryptedText.trim();
+  const payload = trimmed.startsWith(ENC_V1_MARKER) ? trimmed.slice(ENC_V1_MARKER.length) : trimmed;
+  return base64ToBytes(payload);
 };
 
 /**
@@ -161,9 +217,7 @@ export const decryptAesPbkdf2 = async (
   validatePbkdf2Options(options);
   const subtle = ensureSubtleCrypto();
 
-  const trimmed = encryptedText.trim();
-  const payload = trimmed.startsWith(ENC_V1_MARKER) ? trimmed.slice(ENC_V1_MARKER.length) : trimmed;
-  const bytes = base64ToBytes(payload);
+  const bytes = decodeEncV1Payload(encryptedText);
 
   if (bytes.length < options.saltLength + options.ivLength + AES_BLOCK_SIZE) {
     throw new Error(
@@ -181,6 +235,77 @@ export const decryptAesPbkdf2 = async (
     return decoder!.decode(plainBuffer);
   } catch {
     throw new Error('복호화에 실패했습니다. 키가 다르거나 데이터가 손상되었습니다.');
+  }
+};
+
+/**
+ * 고정 salt PBKDF2 + AES-GCM 암호화 (enc:v1 포맷, Java AESUtil(GCM) 호환).
+ * 랜덤 IV(12바이트)를 생성해 [iv + 암호문 + 인증 태그(16)]를 URL-safe Base64(패딩 없음)로 인코딩하고 마커를 붙인다.
+ * Web Crypto의 AES-GCM 결과는 JCE doFinal과 같이 암호문 뒤에 태그가 붙어 있으므로 iv 뒤에 그대로 잇는다.
+ */
+export const encryptAesGcm = async (
+  plainText: string,
+  secret: string,
+  options: AesGcmOptions = DEFAULT_AES_GCM_OPTIONS,
+): Promise<string> => {
+  ensureTextCodec();
+  validateGcmOptions(options);
+  validateGcmSecret(secret);
+  const subtle = ensureSubtleCrypto();
+
+  const iv = crypto.getRandomValues(new Uint8Array(GCM_IV_LENGTH));
+  const key = await derivePbkdf2Key(secret, encoder!.encode(options.salt), options, 'AES-GCM');
+
+  const cipherBuffer = await subtle.encrypt(
+    { name: 'AES-GCM', iv, tagLength: GCM_TAG_LENGTH * 8 },
+    key,
+    encoder!.encode(plainText),
+  );
+  const cipherBytes = new Uint8Array(cipherBuffer);
+
+  const combined = new Uint8Array(GCM_IV_LENGTH + cipherBytes.length);
+  combined.set(iv, 0);
+  combined.set(cipherBytes, GCM_IV_LENGTH);
+
+  return ENC_V1_MARKER + base64UrlEncodeNoPad(combined);
+};
+
+/**
+ * 고정 salt PBKDF2 + AES-GCM 복호화 (enc:v1 포맷).
+ * 마커가 있으면 제거하고, 없어도 동일 포맷으로 간주하여 복호화를 시도한다.
+ * 인증 태그 검증에 실패하면(키/salt 불일치 또는 변조) 원문 반환 대신 명확한 에러를 던진다.
+ */
+export const decryptAesGcm = async (
+  encryptedText: string,
+  secret: string,
+  options: AesGcmOptions = DEFAULT_AES_GCM_OPTIONS,
+): Promise<string> => {
+  ensureTextCodec();
+  validateGcmOptions(options);
+  validateGcmSecret(secret);
+  const subtle = ensureSubtleCrypto();
+
+  const bytes = decodeEncV1Payload(encryptedText);
+
+  if (bytes.length < GCM_IV_LENGTH + GCM_TAG_LENGTH) {
+    throw new Error(
+      `암호문 길이가 올바르지 않습니다. (iv ${GCM_IV_LENGTH} + 인증 태그 ${GCM_TAG_LENGTH}바이트 이상 필요)`,
+    );
+  }
+
+  const iv = bytes.slice(0, GCM_IV_LENGTH);
+  const cipherBytes = bytes.slice(GCM_IV_LENGTH);
+  const key = await derivePbkdf2Key(secret, encoder!.encode(options.salt), options, 'AES-GCM');
+
+  try {
+    const plainBuffer = await subtle.decrypt(
+      { name: 'AES-GCM', iv, tagLength: GCM_TAG_LENGTH * 8 },
+      key,
+      cipherBytes,
+    );
+    return decoder!.decode(plainBuffer);
+  } catch {
+    throw new Error('복호화에 실패했습니다. 키/Salt가 다르거나 데이터가 손상되었습니다.');
   }
 };
 

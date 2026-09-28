@@ -53,7 +53,7 @@ const utilities = [
     id: 'crypto',
     title: '암호화 도구',
     description:
-      'AES-256 암호화/복호화 도구. PBKDF2 키 유도(enc:v1 포맷)와 Raw Key CBC 모드를 지원합니다.',
+      'AES-256 암호화/복호화 도구. PBKDF2 키 유도(CBC·GCM, enc:v1 포맷)와 Raw Key CBC 모드를 지원합니다.',
     icon: ShieldCheck,
     path: '/util/crypto',
   },

@@ -8,6 +8,7 @@ export default defineConfig({
   oxc: { jsx: { runtime: 'automatic' } },
   resolve: {
     alias: {
+      '@': fileURLToPath(new URL('./apps/blog/src', import.meta.url)),
       // 서버 모듈을 단위 테스트하려면 필요하다. 빌드에는 영향이 없다 — 이유는 스텁 파일 주석 참조.
       'server-only': fileURLToPath(new URL('./test/stubs/server-only.ts', import.meta.url)),
     },

@@ -18,9 +18,10 @@ import {
   Label,
   Switch,
 } from '@hvy/ui';
-import { Ban, ListRestart, RotateCcw } from 'lucide-react';
+import { ListRestart, RotateCcw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useRun } from '@/hooks/useQuant';
+import { cancelMessage } from '@/lib/quant/cancelMessage';
 import {
   formatCallsWithFailures,
   formatCostUsd,
@@ -54,10 +55,7 @@ type Pending = { kind: 'cancel' } | { kind: 'rerun' } | { kind: 'step'; plan: Av
  * run 상세(공용) — `ContentDialog size="lg"`. 열림 상태는 URL(`?run=`)이 진실이고 이 컴포넌트는 `runId` 로 스스로 조회한다
  * (그리드 페이지에 없는 run 도 409 토스트·Overview 세그먼트·Slack 딥링크에서 열려야 한다).
  *
- * 본문 순서: **액션 바**(재실행 / 실패 단계 재실행 ▾ / 취소 + resetCheckpoint Switch) → 요약 `FormGrid` → `steps[]` 표 →
- * metadata `<pre>` 는 `Accordion` 접힘. **푸터는 닫기 1개만** — `DialogFooter` 는 버튼 폭 220 고정·줄바꿈 없음이라 375px 에서 2개부터 잘린다.
- *
- * 액션을 누르면 액션 바 자리가 `InlineNotice warning` + [실행][취소] 로 바뀐다 — 확인 모달을 겹치지 않는 대신 같은 자리에서 묻는다.
+ * 재실행 확인은 본문, 정지 확인은 푸터에서 처리한다. 푸터 내부 그룹으로 좁은 화면에서도 줄바꿈한다.
  */
 export function RunDetailDialog({
   module,
@@ -101,6 +99,13 @@ export function RunDetailDialog({
   const skipped = useMemo(() => (stockRun ? skippedSteps(steps) : []), [steps, stockRun]);
 
   const terminal = run ? isTerminal(run.status) : false;
+  const status = run?.status;
+  useEffect(() => {
+    if (status && status !== 'RUNNING') {
+      setPending((current) => (current?.kind === 'cancel' ? null : current));
+    }
+  }, [status]);
+
   const truncated = stockRun ? isTickersTruncated(stockRun) : false;
   const meta = run
     ? module === 'STOCK'
@@ -118,7 +123,7 @@ export function RunDetailDialog({
   const pendingMessage = (() => {
     if (!run || !pending) return null;
     if (pending.kind === 'cancel') {
-      return `run #${run.runId} 를 취소합니다. 다음 종목/단계 경계에서 멈추고 저장된 데이터는 남습니다.`;
+      return cancelMessage(module, run.runId);
     }
     if (pending.kind === 'step') {
       return `${pending.plan.summary}${pending.plan.inferred ? ' (문서 미명시 매핑 — 잡 본문 대조로 확인)' : ''}. 같은 잡이 실행 중이면 409 로 거절됩니다.`;
@@ -150,9 +155,14 @@ export function RunDetailDialog({
   })();
 
   const execute = async () => {
-    if (!run || !pending) return;
+    if (!run || !pending || busy) return;
     if (pending.kind === 'cancel') {
-      await actions.cancel(module, run);
+      if (run.status !== 'RUNNING') {
+        setPending(null);
+        return;
+      }
+      const ok = await actions.cancel(module, run);
+      if (!ok) return;
     } else if (pending.kind === 'step') {
       await actions.retryStep(pending.plan);
     } else if (stockRun) {
@@ -177,9 +187,50 @@ export function RunDetailDialog({
       }
       size="lg"
       footer={
-        <Button variant="outline-gray" onClick={onClose}>
-          닫기
-        </Button>
+        <div className="flex min-w-0 w-full flex-col gap-2">
+          {pending?.kind === 'cancel' && run?.status === 'RUNNING' ? (
+            <div role="status" className="text-dl-sm text-dl-fg">
+              {cancelMessage(module, run.runId)}
+            </div>
+          ) : null}
+          <div className="flex flex-wrap justify-end gap-2">
+            {run?.status === 'RUNNING' ? (
+              pending?.kind === 'cancel' ? (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline-red"
+                    busy={busy}
+                    disabled={busy}
+                    onClick={execute}
+                  >
+                    정지 요청
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline-gray"
+                    disabled={busy}
+                    onClick={() => setPending(null)}
+                  >
+                    돌아가기
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline-red"
+                  disabled={busy}
+                  onClick={() => setPending({ kind: 'cancel' })}
+                >
+                  정지
+                </Button>
+              )
+            ) : null}
+            <Button size="sm" variant="outline-gray" onClick={onClose}>
+              닫기
+            </Button>
+          </div>
+        </div>
       }
     >
       {query.isPending ? (
@@ -192,16 +243,10 @@ export function RunDetailDialog({
       ) : (
         <div className="flex flex-col gap-3 p-1">
           {/* ── 액션 바 / 인라인 확인 ── */}
-          {pending && pendingMessage ? (
+          {pending && pending.kind !== 'cancel' && pendingMessage ? (
             <InlineNotice
               tone={pending.kind === 'rerun' && resetCheckpoint ? 'error' : 'warning'}
-              title={
-                pending.kind === 'cancel'
-                  ? '취소 확인'
-                  : pending.kind === 'step'
-                    ? '단계 재실행 확인'
-                    : '재실행 확인'
-              }
+              title={pending.kind === 'step' ? '단계 재실행 확인' : '재실행 확인'}
               action={
                 <span className="flex flex-wrap gap-1">
                   <Button
@@ -239,16 +284,7 @@ export function RunDetailDialog({
                 >
                   재실행
                 </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="outline-gray"
-                  icon={Ban}
-                  onClick={() => setPending({ kind: 'cancel' })}
-                >
-                  취소
-                </Button>
-              )}
+              ) : null}
 
               {stockRun && stepPlans.length > 0 ? (
                 <DropdownMenu>

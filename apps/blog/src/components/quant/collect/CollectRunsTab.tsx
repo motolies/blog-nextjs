@@ -19,6 +19,7 @@ import { isNumericId } from '@/hooks/useQuant';
 import { useSearchParamState } from '@/hooks/useSearchParamState';
 import { useServerGrid } from '@/hooks/useServerGrid';
 import type { PageResponse, SearchField, SearchRequest } from '@/lib/gridSearch';
+import { cancelMessage } from '@/lib/quant/cancelMessage';
 import { COLLECT_JOB_OPTIONS } from '@/lib/quant/jobCatalog';
 import { todayKst } from '@/lib/quant/kstDate';
 import { toRunPage } from '@/lib/quant/runPage';
@@ -100,8 +101,8 @@ export function CollectRunsTab() {
     async (row: RunGridRow) => {
       const run = asStock(row);
       const ok = await askConfirm({
-        message: `${run.jobDescription} run #${run.runId} 를 취소합니다. 다음 종목/단계 경계에서 멈추고 저장된 데이터는 남습니다.`,
-        confirmLabel: '취소 요청',
+        message: cancelMessage('STOCK', run.runId),
+        confirmLabel: '정지 요청',
       });
       if (ok) await cancel('STOCK', run);
     },
@@ -126,7 +127,13 @@ export function CollectRunsTab() {
     [],
   );
 
-  const columns = useRunColumns('STOCK', { onOpen, onCancel, onRerun, rerunDisabledReason });
+  const columns = useRunColumns('STOCK', {
+    busyKey: actions.busyKey,
+    onOpen,
+    onCancel,
+    onRerun,
+    rerunDisabledReason,
+  });
   // settings 가 grid 보다 먼저다 — 저장된 페이지 크기(paging)를 grid 에 넘겨야 한다.
   const settings = useGridSettings(columns, 'quantCollectRuns');
   const grid = useServerGrid<RunGridRow>({
@@ -140,6 +147,9 @@ export function CollectRunsTab() {
   return (
     <>
       <div className="admin-panel admin-table-shell admin-table-shell--bleed">
+        <p className="px-3 py-2 text-dl-sm text-dl-fg-muted">
+          일일 수급은 DAILY 상세의 INVESTOR 단계에서 확인합니다.
+        </p>
         <DynamicSearchFields
           searchFields={searchFields as Parameters<typeof DynamicSearchFields>[0]['searchFields']}
           defaultSearchParams={defaultSearchParams}

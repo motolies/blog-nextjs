@@ -20,6 +20,7 @@ import { useSearchParamState } from '@/hooks/useSearchParamState';
 import { useServerGrid } from '@/hooks/useServerGrid';
 import type { PageResponse, SearchField, SearchRequest } from '@/lib/gridSearch';
 import { isNotFound } from '@/lib/quant/apiOutcome';
+import { cancelMessage } from '@/lib/quant/cancelMessage';
 import { ADVISOR_JOB_OPTIONS } from '@/lib/quant/jobCatalog';
 import { todayKst } from '@/lib/quant/kstDate';
 import { toRunPage } from '@/lib/quant/runPage';
@@ -100,8 +101,8 @@ export function AdvisorRunsTab() {
     async (row: RunGridRow) => {
       const run = asAdvisor(row);
       const ok = await askConfirm({
-        message: `${run.jobDescription} run #${run.runId} 를 취소합니다. 다음 단계·IC 청크 경계에서 멈추고 저장된 데이터는 남습니다.`,
-        confirmLabel: '취소 요청',
+        message: cancelMessage('ADVISOR', run.runId),
+        confirmLabel: '정지 요청',
       });
       if (ok) await cancel('ADVISOR', run);
     },
@@ -121,7 +122,7 @@ export function AdvisorRunsTab() {
     [askConfirm, rerunAdvisor, today],
   );
 
-  const columns = useRunColumns('ADVISOR', { onOpen, onCancel, onRerun });
+  const columns = useRunColumns('ADVISOR', { busyKey: actions.busyKey, onOpen, onCancel, onRerun });
   const settings = useGridSettings(columns, 'quantAdvisorRuns');
   const grid = useServerGrid<RunGridRow>({
     fetchData: fetchAdvisorRuns,

@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Button,
   type ColumnDef,
   DropdownMenu,
   DropdownMenuContent,
@@ -9,7 +10,7 @@ import {
   defineColumns,
   IconButton,
 } from '@hvy/ui';
-import { Ban, Ellipsis, Eye, RotateCcw } from 'lucide-react';
+import { Ellipsis, Eye, RotateCcw } from 'lucide-react';
 import { type ReactNode, useMemo } from 'react';
 import { GridPagingBar } from '@/components/common/grid/GridPagingBar';
 import { GRID_EMPTY } from '@/components/common/grid/gridLabels';
@@ -48,6 +49,7 @@ export const asStock = (row: RunGridRow) => row as unknown as CollectRunResponse
 export const asAdvisor = (row: RunGridRow) => row as unknown as AdvisorRunResponse;
 
 type RowHandlers = {
+  busyKey?: string | null;
   onOpen: (row: RunGridRow) => void;
   onCancel: (row: RunGridRow) => void;
   onRerun: (row: RunGridRow) => void;
@@ -63,7 +65,7 @@ export function useRunColumns(
   module: RunModule,
   handlers: RowHandlers,
 ): readonly ColumnDef<RunGridRow>[] {
-  const { onOpen, onCancel, onRerun, rerunDisabledReason } = handlers;
+  const { onOpen, onCancel, onRerun, rerunDisabledReason, busyKey } = handlers;
   return useMemo(() => {
     const head: ColumnDef<RunGridRow>[] = [
       { id: 'runId', headerWord: 'Run', width: 90, primary: true, hideable: false, pinned: true },
@@ -193,7 +195,7 @@ export function useRunColumns(
       {
         id: 'actions',
         headerWord: ' ',
-        width: 60,
+        width: 120,
         resizable: false,
         sortable: false,
         hideable: false,
@@ -202,35 +204,45 @@ export function useRunColumns(
           const terminal = isTerminal(status);
           const disabledReason = terminal ? (rerunDisabledReason?.(row) ?? null) : null;
           return (
-            // 아이템이 하나로 줄어도 DropdownMenu 가 버튼으로 접어 준다(상세는 늘 있으므로 최소 1개).
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <IconButton
-                  icon={Ellipsis}
-                  label={`run #${String(row.runId)} 작업`}
+            <div className="flex items-center justify-end gap-1">
+              {status === 'RUNNING' ? (
+                <Button
                   size="xs"
-                  iconSize="sm"
-                />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem icon={Eye} onSelect={() => onOpen(row)}>
-                  상세
-                </DropdownMenuItem>
-                {terminal ? (
-                  <DropdownMenuItem
-                    icon={RotateCcw}
-                    disabled={disabledReason !== null}
-                    onSelect={() => onRerun(row)}
-                  >
-                    {disabledReason ? `재실행 불가 — ${disabledReason}` : '재실행'}
+                  variant="outline-red"
+                  disabled={busyKey === `cancel:${module}:${String(row.runId)}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onCancel(row);
+                  }}
+                >
+                  정지
+                </Button>
+              ) : null}
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <IconButton
+                    icon={Ellipsis}
+                    label={`run #${String(row.runId)} 작업`}
+                    size="xs"
+                    iconSize="sm"
+                  />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem icon={Eye} onSelect={() => onOpen(row)}>
+                    상세
                   </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem icon={Ban} destructive onSelect={() => onCancel(row)}>
-                    취소
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  {terminal ? (
+                    <DropdownMenuItem
+                      icon={RotateCcw}
+                      disabled={disabledReason !== null}
+                      onSelect={() => onRerun(row)}
+                    >
+                      {disabledReason ? `재실행 불가 — ${disabledReason}` : '재실행'}
+                    </DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           );
         },
       },
@@ -241,7 +253,7 @@ export function useRunColumns(
         ? [...head, ...stockOnly, ...middle, ...stockMetrics, ...tail]
         : [...head, ...advisorOnly, ...middle, ...advisorMetrics, ...tail],
     );
-  }, [module, onOpen, onCancel, onRerun, rerunDisabledReason]);
+  }, [module, onOpen, onCancel, onRerun, rerunDisabledReason, busyKey]);
 }
 
 /**

@@ -200,22 +200,28 @@ export function useRunActions(options?: { onChanged?: () => void }) {
     ) =>
       run(`cancel:${module}:${target.runId}`, async () => {
         try {
-          const updated =
-            module === 'STOCK'
-              ? await service.stockCollect.cancel(target.runId)
-              : await service.advisor.cancel(target.runId);
-          showToast(
-            `${target.jobDescription} run #${target.runId} 취소 요청 — 다음 종목/단계 경계에서 멈춥니다 (${runStatusLabel(updated.status)})`,
-            'success',
-          );
+          const api = module === 'STOCK' ? service.stockCollect : service.advisor;
+          const latest = await api.run(target.runId);
+          queryClient.setQueryData(quantKeys.run(module, String(target.runId)), latest);
+          if (latest.status !== 'RUNNING') {
+            showToast(
+              `run #${target.runId} 이미 종료되었습니다 (${runStatusLabel(latest.status)})`,
+              'info',
+            );
+            invalidate();
+            return true;
+          }
+          const updated = await api.cancel(target.runId);
+          queryClient.setQueryData(quantKeys.run(module, String(target.runId)), updated);
+          showToast('정지 요청을 전달했습니다', 'success');
           invalidate();
           return true;
         } catch (error) {
-          showApiErrorToast(`run #${target.runId} 취소에 실패했습니다.`, error);
+          showApiErrorToast(`run #${target.runId} 정지 요청에 실패했습니다.`, error);
           return false;
         }
       }),
-    [run, invalidate],
+    [run, invalidate, queryClient],
   );
 
   /** 종료 stock run 재실행 — metadata 에서 인자를 복원하고 resetCheckpoint 는 호출부(Switch)가 정한다. */

@@ -1,0 +1,185 @@
+/*
+ * mermaid-diagram.css
+ *
+ * 본문 mermaid 다이어그램 블록(hooks/useMermaidDiagrams.ts)과 크게 보기 모달 캔버스
+ * (components/post/MermaidViewerDialog.tsx) 스타일.
+ *
+ * - 테두리·글자·아이콘 색은 @hvy/ui 토큰만 쓴다. SVG 내부 색은 mermaid 테마(default/dark)가 소유한다.
+ * - .public-* 계열은 쓰지 않는다 — 레이어 밖이라 상태 변형을 덮어 버린다.
+ * - html { overflow-x: clip } 환경이라 넓은 다이어그램은 반드시 캔버스 안에서만 스크롤시킨다
+ *   (.table-scroll 과 같은 이유).
+ */
+
+/* ── 블록 ── */
+
+:where(.content) .mermaid-block {
+  border: 1px solid var(--line-soft);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+/* ── 툴바: 원본을 숨긴 대신 복사 기능을 찾을 수 있도록 hover 없이 항상 보인다 ── */
+
+.mermaid-block__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem 0.375rem 0.875rem;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--color-dl-fg-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.mermaid-block__label {
+  /* D2Coding·JetBrains Mono 는 400/700 두 굵기뿐이다 */
+  flex-shrink: 0;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.mermaid-block__hint {
+  display: none;
+  /* 좁은 폭에서 줄바꿈되면 툴바 높이가 들쭉날쭉해진다 — 한 줄로 두고 넘치면 말줄임 */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mermaid-block[data-fit="scroll"] .mermaid-block__hint {
+  display: inline;
+}
+
+.mermaid-block__actions {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+/* :where(.content) a 의 밑줄·링크색보다 구체도가 높아 새 탭 링크에도 그대로 적용된다 */
+.mermaid-block__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--color-dl-icon);
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.mermaid-block__btn:hover {
+  background: var(--color-dl-option-hover);
+  color: var(--color-dl-icon-hover);
+}
+
+.mermaid-block__btn:focus-visible {
+  outline: 2px solid var(--color-dl-primary);
+  outline-offset: 1px;
+}
+
+/* 모바일에서 축소 하한에 걸린 다이어그램은 크게 보기가 주 동선이라 버튼을 강조한다 */
+.mermaid-block[data-fit="scroll"] .mermaid-block__btn--expand {
+  border-color: var(--color-dl-primary);
+  color: var(--color-dl-primary-ink);
+}
+
+/* 렌더 실패 시 크게 보기는 볼 것이 없다 — 복사와 새 탭 편집(문법 수정)만 남긴다 */
+.mermaid-block[data-mermaid-state="error"] .mermaid-block__btn--expand {
+  display: none;
+}
+
+/* ── 캔버스 ── */
+
+.mermaid-block__canvas {
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.mermaid-block__canvas:focus-visible {
+  outline: 2px solid var(--color-dl-primary);
+  outline-offset: -2px;
+}
+
+.mermaid-block__canvas > svg {
+  display: block;
+  height: auto;
+  margin-inline: auto;
+}
+
+/* 가로 스크롤 중에는 가운데 정렬이 왼쪽 끝을 스크롤 밖으로 밀어내므로 왼쪽에 붙인다 */
+.mermaid-block[data-fit="scroll"] .mermaid-block__canvas > svg {
+  margin-inline: 0;
+}
+
+.mermaid-block[data-mermaid-state="error"] .mermaid-block__canvas {
+  display: none;
+}
+
+.mermaid-block__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 6rem;
+  margin: 0;
+  color: var(--color-dl-fg-muted);
+  font-size: 0.875rem;
+}
+
+/* 렌더 실패 시 드러나는 원본 — 블록 테두리 안에 붙도록 여백·라운드를 없앤다 */
+.mermaid-block > pre[class] {
+  margin: 0;
+  border-radius: 0;
+}
+
+.mermaid-block__error {
+  margin: 0;
+  padding: 0.5rem 0.875rem;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--color-dl-warning-ink);
+  font-size: 0.8125rem;
+}
+
+/* mermaid 는 라벨을 foreignObject 안 <p> 로 그린다. 본문 문단 여백이 번지면 라벨이 밀려 잘린다 */
+.mermaid-block__canvas svg p,
+.mermaid-viewer__canvas svg p {
+  margin: 0;
+}
+
+/* ── 크게 보기 모달 ── */
+
+.mermaid-viewer__canvas {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* 맞춤: viewBox 비율을 유지한 채 가로·세로 모두 화면 안에 들어오게 가운데에 둔다 */
+.mermaid-viewer__canvas[data-zoom="fit"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* 원본 크기: 캔버스 자체 스크롤로 이동한다. margin:auto 는 작은 다이어그램만 가운데로 보낸다 */
+.mermaid-viewer__canvas[data-zoom="actual"] {
+  display: flex;
+  overflow: auto;
+}
+
+.mermaid-viewer__canvas > svg {
+  display: block;
+  flex: none;
+  margin: auto;
+}
+
+.mermaid-viewer__canvas:empty::before {
+  content: "다이어그램을 그리는 중…";
+  color: var(--color-dl-fg-muted);
+}

@@ -79,7 +79,40 @@ import {
 import translations from 'ckeditor5/translations/ko.js';
 import { useEffect, useRef, useState } from 'react';
 import 'ckeditor5/ckeditor5.css';
+import { normalizeCodeBlockClasses } from '@/lib/mermaidBlock';
 import { sanitizeThemeHostileStyles } from '@/util/contentStyleSanitizer';
+
+/**
+ * 코드블록 언어 목록. 첫 항목이 미지정 블록의 기본값이다.
+ * 여기 없는 언어 클래스는 에디터가 plaintext 로 읽고 GHS 가 원래 클래스만 덧붙여 보존한다
+ * (`language-plaintext language-X`) — mermaid 를 넣은 이유가 이것이다.
+ */
+const CODE_BLOCK_LANGUAGES = [
+  { language: 'plaintext', label: 'Plain text' },
+  { language: 'javascript', label: 'JavaScript' },
+  { language: 'typescript', label: 'TypeScript' },
+  { language: 'python', label: 'Python' },
+  { language: 'java', label: 'Java' },
+  { language: 'css', label: 'CSS' },
+  { language: 'html', label: 'HTML' },
+  { language: 'sql', label: 'SQL' },
+  { language: 'shell', label: 'Shell' },
+  { language: 'json', label: 'JSON' },
+  { language: 'xml', label: 'XML' },
+  { language: 'yaml', label: 'YAML' },
+  { language: 'mermaid', label: 'Mermaid' },
+] as const;
+
+const CODE_BLOCK_LANGUAGE_IDS = CODE_BLOCK_LANGUAGES.map((entry) => entry.language);
+
+/**
+ * 에디터에 넣기 직전의 본문 정리 — 과거 글의 `language-plaintext language-X` 이중 클래스를
+ * 단일 클래스로 바꿔, 에디터가 X 를 언어로 인식하게 한다(그대로 두면 plaintext 로 읽혀
+ * 마크다운 모드 왕복 시 X 가 사라진다). 저장하면 정리된 형태로 반영된다.
+ */
+function toEditorData(data: string | undefined): string {
+  return normalizeCodeBlockClasses(data ?? '', CODE_BLOCK_LANGUAGE_IDS);
+}
 
 interface EditorInitErrorProps {
   message: string;
@@ -538,7 +571,7 @@ function createEditorConfig({
     },
     // v48부터 initialData/placeholder는 config.root 하위로 이동 (최상위 형식은 deprecated)
     root: {
-      initialData: defaultData,
+      initialData: toEditorData(defaultData),
       placeholder: '내용을 입력하세요...',
     },
     language: 'ko',
@@ -557,20 +590,7 @@ function createEditorConfig({
     list: { properties: { styles: true, startIndex: true, reversed: true } },
     mention: { feeds: [{ marker: '@', feed: [] }] },
     codeBlock: {
-      languages: [
-        { language: 'plaintext', label: 'Plain text' },
-        { language: 'javascript', label: 'JavaScript' },
-        { language: 'typescript', label: 'TypeScript' },
-        { language: 'python', label: 'Python' },
-        { language: 'java', label: 'Java' },
-        { language: 'css', label: 'CSS' },
-        { language: 'html', label: 'HTML' },
-        { language: 'sql', label: 'SQL' },
-        { language: 'shell', label: 'Shell' },
-        { language: 'json', label: 'JSON' },
-        { language: 'xml', label: 'XML' },
-        { language: 'yaml', label: 'YAML' },
-      ],
+      languages: [...CODE_BLOCK_LANGUAGES],
     },
     autosave: {
       save(editor: any) {
@@ -701,7 +721,7 @@ export default function CKEditorWrapper({
     const dataChanged = prevDefaultDataRef.current !== nextData;
 
     if (postIdChanged || dataChanged) {
-      editorInstance.setData(nextData);
+      editorInstance.setData(toEditorData(nextData));
       prevDefaultDataRef.current = nextData;
       prevPostIdRef.current = postId;
     }
@@ -716,10 +736,11 @@ export default function CKEditorWrapper({
       <CKEditor
         onReady={(editor: any) => {
           const nextData = defaultData ?? '';
+          const editorData = toEditorData(nextData);
           setInitError(null);
           setEditorInstance(editor);
-          if (nextData !== editor.getData()) {
-            editor.setData(nextData);
+          if (editorData !== editor.getData()) {
+            editor.setData(editorData);
           }
           prevDefaultDataRef.current = nextData;
           prevPostIdRef.current = postId;

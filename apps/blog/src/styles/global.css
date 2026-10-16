@@ -7,6 +7,7 @@
 @import "@hvy/ui/theme/blog-dark.css";
 @import "./content-typography.css";
 @import "./code-highlight.css";
+@import "./mermaid-diagram.css";
 
 /* 워크스페이스 패키지(@hvy/ui)의 클래스도 Tailwind 가 스캔하도록 알려준다 */
 @source "../../../../packages/ui/src";

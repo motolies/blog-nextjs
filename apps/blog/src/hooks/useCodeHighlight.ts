@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { copyToClipboard } from '@/lib/clipboard';
+import { CHECK_ICON, COPY_ICON, FAIL_ICON } from '@/lib/inlineIcons';
 
 /**
  * 포스트 본문 내 코드 블록에 Prism.js 신택스 하이라이팅과 복사 버튼을 적용하는 훅.
@@ -85,12 +87,6 @@ export function useCodeHighlight(postBody: string) {
   }, [postBody]);
 }
 
-const COPY_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
-
-const CHECK_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
-
-const FAIL_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
-
 function attachLineNumbers(container: HTMLElement) {
   container.querySelectorAll('pre').forEach((pre) => {
     if (pre.querySelector('.code-line-numbers')) return;
@@ -151,40 +147,6 @@ function readCodeText(pre: HTMLElement): string {
   });
 
   return text;
-}
-
-/**
- * 클립보드에 텍스트를 쓰고 **실제 성공 여부**를 돌려준다.
- * 비보안 컨텍스트(http)나 권한 거부로 Clipboard API 가 막히면 execCommand 로 폴백하되,
- * 폴백의 반환값까지 확인한다 — 실패를 성공으로 표시하면 사용자가 빈 클립보드를 붙여넣게 된다.
- */
-async function copyToClipboard(text: string): Promise<boolean> {
-  if (!text) return false;
-
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.setAttribute('readonly', '');
-    textarea.style.position = 'fixed';
-    textarea.style.top = '0';
-    textarea.style.opacity = '0';
-    document.body.appendChild(textarea);
-    textarea.select();
-    // iOS Safari 는 select() 만으로 범위가 잡히지 않는다
-    textarea.setSelectionRange(0, text.length);
-
-    let copied = false;
-    try {
-      copied = document.execCommand('copy');
-    } catch {
-      copied = false;
-    }
-    document.body.removeChild(textarea);
-    return copied;
-  }
 }
 
 function attachCopyButtons(container: HTMLElement, signal: AbortSignal) {

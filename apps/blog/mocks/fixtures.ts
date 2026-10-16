@@ -167,6 +167,49 @@ function postBody(id: number): string {
   ].join('\n');
 }
 
+/** mermaid 다이어그램을 검증할 포스트. 본문이 HTML 이라 표시 파이프라인(DOMParser → 블록 감싸기)을 그대로 탄다. */
+export const MERMAID_POST_ID = 3;
+
+/**
+ * 다이어그램 표시 검증용 본문 — 실제 저장 형태 두 가지(이중 클래스·단일 클래스)와 폭·실패 경계를 담는다.
+ * - 이중 클래스 flowchart: 에디터 언어 목록에 mermaid 가 없던 시절 글의 형태
+ * - 넓은 LR: 모바일에서 최소 배율에 걸려 가로 스크롤로 넘어가는 경우
+ * - 긴 sequence: 세로로 긴 경우(페이지 스크롤에 맡긴다)
+ * - 문법 오류: 원본 코드블록으로 대체 표시되는 경우
+ */
+const MERMAID_POST_BODY = [
+  '<p>목 데이터 — mermaid 다이어그램 렌더 경로를 검증합니다.</p>',
+  '<h2>이중 클래스 flowchart</h2>',
+  '<pre><code class="language-plaintext language-mermaid">flowchart TD',
+  '    A[요청 수신] --&gt; B{인증 확인}',
+  '    B --&gt;|성공| C[처리 실행]',
+  '    B --&gt;|실패| D[401 반환]',
+  '    C --&gt; E[완료]</code></pre>',
+  '<h2>넓은 LR 다이어그램</h2>',
+  '<pre><code class="language-mermaid">flowchart LR',
+  '    A[클라이언트] --&gt; B[API 게이트웨이] --&gt; C[인증 서버] --&gt; D[주문 서비스]',
+  '    D --&gt; E[결제 서비스] --&gt; F[재고 서비스] --&gt; G[알림 서비스] --&gt; H[완료]</code></pre>',
+  '<h2>긴 sequence 다이어그램</h2>',
+  '<pre><code class="language-mermaid">sequenceDiagram',
+  '    participant U as 사용자',
+  '    participant O as 주문 서비스',
+  '    participant P as 결제 서비스',
+  '    participant I as 재고 서비스',
+  '    U-&gt;&gt;O: 주문 생성 요청',
+  '    O-&gt;&gt;I: 재고 확인',
+  '    I--&gt;&gt;O: 재고 충분',
+  '    O-&gt;&gt;P: 결제 요청',
+  '    P--&gt;&gt;O: 결제 완료',
+  '    O-&gt;&gt;I: 재고 차감',
+  '    I--&gt;&gt;O: 차감 완료',
+  '    O--&gt;&gt;U: 주문 완료</code></pre>',
+  '<h2>문법 오류</h2>',
+  '<pre><code class="language-mermaid">flowchart TD',
+  '    A[시작] --&gt;</code></pre>',
+  '<h2>일반 코드</h2>',
+  '<pre><code class="language-javascript">console.log(\'mermaid 가 아닌 코드블록은 그대로\');</code></pre>',
+].join('\n');
+
 export interface MockPost {
   id: number;
   subject: string;
@@ -185,7 +228,7 @@ export const POSTS: readonly MockPost[] = Array.from({ length: 12 }, (_, i) => {
   return {
     id,
     subject: `테스트 포스트 ${id}`,
-    body: postBody(id),
+    body: id === MERMAID_POST_ID ? MERMAID_POST_BODY : postBody(id),
     categoryId: POST_CATEGORY_CYCLE[i % POST_CATEGORY_CYCLE.length] as string,
     viewCount: id * 7,
     created: isoAt(i),

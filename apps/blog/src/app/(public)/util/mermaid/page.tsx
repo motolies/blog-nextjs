@@ -17,6 +17,7 @@ import { useTheme } from 'next-themes';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { MERMAID_FONT_FAMILY, parseMermaidEditorHash } from '@/lib/mermaidBlock';
 import { downloadBlob, downloadDataUrl } from '@/util/browserUtils';
 
 const SAMPLE_CODES = {
@@ -534,6 +535,9 @@ export default function MermaidPage() {
 
   useEffect(() => {
     setIsClient(true);
+    // 본문 다이어그램의 "새 탭에서 편집"이 #code= 로 넘긴 소스를 이어받는다(없거나 깨졌으면 기본 예제 유지)
+    const sharedCode = parseMermaidEditorHash(window.location.hash);
+    if (sharedCode) setCode(sharedCode);
   }, []);
 
   // 다이어그램 색은 mermaid 가 소유한다 — 테마를 따라가지 않으면 다크에서 노드 글자(#333)가 묻힌다.
@@ -548,7 +552,7 @@ export default function MermaidPage() {
           startOnLoad: false,
           theme: isDark ? 'dark' : 'default',
           securityLevel: 'loose',
-          fontFamily: '"JetBrains Mono", "D2Coding", monospace',
+          fontFamily: MERMAID_FONT_FAMILY,
         });
         setIsMermaidReady(true);
       } catch (e: any) {

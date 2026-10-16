@@ -31,6 +31,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useCodeHighlight } from '@/hooks/useCodeHighlight';
+import { useMermaidDiagrams, wrapMermaidBlocks } from '@/hooks/useMermaidDiagrams';
 import { showApiErrorToast } from '@/lib/apiErrorToast';
 import { buildSearchHref } from '@/lib/searchHref';
 import { searchObjectInit } from '@/model/searchObject';
@@ -42,6 +43,7 @@ import { sanitizeThemeHostileStyles } from '@/util/contentStyleSanitizer';
 import { formatLocalDate, formatUtcToLocal } from '@/util/dateTimeUtil';
 import { fileLink } from '@/util/fileLink';
 import { usePostNavigationShortcut } from '@/util/usePostNavigationShortcut';
+import MermaidViewerDialog from './MermaidViewerDialog';
 import TableOfContents from './TableOfContents';
 import TagGroupComponent from './TagGroupComponent';
 
@@ -100,6 +102,8 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
   const [relatedPosts, setRelatedPosts] = useState<RelatedPost[]>([]);
   const [series, setSeries] = useState<Series | null>(null);
   const [seriesExpanded, setSeriesExpanded] = useState<boolean>(false);
+  // 크게 보기로 열린 다이어그램의 원본 소스 — null 이면 닫힘
+  const [viewerSource, setViewerSource] = useState<string | null>(null);
 
   const prevPostId = prevNext?.prev || 0;
   const nextPostId = prevNext?.next || 0;
@@ -114,6 +118,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
 
   usePostNavigationShortcut(['ArrowLeft', 'ArrowRight'], onKeyPress);
   useCodeHighlight(postBody);
+  useMermaidDiagrams(postBody, 'post-content', setViewerSource);
 
   useEffect(() => {
     setPostPublic(post?.public);
@@ -162,6 +167,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
     initIntellij(doc);
     initLinkNewTab(doc);
     wrapTables(doc);
+    wrapMermaidBlocks(doc);
     setPostBody(doc.head.innerHTML + doc.body.innerHTML);
   }, [post?.body]);
 
@@ -576,6 +582,7 @@ export default function PostComponent({ post, prevNext }: PostComponentProps) {
             <div className="border-t border-[color:var(--line-soft)] px-(--public-gutter) py-(--public-pad-panel)">
               {postContent}
             </div>
+            <MermaidViewerDialog source={viewerSource} onClose={() => setViewerSource(null)} />
 
             <div className="border-t border-[color:var(--line-soft)] px-(--public-gutter) py-(--public-pad-panel)">
               {/* 단일 컬럼 구간의 트랙 하한을 0 으로 — grid 아이템의 min-width:auto 는 자동 최소 크기가

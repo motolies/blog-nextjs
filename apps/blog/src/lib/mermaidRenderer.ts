@@ -1,8 +1,9 @@
 import type { Mermaid } from 'mermaid';
 import { MERMAID_FONT_FAMILY } from './mermaidBlock';
+import { type MermaidTheme, mermaidThemeOptions } from './mermaidTheme';
 
-/** mermaid 내장 테마 — 사이트 라이트/다크에 대응한다. /util/mermaid 와 같은 선택이다. */
-export type MermaidTheme = 'default' | 'dark';
+// 테마 정의는 mermaidTheme.ts 가 소유한다 — /util/mermaid 에디터와 같은 설정을 쓰도록 거기서 가져온다.
+export { type MermaidTheme, toMermaidTheme } from './mermaidTheme';
 
 let mermaidPromise: Promise<Mermaid> | null = null;
 let fontsPromise: Promise<void> | null = null;
@@ -43,11 +44,6 @@ function waitForFonts(): Promise<void> {
   return fontsPromise;
 }
 
-/** next-themes 의 resolvedTheme('light' | 'dark') 을 mermaid 테마 이름으로 옮긴다. */
-export function toMermaidTheme(resolvedTheme: string): MermaidTheme {
-  return resolvedTheme === 'dark' ? 'dark' : 'default';
-}
-
 /**
  * 렌더된 SVG 의 원래 크기. mermaid 는 width="100%" + max-width 로 내보내 화면 폭이 원래 크기를
  * 가리므로, 화면과 무관한 viewBox 를 기준으로 삼는다(없으면 현재 박스로 대신한다).
@@ -82,7 +78,7 @@ export function renderMermaid(id: string, source: string, theme: MermaidTheme): 
       startOnLoad: false,
       securityLevel: 'strict',
       suppressErrorRendering: true,
-      theme,
+      ...mermaidThemeOptions(theme),
       fontFamily: MERMAID_FONT_FAMILY,
     });
     try {

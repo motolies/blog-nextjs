@@ -18,6 +18,7 @@ import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MERMAID_FONT_FAMILY, parseMermaidEditorHash } from '@/lib/mermaidBlock';
+import { MERMAID_EXPORT_BACKGROUND, mermaidThemeOptions, toMermaidTheme } from '@/lib/mermaidTheme';
 import { downloadBlob, downloadDataUrl } from '@/util/browserUtils';
 
 const SAMPLE_CODES = {
@@ -340,9 +341,9 @@ const SAMPLE_CODES = {
     F["푸터 (48px)"]:4
 
     style H fill:#333,color:#fff
-    style N fill:#e1f5fe,stroke:#01579b
-    style C fill:#fff,stroke:#333
-    style F fill:#f4f4f4`,
+    style N fill:#e1f5fe,stroke:#01579b,color:#333
+    style C fill:#fff,stroke:#333,color:#333
+    style F fill:#f4f4f4,color:#333`,
     },
     {
       name: '시스템 아키텍처',
@@ -428,9 +429,12 @@ const SAMPLE_TYPES = [
 // 화면 맞춤(fit) 시 캔버스 가장자리에 남길 여백(px)
 const FIT_PADDING = 16;
 
-// 내보내기용 svg 복제본 생성: 프리뷰 줌/팬 스타일을 제거하고 다이어그램 고유 크기를 width/height로 명시
+// 내보내기용 svg 복제본 생성: 프리뷰 줌/팬 스타일을 제거하고 다이어그램 고유 크기를 width/height로 명시한다.
+// 배경은 복제본 맨 앞에 <rect> 로 넣는다 — 다이어그램 색이 이 배경을 전제로 하고, CSS background-color 는
+// 벡터 편집기·슬라이드 도구가 무시해서 SVG 파일에는 도형으로 남겨야 한다.
 const createExportSvg = (
   svgElement: SVGSVGElement,
+  background: string,
 ): { clone: SVGSVGElement; width: number; height: number } => {
   const clone = svgElement.cloneNode(true) as SVGSVGElement;
   clone.style.transform = '';
@@ -441,11 +445,16 @@ const createExportSvg = (
   const viewBox = svgElement.viewBox?.baseVal;
   let intrinsicWidth = viewBox?.width ?? 0;
   let intrinsicHeight = viewBox?.height ?? 0;
+  // viewBox 원점은 음수일 수 있다(sequence·block). viewBox 가 없으면 사용자 좌표 원점(0,0)이 기준이다.
+  let originX = viewBox?.x ?? 0;
+  let originY = viewBox?.y ?? 0;
 
   if (intrinsicWidth <= 0 || intrinsicHeight <= 0) {
     const bbox = svgElement.getBBox();
     intrinsicWidth = bbox.width;
     intrinsicHeight = bbox.height;
+    originX = 0;
+    originY = 0;
   }
 
   const width = Math.ceil(intrinsicWidth);
@@ -453,13 +462,24 @@ const createExportSvg = (
   clone.setAttribute('width', String(width));
   clone.setAttribute('height', String(height));
 
+  // 크기를 올림하며 생기는 가장자리 틈까지 덮도록 사방 1px 여유를 둔다.
+  // fill 속성(style 을 읽지 않는 도구용)과 인라인 style(다이어그램 스타일시트보다 우선)을 함께 준다.
+  const backdrop = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  backdrop.setAttribute('x', String(originX - 1));
+  backdrop.setAttribute('y', String(originY - 1));
+  backdrop.setAttribute('width', String(intrinsicWidth + 2));
+  backdrop.setAttribute('height', String(intrinsicHeight + 2));
+  backdrop.setAttribute('fill', background);
+  backdrop.setAttribute('style', `fill:${background};stroke:none`);
+  clone.insertBefore(backdrop, clone.firstChild);
+
   return { clone, width, height };
 };
 
 export default function MermaidPage() {
   const router = useRouter();
   const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === 'dark';
+  const diagramTheme = toMermaidTheme(resolvedTheme);
   const [code, setCode] = useState(SAMPLE_CODES.flowchart[0].code);
   const [scaleMode, setScaleMode] = useState('ratio');
   const [scale, setScale] = useState(2);
@@ -540,8 +560,9 @@ export default function MermaidPage() {
     if (sharedCode) setCode(sharedCode);
   }, []);
 
-  // 다이어그램 색은 mermaid 가 소유한다 — 테마를 따라가지 않으면 다크에서 노드 글자(#333)가 묻힌다.
-  // 이미 그려진 SVG 는 initialize 만으로 바뀌지 않으므로 아래 렌더 effect 가 isDark 에도 반응한다.
+  // 다이어그램 색은 mermaid 가 소유한다 — 테마를 따라가지 않으면 다크에서 글자가 배경에 묻힌다.
+  // 색·선 두께는 글 본문과 같은 정의(mermaidTheme)를 쓴다 — "새 탭에서 편집"으로 넘어와도 같은 그림이다.
+  // 이미 그려진 SVG 는 initialize 만으로 바뀌지 않으므로 아래 렌더 effect 가 diagramTheme 에도 반응한다.
   useEffect(() => {
     if (!isClient) return;
     const initMermaid = async () => {
@@ -550,7 +571,7 @@ export default function MermaidPage() {
         mermaidRef.current = mermaid;
         mermaid.initialize({
           startOnLoad: false,
-          theme: isDark ? 'dark' : 'default',
+          ...mermaidThemeOptions(diagramTheme),
           securityLevel: 'loose',
           fontFamily: MERMAID_FONT_FAMILY,
         });
@@ -560,7 +581,7 @@ export default function MermaidPage() {
       }
     };
     initMermaid();
-  }, [isClient, isDark]);
+  }, [isClient, diagramTheme]);
 
   const renderDiagram = useCallback(
     async (container: HTMLDivElement | null) => {
@@ -630,7 +651,7 @@ export default function MermaidPage() {
     );
 
     return () => clearTimeout(timer);
-  }, [code, isFullscreen, isMermaidReady, renderDiagram, isDark]);
+  }, [code, isFullscreen, isMermaidReady, renderDiagram, diagramTheme]);
 
   useEffect(() => {
     const target = isFullscreen ? fullscreenPreviewRef.current : previewRef.current;
@@ -650,7 +671,8 @@ export default function MermaidPage() {
         return;
       }
 
-      const { clone, width, height } = createExportSvg(svgElement);
+      const background = MERMAID_EXPORT_BACKGROUND[diagramTheme];
+      const { clone, width, height } = createExportSvg(svgElement, background);
 
       // display/visibility 숨김은 빈 이미지가 되므로 화면 밖 배치로 computed style을 유지
       wrapper = document.createElement('div');
@@ -666,7 +688,7 @@ export default function MermaidPage() {
       const pixelRatio =
         scaleMode === 'ratio' ? scale : Math.min(customWidth / width, customHeight / height);
       const dataUrl = await toPng(clone as any, {
-        backgroundColor: 'white',
+        backgroundColor: background,
         width,
         height,
         pixelRatio,
@@ -689,7 +711,7 @@ export default function MermaidPage() {
       return;
     }
     // 화면 줌/팬 스타일이 제거된 복제본을 직렬화해 파일에 transform이 새어나가지 않도록 함
-    const { clone } = createExportSvg(svgElement);
+    const { clone } = createExportSvg(svgElement, MERMAID_EXPORT_BACKGROUND[diagramTheme]);
     const svgData = new XMLSerializer().serializeToString(clone);
     try {
       downloadBlob(
@@ -862,7 +884,8 @@ export default function MermaidPage() {
     onMouseUp: handleMouseUp,
     onMouseLeave: handleMouseUp,
   };
-  const previewAreaClassName = `flex-1 overflow-hidden flex justify-center items-center bg-dl-grid-header border ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`;
+  // 바탕은 내보내기 배경과 같은 표면색이다 — 화면에서 본 그대로 파일에 담긴다
+  const previewAreaClassName = `flex-1 overflow-hidden flex justify-center items-center bg-dl-surface border ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`;
 
   // 일반 모드
   return (

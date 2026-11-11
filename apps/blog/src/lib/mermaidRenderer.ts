@@ -9,6 +9,50 @@ let mermaidPromise: Promise<Mermaid> | null = null;
 let fontsPromise: Promise<void> | null = null;
 let renderQueue: Promise<unknown> = Promise.resolve();
 let diagramSeq = 0;
+const jsonGuardCounts = new WeakMap<object, number>();
+
+/**
+ * task 가 도는 동안 target 이 JSON 직렬화에서 빠지도록 임시 toJSON 을 단다(직렬화 결과는 null 이 된다).
+ * 겹쳐 호출되면 마지막 task 가 끝날 때까지 유지하고, task 가 실패해도 반드시 걷어낸다.
+ * 열거되지 않는 속성이라 target 을 순회하는 코드에는 보이지 않는다.
+ */
+export async function withJsonGuard<T>(target: object, task: () => Promise<T>): Promise<T> {
+  const active = jsonGuardCounts.get(target) ?? 0;
+  if (active === 0) {
+    Object.defineProperty(target, 'toJSON', { value: () => undefined, configurable: true });
+  }
+  jsonGuardCounts.set(target, active + 1);
+  try {
+    return await task();
+  } finally {
+    const remaining = (jsonGuardCounts.get(target) ?? 1) - 1;
+    if (remaining === 0) {
+      jsonGuardCounts.delete(target);
+      Reflect.deleteProperty(target, 'toJSON');
+    } else {
+      jsonGuardCounts.set(target, remaining);
+    }
+  }
+}
+
+/**
+ * mermaid 렌더를 <html> 직렬화 가드 안에서 실행한다. 본문 렌더와 /util/mermaid 에디터가 함께 쓴다.
+ *
+ * block 다이어그램 레이아웃은 디버그 로그 문자열을 만들며 d3 selection 을 JSON.stringify 한다
+ * (로그가 꺼져 있어도 인자는 먼저 평가된다). selection 은 부모로 <html> 을 들고 있고, App Router 에서는
+ * React 가 <html> 에 순환 참조(fiber)를 달아 두어 "Converting circular structure to JSON" 으로 렌더가 죽는다.
+ *
+ * TODO(mermaid-js/mermaid#5530): mermaid 상류의 버그를 앱에서 우회하는 임시 코드다. 상류에서 고쳐진
+ * 버전으로 올리면 제거한다.
+ * - 상류 수정 PR 은 mermaid-js/mermaid#8063 이고, mermaid 12.3.0 에는 아직 들어 있지 않다(2026-11 확인).
+ * - 제거 대상: withJsonGuard, withMermaidRenderGuard, 호출부 두 곳(이 파일의 renderMermaid 와
+ *   /util/mermaid 의 renderDiagram), mermaidRenderer.test.ts.
+ * - 고쳐졌는지는 mermaidRenderer.test.ts 의 감시 테스트가 알려 준다 — mermaid 를 올린 뒤 그 테스트가
+ *   실패하면, 가드를 뺀 채 /util/mermaid 의 Block 샘플이 렌더되는지 확인하고 지운다.
+ */
+export function withMermaidRenderGuard<T>(task: () => Promise<T>): Promise<T> {
+  return withJsonGuard(document.documentElement, task);
+}
 
 /**
  * mermaid 를 처음 필요할 때 한 번만 불러온다. 다이어그램이 없는 글에서는 이 함수가 호출되지 않아
@@ -82,7 +126,7 @@ export function renderMermaid(id: string, source: string, theme: MermaidTheme): 
       fontFamily: MERMAID_FONT_FAMILY,
     });
     try {
-      const { svg } = await mermaid.render(id, source);
+      const { svg } = await withMermaidRenderGuard(() => mermaid.render(id, source));
       return svg;
     } finally {
       // 렌더 도중 예외가 나면 측정용 임시 컨테이너(#d{id})가 남을 수 있다

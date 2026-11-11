@@ -56,6 +56,17 @@ describe('mermaidThemeOptions', () => {
     expect(options.themeVariables.background).toBe(MERMAID_EXPORT_BACKGROUND.dark);
   });
 
+  it.each(['default', 'dark'] as const)(
+    '%s 는 mermaid 12 가 바꾼 기본값 대신 11 때의 레이아웃·모양·노드 폭을 고정한다',
+    (theme) => {
+      const options = mermaidThemeOptions(theme);
+      expect(options.layout).toBe('dagre');
+      expect(options.look).toBe('classic');
+      expect(options.flowchart).toEqual({ wrappingWidth: 200, minNodeWidth: 0 });
+      expect(options.state).toEqual({ wrappingWidth: 200, minNodeWidth: 0 });
+    },
+  );
+
   it('다크는 섹션 색 12칸을 모두 채운다 — 비면 base 가 검정으로 계산한다', () => {
     const { themeVariables } = mermaidThemeOptions('dark');
     for (let index = 0; index < 12; index += 1) {

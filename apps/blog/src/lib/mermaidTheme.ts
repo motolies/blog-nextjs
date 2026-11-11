@@ -7,6 +7,7 @@
  * - 라이트: 내장 `default` 테마의 색을 그대로 쓰고 선 두께만 올린다.
  * - 다크: 내장 `dark` 가 아니라 `base` 위에 팔레트를 쌓는다. 내장 `dark` 는 색 계산 단계에서
  *   선·테두리를 내부 상수로 다시 덮어써 원하는 색이 나오지 않는다.
+ * - 레이아웃·모양·노드 폭 기본값은 mermaid 11 때의 값으로 고정한다(아래 CLASSIC_APPEARANCE 참조).
  * - themeCSS 는 mermaid 내부 클래스명(messageLine0, row-rect-odd, relationshipLine 등)에 기댄다.
  *   mermaid 버전을 올릴 때는 /util/mermaid 샘플 6종을 라이트·다크로 눈으로 확인할 것.
  */
@@ -14,12 +15,27 @@
 /** 사이트 라이트/다크에 대응하는 다이어그램 테마 키. */
 export type MermaidTheme = 'default' | 'dark';
 
-/** mermaid.initialize 에 펼쳐 넣는 테마 관련 설정 묶음. */
-export interface MermaidThemeOptions {
+/**
+ * mermaid 12 가 바꾼 기본값을 11 때의 값으로 되돌리는 설정. 그대로 두면 이미 게시된 글의 다이어그램이
+ * 다시 배치·채색되고, 이 파일의 팔레트·두께도 classic 모양에 맞춘 값이라 어긋난다.
+ *
+ * - layout·look: 12 의 기본은 ELK·neo 다.
+ * - wrappingWidth: 12 는 라벨 줄바꿈 폭을 200 → 120 으로 줄였다.
+ * - minNodeWidth: 12 가 새로 넣은 노드 최소 폭(기본 120)이다. 0 이면 라벨 폭만큼만 그린다.
+ */
+const CLASSIC_APPEARANCE = {
+  layout: 'dagre',
+  look: 'classic',
+  flowchart: { wrappingWidth: 200, minNodeWidth: 0 },
+  state: { wrappingWidth: 200, minNodeWidth: 0 },
+} as const;
+
+/** mermaid.initialize 에 펼쳐 넣는 모양 관련 설정 묶음. */
+export type MermaidThemeOptions = typeof CLASSIC_APPEARANCE & {
   readonly theme: 'default' | 'base';
   readonly themeVariables: Readonly<Record<string, string | number | boolean>>;
   readonly themeCSS: string;
-}
+};
 
 /** 엣지·노드 테두리의 기본 두께(px). 본문 최소 배율 0.7 에서도 1px 이상으로 그려지는 값이다. */
 const STROKE_WIDTH = 2;
@@ -203,11 +219,13 @@ function buildThemeCss(background: string, clusterBorder: string): string {
 const THEME_OPTIONS: Readonly<Record<MermaidTheme, MermaidThemeOptions>> = {
   default: {
     theme: 'default',
+    ...CLASSIC_APPEARANCE,
     themeVariables: { strokeWidth: STROKE_WIDTH },
     themeCSS: buildThemeCss(LIGHT_COLORS.background, LIGHT_COLORS.clusterBorder),
   },
   dark: {
     theme: 'base',
+    ...CLASSIC_APPEARANCE,
     themeVariables: buildDarkThemeVariables(),
     themeCSS: buildThemeCss(D['gray-000'], D['gray-600']),
   },

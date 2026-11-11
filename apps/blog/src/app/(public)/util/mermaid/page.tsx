@@ -18,6 +18,7 @@ import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MERMAID_FONT_FAMILY, parseMermaidEditorHash } from '@/lib/mermaidBlock';
+import { withMermaidRenderGuard } from '@/lib/mermaidRenderer';
 import { MERMAID_EXPORT_BACKGROUND, mermaidThemeOptions, toMermaidTheme } from '@/lib/mermaidTheme';
 import { downloadBlob, downloadDataUrl } from '@/util/browserUtils';
 
@@ -603,7 +604,11 @@ export default function MermaidPage() {
       try {
         await mermaidRef.current.parse(trimmedCode);
         const id = `mermaid-${Date.now()}`;
-        const { svg } = await mermaidRef.current.render(id, trimmedCode);
+        // block 다이어그램이 <html> 직렬화에서 죽지 않도록 본문 렌더와 같은 가드를 씌운다.
+        // 임시 우회다 — 제거 조건은 mermaidRenderer.ts 의 TODO(mermaid-js/mermaid#5530) 참조.
+        const { svg } = await withMermaidRenderGuard<{ svg: string }>(() =>
+          mermaidRef.current.render(id, trimmedCode),
+        );
 
         if (requestId !== renderRequestIdRef.current || !container.isConnected) {
           return;
